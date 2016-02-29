@@ -5,6 +5,38 @@
 
 rm(list=ls())
 
+#fst cline analysis graphic
+jpeg("mar_sites_clines.jpg", res=300, width=9, height=7, units="in")
+map("worldHires", "usa",xlim=c(-100,-78), ylim=c(23,35), 
+	col="gray95", fill=TRUE)
+map("worldHires", "mexico",xlim=c(-100,-78), ylim=c(23,35), 
+	col="gray100", fill=TRUE, add=TRUE)
+map("worldHires", "cuba",xlim=c(-100,-78), ylim=c(23,35), 
+	col="gray100", fill=TRUE, add=TRUE)
+mar.north<-rbind(mar.coor[3,],mar.coor[6,],mar.coor[12,])
+mar.south<-rbind(mar.coor[1,],mar.coor[8,],mar.coor[10,])
+
+arrows(mar.north$lon[1]+1, mar.north$lat[1],
+	mar.north$lon[2]-1, mar.north$lat[2],
+	col="darkgreen", lwd=2,length=0.15, code=3)
+arrows(mar.north$lon[2]+1, mar.north$lat[2],
+	mar.north$lon[3], mar.north$lat[3]+.25,
+	col="darkgreen", lwd=2,length=0.15, code=3)
+
+arrows(mar.south$lon[1]+1, mar.south$lat[1],
+	mar.south$lon[2]-1, mar.south$lat[2],
+	col="darkblue", lwd=2,length=0.15, code=3)
+arrows(mar.south$lon[2]+.75, mar.south$lat[2]-.25,
+	mar.south$lon[3], mar.south$lat[3]-.35,
+	col="darkblue", lwd=2,length=0.15, code=3)
+arrows(mar.north$lon+.25, mar.north$lat-.25,
+	mar.south$lon+.25,mar.south$lat+.25,
+	col="darkcyan", lwd=2,length=0.15, code=3)
+text(mar.north$lon, mar.north$lat, labels=mar.north$site, 
+	col="dark green", cex=1.25)
+text(mar.south$lon, mar.south$lat, labels=mar.south$site, 
+	col="dark blue", cex=1.25)
+dev.off()
 
 #########################################################################
 #***********************************************************************#

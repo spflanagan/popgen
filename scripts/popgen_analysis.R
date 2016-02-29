@@ -4,7 +4,7 @@
 #made from used analyses from fst_cline_analysis and population_structure
 
 rm(list=ls())
-
+setwd("E:/ubuntushare/popgen")
 library(ade4)
 library(lme4)
 library(maps)
@@ -21,8 +21,9 @@ library(gdata)
 ###################################FILES#####################################
 #***************************************************************************#
 #############################################################################
-summ.dat<-read.table("E://ubuntushare//stacks//populations//batch_1.sumstats.tsv",
+summ.dat<-read.table("results/stacks/populations/batch_1.sumstats.tsv",
 	sep='\t', skip=12, header=T, comment.char="")
+ld.hwe<-read.table("results/stacks/populations/ld.hwe.whitelist.txt")
 
 contigs<-read.table("E://ubuntushare//linkage_map//ordered_contigs_denovo50.txt",
 	sep='\t', header=T)
@@ -36,24 +37,21 @@ contigs<-read.table("E://ubuntushare//linkage_map//ordered_contigs_denovo50.txt"
 	dup.scaff<-contigs$Scaffold %in% as.factor(names(mult.lg))
 use.contigs<-contigs[!dup.scaff,]
 
-catalog<-read.delim("E://ubuntushare//stacks//batch_1.catalog.tags.tsv", 
+catalog<-read.delim("results/stacks/batch_1.catalog.tags.tsv", 
 	header=F)
-sig.diff<-read.delim("E://ubuntushare//fst_geographical_clines//fst_geographical_clines//fst_sig_diff_4cline.txt", 
-	header=T, sep='\t')
+
 mar.coor<-read.csv("E://Docs//PopGen//marine_coordinates.csv", header=T)
 fw.coor<-read.csv("E://Docs//PopGen//fw_coordinates.csv", header=T)
-m.f.summ.dat<-read.table("E://ubuntushare//stacks//populations_sex//batch_1.sumstats.tsv",
+m.f.summ.dat<-read.table("results//stacks//populations_sex//batch_1.sumstats.tsv",
 	sep='\t', skip=2, header=T, comment.char="")
-sig.diff<-read.delim("E://ubuntushare//fst_geographical_clines//fst_geographical_clines//fst_sig_diff.txt", header=T, sep='\t')
-
-dist<-read.table("C:\\Users\\sflanagan\\Dropbox\\RAD\\goegraphical_distances.txt", 
+dist<-read.table("E://Docs//PopGen//geographical_distances.txt", 
 	header=T, row.names=1, sep='\t')
-pwise.fst<-read.table("E:\\ubuntushare\\stacks\\populations\\batch_1.fst_summary.tsv",
+pwise.fst<-read.table("results\\stacks\\populations\\batch_1.fst_summary.tsv",
 	 header=T, row.names=1, sep='\t')
 	pwise.fst<-rbind(pwise.fst,rep(NA, ncol(pwise.fst)))
 	rownames(pwise.fst)<-colnames(pwise.fst)
 
-setwd("E://Docs//PopGen")
+#setwd("E://Docs//PopGen")
 #############################################################################
 #***************************************************************************#
 #################################FUNCTIONS###################################
@@ -173,48 +171,34 @@ mar.coor$lon<-(-1*mar.coor$lon)
 fw.coor$lon<-(-1*fw.coor$lon)
 
 jpeg("mar_sites_map.jpg", res=300, width=9, height=7, units="in")
-map("worldHires", "usa",xlim=c(-100,-78), ylim=c(23,35), 
+map("worldHires", "usa",xlim=c(-100,-76), ylim=c(23,35.5), 
 	col="gray90", fill=TRUE)
-map("worldHires", "mexico",xlim=c(-100,-78), ylim=c(23,35), 
+map("worldHires", "mexico",xlim=c(-100,-76), ylim=c(23,35.5), 
 	col="gray95", fill=TRUE, add=TRUE)
-map("worldHires", "cuba",xlim=c(-100,-78), ylim=c(23,35), 
+map("worldHires", "cuba",xlim=c(-100,-76), ylim=c(23,35), 
 	col="gray95", fill=TRUE, add=TRUE)
-#points(mar.coor$lon, mar.coor$lat,  col="red", cex=1, pch=19)
-text(mar.coor$lon, mar.coor$lat, labels=mar.coor$site, col="red")
+points(mar.coor$lon, mar.coor$lat,  col="black", cex=1, pch=19)
+abline(h=c(25,30,35),lty=3)
+abline(v=c(-80,-85,-90,-95,-100),lty=3)
+text(x=c(-99.5,-99.5,-99.5),y=c(25,30,35),c("25N","30N","35N"))
+text(x=c(-80,-85,-90,-95),y=rep(35.3,4),c("80W","85W","90W","95W"))
+text(y=26,x=-90,"Gulf of Mexico")
+text(x=-88,y=32,"USA")
+text(x=-78,y=29.5,"Atlantic Ocean")
+text(x=-96,y=26,"TXSP",font=2)
+text(x=-96.4,y=27,"TXCC",font=2)
+text(x=-94,y=29,"TXCB",font=2)
+text(x=-88,y=29.7,"ALST",font=2)
+text(x=-85.7,y=29.2,"FLSG",font=2)
+text(x=-84,y=28.8,"FLKB",font=2)
+text(x=-83.6,y=27.6,"FLFD",font=2)
+text(x=-82.8,y=26,"FLSI",font=2)
+text(x=-79.5,y=25,"FLAB",font=2)
+text(x=-79,y=26.2,"FLPB",font=2)
+text(x=-79,y=27.2,"FLHB",font=2)
+text(x=-79.4,y=28.2,"FLCC",font=2)
 dev.off()
 
-#fst cline analysis graphic
-jpeg("mar_sites_clines.jpg", res=300, width=9, height=7, units="in")
-map("worldHires", "usa",xlim=c(-100,-78), ylim=c(23,35), 
-	col="gray95", fill=TRUE)
-map("worldHires", "mexico",xlim=c(-100,-78), ylim=c(23,35), 
-	col="gray100", fill=TRUE, add=TRUE)
-map("worldHires", "cuba",xlim=c(-100,-78), ylim=c(23,35), 
-	col="gray100", fill=TRUE, add=TRUE)
-mar.north<-rbind(mar.coor[3,],mar.coor[6,],mar.coor[12,])
-mar.south<-rbind(mar.coor[1,],mar.coor[8,],mar.coor[10,])
-
-arrows(mar.north$lon[1]+1, mar.north$lat[1],
-	mar.north$lon[2]-1, mar.north$lat[2],
-	col="darkgreen", lwd=2,length=0.15, code=3)
-arrows(mar.north$lon[2]+1, mar.north$lat[2],
-	mar.north$lon[3], mar.north$lat[3]+.25,
-	col="darkgreen", lwd=2,length=0.15, code=3)
-
-arrows(mar.south$lon[1]+1, mar.south$lat[1],
-	mar.south$lon[2]-1, mar.south$lat[2],
-	col="darkblue", lwd=2,length=0.15, code=3)
-arrows(mar.south$lon[2]+.75, mar.south$lat[2]-.25,
-	mar.south$lon[3], mar.south$lat[3]-.35,
-	col="darkblue", lwd=2,length=0.15, code=3)
-arrows(mar.north$lon+.25, mar.north$lat-.25,
-	mar.south$lon+.25,mar.south$lat+.25,
-	col="darkcyan", lwd=2,length=0.15, code=3)
-text(mar.north$lon, mar.north$lat, labels=mar.north$site, 
-	col="dark green", cex=1.25)
-text(mar.south$lon, mar.south$lat, labels=mar.south$site, 
-	col="dark blue", cex=1.25)
-dev.off()
 
 
 ###############SUMMARY STATS PER POP######################################
@@ -301,11 +285,11 @@ dev.off()
 #Purpose: Analyze fst data
 #Mantel test using geographical distances and fsts
 
-fsts<-t(fsts)
-TXCC<-rep(NA,nrow(fsts))
-fsts<-cbind(fsts,TXCC)
+fsts<-t(pwise.fst)
+TXCC<-rep(NA,nrow(pwise.fst))
+fsts<-cbind(pwise.fst,TXCC)
 
-ibd<-mantel.rtest(as.dist(dist),as.dist(fsts))
+ibd<-mantel.rtest(as.dist(dist),as.dist(pwise.fst))
 #Monte-Carlo test
 #Observation: 0.675948 
 #Call: mantelnoneuclid(m1 = m1, m2 = m2, nrepet = nrepet)
@@ -320,7 +304,8 @@ ibd<-mantel.rtest(as.dist(dist),as.dist(fsts))
 #########################################################################
 #dat.plink<-read.PLINK("E://ubuntushare//stacks//populations//plinkA.raw",
 #	parallel=FALSE)
-dat.plink<-read.PLINK("E://ubuntushare//stacks//populations//ld.hwe.A.raw",
+dat.plink<-read.PLINK(
+	"E:/ubuntushare/popgen/results/stacks/populations/ld.hwe.A.raw",
 	parallel=FALSE)
 #look at alleles
 glPlot(dat.plink, posi="topleft")
@@ -414,7 +399,7 @@ adegenet.groups[,1]<-sub('([[:alpha:]]{5,7})([[:digit:]]{1})$', '\\10\\2',
 #########################################################################
 #get individual names in the correct order from original structure input file
 #str.in<-read.table("E://ubuntushare//stacks//populations//batch_1.structure.str")
-str.in<-read.table("E://ubuntushare//stacks//populations//ld.hwe.pgd.str")
+str.in<-read.table("E://ubuntushare//popgen//results//stacks//populations//ld.hwe.pgd.str")
 inds<-str.in[,1]
 inds<-sub('.*_([ATF]\\w+)[_.].*','\\1', inds)
 inds<-inds[c(TRUE,FALSE)]
@@ -499,7 +484,7 @@ write.table(subset.txsp,"E://ubuntushare//stacks//populations//txsp.indlist",
 #########################################################################
 
 #**************************STARTING WITH PLINK FILES********************#
-ped<-read.table("B:\\ubuntushare\\current_analysis\\ld.hwe.sub.ped", 
+ped<-read.table("E:/ubuntushare/popgen/results/stacks/populations/ld.hwe.sub.ped", 
 	skip = 1, stringsAsFactors=F, colClasses="character")
 ped.pops<-substr(ped[,2],8,11)
 ped.sex<-sub('sample_\\w{4}(\\w+).*[_.].*','\\1', ped[,2])
@@ -524,7 +509,7 @@ write.table(clust.plink,
 
 
 #plink.map -> numbers instead of scaffold_#
-map<-read.table("ld.hwe.sub.map", skip = 1)
+map<-read.table("E:/ubuntushare/popgen/results/stacks/populations/ld.hwe.sub.map", skip = 1)
 chr.nums<-sub('scaffold_','',map[,1])
 map[,1]<-chr.nums
 
@@ -700,7 +685,7 @@ colnames(rep5.bf)[3]<-"Locus"
 
 
 ##############################LOSITAN######################################
-lositan.loci<-read.delim("E://ubuntushare//ld.hwe.lositan.loci", header=T)
+lositan.loci<-read.delim("E://ubuntushare//popgen//stacks//populations//ld.hwe.lositan.loci", header=T)
 lositan.ci<-read.delim("E://ubuntushare//ld.hwe.lositan.ci", header=T, sep='\t')
 
 plot_ci <- function(df.ci, bcolor, mcolor, tcolor) {
