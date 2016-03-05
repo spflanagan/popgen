@@ -21,9 +21,9 @@ library(gdata)
 ###################################FILES#####################################
 #***************************************************************************#
 #############################################################################
-summ.dat<-read.table("results/stacks/populations/batch_1.sumstats.tsv",
+summ.dat<-read.table("sw_results/stacks/populations/batch_1.sumstats.tsv",
 	sep='\t', skip=12, header=T, comment.char="")
-ld.hwe<-read.table("results/stacks/populations/ld.hwe.whitelist.txt")
+ld.hwe<-read.table("sw_results/stacks/populations/ld.hwe.whitelist.txt")
 
 contigs<-read.table("E://ubuntushare//linkage_map//ordered_contigs_denovo50.txt",
 	sep='\t', header=T)
@@ -305,7 +305,7 @@ ibd<-mantel.rtest(as.dist(dist),as.dist(pwise.fst))
 #dat.plink<-read.PLINK("E://ubuntushare//stacks//populations//plinkA.raw",
 #	parallel=FALSE)
 dat.plink<-read.PLINK(
-	"E:/ubuntushare/popgen/results/stacks/populations/ld.hwe.A.raw",
+	"E:/ubuntushare/popgen/sw_results/stacks/populations/subsetA.raw",
 	parallel=FALSE)
 #look at alleles
 glPlot(dat.plink, posi="topleft")
@@ -326,7 +326,7 @@ polygon(c(temp$x,rev(temp$x)), c(temp$y, rep(0,length(temp$x))), col=transp("blu
 points(glNA(dat.plink), rep(0, nLoc(dat.plink)), pch="|", col="blue")
 
 #PCA!
-pca1<-glPca(dat.plink, parallel=FALSE)
+pca1<-glPca(dat.plink, parallel=FALSE,nf=5)
 scatter(pca1)
 
 myCol <- colorplot(pca1$scores,pca1$scores, transp=TRUE, cex=4)
@@ -352,7 +352,7 @@ col[col=="FLHB"]<-rainbow(12)[11]
 col[col=="FLCC"]<-rainbow(12)[12]
 
 jpeg("E://Docs//PopGen//subset.pca1.2.jpeg",res=300,height=7,width=7,units="in")
-plot(pca1$scores[,1], pca1$scores[,2], pch=16, cex=2,
+plot(pca1$scores[,1], pca1$scores[,2], pch=16, cex=2,lwd=1.3,
 	col=alpha(col, 0.5), ylab="", xlab="")
 legend("topleft", pop.list, pch=19, pt.cex=2,
 	col=alpha(rainbow(12), 0.5), ncol=3)
@@ -377,7 +377,9 @@ dev.off()
 dat.clust<-find.clusters(dat.plink, parallel=FALSE, n.pca=20, n.clust=NULL,
 	choose.n.clust=FALSE, max.n.clust=12)#created 3 clusters
 dapc1<-dapc(dat.plink, dat.clust$grp, n.pca=20,n.da=3, parallel=F)
+png("E:/Docs/PopGen/adegenet.dapc.png",height=7,width=7,units="in",res=300)
 scatter(dapc1, scree.da=FALSE, bg="white", posi.pca="topleft", legend=TRUE)
+dev.off()
 compoplot(dapc1)
 #try another number
 dat.clust.5<-find.clusters(dat.plink, parallel=FALSE, n.pca=20, n.clust=5)
@@ -484,8 +486,8 @@ write.table(subset.txsp,"E://ubuntushare//stacks//populations//txsp.indlist",
 #########################################################################
 
 #**************************STARTING WITH PLINK FILES********************#
-ped<-read.table("E:/ubuntushare/popgen/results/stacks/populations/ld.hwe.sub.ped", 
-	skip = 1, stringsAsFactors=F, colClasses="character")
+ped<-read.table("E:/ubuntushare/popgen/results/stacks/populations/subset.ped", 
+	stringsAsFactors=F, colClasses="character")
 ped.pops<-substr(ped[,2],8,11)
 ped.sex<-sub('sample_\\w{4}(\\w+).*[_.].*','\\1', ped[,2])
 ped.sex[substr(ped.sex,1,2)=="DP"]<-"M"
@@ -598,16 +600,15 @@ write.table(mac.by.pop, "all.6348",
 #***********************************************************************#
 #########################################################################
 #K=4 WAS BEST
-scores.files<-list.files("E://ubuntushare//pcadapt//", pattern="scores")
-loadings.files<-list.files("E://ubuntushare//pcadapt//", pattern="loadings")
-snps.files<-list.files("E://ubuntushare//pcadapt//", pattern="topBF")
+setwd("E:/ubuntushare/popgen/sw_results/pcadapt")
+scores.files<-list.files(pattern="4_.*.scores")
+loadings.files<-list.files(pattern="4_.*.loadings")
+snps.files<-list.files(pattern="4_.*.topBF")
 
 snp.list<-list()
 for(i in 1: length(snps.files)){
 	#read in files
-	snp.list[[i]]<-read.table(
-		paste("E://ubuntushare//pcadapt//", snps.files[i], sep=""), 
-		header=T)
+	snp.list[[i]]<-read.table(snps.files[i],header=T)
 }
 #compare lists of snps in all of the runs
 
@@ -615,74 +616,41 @@ all.snps<-as.vector(sapply(snp.list, "[[","snp"))
 all.snps.dup<-all.snps[duplicated(all.snps)]
 rep.snps<-all.snps.dup[!duplicated(all.snps.dup)]
 
-scores<-read.table("E://ubuntushare//pcadapt//pcadapt.4.scores")
-loading<-read.table("E://ubuntushare//pcadapt//pcadapt.4", header=T, sep="\t")
+scores<-read.table("pcadapt.4.scores")
+loading<-read.table("pcadapt.4", header=T, sep="\t")
 #bf.log<-log10(snp.list[[1]]$BF)
 #loading[round(loading$logBF, 4) %in% round(bf.log),] #doesn't work..
 
 #the snp is the row number in the map file for the snps
-ld.map<-read.table("E://ubuntushare//stacks//populations//ld.subset.map",
-	header=F)
-pcadapt.outliers<-ld.map[rep.snps,]
+sub.map<-read.table("../stacks/populations/subset.map",header=F)
+pcadapt.outliers<-sub.map[rep.snps,]
 pa.out.radloc<-sub('(\\d+)_\\d+','\\1',pcadapt.outliers$V2)
 
-summ.dat<-read.table("E://ubuntushare//stacks//populations//batch_1.sumstats.tsv",
+summ.dat<-read.table("../stacks/populations/batch_1.sumstats.tsv",
 	sep='\t', skip=12, header=T, comment.char="")
 pa.out.dat<-summ.dat[summ.dat$Locus.ID %in% pa.out.radloc,]
 pa.out.dat$Chr<-factor(pa.out.dat$Chr)
 #are any on the linkage map?
-length(levels(as.factor(use.contigs[use.contigs$Scaffold %in% pa.out.dat$Chr,1])))
+#length(levels(as.factor(use.contigs[use.contigs$Scaffold %in% pa.out.dat$Chr,1])))
 
 #plot individual scores
-jpeg("pcadapt.scores1.2.jpeg", height=12, width=12, units="in", res=300)
+jpeg("E:/Docs/PopGen/pcadapt.scores1.2.jpeg", height=12, width=12, units="in", res=300)
 plot(as.numeric(scores[1,]),as.numeric(scores[2,]),pch=16, cex=2,
-	col=alpha(col, 0.5), ylab="", xlab="")
-legend("bottomright", pop.list, pch=19, pt.cex=2,
+	col=alpha(col, 0.5), ylab="", xlab="",lwd=1.3)
+legend("bottomleft", pop.list, pch=19, pt.cex=2,
 	col=alpha(rainbow(12), 0.5), ncol=3)
 mtext("PC1 (rho2: 0.0117)", 1, line = 2)
 mtext("PC2 (rho2: 0.0091)",2, line = 2)
 dev.off()
 
-jpeg("pcadapt.scores1.3.jpeg", height=12, width=12, units="in", res=300)
+jpeg("E:/Docs/PopGen/pcadapt.scores1.3.jpeg", height=12, width=12, units="in", res=300)
 plot(as.numeric(scores[1,]),as.numeric(scores[3,]),pch=16, cex=2,
 	col=alpha(col, 0.5), ylab="", xlab="")
-legend("topright", pop.list, pch=19, pt.cex=2,
+legend("bottomleft", pop.list, pch=19, pt.cex=2,
 	col=alpha(rainbow(12), 0.5), ncol=3)
 mtext("PC1 (rho2: 0.0117)", 1, line = 2)
 mtext("PC3 (rho2: 0.0018)",2, line = 2)
 dev.off()
-
-scores5.files<-list.files("E://ubuntushare//pcadapt//k5//", pattern="scores")
-loadings5.files<-list.files("E://ubuntushare//pcadapt//k5//", pattern="loadings")
-snps5.files<-list.files("E://ubuntushare//pcadapt//k5//", pattern="topBF")
-
-snp5.list<-list()
-for(i in 1: length(snps5.files)){
-	#read in files
-	snp5.list[[i]]<-read.table(
-		paste("E://ubuntushare//pcadapt//k5//", snps5.files[i], sep=""), 
-		header=T)
-}
-#compare lists of snps in all of the runs
-
-all5.snps<-as.vector(sapply(snp5.list, "[[","snp"))
-all5.snps.dup<-all5.snps[duplicated(all5.snps)]
-rep5.snps<-all5.snps.dup[!duplicated(all5.snps.dup)]
-#recover locus IDs from plink map
-ld.hwe.map<-read.table("E://ubuntushare//stacks//populations//ld.hwe.sub.map")
-pcadapt5.outliers<-ld.hwe.map[rep5.snps,]
-pa5.out.radloc<-sub('(\\d+)_\\d+','\\1',pcadapt5.outliers$V2)
-pa5.out.dat<-summ.dat[summ.dat$Locus.ID %in% pa5.out.radloc,]
-pa5.out.dat$Chr<-factor(pa5.out.dat$Chr)
-
-#retrieve bayes factors 
-all5.bf<-as.data.frame(cbind(as.vector(sapply(snp5.list, "[[","snp")),
-	as.vector(sapply(snp5.list, "[[","BF"))))
-colnames(all5.bf)<-c("snp", "BF")
-rep5.bf<-all5.bf[all5.bf$snp %in% rep5.snps,]
-rep5.bf<-cbind(rep5.bf, sub('(\\d+)(_\\d+)','\\1',ld.hwe.map[rep5.bf$snp,2]))
-colnames(rep5.bf)[3]<-"Locus"
-
 
 ##############################LOSITAN######################################
 lositan.loci<-read.delim("E://ubuntushare//popgen//stacks//populations//ld.hwe.lositan.loci", header=T)

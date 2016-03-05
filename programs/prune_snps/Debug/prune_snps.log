@@ -1,0 +1,30 @@
+﻿Build started 3/4/2016 3:42:20 PM.
+     1>Project "E:\ubuntushare\popgen\programs\prune_snps\prune_snps.vcxproj" on node 2 (Build target(s)).
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt prune_snps.cpp
+         prune_snps.cpp
+     1>e:\ubuntushare\popgen\programs\random_numbers.h(118): warning C4244: '=' : conversion from 'double' to 'int', possible loss of data
+     1>e:\ubuntushare\popgen\programs\random_numbers.h(281): warning C4018: '<' : signed/unsigned mismatch
+     1>e:\ubuntushare\popgen\programs\random_numbers.h(287): warning C4018: '<' : signed/unsigned mismatch
+     1>e:\ubuntushare\popgen\programs\random_numbers.h(266): warning C4101: 'jjj' : unreferenced local variable
+     1>e:\ubuntushare\popgen\programs\random_numbers.h(265): warning C4101: 'last_prob' : unreferenced local variable
+     1>e:\ubuntushare\popgen\programs\random_numbers.h(265): warning C4101: 'last_interval' : unreferenced local variable
+     1>e:\ubuntushare\popgen\programs\random_numbers.h(266): warning C4101: 'jj' : unreferenced local variable
+     1>e:\ubuntushare\popgen\programs\prune_snps\prune_snps.cpp(120): warning C4018: '<' : signed/unsigned mismatch
+     1>e:\ubuntushare\popgen\programs\prune_snps\prune_snps.cpp(152): warning C4018: '<' : signed/unsigned mismatch
+     1>e:\ubuntushare\popgen\programs\prune_snps\prune_snps.cpp(157): warning C4018: '<' : signed/unsigned mismatch
+     1>e:\ubuntushare\popgen\programs\prune_snps\prune_snps.cpp(165): warning C4018: '<' : signed/unsigned mismatch
+     1>e:\ubuntushare\popgen\programs\prune_snps\prune_snps.cpp(173): warning C4018: '<' : signed/unsigned mismatch
+     1>e:\ubuntushare\popgen\programs\prune_snps\prune_snps.cpp(176): warning C4018: '<' : signed/unsigned mismatch
+     1>e:\ubuntushare\popgen\programs\prune_snps\prune_snps.cpp(183): warning C4018: '<' : signed/unsigned mismatch
+     1>e:\ubuntushare\popgen\programs\prune_snps\prune_snps.cpp(188): warning C4018: '<' : signed/unsigned mismatch
+     1>e:\ubuntushare\popgen\programs\prune_snps\prune_snps.cpp(208): warning C4018: '<' : signed/unsigned mismatch
+     1>e:\ubuntushare\popgen\programs\prune_snps\prune_snps.cpp(210): warning C4018: '<' : signed/unsigned mismatch
+       Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"E:\ubuntushare\popgen\programs\prune_snps\Debug\prune_snps.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"E:\ubuntushare\popgen\programs\prune_snps\Debug\prune_snps.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:\ubuntushare\popgen\programs\prune_snps\Debug\prune_snps.lib" /MACHINE:X86 Debug\prune_snps.obj
+         prune_snps.vcxproj -> E:\ubuntushare\popgen\programs\prune_snps\Debug\prune_snps.exe
+     1>Done Building Project "E:\ubuntushare\popgen\programs\prune_snps\prune_snps.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:00.84

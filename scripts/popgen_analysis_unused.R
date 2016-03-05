@@ -58,8 +58,42 @@ write.table(ld.hwe.map[,2],
 	"E://ubuntushare//stacks//populations//ld.hwe.snplist.txt",
 	sep='\t', eol='\n', quote=F, col.names=F, row.names=F)
 
+##############################################################################
+*****************************************************************************#
+################################PCADAPT wrong K################################
+#****************************************************************************#
+##############################################################################
 
+scores5.files<-list.files("E://ubuntushare//pcadapt//k5//", pattern="scores")
+loadings5.files<-list.files("E://ubuntushare//pcadapt//k5//", pattern="loadings")
+snps5.files<-list.files("E://ubuntushare//pcadapt//k5//", pattern="topBF")
 
+snp5.list<-list()
+for(i in 1: length(snps5.files)){
+	#read in files
+	snp5.list[[i]]<-read.table(
+		paste("E://ubuntushare//pcadapt//k5//", snps5.files[i], sep=""), 
+		header=T)
+}
+#compare lists of snps in all of the runs
+
+all5.snps<-as.vector(sapply(snp5.list, "[[","snp"))
+all5.snps.dup<-all5.snps[duplicated(all5.snps)]
+rep5.snps<-all5.snps.dup[!duplicated(all5.snps.dup)]
+#recover locus IDs from plink map
+ld.hwe.map<-read.table("E://ubuntushare//stacks//populations//ld.hwe.sub.map")
+pcadapt5.outliers<-ld.hwe.map[rep5.snps,]
+pa5.out.radloc<-sub('(\\d+)_\\d+','\\1',pcadapt5.outliers$V2)
+pa5.out.dat<-summ.dat[summ.dat$Locus.ID %in% pa5.out.radloc,]
+pa5.out.dat$Chr<-factor(pa5.out.dat$Chr)
+
+#retrieve bayes factors 
+all5.bf<-as.data.frame(cbind(as.vector(sapply(snp5.list, "[[","snp")),
+	as.vector(sapply(snp5.list, "[[","BF"))))
+colnames(all5.bf)<-c("snp", "BF")
+rep5.bf<-all5.bf[all5.bf$snp %in% rep5.snps,]
+rep5.bf<-cbind(rep5.bf, sub('(\\d+)(_\\d+)','\\1',ld.hwe.map[rep5.bf$snp,2]))
+colnames(rep5.bf)[3]<-"Locus"
 ##############################################################################
 *****************************************************************************#
 ################################CLINE ANALYSIS################################

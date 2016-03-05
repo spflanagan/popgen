@@ -1,0 +1,68 @@
+Population genetics Analysis Log File
+This is started after receving first round of reviews from Molecular Ecology
+22 February 2016
+
+The reviewers want a general re-structuring of the paper, plus I need to check/fix/add the following things:
+-Migration analysis with MIGRATE
+-Calculate isolation by distance on contigs or single SNP per contig
+-use a more statistical approach to IBD
+-only do IBD on neutral loci
+-Look for the distribution of IBD across loci
+-Use neutral loci to generate Fst CIs
+-Test the association between Pst and Fst on a locus-by-locus basis or use morphological data in Bayenv
+-Apply common subspace approach to complete set of population P-matrices
+-use GIS to calculate distances instead of Google Maps
+-Standardize the traits for size (possibly--or at least justify why not)
+-Summary statistics output from stacks needs to be modified
+-Report sequencing coverage
+-How many of the 66 SNPs were unlinked?
+-Better description of evaluating K from structure
+-Why are there so many extreme Pst values (1)
+-Did LD pruning work as expected? Are SNPs from the same RAD locus removed?
+-Instead of mean temperature, use a temperature anomaly?
+
+#THE PIPELINE
+1. align with bowtie 2
+2. ref_map.pl
+3. populations -r 0.75 -p 12 -a 0.05
+4. prune_snps.cpp
+5. plink --file pruned --hwe 0.001 --noweb --allow-no-sex --write-snplist
+	plink --file pruned --extract plink.snplist --recode --recodeA --recode-structure --out subset --noweb --allow-no-sex
+6. PCAdapt
+7. Adegenet
+8. FastStructure
+9. Structure
+	Structure Harvester
+10. Bayenv2
+11. calculate_global_fst
+##################################################################################################################
+#####Friday, 4 March 2016
+The pruning seems to work, it retains 3802 loci. Now for HWE. Doing that in R, since I've already got a function to do it (I just have to modify it for a ped file).
+Only 838 pass my hwe pruning in R...1581 pass at 0.001 level, which is plink's default. Plink retains 1753.
+plink --file pruned --hwe 0.001 --noweb --allow-no-sex --recodeA --recode
+Plink is easier because I don't have to reformat the files myself, so I'll go with that.
+
+OK, I've done that. Now I need to run adegenet. Done!
+I apparently didn't save the pcadapt commands. No, I did, it was just in PCAdapt folder in ~/Programs/
+Now I'm running PCAdapt from ~/sf_ubuntushare/popgen/ directory with K = 1 through K = 12.
+K=4 was the best. So I'm running it 10 times with K=4. They're not super consistent but they're probably good enough. Good enough for the one to be a representative run.
+
+For Bayenv2, I ran the R code to reformat plink. After first bit I ranplink --file subset --freq --within --plink.clust.txt --noweb --allow-no-sex --out subset.bayenv.plink. I'm having some problems with this.
+
+
+#####Thursday, 3 March 2016
+First thing I need to do is to re-prune to ensure that SNPs are not actually on the same locus. So, I'll take a PLINK file (pruned for hwe in PLINK) and then write a program that will read the file and for each locus randomly choose one of the SNPs to be the SNP for that locus. I will also evaluate how far RAD loci are from each other and only keep one SNP every ~2kb (so if a RAD locus is 1kb away from another locus in either direction I'll randomly choose one of those SNPs to keep, I guess). 
+
+#####28 February 2016
+I've fixed the map as per a reviewer's request. 
+Now for the hard part. First, I need to check to see if my pruned SNPs set does not include multiple SNPs per RAD locus and see how many are on the scaffold, and how far apart they are. (e.g. make sure the pruning actually worked).
+
+So...the 1833 SNPs are not all in individual RAD loci. They represent 1562 RAD loci. And 1248 scaffolds.
+
+So I think I need to consider re-doing that by taking one SNP from each RAD locus. Then I can do the HWE pruning and some LD pruning, maybe. 
+
+#####22 February 2016
+Thoughts on how to proceed:
+-should I just take one SNP from the RAD locus rather than do the pruning-for-LD-approach? 
+-I need to figure out which files I used for what and re-acquaint myself with these data.
+-Calculate average distance between RAD loci on the same scaffold??
