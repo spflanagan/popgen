@@ -35,19 +35,54 @@ The reviewers want a general re-structuring of the paper, plus I need to check/f
 	Structure Harvester
 10. Bayenv2
 11. calculate_global_fst
-##################################################################################################################
+##############################################################################################################
+#####Monday, 7 March 2016
+#***Bayenv2***#
+Working on Bayenv2:
+Once the subset files have been fixed up in R, in bayenv2/:
+plink --file bayenv.plink --freq --within plink.clust.txt --noweb --allow-no-sex --out subset.bayenv.plink
+saved new snpsfile as pruned.SNPSFILE in bayenv2/
+Now I'm running bayenv2 on pruned.SNPSFILE, 10 iterations, to generate a SNPS matrix.
+All of the matrices look the same. 
+plink --file ../stacks/populations/batch_1.plink --freq --within all.6348.clust.txt --allow-no-sex --noweb --out all.bayenv.plink
+Then turned it into all.SNPSFILE in R.
+~/Programs/bayenv_2/bayenv2 -i all.SNPSFILE -m matrix.1.out -n 1 -p 12 -k 1000000 -t -X -r 13425
+^^that doesn't work. I need to use individual snps from the pruned snps. It is better to use unlinked SNPs, so I should use the pruned dataset.
+
+So I need to split the file...did that in R.
+But now I'm getting a segmentation fault! Why??
+
+
+
+#***FastStructure***#
+To run faststructure, I needed to edit the plink --recode-structure output by removing the first two lines, which I did in jEdit. 
+but faststructure isn't finding the files..it has to be /home/sarah/sf_ubuntushare/popgen/... not ~/sf_ubuntushare/popgen/..
+Now it's running. distruct says, 
+	Model complexity that maximizes marginal likelihood = 2
+	Model components used to explain structure in data = 5
+So now I'm running it with K=2 to K=5 with logistic prior instead of --full. (This part probably isn't necessary).
+
+
+
+#####Saturday, 5 March 2016
+#***Structure***#
+Started running Structure with K=1 through K=12, 10 repetitions of each, with admixture model.
+
 #####Friday, 4 March 2016
+#***PRUNING***#
 The pruning seems to work, it retains 3802 loci. Now for HWE. Doing that in R, since I've already got a function to do it (I just have to modify it for a ped file).
 Only 838 pass my hwe pruning in R...1581 pass at 0.001 level, which is plink's default. Plink retains 1753.
-plink --file pruned --hwe 0.001 --noweb --allow-no-sex --recodeA --recode
+plink --file pruned --hwe 0.001 --noweb --allow-no-sex --recodeA --recode --out subset
 Plink is easier because I don't have to reformat the files myself, so I'll go with that.
 
+#***ADEGENET***#
 OK, I've done that. Now I need to run adegenet. Done!
+#***PCAdapt***#
 I apparently didn't save the pcadapt commands. No, I did, it was just in PCAdapt folder in ~/Programs/
 Now I'm running PCAdapt from ~/sf_ubuntushare/popgen/ directory with K = 1 through K = 12.
 K=4 was the best. So I'm running it 10 times with K=4. They're not super consistent but they're probably good enough. Good enough for the one to be a representative run.
-
-For Bayenv2, I ran the R code to reformat plink. After first bit I ranplink --file subset --freq --within --plink.clust.txt --noweb --allow-no-sex --out subset.bayenv.plink. I'm having some problems with this.
+#***Bayenv***#
+For Bayenv2, I ran the R code to reformat plink. After first bit I ran plink --file subset --freq --within --plink.clust.txt --noweb --allow-no-sex --out subset.bayenv.plink. I'm having some problems with this.
 
 
 #####Thursday, 3 March 2016
