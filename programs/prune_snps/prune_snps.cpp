@@ -85,7 +85,7 @@ public:
 		snp_id = vector <string>();
 	}
 };
-int main()
+int main(int argc, char* argv[])
 {
 	int i, ii,iii, m,bp, index, line_count,count,loc_id; 
 	vector<int> keep_index; //give it a 0 if it's removed but a 1 if it's kept.
@@ -95,11 +95,85 @@ int main()
 	ifstream map, ped;
 	ofstream out_map, out_ped;
 	vector<locus_information> loci;
+	string query;
+	string tempstring1, tempstring2, tempstring3;
+	bool interactivemode;
+	ped_name = "plink.ped";
+	map_name = "plink.map";
+	out_ped_name = "pruned.ped";
+	out_map_name = "pruned.map";
 
-	ped_name = "../../sw_results/stacks/populations/all.6348.plink.ped";
-	map_name = "../../sw_results/stacks/populations/all.6348.plink.map";
-	out_ped_name = "../../sw_results/stacks/populations/pruned.ped";
-	out_map_name = "../../sw_results/stacks/populations/pruned.map";
+	if (argc == 1)
+	{
+		cout << "\n(I)nteractive or (H)elp?\n";
+		cin >> query;
+		if (query == "H" || query == "h")
+		{
+			cout << "\nprune_snps:\n";
+			cout << "Prunes PLINK files to remove multiple SNPs per RAD locus\nAlso prunes RAD loci too close to each other.\n";
+			cout << "-p:\tInput Plink .ped file (include path)\n";
+			cout << "-m:\tInput plink .map file (include path)\n";
+			cout << "-o:\toutput name (which will be used for both ped and map files)\n";
+			cout << "no arguments:\tinteractive mode\n";
+			return 0;
+		}
+		else
+			interactivemode = true;
+	}
+
+	if (argc > 1)
+	{
+		tempstring1 = argv[1];
+		if (tempstring1 == "-h")
+		{
+			cout << "\nprune_snps:\n";
+			cout << "Prunes PLINK files to remove multiple SNPs per RAD locus\nAlso prunes RAD loci too close to each other.\n";
+			cout << "-p:\tInput Plink .ped file (include path)\n";
+			cout << "-m:\tInput plink .map file (include path)\n";
+			cout << "-o:\toutput name (which will be used for both ped and map files)\n";
+			cout << "no arguments:\tinteractive mode\n";
+			return 0;
+		}
+	}
+
+	for (i = 1; i < argc - 1; i++)
+	{
+		tempstring1 = argv[i];
+		tempstring2 = argv[i + 1];
+		if (tempstring1 == "-p")
+			ped_name = tempstring2;
+		if (tempstring1 == "-m")
+			map_name = tempstring2;
+		if (tempstring1 == "-o")
+			out_ped_name = tempstring2;
+	}
+	out_map_name = out_ped_name + ".map";
+	out_ped_name = out_ped_name + ".ped";
+
+	if (interactivemode)
+	{
+		cout << "\nProvide input ped file name and path.\n";
+		cin >> ped_name;
+		cout << "\nProvide input map file name and path.\n";
+		cin >> map_name;
+		cout << "\nProvide output ped file name and path.\n";
+		cin >> out_ped_name;
+		cout << "\nProvide output map file name and path.\n";
+		cin >> out_map_name;
+		cout << "\nInput names: " << ped_name << ", " << map_name;
+		cout << "\nOutput names: " << out_ped_name << ", " << out_map_name;
+		cout << "\n\nProceed? (y to proceed)\n";
+		cin >> query;
+
+		if (query != "y" || query != "Y")
+		{
+			cout << "\n\nEnter an integer to exit!!\n";
+			cin >> i;
+			return 0;
+		}
+	}
+
+	cout << "\n\nProceeding...\n";
 
 	map.open(map_name);
 	FileTest(map, map_name);

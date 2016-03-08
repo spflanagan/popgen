@@ -1,0 +1,50 @@
+Nerophis ophidion Pop Gen notes
+1. gunzip file.gz
+2. .~/Programs/FastQC/fastqc and check each one
+3. ran process_radtags on each plate using the 96barcodes.txt file as the barcode list
+4. In jEdit, created 'rename.sh' files with standardized formats and checked the uniqueness of each name
+5. Renamed output of process_radtags using the rename files and checked read depth with wc -l *.fq
+6. Moved all sample files to ./samples/ folder
+7. Ran run_denovo_map.sh
+8. Now first pruning with populations
+populations -b 3 -P ./stacks/ -M ./nop_map.txt -r 0.75 -a 0.05 -p 6 -t 8 --vcf --plink --structure
+9. Then use plink
+./plink --file ./stacks/batch_3.plink --r2 --ld-window-r2 0.2 --hardy --noweb --allow-no-sex --write-snplist #to create snplist
+plink --file plink --extract neutral.list --allow-no-sex --recode --out neutral --noweb
+plink --file ld.subset --freq --within plink.clust.txt --noweb --out ld.subset
+plink --file ld.subset --hardy --noweb --allow-no-sex --write-snplist
+plink --file ld.subset --extract neutral.snplist --recode-structure --noweb --allow-no-sex
+plink --file ld.subset --extract neutral.snplist --recodeA --noweb --allow-no-sex
+
+#############################################LAB BOOK######################################################
+#####Monday, 7 March 2016
+So the numbers below are wrong. The populations run with -r 75 had 273 loci.
+Let's try
+populations -b 3 -P ./stacks -s -t 3 -M ./nop_map.txt -a 0.05 -p 2 -r 0.5 --plink --structure --vcf
+That's better. Now there are 6527.
+
+Used prune_snps and ended up with 4612 SNPs.
+
+#####Friday, 4 March 2016
+That one was killed too. I guess asking it to keep all 6 populations is too much? Maybe I'll just go with the one with -r 0.75...one last try!
+populations -b 3 -P ./stacks -s -t 3 -M ./nop_map.txt -a 0.05 --fstats --plink --structure -p 2 --vcf --vcf_haplotypes
+This just isn't working, even without fstats.
+#####Thursday, 3 March 2016
+Trying this:
+populations -b 3 -P ./stacks -s -t 3 -M ./nop_map.txt -a 0.05 --fstats --plink --structure -p 6 --vcf --vcf_haplotypes
+The one below was killed.
+#####Wednesday, 2 March 2016
+/usr/local/bin/populations -b 3 -P ./stacks -s -t 6 -M ./nop_map.txt -a 0.05 --genomic --plink --structure -p 6 --vcf
+
+
+#####Tuesday, 1 March 2016
+/usr/local/bin/populations -b 3 -P ./stacks -s -t 6 -M ./nop_map.txt -r 0.75 -a 0.05 --genomic --plink --structure
+resulted in 144780 loci.
+
+Now running populations -b 3 -P ./stacks -s -t 6 -M ./nop_map.txt -r 0.75 -a 0.05 --genomic --plink --structure -p 6
+1235
+
+
+
+#####Saturday, 27 February 2016
+I've installed Stacks v.1.37 on my home computer and I'm going to re-run stacks from the beginning. Added the renaming and moving of files to run_process_radtags.sh
