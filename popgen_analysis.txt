@@ -36,6 +36,10 @@ The reviewers want a general re-structuring of the paper, plus I need to check/f
 10. Bayenv2
 11. calculate_global_fst
 ##############################################################################################################
+#####Wednesday, 8 March 2016
+I wrote plink_to_migrate to convert my subset.ped and subset.map files into a format compatible with migrate.
+I need to re-code the FamID part of the ped file probably to refer to the populations. I did that in R (popgen_analysis.R)
+
 #####Monday, 7 March 2016
 #***Bayenv2***#
 Working on Bayenv2:

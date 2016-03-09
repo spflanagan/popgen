@@ -51,7 +51,11 @@ pwise.fst<-read.table("results\\stacks\\populations\\batch_1.fst_summary.tsv",
 	pwise.fst<-rbind(pwise.fst,rep(NA, ncol(pwise.fst)))
 	rownames(pwise.fst)<-colnames(pwise.fst)
 
-#setwd("E://Docs//PopGen")
+#####Re-name plink files so that Family ID contains Population ID.
+ped<-read.table("sw_results/stacks/populations/subset.ped")
+ped$V1<-gsub("sample_(\\w{4})\\w+.*align","\\1",ped$V2)
+write.table(ped,"sw_results/migrate/subset.ped",col.names=F,row.name=F,quote=F)
+
 #############################################################################
 #***************************************************************************#
 #################################FUNCTIONS###################################
