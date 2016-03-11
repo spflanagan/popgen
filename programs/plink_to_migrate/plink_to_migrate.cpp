@@ -77,6 +77,20 @@ istream& universal_getline(istream& is, string& t)
 
 }
 
+class reference
+{
+public:
+	string id;
+	vector<string> alleles;
+
+	reference()
+	{
+		id = string();
+		alleles = vector<string>();
+	}
+
+};
+
 class locus
 {
 public:
@@ -93,13 +107,14 @@ public:
 class population
 {
 public:
-	int pop_num;
+	int pop_num, ind_count;
 	string pop_name;
 	vector<locus> loci;
 
 	population()
 	{
 		pop_num = int();
+		ind_count = int();
 		pop_name = string();
 		loci = vector<locus>();
 	}
@@ -107,11 +122,12 @@ public:
 
 int main()
 {
-	int i, ii, iii, num_pops, num_loci, index, count;
+	int i, ii, iii, num_pops, num_loci, index, count, all1i, all2i;
 	string chr, pos, id, dist;
 	string famid, indid, patid, matid, sex, phen, allele1, allele2;
 	string ped_name, map_name, migrate_name,line;
-	vector<string> locus_ids;
+	vector<reference> loci;
+	
 	ifstream ped, map;
 	ofstream migrate;
 	vector<population> pops;
@@ -133,7 +149,8 @@ int main()
 				stringstream ss;
 				ss.str(line);
 				ss >> chr >> id >> dist >> pos;
-				locus_ids.push_back(id);
+				loci.push_back(reference());
+				loci.back().id = id;
 				num_loci++;
 			}
 		}
@@ -165,8 +182,10 @@ int main()
 					index = pops.size() - 1;
 					pops[index].pop_name = famid;
 					pops[index].pop_num = index;
+					pops[index].ind_count = 0;
 					num_pops++;
 				}
+				pops[index].ind_count++;
 				count = 0;
 				if (pops[index].loci.size() == 0)//then it's the first individual in the population
 				{
@@ -175,16 +194,39 @@ int main()
 						pops[index].loci.push_back(locus());
 						if (allele1 != "0")
 						{
+							//see if they're in the reference already.
+							all1i = all2i = -5;
+							for (i = 0; i < loci[count].alleles.size(); i++)
+							{
+								if (loci[count].alleles[i] == allele1)
+									all1i = i;
+								if (loci[count].alleles[i] == allele2)
+									all2i = i;
+
+							}
+							if (all1i < 0)
+							{
+								loci[count].alleles.push_back(allele1);
+								all1i = loci[count].alleles.size() - 1;
+							}
+
+							if (all2i < 0 && allele1 != allele2)
+							{
+								loci[count].alleles.push_back(allele2);
+								all2i = loci[count].alleles.size() - 1;
+							}
+
+							//now add it to the population counts
 							if (allele1 == allele2)
 							{
-								pops[index].loci[count].alleles.push_back(allele1);
+								pops[index].loci[count].alleles.push_back(loci[count].alleles[all1i]);
 								pops[index].loci[count].allele_counts.push_back(2);
 							}
 							else
 							{
-								pops[index].loci[count].alleles.push_back(allele1);
+								pops[index].loci[count].alleles.push_back(loci[count].alleles[all1i]);
 								pops[index].loci[count].allele_counts.push_back(1);
-								pops[index].loci[count].alleles.push_back(allele2);
+								pops[index].loci[count].alleles.push_back(loci[count].alleles[all2i]);
 								pops[index].loci[count].allele_counts.push_back(1);
 							}
 						}
@@ -197,6 +239,29 @@ int main()
 					{//find them in the index
 						if (allele1 != "0")
 						{
+							//see if they're in the reference already.
+							all1i = all2i = -5;
+							for (i = 0; i < loci[count].alleles.size(); i++)
+							{
+								if (loci[count].alleles[i] == allele1)
+									all1i = i;
+								if (loci[count].alleles[i] == allele2)
+									all2i = i;
+
+							}
+							if (all1i < 0)
+							{
+								loci[count].alleles.push_back(allele1);
+								all1i = loci[count].alleles.size() - 1;
+							}
+
+							if (all2i < 0 && allele1 != allele2)
+							{
+								loci[count].alleles.push_back(allele2);
+								all2i = loci[count].alleles.size() - 1;
+							}
+							
+							//now check the pop
 							bool found1, found2;
 							found1 = found2 = false;
 							for (i = 0; i < pops[index].loci[count].alleles.size(); i++)
@@ -230,7 +295,34 @@ int main()
 		}
 	}//while ped
 	ped.close();
-
+	//make sure both snps are represented
+	for (i = 0; i < pops.size(); i++)
+	{
+		for (ii = 0; ii < loci.size(); ii++)
+		{
+			if (pops[i].loci[ii].alleles.size() != loci[ii].alleles.size())
+			{
+				vector<bool> found;
+				for (iii = 0; iii < loci[ii].alleles.size(); iii++)
+				{
+					found.push_back(false);
+					for (int j = 0; j < pops[i].loci[ii].alleles.size(); j++)
+					{
+						if (loci[ii].alleles[iii] == pops[i].loci[ii].alleles[j])
+							found[iii] = true;							
+					}
+				}
+				for (iii = 0; iii < loci[ii].alleles.size(); iii++)
+				{
+					if (!found[iii])
+					{
+						pops[i].loci[ii].alleles.push_back(loci[ii].alleles[iii]);
+						pops[i].loci[ii].allele_counts.push_back(0);
+					}
+				}
+			}
+		}
+	}
 	cout << "\nParsed " << num_loci << " loci in " << num_pops << " populations.\n";
 
 	cout << "\nWriting loci to Migrate file\n";
@@ -238,10 +330,10 @@ int main()
 	migrate << num_pops << " " << num_loci;
 	for (i = 0; i < num_pops; i++)
 	{
-		migrate << '\n' << i << " POP" << pops[i].pop_name;
+		migrate << '\n' << pops[i].ind_count*2 << " POP" << pops[i].pop_name;
 		for (ii = 0; ii < num_loci; ii++)
 		{
-			migrate << '\n' << locus_ids[ii];
+			migrate << '\n' << ii;
 			int sum = 0;
 			for (iii = 0; iii < pops[i].loci[ii].alleles.size(); iii++)
 			{

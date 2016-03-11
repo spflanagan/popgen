@@ -18,7 +18,7 @@ The reviewers want a general re-structuring of the paper, plus I need to check/f
 -How many of the 66 SNPs were unlinked?
 -Better description of evaluating K from structure
 -Why are there so many extreme Pst values (1)
--Did LD pruning work as expected? Are SNPs from the same RAD locus removed?
+X-Did LD pruning work as expected? Are SNPs from the same RAD locus removed?
 -Instead of mean temperature, use a temperature anomaly?
 
 #THE PIPELINE
@@ -36,7 +36,21 @@ The reviewers want a general re-structuring of the paper, plus I need to check/f
 10. Bayenv2
 11. calculate_global_fst
 ##############################################################################################################
-#####Wednesday, 8 March 2016
+#####Thursday, 10 March 2016
+I had to re-start structure because of a power outage.
+
+#***IBD***#
+Reading up on IBD: it can reflect population structure, and pop structure can reflect it. 
+In Meirmans 2012: One way to take the hierarchical structure into account is to use a stratified Mantel test in which the permutation scheme is changed to permute the locations of populations within the clusters (Oksanen et al. 2009)...it is advised to use clustering approaches that take the geographical position of the samples into account (e.g. François et al. 2006)...A partial Mantel test can also be of help here, testing the association between the matrix of genetic distances and a model matrix of cluster membership with the matrix of geographical distances as a covariate (Drummond & Hamilton 2007)
+
+#***MIGRATE***#
+I also downloaded migrate for Windows and am trying to run it but something's not working correctly.
+I'm running the hapmap format parameter...maybe theres a designation about filenames or something that I need to change. I'm trying replacing the locus ID with a locus count (an integer instead of a string)
+
+There are a number of loci that appear not to be polymorphic. I've added some code to add a 0 count if necessary. That didn't fix it (but it's certainly a good thing to do.) I found a post on the google forum that says, "the migrate manual contains an error and you will need to enter the maximal number of individual for each population in the population line." <-I'm pretty sure he means max number of alleles, since in the example the number preceding the pop name is the max number found in the 'total' column. That fixed it!!! Now it's running
+
+
+#####Wednesday, 9 March 2016
 I wrote plink_to_migrate to convert my subset.ped and subset.map files into a format compatible with migrate.
 I need to re-code the FamID part of the ped file probably to refer to the populations. I did that in R (popgen_analysis.R)
 
