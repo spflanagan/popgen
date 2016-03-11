@@ -36,6 +36,10 @@ X-Did LD pruning work as expected? Are SNPs from the same RAD locus removed?
 10. Bayenv2
 11. calculate_global_fst
 ##############################################################################################################
+#####Friday, 11 March 2016
+Ran populations on the pruned SNPs to generate Fsts, summary stats, etc.
+	populations -b 1 -P ./stacks -M ./stacks/marine_map.txt -s -W ./stacks/populations/subset.whitelist.txt -t 2 --fstats --plink --vcf
+	
 #####Thursday, 10 March 2016
 I had to re-start structure because of a power outage.
 

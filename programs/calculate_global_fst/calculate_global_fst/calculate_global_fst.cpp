@@ -126,9 +126,9 @@ int main()
 	bool found;
 
 	
-	ped_name = "E://ubuntushare//stacks//populations//ld.hwe.sub.ped";
-	map_name = "E://ubuntushare//stacks//populations//ld.hwe.sub.map";
-	out_file_name = "E://ubuntushare//stacks//populations//ld.hwe.sub.globalstats.txt";
+	ped_name = "E://ubuntushare//popgen//sw_results//stacks//populations//subset.ped";
+	map_name = "E://ubuntushare//popgen//sw_results//stacks//populations//subset.map";
+	out_file_name = "E://ubuntushare//popgen//sw_results//stacks//populations//subset.globalstats.txt";
 
 	ped_file.open(ped_name);
 	FileTest(ped_file, ped_name);
