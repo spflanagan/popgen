@@ -17,6 +17,12 @@ plink --file ld.subset --extract neutral.snplist --recode-structure --noweb --al
 plink --file ld.subset --extract neutral.snplist --recodeA --noweb --allow-no-sex
 
 #############################################LAB BOOK######################################################
+#####Tuesday, 8 March 2016
+ran
+plink --file pruned --recode-structure --recode --recodeA --noweb --allow-no-sex --out nop.subset
+	**Note: Total genotyping rate in remaining individuals is 0.284024
+and then started structure
+
 #####Monday, 7 March 2016
 So the numbers below are wrong. The populations run with -r 75 had 273 loci.
 Let's try
