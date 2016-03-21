@@ -17,6 +17,18 @@ plink --file ld.subset --extract neutral.snplist --recode-structure --noweb --al
 plink --file ld.subset --extract neutral.snplist --recodeA --noweb --allow-no-sex
 
 #############################################LAB BOOK######################################################
+#####Saturday, 19 March 2016
+Starting to parse the structure output
+Using Structure harvester, I found that K=4 is best in admixture model but K=2 is best in no admixture model. So clearly I need to do more analyses.
+ 
+Used this and Notepad++ to get a list of the files and then run parse_structure_output
+	sarah@sarah-VirtualBox: ls nerophis/structure/nop_popgen/admixture/Results/*_f > ./scripts/parse_nerophis_structure.sh
+	sarah@sarah-VirtualBox:~/sf_ubuntushare/popgen$ ls nerophis/structure/nop_popgen/no_admix/Results/*_f >> ./scripts/parse_nerophis_structure.sh
+
+Now I need to run faststructure, adegenet, and PCAdapt.
+
+
+
 #####Thursday, 10 March 2016
 Wrote parse_structure_output to convert the Results/*_f files into something more readable by R. 
 
