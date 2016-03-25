@@ -36,6 +36,13 @@ X-Did LD pruning work as expected? Are SNPs from the same RAD locus removed?
 10. Bayenv2
 11. calculate_global_fst
 ############################################################################################################
+#####Friday, 25 March 2016
+I realized that the reason I was getting NAN values from Bayenv2 was because my standardized.env file was messed up--full of NANs. So I found the real version and am re-running bayenv2.
+
+Huh. for some reason it's getting overwritten or something because after running several bayenv2 runs it's back to having nans...
+
+And it doesn't look like it's standardized properly. I need to return to this when I can pay more attention to it.
+
 #####Monday, 21 March 2016
 I'm choosing a 5% cutoff for the XtX and Bayes Factors from Bayenv, same as before.
 That yields 88 of each.
