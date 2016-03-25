@@ -35,7 +35,20 @@ X-Did LD pruning work as expected? Are SNPs from the same RAD locus removed?
 	Structure Harvester
 10. Bayenv2
 11. calculate_global_fst
-##############################################################################################################
+############################################################################################################
+#####Monday, 21 March 2016
+I'm choosing a 5% cutoff for the XtX and Bayes Factors from Bayenv, same as before.
+That yields 88 of each.
+Something didn't work right with the environmental associations. 1633 of them have NAs and the rest, except one, all have the same BF value. Weird.
+
+Re-starting migrate with Bayesian inference with number of recorded steps in chain to 1000.
+
+On my home computer I found a more complete popgen analysis.
+
+
+#####Saturday, 19 March 2016
+My bayenv matrix was formatted incorrectly. Once I fixed it I was able to run the environmental correlations no problem.
+
 #####Friday, 11 March 2016
 Ran populations on the pruned SNPs to generate Fsts, summary stats, etc.
 	populations -b 1 -P ./stacks -M ./stacks/marine_map.txt -s -W ./stacks/populations/subset.whitelist.txt -t 2 --fstats --plink --vcf
