@@ -36,6 +36,18 @@ X-Did LD pruning work as expected? Are SNPs from the same RAD locus removed?
 10. Bayenv2
 11. calculate_global_fst
 ############################################################################################################
+#####Monday, 28 March 2016
+I need to really try to finish up re-running things. First, I need to edit the fst summary file so that it's in the same order as the distance file (which is geographic order). 
+
+PCAdapt rho2 values are in the *.stats file, which I didn't read into R (I just looked it up and entered the correct values in the plotting of the graph)
+
+I made figure 3 in R (rather than piecing them together in gimp).
+
+Now i need to process the structure output and make the structure figure again.
+Reviewer 1 wants the colors to make more sense so that colors are consistent in each population. I think I've figured out a way to do this, but my faststructure output is a bit weird.
+
+I don't know why but the faststructure groupings are not very good. They also don't really match the distruct plots. I need to look at the distruct code/info to see what they use, maybe I'm just plotting the wrong values.
+
 #####Saturday, 26 March 2016
 I found the original raw environmental file and re-standardized the variables. Now I'm running the bayenv wrapper using run_bayenv2_wrapper.sh... This seems to have worked.
 

@@ -110,3 +110,38 @@ plotting.fsts.scaffs<-function(dat, dat.name, ci.dat=NULL,
 	}
 }
 
+
+
+
+#***************************************************************************#
+#PLOT A STRUCTURE BARPLOT
+#***************************************************************************#
+
+plotting.structure<-function(structure.out, k, pop.order, 
+	filename=paste("str.k",k,".jpeg",sep=""),make.file=TRUE,
+	plot.new=TRUE,colors=NULL,xlabel=TRUE,ylabel=NULL){
+	str.split<-split(structure.out,structure.out[,1])
+	if(is.null(colors)){
+		bar.colors<-rainbow(k,s=0.5)
+	} else {
+		bar.colors<-colors
+	}
+	if(make.file==TRUE){
+		jpeg(filename,width=7, height=1.25, units="in", res=300)
+		par(mfrow=c(1,length(str.split)))
+	} 
+	#par(mfrow=c(1,length(str.split)),mar=c(1,0,0,0), oma=c(1,0,0,0),cex=0.5)
+	for(i in 1:length(str.split)){
+		pop.index<-pop.order[i]
+		barplot(height=as.matrix(t(str.split[[pop.index]][,-1])),
+			beside=FALSE, space=0,	border=NA, col=bar.colors,
+			xlab="", ylab="", xaxt='n', yaxt='n')#, new=plot.new)
+		if(xlabel==TRUE){
+			mtext(pop.index, 1, line=0.5, cex=1, outer=F)}
+		if(!is.null(ylabel)){
+			if(i == 1) { mtext(ylabel,2,cex=1) }
+		}	
+	}
+	if(make.file==TRUE) {dev.off()}
+}
+

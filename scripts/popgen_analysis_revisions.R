@@ -15,7 +15,7 @@ library(adegenet)
 library(scales)
 library(gdata);library(matrixcalc)
 
-setwd("B:/ubuntushare/popgen/")
+setwd("E:/ubuntushare/popgen/")
 
 
 #############################################################################
@@ -30,16 +30,14 @@ ld.hwe<-read.table("sw_results/stacks/populations/ld.hwe.whitelist.txt")
 catalog<-read.delim("results/stacks/batch_1.catalog.tags.tsv", 
 	header=F)
 
-mar.coor<-read.csv("E://Docs//PopGen//marine_coordinates.csv", header=T)
-fw.coor<-read.csv("E://Docs//PopGen//fw_coordinates.csv", header=T)
-m.f.summ.dat<-read.table("results//stacks//populations_sex//batch_1.sumstats.tsv",
+mar.coor<-read.csv("F://Docs//PopGen//marine_coordinates.csv", header=T)
+fw.coor<-read.csv("F://Docs//PopGen//fw_coordinates.csv", header=T)
+m.f.summ.dat<-read.table("sw_results//stacks//populations_sex//batch_1.sumstats.tsv",
 	sep='\t', skip=2, header=T, comment.char="")
-dist<-read.table("E://Docs//PopGen//geographical_distances.txt", 
+dist<-read.table("F://Docs//PopGen//geographical_distances.txt", 
 	header=T, row.names=1, sep='\t')
-pwise.fst<-read.table("results\\stacks\\populations\\batch_1.fst_summary.tsv",
+pwise.fst<-read.table("sw_results/stacks/fst_summary_all.txt",
 	 header=T, row.names=1, sep='\t')
-	pwise.fst<-rbind(pwise.fst,rep(NA, ncol(pwise.fst)))
-	rownames(pwise.fst)<-colnames(pwise.fst)
 
 #####Re-name plink files so that Family ID contains Population ID.
 ped<-read.table("sw_results/stacks/populations/subset.ped")
@@ -95,12 +93,11 @@ dev.off()
 #Mantel test using geographical distances and fsts
 
 #read in the subsetted fst summary from running populations with whitelist
-pwise.fst<-read.table("sw_results\\stacks\\populations\\batch_1.fst_summary.tsv",
+pwise.fst.sub<-read.table("sw_results/stacks/fst_summary_subset.txt",
 	 header=T, row.names=1, sep='\t')
-	pwise.fst<-rbind(pwise.fst,rep(NA, ncol(pwise.fst)))
-	rownames(pwise.fst)<-colnames(pwise.fst)
 
-ibd<-mantel.rtest(as.dist(dist),as.dist(pwise.fst))
+ibd.all<-mantel.rtest(as.dist(t(dist)),as.dist(t(pwise.fst)))
+ibd.sub<-mantel.rtest(as.dist(t(dist)),as.dist(t(pwise.fst.sub)))
 
 
 
@@ -111,8 +108,7 @@ ibd<-mantel.rtest(as.dist(dist),as.dist(pwise.fst))
 #########################################################################
 
 #******************************ADEGENET*********************************#
-dat.plink<-read.PLINK(
-	"E:/ubuntushare/popgen/sw_results/stacks/populations/subsetA.raw",
+dat.plink<-read.PLINK("sw_results/stacks/populations/subsetA.raw",
 	parallel=FALSE)
 #look at alleles
 glPlot(dat.plink, posi="topleft")
@@ -188,21 +184,168 @@ png("E:/Docs/PopGen/adegenet.dapc.png",height=7,width=7,units="in",res=300)
 scatter(dapc1, scree.da=FALSE, bg="white", posi.pca="topleft", legend=TRUE)
 dev.off()
 compoplot(dapc1)
-#try another number
-dat.clust.5<-find.clusters(dat.plink, parallel=FALSE, n.pca=20, n.clust=5)
-dapc5<-dapc(dat.plink, dat.clust.5$grp, n.pca=20,n.da=3, parallel=F)
-scatter(dapc5, scree.da=FALSE, bg="white", posi.pca="topleft", legend=TRUE)
-compoplot(dapc5)
 
 #output k=3 clusters
 adegenet.groups<-as.data.frame(cbind(names(dat.clust$grp), dat.clust$grp))
 adegenet.groups[,1]<-sub('sample_(\\w{4}\\w+).*[_.].*','\\1', adegenet.groups[,1])
 adegenet.groups[,1]<-sub('([[:alpha:]]{5,7})([[:digit:]]{1})$', '\\10\\2', 
 	adegenet.groups[,1])
+#get the discriminant analysis loadings
+adegenet.da<-merge(adegenet.groups,dapc1$ind.coord,by=0)
+adegenet.da$pop<-substr(adegenet.da$V1, 1,4)
+adegenet.da$pop[adegenet.da$pop=="TXSP"]<-rainbow(12)[1]
+adegenet.da$pop[adegenet.da$pop=="TXCC"]<-rainbow(12)[2]
+adegenet.da$pop[adegenet.da$pop=="TXCB"]<-rainbow(12)[3]
+adegenet.da$pop[adegenet.da$pop=="ALST"]<-rainbow(12)[4]
+adegenet.da$pop[adegenet.da$pop=="FLSG"]<-rainbow(12)[5]
+adegenet.da$pop[adegenet.da$pop=="FLKB"]<-rainbow(12)[6]
+adegenet.da$pop[adegenet.da$pop=="FLFD"]<-rainbow(12)[7]
+adegenet.da$pop[adegenet.da$pop=="FLSI"]<-rainbow(12)[8]
+adegenet.da$pop[adegenet.da$pop=="FLAB"]<-rainbow(12)[9]
+adegenet.da$pop[adegenet.da$pop=="FLPB"]<-rainbow(12)[10]
+adegenet.da$pop[adegenet.da$pop=="FLHB"]<-rainbow(12)[11]
+adegenet.da$pop[adegenet.da$pop=="FLCC"]<-rainbow(12)[12]
+adegenet.da$V2<-as.numeric(adegenet.da$V2)
+adegenet.da$V2[adegenet.da$V2=="1"]<-as.numeric(15)
+adegenet.da$V2[adegenet.da$V2=="2"]<-16
+adegenet.da$V2[adegenet.da$V2=="3"]<-17
 
+#*******************************PCADAPT***********************************#
+#K=4 WAS BEST
+setwd("E:/ubuntushare/popgen/sw_results/pcadapt/pruned")
+scores.files<-list.files(pattern="4_.*.scores")
+loadings.files<-list.files(pattern="4_.*.loadings")
+snps.files<-list.files(pattern="4_.*.topBF")
+
+snp.list<-list()
+for(i in 1: length(snps.files)){
+	#read in files
+	snp.list[[i]]<-read.table(snps.files[i],header=T)
+}
+#compare lists of snps in all of the runs
+
+all.snps<-as.vector(sapply(snp.list, "[[","snp"))
+all.snps.dup<-all.snps[duplicated(all.snps)]
+rep.snps<-all.snps.dup[!duplicated(all.snps.dup)]
+
+scores<-read.table("pcadapt.4.scores")
+loading<-read.table("pcadapt.4", header=T, sep="\t")
+#bf.log<-log10(snp.list[[1]]$BF)
+#loading[round(loading$logBF, 4) %in% round(bf.log),] #doesn't work..
+
+#the snp is the row number in the map file for the snps
+sub.map<-read.table("../../stacks/populations/subset.map",header=F)
+pcadapt.outliers<-sub.map[rep.snps,]
+pa.out.radloc<-sub('(\\d+)_\\d+','\\1',pcadapt.outliers$V2)
+
+summ.dat<-read.table("../../stacks/populations/batch_1.sumstats.tsv",
+	sep='\t', skip=12, header=T, comment.char="")
+pa.out.dat<-summ.dat[summ.dat$Locus.ID %in% pa.out.radloc,]
+pa.out.dat$Chr<-factor(pa.out.dat$Chr)
+#are any on the linkage map?
+#length(levels(as.factor(use.contigs[use.contigs$Scaffold %in% pa.out.dat$Chr,1])))
+
+#plot individual scores
+jpeg("E:/Docs/PopGen/pcadapt.scores1.2.jpeg", height=12, width=12, units="in", res=300)
+plot(as.numeric(scores[1,]),as.numeric(scores[2,]),pch=16, cex=2,
+	col=alpha(col, 0.5), ylab="", xlab="",lwd=1.3)
+legend("bottomleft", pop.list, pch=19, pt.cex=2,
+	col=alpha(rainbow(12), 0.5), ncol=3)
+mtext("PC1 (rho2: 0.0117)", 1, line = 2)
+mtext("PC2 (rho2: 0.0091)",2, line = 2)
+dev.off()
+
+jpeg("E:/Docs/PopGen/pcadapt.scores1.3.jpeg", height=12, width=12, units="in", res=300)
+plot(as.numeric(scores[1,]),as.numeric(scores[3,]),pch=16, cex=2,
+	col=alpha(col, 0.5), ylab="", xlab="")
+legend("bottomleft", pop.list, pch=19, pt.cex=2,
+	col=alpha(rainbow(12), 0.5), ncol=3)
+mtext("PC1 (rho2: 0.0117)", 1, line = 2)
+mtext("PC3 (rho2: 0.0018)",2, line = 2)
+dev.off()
+
+######################MAKE FIGURE 3################################
+jpeg("F:/Docs/PopGen/Figure3_revised.jpeg", height=8, width=8, units="in",
+	 res=300)
+par(lwd=1.3,cex=1.3,mfrow=c(2,2),oma=c(2,2,2,1),mar=c(2,2,2,1),las=1)
+#PCAdapt
+plot(as.numeric(scores[1,]),as.numeric(scores[2,]),pch=16, cex=2,
+	col=alpha(col, 0.5), ylab="", xlab="",lwd=1.3)
+#legend("bottomleft", pop.list, pch=19, pt.cex=2,
+#	col=alpha(rainbow(12), 0.5), ncol=3)
+mtext("PC1 (rho2: 0.0175)", 1, line = 2)
+mtext("PC2 (rho2: 0.0131)",2, line = 1.5,las=0)
+text(x=-3,y=2.5,"PCAdapt,\nBest K = 4")
+
+plot(as.numeric(scores[1,]),as.numeric(scores[3,]),pch=16, cex=2,
+	col=alpha(col, 0.5), ylab="", xlab="")
+#legend("bottomleft", pop.list, pch=19, pt.cex=2,
+#	col=alpha(rainbow(12), 0.5), ncol=3)
+mtext("PC1 (rho2: 0.0175)", 1, line = 2)
+mtext("PC3 (rho2: 0.0019)",2, line = 1.5,las=0)
+text(x=-3,y=3,"PCAdapt,\nBest K = 4")
+
+#Adegenet
+plot(adegenet.da$LD1,adegenet.da$LD2,pch=as.numeric(adegenet.da$V2),
+	col=alpha(adegenet.da$pop,0.5),ylab="",xlab="",cex=2)
+legend("bottomleft",pch=c(15,16,17),pt.cex=2,c("Group 1","Group 2","Group 3"),
+	col=alpha("black",0.5))
+mtext("Discriminant Axis 1",1,line=2)
+mtext("Discriminant Axis 2",2,line=1.5,las=0)
+text(x=-8,y=4.5,"Adegenet,\nBest K = 3")
+
+plot(pca1$scores[,1], pca1$scores[,2], pch=16, cex=2,lwd=1.3,
+	col=alpha(col, 0.5), ylab="", xlab="")
+legend("bottomleft", pop.list, pch=19, pt.cex=2,
+	col=alpha(rainbow(12), 0.5), ncol=3)
+mtext(paste("PC1: ", round(pca1$eig[1]/sum(pca1$eig)*100, 2), "%", sep=""), 
+	1, line = 2)
+mtext(paste("PC2: ", round(pca1$eig[2]/sum(pca1$eig)*100, 2), "%", sep=""), 
+	2, line = 1.5,las=0)
+text(x=-3.5,y=2.8,"Adegenet,\nBest K = 3")
+dev.off()
+
+
+#*****************************STRUCTURE***********************************#
+setwd("../../")
+structure.k2<-read.table(
+	"structure//popgen//admixture//Results//admixture_run_11_f_clusters.txt",
+	sep='\t', header=F)
+structure.k2$V1<-sub('sample_([A-Z]{4})','\\1', structure.k2$V1)
+structure.k3<-read.table(
+	"structure//popgen//admixture//Results//admixture_run_21_f_clusters.txt",
+	sep='\t', header=F)
+structure.k3$V1<-sub('sample_([A-Z]{4})','\\1', structure.k3$V1)
+structure.k4<-read.table(
+	"structure//popgen//admixture//Results//admixture_run_31_f_clusters.txt",
+	sep='\t', header=F)
+structure.k4$V1<-sub('sample_([A-Z]{4})','\\1', structure.k4$V1)
+structure.k5<-read.table(
+	"structure//popgen//admixture//Results//admixture_run_41_f_clusters.txt",
+	sep='\t', header=F)
+structure.k5$V1<-sub('sample_([A-Z]{4})','\\1', structure.k5$V1)
+
+
+pop.list<-c("TXSP","TXCC","TXCB","ALST","FLSG","FLKB","FLFD","FLSI",
+		"FLAB","FLPB","FLHB","FLCC")
+all.colors<-c("palegreen","goldenrod1","orchid3","tomato","darkblue")
+
+tapply(structure.k2$V2,structure.k2$V1,max) #V2 has FLCC group
+str2<-data.frame(structure.k2$V1,structure.k2$V3, structure.k2$V2)
+
+tapply(structure.k3$V2,structure.k3$V1,max) #V2 if FLFD, V3 is TX, V4 is FLCC
+str3<-data.frame(structure.k3$V1,structure.k3$V3, structure.k3$V2, structure.k3$V4)
+
+tapply(structure.k4$V2,structure.k4$V1,max)#V2=TXCB,V3=FLSG,V4=FLCC,V5=TXCC
+str4<-data.frame(structure.k4$V1,structure.k4$V5,structure.k4$V2,structure.k4$V3, 
+	structure.k4$V4)
+
+tapply(structure.k5$V2,structure.k5$V1,max)#V2=TX,V3=FLKB,V4=TXCB,V5=FLAB,V6=FLCC
+str5<-data.frame(structure.k5$V1,structure.k5$V2, structure.k5$V4,structure.k5$V3,
+	structure.k5$V5,structure.k5$V6)
 
 #***************************FASTSTRUCTURE*********************************#
-str.in<-read.table("E://ubuntushare//stacks//populations//ld.hwe.pgd.str")
+str.in<-read.table("faststructure/subset.structure.recode.str")
 inds<-str.in[,1]
 inds<-sub('.*_([ATF]\\w+)[_.].*','\\1', inds)
 inds<-inds[c(TRUE,FALSE)]
@@ -236,36 +379,34 @@ faststr.barplot<-function(meanQ.file, k, plot.order, to.file=TRUE){
 	if(to.file==TRUE){
 		dev.off()}
 }
-#K=2
-stru2<-read.table("E://ubuntushare//ld.hwe_out_simple.2.meanQ",header=F)
-structure.barplot(stru2,2, pop.list)
-stru3<-read.table("E://ubuntushare//pop_structure//faststructure//ld.hwe_out_simple.3.meanQ",header=F)
-stru3<-cbind(pop.id,stru3)
-stru4<-read.table("E://ubuntushare//pop_structure//faststructure//ld.hwe_out_simple.4.meanQ",header=F)
-stru4<-cbind(pop.id,stru4)
-stru5<-read.table("E://ubuntushare//pop_structure//faststructure//ld.hwe_out_simple.5.meanQ",header=F)
-stru5<-cbind(pop.id,stru5)
-stru6<-read.table("E://ubuntushare//pop_structure//faststructure//ld.hwe_out_simple.6.meanQ",header=F)
-stru6<-cbind(pop.id,stru6)
+#simple
+fstr2<-read.table("faststructure/pruned_out_simple.2.meanQ",header=F)
+fstr2<-cbind(pop.id,fstr2)
+fstr2<-data.frame(fstr2$pop.id,fstr2$V2,fstr2$V1)
+fstr3<-read.table("faststructure/pruned_out_simple.3.meanQ",header=F)
+fstr3<-cbind(pop.id,fstr3)
+fstr3<-data.frame(fstr3$pop.id,fstr3$V3,fstr3$V2,fstr3$V1)
+fstr4<-read.table("faststructure/pruned_out_simple.4.meanQ",header=F)
+fstr4<-cbind(pop.id,fstr4)
+fstr4<-data.frame(fstr4$pop.id,fstr4$V1,fstr4$V2,fstr4$V3,fstr4$V4)
+fstr5<-read.table("faststructure/pruned_out_simple.5.meanQ",header=F)
+fstr5<-cbind(pop.id,fstr5)
+fstr5<-data.frame(fstr5$pop.id,fstr5$V1,fstr5$V3,fstr5$V2,fstr5$V4,fstr5$V5)
 
-#plot pop averages
-jpeg("faststructure.k3-6.summ.jpeg", height=12, width=12, units="in", res=300)
-par(mfrow=c(2,2),mar=c(5,4,4,1),oma=c(2,2,2,1))
-#K=3
-structure.barplot(stru3,3, pop.list, FALSE)
-#K=4
-structure.barplot(stru4,4, pop.list, FALSE)
-#K=5
-structure.barplot(stru5,5, pop.list, FALSE)
-#K=6
-structure.barplot(stru6,6, pop.list, FALSE)
-dev.off()
+#res
+fstr2res<-read.table("faststructure/res.k2.output_log.2.meanQ",header=F)
+fstr2res<-cbind(pop.id,fstr2)
+fstr2<-data.frame(fstr2$pop.id,fstr2$V2,fstr2$V1)
+fstr3<-read.table("faststructure/pruned_out_simple.3.meanQ",header=F)
+fstr3<-cbind(pop.id,fstr3)
+fstr3<-data.frame(fstr3$pop.id,fstr3$V3,fstr3$V2,fstr3$V1)
+fstr4<-read.table("faststructure/pruned_out_simple.4.meanQ",header=F)
+fstr4<-cbind(pop.id,fstr4)
+fstr4<-data.frame(fstr4$pop.id,fstr4$V3,fstr4$V2,fstr4$V1)
 
-#plot structure-like plot
-plot.structure(stru3, 3, pop.list ,"faststructure.k3.jpeg")
-plot.structure(stru4, 4, pop.list ,"faststructure.k4.jpeg")
-plot.structure(stru5, 5, pop.list ,"faststructure.k5.jpeg")
-plot.structure(stru6, 6, pop.list ,"faststructure.k6.jpeg")
+fstr5<-read.table("faststructure/pruned_out_simple.5.meanQ",header=F)
+fstr5<-cbind(pop.id,fstr5)
+
 
 #assign each ind to a group
 fast.groups.3<-as.data.frame(cbind(inds, apply(stru3, 1, which.max)))
@@ -291,110 +432,27 @@ fast.groups.5$inds<-marine.map$V1[match(
 write.table(fast.groups.5, "E://ubuntushare//stacks//fstru.groups.popmap.txt", 
 	col.names=F, sep="\t", eol="\n", quote=F, row.names=F)
 
+##################################MAKE FIGURE 2#############################
+jpeg("Figure2_revisions.jpeg",height=10,width=7.5,units="in",res=300)
+par(mfrow=c(8,length(pop.list)),mar=c(0.5,0,1,0),oma=c(1,3,1,0))
 
-
-
-#*****************************STRUCTURE***********************************#
-structure.k3<-read.table(
-	"E://ubuntushare//stacks//populations//structure//popstr//admixture_set//Results//admixture_k3//admixture_set_run_13_f_clusters.txt",
-	sep='\t', header=F)
-structure.k3$V1<-sub('sample_([A-Z]{4})','\\1', structure.k3$V1)
-structure.k4<-read.table(
-	"E://ubuntushare//stacks//populations//structure//popstr//admixture_set//Results//admixture_k4//admixture_set_run_23_f_clusters.txt",
-	sep='\t', header=F)
-structure.k4$V1<-sub('sample_([A-Z]{4})','\\1', structure.k4$V1)
-structure.k5<-read.table(
-	"E://ubuntushare//stacks//populations//structure//popstr//admixture_set//Results//admixture_k5//admixture_set_run_33_f_clusters.txt",
-	sep='\t', header=F)
-structure.k5$V1<-sub('sample_([A-Z]{4})','\\1', structure.k5$V1)
-structure.k6<-read.table(
-	"E://ubuntushare//stacks//populations//structure//popstr//admixture_set//Results//admixture_k6//admixture_set_run_43_f_clusters.txt",
-	sep='\t', header=F)
-structure.k6$V1<-sub('sample_([A-Z]{4})','\\1', structure.k6$V1)
-
-pop.list<-c("TXSP","TXCC","TXCB","ALST","FLSG","FLKB","FLFD","FLSI",
-		"FLAB","FLPB","FLHB","FLCC")
-
-plot.structure<-function(structure.out, k, pop.order, 
-	filename=paste("str.k",k,".jpeg",sep=""),make.file=TRUE,
-	plot.new=TRUE){
-	str.split<-split(structure.out,structure.out[,1])
-	bar.colors<-rainbow(k,s=0.5)
-	if(make.file==TRUE){
-		jpeg(filename,width=7, height=1.25, units="in", res=300)
-		par(mfrow=c(1,length(str.split)))
-	} 
-	par(mar=c(1,0,0,0), oma=c(1,0,0,0),cex=0.5)
-	for(i in 1:length(str.split)){
-		pop.index<-pop.order[i]
-		barplot(height=as.matrix(t(str.split[[pop.index]][,-1])),
-			beside=FALSE, space=0,	border=NA, col=bar.colors,
-			xlab="", ylab="", xaxt='n', yaxt='n', new=plot.new)
-		mtext(pop.index, 1, line=0.5, cex=0.5, outer=F)
-	}
-	if(make.file==TRUE) {dev.off()}
-}
-par(mfrow=c(4,length(pop.list)),mar=c(1,0,1,0),oma=c(1,0,1,0))
-plot.structure(structure.k3,3,pop.list)#, make.file=FALSE, plot.new=FALSE)
-plot.structure(structure.k4,4,pop.list)#, make.file=FALSE, plot.new=TRUE)
-plot.structure(structure.k5,5,pop.list)#, make.file=FALSE, plot.new=TRUE)
-plot.structure(structure.k6,6,pop.list)#, make.file=FALSE, plot.new=TRUE)
-
-
-#*******************************PCADAPT***********************************#
-#K=4 WAS BEST
-setwd("E:/ubuntushare/popgen/sw_results/pcadapt")
-scores.files<-list.files(pattern="4_.*.scores")
-loadings.files<-list.files(pattern="4_.*.loadings")
-snps.files<-list.files(pattern="4_.*.topBF")
-
-snp.list<-list()
-for(i in 1: length(snps.files)){
-	#read in files
-	snp.list[[i]]<-read.table(snps.files[i],header=T)
-}
-#compare lists of snps in all of the runs
-
-all.snps<-as.vector(sapply(snp.list, "[[","snp"))
-all.snps.dup<-all.snps[duplicated(all.snps)]
-rep.snps<-all.snps.dup[!duplicated(all.snps.dup)]
-
-scores<-read.table("pcadapt.4.scores")
-loading<-read.table("pcadapt.4", header=T, sep="\t")
-#bf.log<-log10(snp.list[[1]]$BF)
-#loading[round(loading$logBF, 4) %in% round(bf.log),] #doesn't work..
-
-#the snp is the row number in the map file for the snps
-sub.map<-read.table("../stacks/populations/subset.map",header=F)
-pcadapt.outliers<-sub.map[rep.snps,]
-pa.out.radloc<-sub('(\\d+)_\\d+','\\1',pcadapt.outliers$V2)
-
-summ.dat<-read.table("../stacks/populations/batch_1.sumstats.tsv",
-	sep='\t', skip=12, header=T, comment.char="")
-pa.out.dat<-summ.dat[summ.dat$Locus.ID %in% pa.out.radloc,]
-pa.out.dat$Chr<-factor(pa.out.dat$Chr)
-#are any on the linkage map?
-#length(levels(as.factor(use.contigs[use.contigs$Scaffold %in% pa.out.dat$Chr,1])))
-
-#plot individual scores
-jpeg("E:/Docs/PopGen/pcadapt.scores1.2.jpeg", height=12, width=12, units="in", res=300)
-plot(as.numeric(scores[1,]),as.numeric(scores[2,]),pch=16, cex=2,
-	col=alpha(col, 0.5), ylab="", xlab="",lwd=1.3)
-legend("bottomleft", pop.list, pch=19, pt.cex=2,
-	col=alpha(rainbow(12), 0.5), ncol=3)
-mtext("PC1 (rho2: 0.0117)", 1, line = 2)
-mtext("PC2 (rho2: 0.0091)",2, line = 2)
+plotting.structure(str2,2,pop.list, make.file=FALSE, 
+	colors=all.colors[c(1,5)],xlabel=F,ylabel="STRUCTURE\nK=2")
+plotting.structure(fstr2,2,pop.list, make.file=FALSE, 
+	colors=all.colors[c(1,5)],xlabel=F,ylabel="FAST\nK=2")
+plotting.structure(str3,3,pop.list, make.file=FALSE, 
+	colors=all.colors[c(1,3,5)],xlabel=F,ylabel="STRUCTURE\nK=3")
+plotting.structure(fstr3,3,pop.list, make.file=FALSE, 
+	colors=all.colors[c(1,3,5)],xlabel=F,ylabel="FAST\nK=3")
+plotting.structure(str4,4,pop.list, make.file=FALSE,
+	colors=all.colors[c(1,2,3,5)],xlabel=F,ylabel="STRUCTURE\nK=4")
+plotting.structure(fstr4,4,pop.list, make.file=FALSE,
+	colors=all.colors[c(1,2,3,5)],xlabel=F,ylabel="FAST\nK=4")
+plotting.structure(str5,5,pop.list, make.file=FALSE, colors=all.colors,
+	xlabel=F,ylabel="STRUCTURE\nK=5")
+plotting.structure(fstr5,5,pop.list, make.file=FALSE, colors=all.colors
+	,xlabel=T,ylabel="FAST\nK=5")
 dev.off()
-
-jpeg("E:/Docs/PopGen/pcadapt.scores1.3.jpeg", height=12, width=12, units="in", res=300)
-plot(as.numeric(scores[1,]),as.numeric(scores[3,]),pch=16, cex=2,
-	col=alpha(col, 0.5), ylab="", xlab="")
-legend("bottomleft", pop.list, pch=19, pt.cex=2,
-	col=alpha(rainbow(12), 0.5), ncol=3)
-mtext("PC1 (rho2: 0.0117)", 1, line = 2)
-mtext("PC3 (rho2: 0.0018)",2, line = 2)
-dev.off()
-
 
 #########################################################################
 #***********************************************************************#
