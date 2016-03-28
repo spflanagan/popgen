@@ -36,6 +36,13 @@ X-Did LD pruning work as expected? Are SNPs from the same RAD locus removed?
 10. Bayenv2
 11. calculate_global_fst
 ############################################################################################################
+#####Saturday, 26 March 2016
+I found the original raw environmental file and re-standardized the variables. Now I'm running the bayenv wrapper using run_bayenv2_wrapper.sh... This seems to have worked.
+
+I'm also standardizing the traits by population (not by sex) by dividing each trait value by population mean.
+Now I'm trying to re-do the pst-fst comparisons.
+
+For the band area I'm getting Pst=1 because the sums of squares is so small.
 #####Friday, 25 March 2016
 I realized that the reason I was getting NAN values from Bayenv2 was because my standardized.env file was messed up--full of NANs. So I found the real version and am re-running bayenv2.
 
