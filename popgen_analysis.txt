@@ -36,6 +36,166 @@ X-Did LD pruning work as expected? Are SNPs from the same RAD locus removed?
 10. Bayenv2
 11. calculate_global_fst
 ############################################################################################################
+#####Wednesday, 30 March 2016
+The fst-pst analysis doesn't work on band area and band number when standardized...the pst matrix is all ones. I think it's because of a lack of variance? or something? It works for males. and female body stuff. Doing PCA on standardized traits, pst matrix for bands is all 1s. But the patterns look basically the same as before. AHA!!! BandNum and Band Area mean = 0. What if I standardize by trait/mean(trait) instead of trait/mean(trait)-1? Nope, that's not solving the problem. 
+
+:::::::RESULTS::::::
+STANDARDIZED
+ mal.fst.pst
+                    Obs      P
+SVL         -0.04095571 0.6062
+TailLength  -0.15937982 0.8618
+BodyDepth   -0.02983801 0.6011
+SnoutLength -0.09345849 0.7336
+SnoutDepth  -0.02595385 0.5703
+HeadLength  -0.06003236 0.6436
+
+> mal.pst.dist
+                   Obs      P
+SVL         0.19370982 0.0679
+TailLength  0.13618662 0.1826
+BodyDepth   0.03568641 0.4351
+SnoutLength 0.08921589 0.2981
+SnoutDepth  0.02090614 0.4442
+HeadLength  0.19282189 0.0818
+
+PCA versions:
+> mantel.rtest(as.dist(t(sband.pst)),as.dist(t(dist)), nrepet=9999)
+Monte-Carlo test
+Observation: 0.1785789 
+Call: mantel.rtest(m1 = as.dist(t(sband.pst)), m2 = as.dist(t(dist)), 
+    nrepet = 9999)
+Based on 9999 replicates
+Simulated p-value: 0.1261 
+> mantel.rtest(as.dist(t(sfem.pst)),as.dist(t(dist)), nrepet=9999)
+Monte-Carlo test
+Observation: -0.2014884 
+Call: mantel.rtest(m1 = as.dist(t(sfem.pst)), m2 = as.dist(t(dist)), 
+    nrepet = 9999)
+Based on 9999 replicates
+Simulated p-value: 0.8943 
+> mantel.rtest(as.dist(t(smal.pst)),as.dist(t(dist)), nrepet=9999)
+Monte-Carlo test
+Observation: 0.09107063 
+Call: mantel.rtest(m1 = as.dist(t(smal.pst)), m2 = as.dist(t(dist)), 
+    nrepet = 9999)
+Based on 9999 replicates
+Simulated p-value: 0.2882 
+
+> mantel.rtest(as.dist(t(sband.pst)),as.dist(t(pwise.fst)), nrepet=9999)
+Monte-Carlo test
+Observation: NA 
+Call: mantelnoneuclid(m1 = m1, m2 = m2, nrepet = nrepet)
+Based on 9999 replicates
+Simulated p-value: NA 
+There were 50 or more warnings (use warnings() to see the first 50)
+> mantel.rtest(as.dist(t(sfem.pst)),as.dist(t(pwise.fst)), nrepet=9999)
+Monte-Carlo test
+Observation: 0.01594444 
+Call: mantelnoneuclid(m1 = m1, m2 = m2, nrepet = nrepet)
+Based on 9999 replicates
+Simulated p-value: 0.4864 
+> mantel.rtest(as.dist(t(smal.pst)),as.dist(t(pwise.fst)), nrepet=9999)
+Monte-Carlo test
+Observation: -0.06373443 
+Call: mantelnoneuclid(m1 = m1, m2 = m2, nrepet = nrepet)
+Based on 9999 replicates
+Simulated p-value: 0.6768 
+
+UNSTANDARDIZED
+ fem.fst.upst
+                    Obs      P
+SVL          0.13144683 0.1799
+TailLength   0.08060939 0.3139
+BodyDepth    0.03756990 0.4288
+SnoutLength  0.02517979 0.4989
+SnoutDepth   0.09016056 0.3063
+HeadLength   0.05842674 0.3528
+BandArea     0.04007397 0.4444
+BandNum     -0.20954717 0.8187
+
+> mal.fst.upst
+                    Obs      P
+SVL          0.01723110 0.4743
+TailLength   0.01728534 0.4632
+BodyDepth    0.03865810 0.4595
+SnoutLength -0.06330220 0.6633
+SnoutDepth   0.04661631 0.4132
+HeadLength  -0.02334358 0.5645
+
+fem.upst.dist
+                    Obs      P
+SVL         -0.15632610 0.8695
+TailLength  -0.16330518 0.8806
+BodyDepth   -0.12692967 0.8576
+SnoutLength -0.20835525 0.8916
+SnoutDepth  -0.10891345 0.7732
+HeadLength  -0.14761062 0.8603
+BandArea     0.03079835 0.4718
+BandNum     -0.54223261 1.0000
+> mal.upst.dist
+                     Obs      P
+SVL         -0.001084414 0.5225
+TailLength   0.003154747 0.5085
+BodyDepth    0.028435422 0.4778
+SnoutLength -0.170531471 0.8571
+SnoutDepth  -0.052837081 0.6628
+HeadLength  -0.026574775 0.5902
+
+PCA versions:
+mantel.rtest(as.dist(t(band.pst)),as.dist(t(dist)), nrepet=9999)
+Monte-Carlo test
+Observation: -0.5409249 
+Call: mantel.rtest(m1 = as.dist(t(band.pst)), m2 = as.dist(t(dist)), 
+    nrepet = 9999)
+Based on 9999 replicates
+Simulated p-value: 1 
+> mantel.rtest(as.dist(t(fem.pst)),as.dist(t(dist)), nrepet=9999)
+Monte-Carlo test
+Observation: -0.1224953 
+Call: mantelnoneuclid(m1 = m1, m2 = m2, nrepet = nrepet)
+Based on 9999 replicates
+Simulated p-value: 0.8224 
+> mantel.rtest(as.dist(t(mal.pst)),as.dist(t(dist)), nrepet=9999)
+Monte-Carlo test
+Observation: -0.004192046 
+Call: mantelnoneuclid(m1 = m1, m2 = m2, nrepet = nrepet)
+Based on 9999 replicates
+Simulated p-value: 0.5284 
+> 
+> 
+> mantel.rtest(as.dist(t(band.pst)),as.dist(t(pwise.fst)), nrepet=9999)
+Monte-Carlo test
+Observation: -0.2099312 
+Call: mantelnoneuclid(m1 = m1, m2 = m2, nrepet = nrepet)
+Based on 9999 replicates
+Simulated p-value: 0.8218 
+> mantel.rtest(as.dist(t(fem.pst)),as.dist(t(pwise.fst)), nrepet=9999)
+Monte-Carlo test
+Observation: 0.1124728 
+Call: mantelnoneuclid(m1 = m1, m2 = m2, nrepet = nrepet)
+Based on 9999 replicates
+Simulated p-value: 0.238 
+> mantel.rtest(as.dist(t(mal.pst)),as.dist(t(pwise.fst)), nrepet=9999)
+Monte-Carlo test
+Observation: 0.01852087 
+Call: mantelnoneuclid(m1 = m1, m2 = m2, nrepet = nrepet)
+Based on 9999 replicates
+Simulated p-value: 0.4628 
+> 
+
+
+
+
+#####Tuesday, 29 March 2016
+There are 88 Bayes Factor outliers in the temperature analysis but 0 for the other environmental factors using the "quantile" function with a cutoff of 0.95.
+
+Now there aren't any overlapping outliers. Partly because XTX at 1% has 18 loci..let's try 5%?
+If I use 5% and the pruned Fsts then there's overlap. Whew.
+
+I think I need to present the outliers and the temperature-associated ones separately. Maybe when I do the anomaly analysis there will be something to show there?
+
+
 #####Monday, 28 March 2016
 I need to really try to finish up re-running things. First, I need to edit the fst summary file so that it's in the same order as the distance file (which is geographic order). 
 
@@ -47,6 +207,10 @@ Now i need to process the structure output and make the structure figure again.
 Reviewer 1 wants the colors to make more sense so that colors are consistent in each population. I think I've figured out a way to do this, but my faststructure output is a bit weird.
 
 I don't know why but the faststructure groupings are not very good. They also don't really match the distruct plots. I need to look at the distruct code/info to see what they use, maybe I'm just plotting the wrong values.
+
+I'm re-running bayenv on my work computer because the wrapper didn't work on all of the loci apparently and it didn't record the locus names. If I want to compare these outliers to others I need to record the runs!
+
+Meanwhile I'm stilla little stumped by the Pst-Fst comparison not working well.
 
 #####Saturday, 26 March 2016
 I found the original raw environmental file and re-standardized the variables. Now I'm running the bayenv wrapper using run_bayenv2_wrapper.sh... This seems to have worked.

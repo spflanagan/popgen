@@ -224,7 +224,7 @@ int main()
 			ss >> chrom >> snp >> dist >> bp;
 			overall.genotypes[count].bp = bp;
 			overall.genotypes[count].scaffold = chrom;
-			overall.genotypes[count].id = snp.substr(0, snp.find("_"));
+			overall.genotypes[count].id = snp;
 			count++;
 			
 		}

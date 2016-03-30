@@ -4,26 +4,24 @@
 #made from used analyses from fst_cline_analysis and population_structure
 
 rm(list=ls())
-setwd("E:/ubuntushare/popgen")
+
 library(ade4)
 library(lme4)
-library(maps)
+library(maps);library(gplots)
 library(mapdata)
 library(vegan)
-library(boot)
-library(car)
+library(boot);library(car)
 library(adegenet)
 library(scales)
-library(gdata)
+library(gdata);library(matrixcalc)
 
 #############################################################################
 #***************************************************************************#
 ###################################FILES#####################################
 #***************************************************************************#
 #############################################################################
-summ.dat<-read.table("sw_results/stacks/populations/batch_1.sumstats.tsv",
+summ.dat<-read.table("E://ubuntushare//stacks//populations//batch_1.sumstats.tsv",
 	sep='\t', skip=12, header=T, comment.char="")
-ld.hwe<-read.table("sw_results/stacks/populations/ld.hwe.whitelist.txt")
 
 contigs<-read.table("E://ubuntushare//linkage_map//ordered_contigs_denovo50.txt",
 	sep='\t', header=T)
@@ -37,25 +35,23 @@ contigs<-read.table("E://ubuntushare//linkage_map//ordered_contigs_denovo50.txt"
 	dup.scaff<-contigs$Scaffold %in% as.factor(names(mult.lg))
 use.contigs<-contigs[!dup.scaff,]
 
-catalog<-read.delim("results/stacks/batch_1.catalog.tags.tsv", 
+catalog<-read.delim("E://ubuntushare//stacks//batch_1.catalog.tags.tsv", 
 	header=F)
-
+sig.diff<-read.delim("E://ubuntushare//fst_geographical_clines//fst_geographical_clines//fst_sig_diff_4cline.txt", 
+	header=T, sep='\t')
 mar.coor<-read.csv("E://Docs//PopGen//marine_coordinates.csv", header=T)
 fw.coor<-read.csv("E://Docs//PopGen//fw_coordinates.csv", header=T)
-m.f.summ.dat<-read.table("results//stacks//populations_sex//batch_1.sumstats.tsv",
+m.f.summ.dat<-read.table("E://ubuntushare//stacks//populations_sex//batch_1.sumstats.tsv",
 	sep='\t', skip=2, header=T, comment.char="")
+sig.diff<-read.delim("E://ubuntushare//fst_geographical_clines//fst_geographical_clines//fst_sig_diff.txt", header=T, sep='\t')
+
 dist<-read.table("E://Docs//PopGen//geographical_distances.txt", 
 	header=T, row.names=1, sep='\t')
-pwise.fst<-read.table("results\\stacks\\populations\\batch_1.fst_summary.tsv",
+pwise.fst<-read.table("E:\\Docs\\PopGen\\fst_summary.txt",
 	 header=T, row.names=1, sep='\t')
-	pwise.fst<-rbind(pwise.fst,rep(NA, ncol(pwise.fst)))
-	rownames(pwise.fst)<-colnames(pwise.fst)
+env.dat<-read.table("E://ubuntushare//bayenv2//env_data_bayenv_raw.txt")
 
-#####Re-name plink files so that Family ID contains Population ID.
-ped<-read.table("sw_results/stacks/populations/subset.ped")
-ped$V1<-gsub("sample_(\\w{4})\\w+.*align","\\1",ped$V2)
-write.table(ped,"sw_results/migrate/subset.ped",col.names=F,row.name=F,quote=F)
-
+setwd("E://Docs//PopGen")
 #############################################################################
 #***************************************************************************#
 #################################FUNCTIONS###################################
@@ -65,36 +61,49 @@ write.table(ped,"sw_results/migrate/subset.ped",col.names=F,row.name=F,quote=F)
 #***************************************************************************#
 #PLOT ANY GENOME-WIDE STATISTIC
 #***************************************************************************#
-plot.genome.wide<-function(bp,var,y.max,x.max, rect.xs,y.min=0,x.min=0, 
-	plot.new=FALSE, plot.axis=TRUE, rect.color="white", pt.cex=1){
-	par(new=new)
-	plot(bp, var,xlab="",ylab="", 
+plot.genome.wide<-function(bp,var,y.max,x.max, rect.xs=NULL,y.min=0,x.min=0, 
+	plot.new=FALSE, plot.axis=TRUE, rect.color="white",plot.rect=TRUE, 
+	pt.cex=1, pt.col="black"){
+	#********************************************
+	#this function plots a variable without scaffold info. 
+	#feed it the basepair (x) values and variable (y) values 
+	#*********************************************
+	if(plot.new==TRUE){ par(new=new) }
+	plot(bp, var,xlab="",ylab="", new=plot.new,
 		type="n", bg="transparent", axes=F, bty="n", 
 		xlim=c(x.min,x.max),ylim=c(y.min, y.max))
-	num.rect<-nrow(rect.xs)
-	if(is.null(num.rect)) {
-		rect(rect.xs[1],y.min,rect.xs[2],y.max, 
+	if(plot.rect==TRUE){
+		num.rect<-nrow(rect.xs)
+		if(is.null(num.rect)) {
+			rect(rect.xs[1],y.min,rect.xs[2],y.max, 
 				col=rect.color, border=NA)
-	} else {
-		for(i in 1:nrow(rect.xs)){
-			rect(rect.xs[i,1],y.min,rect.xs[i,2],y.max, 
-				col=rect.color, border=NA)
+		} else {
+			for(i in 1:nrow(rect.xs)){
+				rect(rect.xs[i,1],y.min,rect.xs[i,2],y.max, 
+					col=rect.color, border=NA)
+			}
 		}
 	}
 	if(plot.axis){
 	axis(2, at = seq(y.min,y.max,round((y.max-y.min)/2, digits=2)),
 		ylim = c(y.min, y.max), pos=0,
 		las=1,tck = -0.01, xlab="", ylab="", cex.axis=0.75)}
-	points(bp, var, pch=19, cex=pt.cex,
+	points(bp, var, pch=19, cex=pt.cex,col=pt.col,
 		xlim=c(x.min,x.max),ylim=c(y.min, y.max))
 }
 
 #***************************************************************************#
 ##AUTOMATED FST PLOTTING
 #***************************************************************************#
-plot.fsts.scaffs<-function(dat, dat.name, ci.dat=NULL, 
+plot.fsts.scaffs<-function(dat, dat.name, ci.dat=NULL, pt.cex=1,y.lab=NULL,
 	col.pts=NULL, col.pt.col="dark green", col.pt.pch=8, col.pt.cex=2){
-	byscaff<-split(dat, factor(dat$Chr))#dat is a fst file from stacks_genomewideCIs
+	#********************************************
+	#this function plots every scaffold. 
+	#dat is a fst file from stacks_genomewideCIs
+	#dat should have a column named "Chr", one called "BP"
+	#at least one other column is needed: dat.name
+	#*********************************************
+	byscaff<-split(dat, factor(dat$Chr))
 	if(!is.null(col.pts)){
 		col.pt.byscaff<-split(col.pts, factor(col.pts$Chr))}
 	last.max<-0
@@ -124,20 +133,20 @@ plot.fsts.scaffs<-function(dat, dat.name, ci.dat=NULL,
 				byscaff[[i]]$Locus
 				 %in% col.pt.byscaff[[j]]$Locus) &
 				(byscaff[[i]]$BP %in% col.pt.byscaff[[j]]$BP),
-				"SmoothFst"])
+				dat.name])
 		}}
 	}
 
 	x.min<-min(addition.values)
 	x.max<-max(addition.values)
-	y.max<-max(dat$SmoothFst)+0.5*max(dat$SmoothFst)
-	if(min(dat$SmoothFst) < 0) {
-		y.min<-min(dat$SmoothFst) + 0.5*min(dat$SmoothFst)
+	y.max<-max(dat[,dat.name])+0.5*max(dat[,dat.name])
+	if(min(dat[,dat.name]) < 0) {
+		y.min<-min(dat[,dat.name]) + 0.5*min(dat[,dat.name])
 	} else {
 		y.min<-0
 	}
 
-	plot(new.x[[1]], byscaff[[1]]$SmoothFst, 
+	plot(new.x[[1]], byscaff[[1]][,dat.name], 
 		xlim=c(x.min,x.max), ylim=c(y.min, y.max), bty="n",type="n",
 		axes=F, xlab="", ylab="")
 	for(j in 1:length(byscaff)){
@@ -146,16 +155,25 @@ plot.fsts.scaffs<-function(dat, dat.name, ci.dat=NULL,
 		} else {
 			rect.color<-"gray96"
 		}
-		plot.genome.wide(new.x[[j]], 
-			byscaff[[j]]$SmoothFst,
-			y.max,x.max, rect.xs[j,],y.min=y.min,x.min=x.min, 
-			plot.new=TRUE, plot.axis=FALSE, rect.color, pt.cex=0.25)
+		rect(rect.xs[j,1],y.min,rect.xs[j,2],y.max, 
+			col=rect.color, border=NA)
 	}
+	for(j in 1:length(byscaff)){
+		points(new.x[[j]],byscaff[[j]][,dat.name], pch=19, cex=pt.cex,
+			xlim=c(x.min,x.max),ylim=c(y.min, y.max))
+	}
+		#plot.genome.wide(new.x[[j]], 
+		#	byscaff[[j]][,dat.name],rect.xs=rect.xs[j,],
+		#	y.max,x.max, y.min=y.min,x.min=x.min, 
+		#	plot.new=FALSE, plot.axis=FALSE, pt.cex=0.25)
 		
 	axis(2, at = seq(y.min,y.max,round((y.max-y.min)/2, digits=10)),
 		xlim=c(x.min,x.max),ylim = c(y.min, y.max), pos=0,
 		las=1,tck = -0.01, xlab="", ylab="", cex.axis=0.75)
-	mtext(dat.name,2,las=1, line=4,cex=.75)
+	if(is.null(y.lab)){
+		mtext(dat.name,2,las=1, line=4,cex=.75)}
+	else{
+		mtext(y.lab,2,las=1, line=4,cex=.75)}
 	if(!is.null(ci.dat)){
 		clip(x.min,x.max,y.min,y.max)
 		abline(h=ci.dat$CI99smooth,col="red")
@@ -165,47 +183,57 @@ plot.fsts.scaffs<-function(dat, dat.name, ci.dat=NULL,
 				col=col.pt.col, pch=col.pt.pch, cex=col.pt.cex)
 		}
 	}
+	return(as.data.frame(cbind(old.bp=dat$BP,new.bp=unlist(new.x), 
+		locus=dat$Locus)))
+}
+
+#***************************************************************************#
+##REORDER A DATAFRAME
+#***************************************************************************#
+reorder.df<-function(dat,order.list){
+	#dat has to have the grouping IDs in row 1
+	#those grouping ids must match the factors in order.list
+	dat.sep<-split(dat, dat[,1])
+	dat.new<-dat.sep[[order.list[1]]]
+	for(i in 2:length(order.list)){
+		dat.new<-rbind(dat.new, dat.sep[[order.list[i]]])
+	}
+	return(dat.new)
 }
 
 
+
 #############################################################################
-#######################PLOT THE POINTS ON A MAP##############################
+#***************************************************************************#
+#############################NECESSARY SUMMARIES#############################
+#***************************************************************************#
 #############################################################################
+
+#***************************************************************************#
+##PLOT THE POINTS ON A MAP
+#***************************************************************************#
+
 mar.coor$lon<-(-1*mar.coor$lon)
 fw.coor$lon<-(-1*fw.coor$lon)
 
+lon.add<-c(1,1.25,1.4,0,-1.2,-0.75,-1,-1,0,1.1,1,1)
+lat.add<-c(0,0,0,-0.5,-0.25,-0.5,0,0,-0.5,0,0,0)
+
 jpeg("mar_sites_map.jpg", res=300, width=9, height=7, units="in")
-map("worldHires", "usa",xlim=c(-100,-76), ylim=c(23,35.5), 
+map("worldHires", "usa",xlim=c(-100,-78), ylim=c(23,35), 
 	col="gray90", fill=TRUE)
-map("worldHires", "mexico",xlim=c(-100,-76), ylim=c(23,35.5), 
+map("worldHires", "mexico",xlim=c(-100,-78), ylim=c(23,35), 
 	col="gray95", fill=TRUE, add=TRUE)
-map("worldHires", "cuba",xlim=c(-100,-76), ylim=c(23,35), 
+map("worldHires", "cuba",xlim=c(-100,-78), ylim=c(23,35), 
 	col="gray95", fill=TRUE, add=TRUE)
-points(mar.coor$lon, mar.coor$lat,  col="black", cex=1, pch=19)
-abline(h=c(25,30,35),lty=3)
-abline(v=c(-80,-85,-90,-95,-100),lty=3)
-text(x=c(-99.5,-99.5,-99.5),y=c(25,30,35),c("25N","30N","35N"))
-text(x=c(-80,-85,-90,-95),y=rep(35.3,4),c("80W","85W","90W","95W"))
-text(y=26,x=-90,"Gulf of Mexico")
-text(x=-88,y=32,"USA")
-text(x=-78,y=29.5,"Atlantic Ocean")
-text(x=-96,y=26,"TXSP",font=2)
-text(x=-96.4,y=27,"TXCC",font=2)
-text(x=-94,y=29,"TXCB",font=2)
-text(x=-88,y=29.7,"ALST",font=2)
-text(x=-85.7,y=29.2,"FLSG",font=2)
-text(x=-84,y=28.8,"FLKB",font=2)
-text(x=-83.6,y=27.6,"FLFD",font=2)
-text(x=-82.8,y=26,"FLSI",font=2)
-text(x=-79.5,y=25,"FLAB",font=2)
-text(x=-79,y=26.2,"FLPB",font=2)
-text(x=-79,y=27.2,"FLHB",font=2)
-text(x=-79.4,y=28.2,"FLCC",font=2)
+points(mar.coor$lon, mar.coor$lat,  col="black", cex=1.5, pch=19)
+text(mar.coor$lon+lon.add, mar.coor$lat+lat.add, labels=mar.coor$site,
+	 col="black")
 dev.off()
 
-
-
-###############SUMMARY STATS PER POP######################################
+#***************************************************************************#
+##SUMMARY STATS PER POP
+#***************************************************************************#
 
 ss<-split(summ.dat, summ.dat$Pop.ID)#create a list of data frames for each pop
 y<-split(ss, ss$Locus.ID)
@@ -279,37 +307,41 @@ mtext(side=1, "Fis value", outer = TRUE, line=1)
 mtext(side=2, "Frequency", outer=TRUE, line=1)
 dev.off()
 
+#Number of individuals
+marine.map<-read.table("E://ubuntushare//stacks//marine_map.txt")
+marine.map$sex<-sub('sample_\\w{4}([A-Z]{1,2}).*[_.].*','\\1',marine.map$V1)
+map.split<-split(marine.map, marine.map$sex)
+map.summ<-lapply(map.split, function(x){summary(x$V2)})
 
 ##############################################################################
 #****************************************************************************#
-#########################TEST FOR ISOLATION BY DISTANCE#######################
+###########################POPULATION STRUCTURE###############################
 #****************************************************************************#
 ##############################################################################
+
+#****************************************************************************#
+##ISOLATION BY DISTANCE
+#****************************************************************************#
+
 #Date: 3 April 2015
 #Purpose: Analyze fst data
 #Mantel test using geographical distances and fsts
+#uses ade4 package
 
-fsts<-t(pwise.fst)
-TXCC<-rep(NA,nrow(pwise.fst))
-fsts<-cbind(pwise.fst,TXCC)
+t.pwise.fsts<-t(pwise.fst)
 
-ibd<-mantel.rtest(as.dist(dist),as.dist(pwise.fst))
+ibd<-mantel.rtest(as.dist(t(dist)),as.dist(t(pwise.fst)))
 #Monte-Carlo test
 #Observation: 0.675948 
 #Call: mantelnoneuclid(m1 = m1, m2 = m2, nrepet = nrepet)
 #Based on 99 replicates
 #Simulated p-value: 0.02 
 
+#****************************************************************************#
+##ADEGENET
+#****************************************************************************#
 
-#########################################################################
-#***********************************************************************#
-################################ADEGENET#################################
-#***********************************************************************#
-#########################################################################
-#dat.plink<-read.PLINK("E://ubuntushare//stacks//populations//plinkA.raw",
-#	parallel=FALSE)
-dat.plink<-read.PLINK(
-	"E:/ubuntushare/popgen/sw_results/stacks/populations/subsetA.raw",
+dat.plink<-read.PLINK("E://ubuntushare//stacks//populations//ld.hwe.A.raw",
 	parallel=FALSE)
 #look at alleles
 glPlot(dat.plink, posi="topleft")
@@ -330,7 +362,7 @@ polygon(c(temp$x,rev(temp$x)), c(temp$y, rep(0,length(temp$x))), col=transp("blu
 points(glNA(dat.plink), rep(0, nLoc(dat.plink)), pch="|", col="blue")
 
 #PCA!
-pca1<-glPca(dat.plink, parallel=FALSE,nf=5)
+pca1<-glPca(dat.plink, parallel=FALSE, nf=5)
 scatter(pca1)
 
 myCol <- colorplot(pca1$scores,pca1$scores, transp=TRUE, cex=4)
@@ -341,22 +373,22 @@ ind.names<-dimnames(pca1$scores)[[1]]
 pop.list<-c("TXSP","TXCC","TXCB","ALST","FLSG","FLKB","FLFD","FLSI",
 	"FLAB","FLPB","FLHB","FLCC")
 pop<-substr(ind.names, 8,11)
-col<-pop
-col[col=="TXSP"]<-rainbow(12)[1]
-col[col=="TXCC"]<-rainbow(12)[2]
-col[col=="TXCB"]<-rainbow(12)[3]
-col[col=="ALST"]<-rainbow(12)[4]
-col[col=="FLSG"]<-rainbow(12)[5]
-col[col=="FLKB"]<-rainbow(12)[6]
-col[col=="FLFD"]<-rainbow(12)[7]
-col[col=="FLSI"]<-rainbow(12)[8]
-col[col=="FLAB"]<-rainbow(12)[9]
-col[col=="FLPB"]<-rainbow(12)[10]
-col[col=="FLHB"]<-rainbow(12)[11]
-col[col=="FLCC"]<-rainbow(12)[12]
+colors<-pop
+colors[colors=="TXSP"]<-rainbow(12)[1]
+colors[colors=="TXCC"]<-rainbow(12)[2]
+colors[colors=="TXCB"]<-rainbow(12)[3]
+colors[colors=="ALST"]<-rainbow(12)[4]
+colors[colors=="FLSG"]<-rainbow(12)[5]
+colors[colors=="FLKB"]<-rainbow(12)[6]
+colors[colors=="FLFD"]<-rainbow(12)[7]
+colors[colors=="FLSI"]<-rainbow(12)[8]
+colors[colors=="FLAB"]<-rainbow(12)[9]
+colors[colors=="FLPB"]<-rainbow(12)[10]
+colors[colors=="FLHB"]<-rainbow(12)[11]
+colors[colors=="FLCC"]<-rainbow(12)[12]
 
 jpeg("E://Docs//PopGen//subset.pca1.2.jpeg",res=300,height=7,width=7,units="in")
-plot(pca1$scores[,1], pca1$scores[,2], pch=16, cex=2,lwd=1.3,
+plot(pca1$scores[,1], pca1$scores[,2], pch=16, cex=2,
 	col=alpha(col, 0.5), ylab="", xlab="")
 legend("topleft", pop.list, pch=19, pt.cex=2,
 	col=alpha(rainbow(12), 0.5), ncol=3)
@@ -381,9 +413,14 @@ dev.off()
 dat.clust<-find.clusters(dat.plink, parallel=FALSE, n.pca=20, n.clust=NULL,
 	choose.n.clust=FALSE, max.n.clust=12)#created 3 clusters
 dapc1<-dapc(dat.plink, dat.clust$grp, n.pca=20,n.da=3, parallel=F)
-png("E:/Docs/PopGen/adegenet.dapc.png",height=7,width=7,units="in",res=300)
+
+jpeg("adegenet.dapc.k3.jpeg", height=7, width=7, units="in", res=300)
+par(mar=c(5,4,4,2)+0.1, oma=c(5,4,4,2)+0.1)
 scatter(dapc1, scree.da=FALSE, bg="white", posi.pca="topleft", legend=TRUE)
+mtext("Discriminant Axis 1", 1, line = 2, outer=TRUE)
+mtext("Discriminant Axis 2",2, line = 2, outer=TRUE)
 dev.off()
+
 compoplot(dapc1)
 #try another number
 dat.clust.5<-find.clusters(dat.plink, parallel=FALSE, n.pca=20, n.clust=5)
@@ -398,30 +435,85 @@ adegenet.groups[,1]<-sub('([[:alpha:]]{5,7})([[:digit:]]{1})$', '\\10\\2',
 	adegenet.groups[,1])
 
 
-#########################################################################
-#***********************************************************************#
-##############################FASTSTRUCTURE##############################
-#***********************************************************************#
-#########################################################################
+#****************************************************************************#
+##STRUCTURE
+#****************************************************************************#
+
+structure.k3<-read.table(
+	"E://ubuntushare//stacks//populations//structure//popstr//admixture_set//Results//admixture_k3//admixture_set_run_13_f_clusters.txt",
+	sep='\t', header=F)
+structure.k3$V1<-sub('sample_([A-Z]{4})','\\1', structure.k3$V1)
+structure.k4<-read.table(
+	"E://ubuntushare//stacks//populations//structure//popstr//admixture_set//Results//admixture_k4//admixture_set_run_23_f_clusters.txt",
+	sep='\t', header=F)
+structure.k4$V1<-sub('sample_([A-Z]{4})','\\1', structure.k4$V1)
+structure.k5<-read.table(
+	"E://ubuntushare//stacks//populations//structure//popstr//admixture_set//Results//admixture_k5//admixture_set_run_33_f_clusters.txt",
+	sep='\t', header=F)
+structure.k5$V1<-sub('sample_([A-Z]{4})','\\1', structure.k5$V1)
+structure.k6<-read.table(
+	"E://ubuntushare//stacks//populations//structure//popstr//admixture_set//Results//admixture_k6//admixture_set_run_43_f_clusters.txt",
+	sep='\t', header=F)
+structure.k6$V1<-sub('sample_([A-Z]{4})','\\1', structure.k6$V1)
+
+pop.list<-c("TXSP","TXCC","TXCB","ALST","FLSG","FLKB","FLFD","FLSI",
+		"FLAB","FLPB","FLHB","FLCC")
+
+plot.structure<-function(structure.out, k, pop.order, 
+	filename=paste("str.k",k,".jpeg",sep=""),make.file=TRUE,
+	plot.new=TRUE){
+	str.split<-split(structure.out,structure.out[,1])
+	bar.colors<-rainbow(k,s=0.5)
+	if(make.file==TRUE){
+		jpeg(filename,width=7, height=1.25, units="in", res=300)
+		par(mfrow=c(1,length(str.split)))
+	} 
+	par(mar=c(1,0,0,0), oma=c(1,0,0,0),cex=0.5)
+	for(i in 1:length(str.split)){
+		pop.index<-pop.order[i]
+		barplot(height=as.matrix(t(str.split[[pop.index]][,-1])),
+			beside=FALSE, space=0,	border=NA, col=bar.colors,
+			xlab="", ylab="", xaxt='n', yaxt='n', new=plot.new)
+		mtext(pop.index, 1, line=0.5, cex=0.5, outer=F)
+	}
+	if(make.file==TRUE) {dev.off()}
+}
+par(mfrow=c(4,length(pop.list)),mar=c(1,0,1,0),oma=c(1,0,1,0))
+plot.structure(structure.k3,3,pop.list)#, make.file=FALSE, plot.new=FALSE)
+plot.structure(structure.k4,4,pop.list)#, make.file=FALSE, plot.new=TRUE)
+plot.structure(structure.k5,5,pop.list)#, make.file=FALSE, plot.new=TRUE)
+plot.structure(structure.k6,6,pop.list)#, make.file=FALSE, plot.new=TRUE)
+
+
+
+#***************************************************************************#
+##FASTSTRUCTURE
+#***************************************************************************#
+
 #get individual names in the correct order from original structure input file
 #str.in<-read.table("E://ubuntushare//stacks//populations//batch_1.structure.str")
-str.in<-read.table("E://ubuntushare//popgen//results//stacks//populations//ld.hwe.pgd.str")
+str.in<-read.table("E://ubuntushare//stacks//populations//ld.hwe.pgd.str")
 inds<-str.in[,1]
 inds<-sub('.*_([ATF]\\w+)[_.].*','\\1', inds)
 inds<-inds[c(TRUE,FALSE)]
 pop.id<-substr(inds,1,4)
+pop.list<-c("TXSP","TXCC","TXCB","ALST","FLSG","FLKB","FLFD","FLSI",
+	"FLAB","FLPB","FLHB","FLCC")
 
-#process a structure file
-structure.barplot<-function(meanQ.file, k){
+#process a faststructure file
+faststr.barplot<-function(meanQ.file, k, plot.order, to.file=TRUE){
 	rownames(meanQ.file)<-inds
 	meanQ.file<-cbind(meanQ.file,pop.id)
 	colnames(meanQ.file)<-c(seq(1,k,1), "pop.id")
 	pop.means<-rowsum(meanQ.file[,1:k],
 		meanQ.file$pop.id)/summary(meanQ.file$pop.id)
-	pop.means.plot<-pop.means[match(pop.list,rownames(pop.means)),]
+	pop.means.plot<-pop.means[match(plot.order,rownames(pop.means)),]
 	filename<-paste("structure.barplot.",k,".jpeg",sep="")
-	jpeg(filename,res=300,height=7,width=7, units="in")
-	par(mar=c(5,4,4,1),oma=c(2,2,2,1),xpd=TRUE)
+	if(to.file==TRUE){
+		jpeg(filename,res=300,height=7,width=7, units="in")
+		par(mar=c(5,4,4,1),oma=c(2,2,2,1),xpd=TRUE)
+	}
+	
 	bp<-barplot(as.matrix(t(pop.means.plot)), col=rainbow(k, 0.5), 
 		legend=FALSE, axes=FALSE, axisnames=FALSE)
 	legend("top", inset=c(0,-0.15), box.lty=0,title="Group",
@@ -429,29 +521,41 @@ structure.barplot<-function(meanQ.file, k){
 		pch=15, col=rainbow(k,0.5), horiz=TRUE)
 	axis(2,las=1, pos=0)
 	axis(1,labels=FALSE, at=bp,pos=0)
-	text(bp, labels=pop.list,srt=30, xpd=TRUE, pos=1,
+	text(bp, labels=plot.order,srt=30, xpd=TRUE, pos=1,
 		par("usr")[3])
-	dev.off()
+	if(to.file==TRUE){
+		dev.off()}
 }
 #K=2
 stru2<-read.table("E://ubuntushare//ld.hwe_out_simple.2.meanQ",header=F)
-structure.barplot(stru2,2)
+structure.barplot(stru2,2, pop.list)
+stru3<-read.table("E://ubuntushare//pop_structure//faststructure//ld.hwe_out_simple.3.meanQ",header=F)
+stru3<-cbind(pop.id,stru3)
+stru4<-read.table("E://ubuntushare//pop_structure//faststructure//ld.hwe_out_simple.4.meanQ",header=F)
+stru4<-cbind(pop.id,stru4)
+stru5<-read.table("E://ubuntushare//pop_structure//faststructure//ld.hwe_out_simple.5.meanQ",header=F)
+stru5<-cbind(pop.id,stru5)
+stru6<-read.table("E://ubuntushare//pop_structure//faststructure//ld.hwe_out_simple.6.meanQ",header=F)
+stru6<-cbind(pop.id,stru6)
 
+#plot pop averages
+jpeg("faststructure.k3-6.summ.jpeg", height=12, width=12, units="in", res=300)
+par(mfrow=c(2,2),mar=c(5,4,4,1),oma=c(2,2,2,1))
 #K=3
-stru3<-read.table("E://ubuntushare//ld.hwe_out_simple.3.meanQ",header=F)
-structure.barplot(stru3,3)
-
+structure.barplot(stru3,3, pop.list, FALSE)
 #K=4
-stru4<-read.table("E://ubuntushare//ld.hwe_out_simple.4.meanQ",header=F)
-structure.barplot(stru4,4)
-
+structure.barplot(stru4,4, pop.list, FALSE)
 #K=5
-stru5<-read.table("E://ubuntushare//ld.hwe_out_simple.5.meanQ",header=F)
-structure.barplot(stru5,5)
-
+structure.barplot(stru5,5, pop.list, FALSE)
 #K=6
-stru6<-read.table("E://ubuntushare//ld.hwe_out_simple.6.meanQ",header=F)
-structure.barplot(stru6,6)
+structure.barplot(stru6,6, pop.list, FALSE)
+dev.off()
+
+#plot structure-like plot
+plot.structure(stru3, 3, pop.list ,"faststructure.k3.jpeg")
+plot.structure(stru4, 4, pop.list ,"faststructure.k4.jpeg")
+plot.structure(stru5, 5, pop.list ,"faststructure.k5.jpeg")
+plot.structure(stru6, 6, pop.list ,"faststructure.k6.jpeg")
 
 #assign each ind to a group
 fast.groups.3<-as.data.frame(cbind(inds, apply(stru3, 1, which.max)))
@@ -477,21 +581,131 @@ fast.groups.5$inds<-marine.map$V1[match(
 write.table(fast.groups.5, "E://ubuntushare//stacks//fstru.groups.popmap.txt", 
 	col.names=F, sep="\t", eol="\n", quote=F, row.names=F)
 
-####RUN STRUCTURE ON ONLY ONE POP..TXSP is largest
-subset.txsp<-inds[pop.id=="TXSP"]
-write.table(subset.txsp,"E://ubuntushare//stacks//populations//txsp.indlist", 
-	quote=FALSE, col.names=F, row.names=F, eol="\n", sep="\t")
+
+#****************************************************************************#
+##PCADAPT
+#****************************************************************************#
+
+#K=4 WAS BEST
+scores.files<-list.files("E://ubuntushare//pcadapt//", pattern="scores")
+loadings.files<-list.files("E://ubuntushare//pcadapt//", pattern="loadings")
+snps.files<-list.files("E://ubuntushare//pcadapt//", pattern="topBF")
+
+snp.list<-list()
+for(i in 1: length(snps.files)){
+	#read in files
+	snp.list[[i]]<-read.table(
+		paste("E://ubuntushare//pcadapt//", snps.files[i], sep=""), 
+		header=T)
+}
+#compare lists of snps in all of the runs
+
+all.snps<-as.vector(sapply(snp.list, "[[","snp"))
+all.snps.dup<-all.snps[duplicated(all.snps)]
+rep.snps<-all.snps.dup[!duplicated(all.snps.dup)]
+
+scores<-read.table("E://ubuntushare//pcadapt//pcadapt.4.scores")
+loading<-read.table("E://ubuntushare//pcadapt//pcadapt.4", header=T, sep="\t")
+#bf.log<-log10(snp.list[[1]]$BF)
+#loading[round(loading$logBF, 4) %in% round(bf.log),] #doesn't work..
+
+#the snp is the row number in the map file for the snps
+ld.map<-read.table("E://ubuntushare//stacks//populations//ld.subset.map",
+	header=F)
+pcadapt.outliers<-ld.map[rep.snps,]
+colnames(pcadapt.outliers)<-c("chr","loc","dist","bp")
+pa.out.radloc<-sub('(\\d+)_\\d+','\\1',pcadapt.outliers$loc)
+
+summ.dat<-read.table("E://ubuntushare//stacks//populations//batch_1.sumstats.tsv",
+	sep='\t', skip=12, header=T, comment.char="")
+pa.out.dat<-summ.dat[summ.dat$Locus.ID %in% pa.out.radloc,]
+pa.out.dat$Chr<-factor(pa.out.dat$Chr)
+#are any on the linkage map?
+length(levels(as.factor(use.contigs[use.contigs$Scaffold %in% pa.out.dat$Chr,1])))
+
+#plot individual scores #used to be height=width=12
+jpeg("pcadapt.scores1.2.jpeg", height=7, width=7, units="in", res=300)
+plot(as.numeric(scores[1,]),as.numeric(scores[2,]),pch=16, cex=2,
+	col=alpha(colors, 0.5), ylab="", xlab="")
+legend("bottomright", pop.list, pch=19, pt.cex=2,
+	col=alpha(rainbow(12), 0.5), ncol=3)
+mtext("PC1 (rho2: 0.0117)", 1, line = 2)
+mtext("PC2 (rho2: 0.0091)",2, line = 2)
+dev.off()
+
+jpeg("pcadapt.scores1.3.jpeg", height=7, width=7, units="in", res=300)
+plot(as.numeric(scores[1,]),as.numeric(scores[3,]),pch=16, cex=2,
+	col=alpha(colors, 0.5), ylab="", xlab="")
+legend("topright", pop.list, pch=19, pt.cex=2,
+	col=alpha(rainbow(12), 0.5), ncol=3)
+mtext("PC1 (rho2: 0.0117)", 1, line = 2)
+mtext("PC3 (rho2: 0.0018)",2, line = 2)
+dev.off()
 
 
-#########################################################################
+##############################################################################
+#****************************************************************************#
+#############################FST OUTLIER ANLAYSES#############################
+#****************************************************************************#
+##############################################################################
+
+#****************************************************************************#
+##GLOBAL FST OUTLIERS
+#****************************************************************************#
+#Import global values generated by C++ program calculate_global_fsts
+#pruned loci found in all 12 populations, 1833 of them.
+global.fsts<-read.table(
+	"E://ubuntushare//stacks//populations//ld.hwe.sub.globalstats.txt",
+	header=T, sep='\t')
+
+fst.ci.99<-mean(global.fsts$Fst) + 2.57583*sd(global.fsts$Fst)
+#what are the outliers??
+glob.fst.out<-global.fsts[global.fsts$Fst >= fst.ci.99,]
+
+#non-pruned loci in any of the 12 populations
+any.global.fsts<-read.table(
+	"E://ubuntushare//stacks//populations_nopopslimit//anypop.nonpruned.globalstats.txt",
+	header=T, sep='\t')
+any.fst.ci.99<-mean(any.global.fsts$Fst) + 2.57583*sd(any.global.fsts$Fst)
+any.glob.fst.out<-np.global.fsts[any.global.fsts$Fst >= any.fst.ci.99,]
+
+#compare to each other
+summ.gfo<-summ.dat[summ.dat$Locus.ID %in% glob.fst.out$Locus,]
+summ.gfo<-summ.gfo[!duplicated(summ.gfo$Locus),]
+glob.fst.out<-
+	merge(summ.gfo[,2:3], glob.fst.out, by.x="Locus.ID", by.y="Locus")
+glob.fst.out<-glob.fst.out[,-3]
+glob.fst.out[glob.fst.out$Locus %in% no.dups.outliers$Locus,]
+
+dim(glob.fst.out[glob.fst.out %in% any.glob.fst.out,])#0
+np.glob.fst.out[np.glob.fst.out$Locus %in% any.glob.fst.out$Locus,]#230
+any.glob.fst.out[!(any.glob.fst.out$Locus %in% np.glob.fst.out$Locus),]#1
+dim(np.glob.fst.out[np.glob.fst.out$Locus %in% no.dups.outliers$Locus,])#141
+
+
+#non-pruned loci in all 12 populations##>>>>>>>>USE THIS ANALYSIS
+np.global.fsts<-read.table(
+	"E://ubuntushare//stacks//populations//allpops.nonpruned.globalstats.txt",
+	header=T, sep='\t')
+np.fst.ci.99<-mean(np.global.fsts$Fst) + 2.57583*sd(np.global.fsts$Fst)
+np.glob.fst.out<-np.global.fsts[np.global.fsts$Fst >= np.fst.ci.99,]
+
+#characterize the chromosomes they're on
+fst.chrom.dup<-np.glob.fst.out[duplicated(np.glob.fst.out$Chrom),]
+fst.chrom.dup<-fst.chrom.dup[!duplicated(fst.chrom.dup$Locus),]
+fst.chrom.dup<-fst.chrom.dup[duplicated(fst.chrom.dup$Chrom),]
+dim(fst.chrom.dup) #the number of scaffolds w/ multiple RAD loci
+####<<<<<<END THE USEFUL ANALSYSIS
+
+
 #***********************************************************************#
-################################BAYENV2##################################
+##BAYENV2
 #***********************************************************************#
-#########################################################################
 
+#########BAYENV2 SETUP START>>>>>>>>
 #**************************STARTING WITH PLINK FILES********************#
-ped<-read.table("E:/ubuntushare/popgen/results/stacks/populations/subset.ped", 
-	stringsAsFactors=F, colClasses="character")
+ped<-read.table("E:\\ubuntushare\\stacks\\populations\\ld.hwe.sub.ped", 
+	skip = 1, stringsAsFactors=F, colClasses="character")
 ped.pops<-substr(ped[,2],8,11)
 ped.sex<-sub('sample_\\w{4}(\\w+).*[_.].*','\\1', ped[,2])
 ped.sex[substr(ped.sex,1,2)=="DP"]<-"M"
@@ -505,7 +719,7 @@ ped.sex[ped.sex=="M"]<-1
 ped[,1]<-ped.pops
 ped[,5]<-ped.sex
 
-write.table(ped,"bayenv.plink.ped", 
+write.table(ped,"E://ubuntushare//stacks//populations//bayenv.plink.ped", 
 	row.names=F, col.names=F, quote=F, sep="\t",eol="\n")
 
 clust.plink<-cbind(ped.pops, ped[,2],ped.pops)
@@ -515,11 +729,12 @@ write.table(clust.plink,
 
 
 #plink.map -> numbers instead of scaffold_#
-map<-read.table("E:/ubuntushare/popgen/results/stacks/populations/ld.hwe.sub.map", skip = 1)
+map<-read.table("E://ubuntushare//stacks//populations//ld.hwe.sub.map", 
+	skip = 1)
 chr.nums<-sub('scaffold_','',map[,1])
 map[,1]<-chr.nums
 
-write.table(map, "bayenv.plink.map", 
+write.table(map, "E://ubuntushare//stacks//populations//bayenv.plink.map", 
 	col.names=F,row.names=F,quote=F,sep="\t",eol="\n")
 
 ##get any snps *not* in plink.ld
@@ -536,7 +751,7 @@ write.table(below.2$V2, "E://ubuntushare//stacks//populations//ld.subset.list",
 freq<-read.table("ld.hwe.bayenv.plink.frq.strat", 
 	header=T, stringsAsFactors=F)
 #want to get $MAC for every snp at every pop 
-#and NCHROBS-MAC for every stnp at every pop
+#and NCHROBS-MAC for every snp at every pop
 freq<-cbind(freq,freq$NCHROBS-freq$MAC)
 colnames(freq)[ncol(freq)]<-"NAC"
 pop.order<-levels(as.factor(freq$CLST))
@@ -552,12 +767,12 @@ write.table(snpsfile, "null.1833",
 	col.names=F,row.names=F,quote=F,sep="\t",eol="\n") #bayenv SNPSFILE
 
 #*******************************check Bayenv2 matrix*************************#
-matrix.files<-list.files("B://ubuntushare//environmental_assoc//",pattern="matrix")
+matrix.files<-list.files("E://ubuntushare//bayenv2//",pattern="matrix")
 matrices<-list()
 for(i in 1:length(matrix.files))
 {
 	matrices[[i]]<-as.matrix(read.table(
-		paste("B://ubuntushare//environmental_assoc//",matrix.files[i],sep=""), 
+		paste("E://ubuntushare//bayenv2//",matrix.files[i],sep=""), 
 		skip=2801, header=F))
 	rownames(matrices[[i]])<-colnames(matrices[[i]])<-pop.order
 #there are multiple matrices, one every 500 iterations..I'm taking the last one
@@ -573,166 +788,240 @@ image(matrices[[8]])
 image(matrices[[9]])
 image(matrices[[10]])
 
+avg.matrix<-matrices[[1]]
+for(i in 2:length(matrices)){
+	avg.matrix<-avg.matrix+matrices[[i]]
+}
+avg.matrix<-avg.matrix/length(matrices)
+write.table(avg.matrix, "E://ubuntushare//bayenv2//all.6348.matrix",
+	sep="\t", eol="\n", quote=F, row.names=F, col.names=F)
 #************************************SNPFILEs******************************#
 #for SNPFILE, need just one file per SNP apparently.
 #want to use all of the snps...need to get map with those inds.
-all.snps.ped<-read.table("batch_1.plink.ped", header=F, stringsAsFactors=F)
+all.snps.ped<-read.table("E://ubuntushare//stacks//populations//plink.ped", 
+	header=F, stringsAsFactors=F)
 ped.pop<-sub('sample_(\\w{4})\\w+.*[_.].*','\\1', all.snps.ped[,2])
 all.snps.clust<-cbind(ped.pop,all.snps.ped[,2],ped.pop)
-write.table(all.snps.clust, "all.6348.clust.txt", sep="\t", eol="\n", quote=F,
-	row.names=F, col.names=F)
+write.table(all.snps.clust, 
+	"E://ubuntushare//stacks//populations//all.6348.clust.txt", 
+	sep="\t", eol="\n", quote=F, row.names=F, col.names=F)
 #then need to run plink --file batch_1.plink --freq --within all.6348.clust.txt \
 	#--allow-no-sex --noweb --out all.bayenv.plink
 
 #read in frequency per pop
-all.snps.frq<-read.table("all.bayenv.plink.frq.strat", 
+all.snps.frq<-read.table("E://ubuntushare//stacks//populations//all.6348.frq.strat", 
 	header=T, stringsAsFactors=F)
-freq<-cbind(freq,freq$NCHROBS-freq$MAC)
-colnames(freq)[ncol(freq)]<-"NAC"
-pop.order<-levels(as.factor(freq$CLST))
-snp.names<-split(freq$SNP,freq$CLST)[[1]]
+all.snps.frq<-cbind(all.snps.frq,all.snps.frq$NCHROBS-all.snps.frq$MAC)
+colnames(all.snps.frq)[ncol(all.snps.frq)]<-"NAC"
+pop.order<-levels(as.factor(all.snps.frq$CLST))
+snp.names<-split(all.snps.frq$SNP,all.snps.frq$CLST)[[1]]
 
-mac.by.pop<-as.data.frame(split(freq$MAC,freq$CLST))
+mac.by.pop<-as.data.frame(split(all.snps.frq$MAC,all.snps.frq$CLST))
 rownames(mac.by.pop)<-snp.names
+nac.by.pop<-as.data.frame(split(all.snps.frq$NAC,all.snps.frq$CLST))
+rownames(nac.by.pop)<-snp.names
+snps.dat<-interleave(mac.by.pop,nac.by.pop)
 
-write.table(mac.by.pop, "all.6348", 
-	col.names=F,row.names=F,quote=F,sep="\t",eol="\n")
+for(i in 1:nrow(mac.by.pop)){
+	snps.dat<-interleave(mac.by.pop[i,],nac.by.pop[i,])
+	write.table(snps.dat, 
+		paste("E://ubuntushare//bayenv2//snpfiles//all.6348.",
+			snp.names[i],sep=""), 
+		col.names=F,row.names=F,quote=F,sep="\t",eol="\n")
+}
+#########BAYENV2 SETUP END<<<<<<<<
 
-#########################################################################
-#***********************************************************************#
-################################PCADAPT##################################
-#***********************************************************************#
-#########################################################################
+#*****************************PROCESS THE OUTPUT*****************************#
+####Environmental Associations####
+all.6348.map<-read.table(
+	"E://ubuntushare//stacks//populations//all.6348.plink.map",
+	header=F)
+bf.env<-read.table("E://ubuntushare//bayenv2//bf_environ.env_data_bayenv.txt")
+colnames(bf.env)<-c("locus", "Temp_BF", "Temp_rho", "Temp_rs", 
+	"Salinity_BF", "Salinity_rho", "Salinity_rs", "coll.temp_BF", 
+	"coll.temp_rho", "coll.temp_rs", "coll.sal_BF", "coll.sal_rho", 
+	"coll.sal_rs", "seagrass_BF", "seagrass_rho","seagrass_rs")
+bf.env$locus<-sub('./snpfiles/all.6348.(\\d+)','\\1', bf.env$locus)
+
+bf<-bf.env[,c(1,2,5,8,11,14)] #not normally distr
+bf$rad.loc<-sub('(\\d+)(_\\d+)','\\1',bf$locus)
+rho<-bf.env[,c(1,3,6,9,12,15)] #normal
+rho$rad.loc<-sub('(\\d+)(_\\d+)','\\1',rho$locus)
+rs<-bf.env[,c(1,4,7,10,13,16)] #normal
+rs$rad.loc<-sub('(\\d+)(_\\d+)','\\1',rs$locus)
+
+
+bf.scaff<-merge(all.6348.map, bf, by.x="V2", by.y="locus")
+colnames(bf.scaff)[1:4]<-c("locus","scaffold","dist","BP")
+#focus on Bayes Factors, because of Lotterhos & Whitlock (2015)
+bf.co<-apply(bf[,2:6],2,quantile,0.95)
+temp.bf.sig<-bf[bf$Temp_BF>bf.co["Temp_BF"],c(1,2,7)]
+sal.bf.sig<-bf[bf$Sal_BF>bf.co["Salinity_BF"],c(1,3,7)]
+ctemp.bf.sig<-bf[bf$ctemp_bf>bf.co["coll.temp_bf"],c(1,4,7)]
+csal.bf.sig<-bf[bf$csal_bf>bf.co["coll.sal_bf"],c(1,5,7)]
+grass.bf.sig<-bf[bf$seagrass_bf>bf.co["seagrass_bf"],c(1,6,7)]
+
+#compare to each other
+temp.sig<-temp.bf.sig[temp.bf.sig$locus %in% ctemp.bf.sig$locus,]#237
+sal.sig<-sal.bf.sig[sal.bf.sig$locus %in% csal.bf.sig$locus,]#275
+temp.sal<-temp.sig[temp.sig$locus %in% sal.sig$locus,]#127
+all.sig<-temp.sal[temp.sal$locus %in% grass.bf.sig$locus,]#120
+
+#remove ones significant in all of them<-----DO I DO THIS??
+temp.sig<-temp.sig[!(temp.sig$locus %in% all.sig$locus),]#117
+sal.sig<-sal.sig[!(sal.sig$locus %in% all.sig$locus),]#91
+temp.sal.sig<-temp.sal[!(temp.sal$locus %in% all.sig$locus),]#7
+grass.sig<-grass.bf.sig[!(grass.bf.sig$locus %in% all.sig$locus),]#494
+
+
+#************************Population differentiation**************************#
+#used all 6348 SNPs found in 12 populations
+xtx<-read.table("E://ubuntushare//bayenv2//XtX_out.env_data_bayenv.txt")
+colnames(xtx)<-c("locus", "XtX")
+xtx$locus<-sub('./snpfiles/all.6348.(\\d+)','\\1', xtx$locus)
+xtx$rad.loc<-sub('(\\d+)(_\\d+)','\\1',xtx$locus)
+xtx.scaff<-merge(all.6348.map, xtx, by.x="V2", by.y="locus")
+colnames(xtx.scaff)<-c("locus","scaffold","dist","BP","XtX", "rad.loc")
+xtx.1<-xtx.scaff[xtx.scaff$XtX >= quantile(xtx.scaff$XtX,0.99),]
+xtx.5<-xtx.scaff[xtx.scaff$XtX >= quantile(xtx.scaff$XtX,0.95),]
+
+xtx.dup<-xtx.5[duplicated(xtx.5$scaffold),]
+xtx.dup<-xtx.dup[!duplicated(xtx.dup$rad.loc),]
+xtx.dup<-xtx.dup[duplicated(xtx.dup$scaffold),]
+dim(xtx.dup) #the number of scaffolds w/ multiple RAD loci
+#***************************************************************************#
+##PCADAPT OUTLIERS
+#***************************************************************************#
 #K=4 WAS BEST
-setwd("E:/ubuntushare/popgen/sw_results/pcadapt")
-scores.files<-list.files(pattern="4_.*.scores")
-loadings.files<-list.files(pattern="4_.*.loadings")
-snps.files<-list.files(pattern="4_.*.topBF")
+ld.map<-read.table("E://ubuntushare//stacks//populations//all.6348.plink.map",
+	header=F)
+pca.files<-list.files("E://ubuntushare//pcadapt//6348//",pattern="4_")
+scores.files<-list.files("E://ubuntushare//pcadapt//6348//", pattern="scores")
+loadings.files<-list.files("E://ubuntushare//pcadapt//6348//", pattern="loadings")
+snps.files<-list.files("E://ubuntushare//pcadapt//6348//", pattern="topBF")
+stats.files<-list.files("E://ubuntushare//pcadapt//6348//", pattern="stats")
+bf.files<-pca.files[!(pca.files %in% scores.files) & 
+	!(pca.files %in% loadings.files) & !(pca.files %in% snps.files) &
+	!(pca.files %in% stats.files)]
 
+
+bf.list<-list()
 snp.list<-list()
+scores.list<-list()
+loadings.list<-list()
 for(i in 1: length(snps.files)){
 	#read in files
-	snp.list[[i]]<-read.table(snps.files[i],header=T)
+	snp.list[[i]]<-read.table(
+		paste("E://ubuntushare//pcadapt//6348//", snps.files[i], sep=""), 
+		header=T)
+	scores.list[[i]]<-read.table(
+		paste("E://ubuntushare//pcadapt//6348//", scores.files[i], sep=""), 
+		header=T)
+	loadings.list[[i]]<-read.table(
+		paste("E://ubuntushare//pcadapt//6348//", loadings.files[i], sep=""), 
+		header=F)
+	bf.dat<-read.table(
+		paste("E://ubuntushare//pcadapt//6348//", bf.files[i], sep=""), 
+		skip=1)
+	bf.dat<-cbind(bf.dat, ld.map[rownames(bf.dat),])
+	
+	bf.list[[i]]<-bf.dat
 }
 #compare lists of snps in all of the runs
 
+pca.scaff<-bf.list[[1]]
+pca.scaff$radloc<-sub('(\\d+)_\\d+','\\1',pca.scaff$loc)
+
 all.snps<-as.vector(sapply(snp.list, "[[","snp"))
 all.snps.dup<-all.snps[duplicated(all.snps)]
-rep.snps<-all.snps.dup[!duplicated(all.snps.dup)]
+pca.snps<-all.snps.dup[!duplicated(all.snps.dup)]
 
-scores<-read.table("pcadapt.4.scores")
-loading<-read.table("pcadapt.4", header=T, sep="\t")
-#bf.log<-log10(snp.list[[1]]$BF)
-#loading[round(loading$logBF, 4) %in% round(bf.log),] #doesn't work..
-
+pca.snp.out<-pca.snp.dat[pca.snp.dat$snp %in% pca.snps,]
 #the snp is the row number in the map file for the snps
-sub.map<-read.table("../stacks/populations/subset.map",header=F)
-pcadapt.outliers<-sub.map[rep.snps,]
-pa.out.radloc<-sub('(\\d+)_\\d+','\\1',pcadapt.outliers$V2)
 
-summ.dat<-read.table("../stacks/populations/batch_1.sumstats.tsv",
-	sep='\t', skip=12, header=T, comment.char="")
-pa.out.dat<-summ.dat[summ.dat$Locus.ID %in% pa.out.radloc,]
-pa.out.dat$Chr<-factor(pa.out.dat$Chr)
-#are any on the linkage map?
-#length(levels(as.factor(use.contigs[use.contigs$Scaffold %in% pa.out.dat$Chr,1])))
+pca.out<-ld.map[pca.snps,]
+colnames(pca.out)<-c("chr","loc","dist","bp")
+pca.out$radloc<-sub('(\\d+)_\\d+','\\1',pca.out$loc)
+pca.out$index<-rownames(pca.out)
 
-#plot individual scores
-jpeg("E:/Docs/PopGen/pcadapt.scores1.2.jpeg", height=12, width=12, units="in", res=300)
-plot(as.numeric(scores[1,]),as.numeric(scores[2,]),pch=16, cex=2,
-	col=alpha(col, 0.5), ylab="", xlab="",lwd=1.3)
-legend("bottomleft", pop.list, pch=19, pt.cex=2,
-	col=alpha(rainbow(12), 0.5), ncol=3)
-mtext("PC1 (rho2: 0.0117)", 1, line = 2)
-mtext("PC2 (rho2: 0.0091)",2, line = 2)
+
+
+#***************************************************************************#
+####COMPARE ALL OF THE OUTLIER ANALYSES####
+#***************************************************************************#
+np.glob.fst.out$Locus<-factor(np.glob.fst.out$Locus)
+pca.out$radloc<-factor(pca.out$radloc)
+temp.bf.sig$rad.loc<-factor(temp.bf.sig$rad.loc)
+xtx.5$rad.loc<-factor(xtx.5$rad.loc)
+
+
+pca.loc<-pca.out$radloc[!duplicated(pca.out$radloc)]
+fst.loc<-np.glob.fst.out$Locus[!duplicated(np.glob.fst.out$Locus)]
+xtx.loc<-xtx.5$rad.loc[!duplicated(xtx.5$rad.loc)]
+bft.loc<-temp.bf.sig$rad.loc[!duplicated(temp.bf.sig$rad.loc)]
+###base=fst
+fst.pca<-np.glob.fst.out[np.glob.fst.out$Locus %in% pca.out$radloc,]
+fst.bft<-np.glob.fst.out[np.glob.fst.out$Locus %in% temp.bf.sig$rad.loc,]
+fst.xtx<-np.glob.fst.out[np.glob.fst.out$Locus %in% xtx.5$rad.loc,]
+
+###base=xtx
+xtx.pca<-xtx.5[xtx.5$rad.loc %in% pca.out$radloc,]
+xtx.bft<-xtx.5[xtx.5$rad.loc %in% temp.bf.sig$rad.loc,]
+xtx.fst<-xtx.5[xtx.5$rad.loc %in% np.glob.fst.out$Locus,]
+
+###base=BF (focus on temp)
+bft.pca<-temp.bf.sig[temp.bf.sig$rad.loc %in% pca.out$radloc,]
+dim(sal.bf.sig[sal.bf.sig$rad.loc %in% pca.out.radloc,])
+dim(grass.bf.sig[grass.bf.sig$rad.loc %in% pca.out.radloc,])
+
+bft.fst<-temp.bf.sig[temp.bf.sig$rad.loc %in% np.glob.fst.out$Locus,]
+dim(sal.bf.sig[sal.bf.sig$rad.loc %in% np.glob.fst.out$Locus,])
+dim(grass.bf.sig[grass.bf.sig$rad.loc %in% np.glob.fst.out$Locus,])
+
+bft.xtx<-temp.bf.sig[temp.bf.sig$rad.loc %in% xtx.5$rad.loc,]
+dim(sal.bf.sig[sal.bf.sig$rad.loc %in% xtx.1$rad.loc,])
+dim(grass.bf.sig[grass.bf.sig$rad.loc %in% xtx.1$rad.loc,])
+
+#create a venn diagram
+out.venn<-venn( list("PCAdapt"=pca.loc, "Fst"=fst.loc,
+	"XtX (5%)"=xtx.loc, "TempBF"=bft.loc))
+
+jpeg("Fig4.venn.nolos.jpeg", height=7,width=7,units="in", res=300)
+plot(out.venn, small=0.9)
 dev.off()
 
-jpeg("E:/Docs/PopGen/pcadapt.scores1.3.jpeg", height=12, width=12, units="in", res=300)
-plot(as.numeric(scores[1,]),as.numeric(scores[3,]),pch=16, cex=2,
-	col=alpha(col, 0.5), ylab="", xlab="")
-legend("bottomleft", pop.list, pch=19, pt.cex=2,
-	col=alpha(rainbow(12), 0.5), ncol=3)
-mtext("PC1 (rho2: 0.0117)", 1, line = 2)
-mtext("PC3 (rho2: 0.0018)",2, line = 2)
-dev.off()
+#which one is shared among all 4?
+all.sig<-pca.out[pca.out$radloc %in% fst.loc & pca.out$radloc %in% xtx.loc & 
+	pca.out$radloc %in% bft.loc,]
 
-##############################LOSITAN######################################
-lositan.loci<-read.delim("E://ubuntushare//popgen//stacks//populations//ld.hwe.lositan.loci", header=T)
-lositan.ci<-read.delim("E://ubuntushare//ld.hwe.lositan.ci", header=T, sep='\t')
+#***************************************************************************#
+####!!!!PLOT!!!!####
+#***************************************************************************#
+###################PLOTTING###############
 
-plot_ci <- function(df.ci, bcolor, mcolor, tcolor) {
-  lines(df.ci[,1],df.ci[,2], type='l', col=bcolor)#low
-  lines(df.ci[,1],df.ci[,3], type='l', col=mcolor, lty=3)#med
-  lines(df.ci[,1],df.ci[,4], type='l', col=tcolor)#upp
-}
+#non-outliers: col = grey53, pch=19
+#Fst outliers: col=black
+#XtX outliers: col=blue, pch=19 or 1
+#Temp BF outliers: col=purple, pch=2
 
-plot_loci <- function(df.loc, color) {
-  points(df.loc[,2],df.loc[,3], col=color, pch=19)
-}
+#pcadapt=dark green, pch=0
+neutral.col<-"grey53"
+fst.out.col<-"black"
+xtx.out.col<-"blue"
+bft.out.col<-"purple"
+pca.out.col<-"forestgreen"
+neutral.pch<-19
+fst.out.pch<-1
+xtx.out.pch<-1
+bft.out.pch<-2
+pca.out.pch<-0
 
-lositan.loci<-cbind(lositan.loci, sub('(\\d+)(_\\d+)','\\1',lositan.loci[,1])
-colnames(lositan.loci)[5]<-"RAD.loc"
+#############FIG 4 OPTION 3
+jpeg("Fig4.outliers.nolos.simple.jpeg", height=10,width=7.5,units="in",res=300)
+par(mfrow=c(4,1),oma=c(1,1,0,0),mar=c(0,1,1,0),cex=2,mgp=c(3,0.5,0))
 
-lositan.sig<-lositan.loci[(lositan.loci[,4] <= 0.05) | 
-	(lositan.loci[,4]>=0.95),]
-#compare to outlier fst analysis
-lositan.allfsts<-lositan.sig[lositan.sig$RAD.loc 
-	%in% no.dups.outliers$Locus,]
-
-#compare to pcadapt with k=5
-lositan.pcadapt<-lositan.sig[lositan.sig$RAD.loc %in% pa5.out.dat$Locus.ID,]
-
-jpeg("Fst_het_lositan.jpeg", res=300, height=7, width=7, units="in")
-plot(-10,ylim=c(0,0.25),xlim=c(0,1), xlab='He', ylab='Fst', las=1)
-plot_ci(lositan.ci, 'black', 'gray', 'black')
-plot_loci(lositan.loci, 'black')
-points(lositan.sig$Het, lositan.sig$Fst, cex=1, col="red", pch=8)
-points(lositan.allfsts$Het, lositan.allfsts$Fst, cex=3, col="green")
-points(lositan.pcadapt$Het, lositan.pcadapt$Fst, cex=3, col="purple", pch=6)
-legend(x=0.6, y=0.25,bty="n",
-	c("99% Quantile", "Median"),lty=c(1,3), col=c("black", "gray"))
-legend(x=0.65, y=0.23, bty="n",
-	c("Lositan", "Lositan & Fst Out", "Lositan & PCAdapt"),
-	pch=c(8,1,6), col=c("red", "green", "purple"))
-
-dev.off()
-
-sig.in.three<-lositan.pcadapt[lositan.pcadapt$RAD.loc 
-	%in% lositan.allfsts$RAD.loc,]
-sig.in3.summ<-pa5.out.dat[pa5.out.dat$Locus.ID %in% sig.in.three$RAD.loc,]
-sig.in3.global<-global.fsts[global.fsts$Locus %in% sig.in.three$RAD.loc,]
-
-all.fst.files<-list.files("E://ubuntushare//stacks//populations",
-	pattern="fst_[A-Z].*[A-Z].txt")
-sig.in3.stacks<-data.frame()
-for(i in 1:length(all.fst.files))
-{
-	fst.file<-read.delim(paste("E://ubuntushare//stacks//populations//",
-		all.fst.files[i], sep=""), header=T)
-	sig.in3.stacks<-rbind(sig.in3.stacks,
-		fst.file[fst.file$Locus %in% sig.in.three$RAD.loc,])
-}
-sig.in3.stacks.split<-split(sig.in3.stacks, sig.in3.stacks$Locus)
-sig.in3.stacks.avg<-lapply(sig.in3.stacks.split, function(x) 
-	{ mean(x$SmoothFst) })
-
-sig.in3.stacks.het<-summ.dat[summ.dat$Locus.ID %in% sig.in.three$RAD.loc,]
-sig.in3.stacks.h.split<-split(sig.in3.stacks.het, sig.in3.stacks.het$Locus)
-sig.in3.stacks.h.avg<-lapply(sig.in3.stacks.h.split, function(x) 
-	{ avgs<-cbind(mean(as.numeric(x$Obs.Het)), 
-		mean(as.numeric(x$Exp.Het)))
-	return(avgs) })
-
-sig.in3.bf<-rep5.bf[rep5.bf$Locus %in% sig.in.three$RAD.loc,]
-sig.in3.bf.split<-split(sig.in3.bf, factor(sig.in3.bf$Locus))
-sig.in3.bf.avg<-lapply(sig.in3.bf.split, function(x){ mean(x$BF) })
-
-##############################################################################
-##############################PLOT ALL SCAFFOLDS##############################
-##############################################################################
-#####PREP DATA FOR PLOTTING#####
-all.scaff<-split(summ.dat, summ.dat$Chr)
-plot.scaffs<-lapply(split(summ.dat, summ.dat$Pop.ID), function(x){split(x, x$Chr)})
+###GLOBAL FSTS
+all.scaff<-split(np.global.fsts, np.global.fsts$Chrom)
 last.max<-0
 rect.xs<-NULL
 addition.values<-0
@@ -742,583 +1031,286 @@ for(i in 1:length(all.scaff)){
 	addition.values<-c(addition.values, new.max)
 	last.max<-new.max
 }
-
-for(i in 1:length(plot.scaffs)){
-	for(j in 1:length(plot.scaffs[[i]])){
-		plot.scaffs[[i]][[j]]$BP<-plot.scaffs[[i]][[j]]$BP+addition.values[j]
-	}
+#change BP to plot
+for(i in 1:length(all.scaff)){
+	all.scaff[[i]]$BP<-all.scaff[[i]]$BP+addition.values[i]
 }
-
 x.max<-max(addition.values)
-y.max<-max(summ.dat$Smoothed.Pi)+0.1*max(summ.dat$Smoothed.Pi)
-if(min(summ.dat$Smoothed.Pi) < 0) {
-	y.min<-min(summ.dat$Smoothed.Pi) - 0.1*min(summ.dat$Smoothed.Pi)
-} else {
-	y.min<-0
-}
-pop.names<-c("Alabama Saltwater", "Florida Anne's Beach", 
-	"Florida Cape Canaveral", "Florida Fort Desoto","Florida Harbor Branch",
-	"Florida Keaton Beach","Florida Palatka Bay", "Florida St. George",
-	"Florida Sanibel Island", "Texas Christmas Bay", "Texas Corpus Christi",
-	"Texas South Padre")
-############################PLOT PI###########################################
-##ALL LOCI
-jpeg("marine_all_pi.jpeg", width=480*4, height=480*8, res=300)
-par(mfrow=c(12,1), mar=c(0,10,1,0), oma=c(4,10,0,0))
-
-for(i in 1:length(plot.scaffs)){
-	plot(plot.scaffs[[i]][[1]]$BP, plot.scaffs[[i]][[1]]$Smoothed.Pi, 
-		xlim=c(0,x.max), ylim=c(y.min, y.max), bty="n",type="n",
-		axes=F, xlab="", ylab="")
-	for(j in 1:length(plot.scaffs[[i]])){
-		if(j%%2 == 0) {
-			rect.color<-"white"
-		} else {
-			rect.color<-"gray96"
-		}
-		plot.genome.wide(plot.scaffs[[i]][[j]]$BP, 
-			plot.scaffs[[i]][[j]]$Smoothed.Pi,
-			y.max,x.max, rect.xs[j,],y.min=0,x.min=0, 
-			plot.new=TRUE, plot.axis=FALSE, rect.color, pt.cex=0.25)
-	}
-	axis(2, at = seq(y.min,y.max,round((y.max-y.min)/2, digits=2)),
-		ylim = c(y.min, y.max), pos=0,
-		las=1,tck = -0.01, xlab="", ylab="", cex.axis=0.75)
-	mtext(pop.names[i],2,las=1, line=2)
-}
-mtext(side=1, "Genomic Location", outer = TRUE, line=1)
-mtext(side=2, "Smoothed pi value for each population", outer=TRUE, line=6)
-dev.off()
-
-
-
-y.max<-max(sig.scaff$Smoothed.Pi)+0.1*max(sig.scaff$Smoothed.Pi)
-x.max<-1481000
-rect.pts<-rbind(c(50000,134000), c(1370000,x.max))
-jpeg("marine_scaff_pi.jpeg", width=480*4, height=480*8, res=300)
-par(mfrow=c(12,1), mar=c(0,8,1,0), oma=c(4,8,0,0))
-
-plot.genome.wide(scaff.ss$TXSP$BP,scaff.ss$TXSP$Smoothed.Pi,
-	y.max,x.max,rect.pts)
-mtext("Texas South Padre",2,las=1, line=1)
-
-plot.genome.wide(scaff.ss$TXCC$BP,scaff.ss$TXCC$Smoothed.Pi,
-	y.max,x.max,rect.pts)
-mtext("Texas Corpus Christi",2,las=1, line=1)
-
-plot.genome.wide(scaff.ss$TXCB$BP,scaff.ss$TXCB$Smoothed.Pi,
-	y.max,x.max,rect.pts)
-mtext("Texas Christmas Bay",2,las=1, line=1)
-
-plot.genome.wide(scaff.ss$ALST$BP,scaff.ss$ALST$Smoothed.Pi,
-	y.max,x.max,rect.pts)
-mtext("Alabama Salt Water",2,las=1, line=1)
-
-plot.genome.wide(scaff.ss$FLSI$BP,scaff.ss$FLSI$Smoothed.Pi,
-	y.max,x.max,rect.pts)
-mtext("Florida Sanibel Island",2,las=1, line=1)
-
-plot.genome.wide(scaff.ss$FLFD$BP,scaff.ss$FLFD$Smoothed.Pi,
-	y.max,x.max,rect.pts)
-mtext("Florida Fort Desoto",2,las=1, line=1)
-
-plot.genome.wide(scaff.ss$FLKB$BP,scaff.ss$FLKB$Smoothed.Pi,
-	y.max,x.max,rect.pts)
-mtext("Florida Keaton Beach",2,las=1, line=1)
-
-plot.genome.wide(scaff.ss$FLSG$BP,scaff.ss$FLSG$Smoothed.Pi,
-	y.max,x.max,rect.pts)
-mtext("Florida St. George",2,las=1, line=1)
-
-plot.genome.wide(scaff.ss$FLAB$BP,scaff.ss$FLAB$Smoothed.Pi,
-	y.max,x.max,rect.pts)
-mtext("Florida Anne's Beach",2,las=1, line=1)
-
-plot.genome.wide(scaff.ss$FLPB$BP,scaff.ss$FLPB$Smoothed.Pi,
-	y.max,x.max,rect.pts)
-mtext("Florida Palm Beach",2,las=1, line=1)
-
-plot.genome.wide(scaff.ss$FLHB$BP,scaff.ss$FLHB$Smoothed.Pi,
-	y.max,x.max,rect.pts)
-mtext("Florida Harbor Branch",2,las=1, line=1)
-
-par(mar=c(4,8,1,0))
-plot.genome.wide(scaff.ss$FLCC$BP,scaff.ss$FLCC$Smoothed.Pi,
-	y.max,x.max,rect.pts)
-mtext("Florida Cape Canaveral",2,las=1, line=1)
-
-axis(1, at=c(0,25000, 92000, 752000, 1425500,1481000), xlim=c(0,1481000), 
-	ylim=c(0,y.max), las=1, tck=-0.01, labels=FALSE, pos=0, xpd=TRUE)
-text(c(25000, 92000, 752000, 1425500), 
-	labels=c("scaffold_1189","scaffold_468","scaffold_7","scaffold_854"),
-	par("usr")[3]-0.00051,srt = 38, adj = 1, xpd = TRUE,cex=0.75)
-
-mtext(side=1, "Genomic Location", outer = TRUE, line=1)
-mtext(side=2, "Smoothed pi value for each population", outer=TRUE, line=6)
-dev.off()
-
-############################PLOT FIS###########################################
-##ALL LOCI
-y.max<-max(summ.dat$Smoothed.Fis)+0.1*max(summ.dat$Smoothed.Fis)
-if(min(summ.dat$Smoothed.Fis) < 0) {
-	y.min<-min(summ.dat$Smoothed.Fis) + 0.1*min(summ.dat$Smoothed.Fis)
+x.min<-min(all.scaff[[1]]$BP)
+y.max<-max(np.global.fsts$Fst)+0.1*max(np.global.fsts$Fst)
+y.min<-min(np.global.fsts$Fst)-0.1*min(np.global.fsts$Fst)
+if(min(np.global.fsts$Fst) < 0) {
+	y.min<-min(np.global.fsts$Fst) - 0.1*min(np.global.fsts$Fst)
 } else {
 	y.min<-0
 }
 
-jpeg("marine_all_fis.jpeg", width=480*4, height=480*8, res=300)
-par(mfrow=c(12,1), mar=c(0,10,1,0), oma=c(4,10,0,0))
 
-for(i in 1:length(plot.scaffs)){
-	plot(plot.scaffs[[i]][[1]]$BP, plot.scaffs[[i]][[1]]$Smoothed.Fis, 
-		xlim=c(0,x.max), ylim=c(y.min, y.max), bty="n",type="n",
-		axes=F, xlab="", ylab="")
-	for(j in 1:length(plot.scaffs[[i]])){
-		if(j%%2 == 0) {
-			rect.color<-"white"
-		} else {
-			rect.color<-"gray96"
-		}
-		plot.genome.wide(plot.scaffs[[i]][[j]]$BP, 
-			plot.scaffs[[i]][[j]]$Smoothed.Fis,
-			y.max,x.max, rect.xs[j,],y.min,x.min=0, 
-			plot.new=TRUE, plot.axis=FALSE, rect.color, pt.cex=0.25)
+#jpeg("nonpruned.global.fst.small.jpeg", width=14, height=4.5, units="in", res=300)
+#par(mar=c(0,3,1,0), oma=c(1,3,0,0),cex=2)
+plot(c(x.min,x.max),c(y.min,y.max),xlim=c(x.min,x.max), ylim=c(y.min, y.max), 
+	bty="n",type="n",	axes=F, xlab="", ylab="")
+for(i in 1:nrow(rect.xs)){
+	if(i%%2 == 0) {
+		rect.color<-"white"
+	} else {
+		rect.color<-"gray96"
 	}
-	axis(2, at = seq(y.min,y.max,round((y.max-y.min)/2, digits=2)),
-		ylim = c(y.min, y.max), pos=0,
-		las=1,tck = -0.01, xlab="", ylab="", cex.axis=0.75)
-	mtext(pop.names[i],2,las=1, line=2)
+	rect(rect.xs[i,1],y.min,rect.xs[i,2],y.max, 
+		col=rect.color, border=NA)
 }
-mtext(side=1, "Genomic Location", outer = TRUE, line=1)
-mtext(side=2, "Smoothed Fis value for each population", outer=TRUE, line=6)
+for(i in 1:length(all.scaff)){
+	plot.genome.wide(all.scaff[[i]]$BP, 
+		all.scaff[[i]]$Fst,plot.rect=FALSE,
+		y.max,x.max, rect.xs[i,],y.min=0,x.min=0, pt.col=neutral.col,
+		plot.new=TRUE, plot.axis=FALSE, rect.color, pt.cex=0.5)
+	temp.sig<-all.scaff[[i]][all.scaff[[i]]$Fst >= np.fst.ci.99,]
+	points(temp.sig$BP, temp.sig$Fst, col=fst.out.col, pch=19, cex=0.5)
+	temp.sig<-all.scaff[[i]][all.scaff[[i]]$Locus %in%
+		all.sig$radloc,]
+	points(temp.sig$BP, temp.sig$Fst, col="red", pch=8,
+		cex=0.75)
+}
+axis(2, at = seq(y.min,y.max,round((y.max-y.min)/2, digits=2)),
+	ylim = c(y.min, y.max), pos=0,
+	labels=seq(round(y.min,2),round(y.max,2),
+		round((y.max-y.min)/2, digits=2)),
+	las=1,tck = -0.05, xlab="", ylab="", cex.axis=0.5)
+#axis(1, at=c(0,rect.xs[,2]), xlim=c(0,(rect.xs[nrow(rect.xs),2]+5)), 
+#	ylim=c(0,y.max), las=1, tck=-0.01, labels=FALSE, pos=0, xpd=TRUE,
+#	par("usr")[3]-0.00051,srt = 38, adj = 1, xpd = TRUE,cex=0.75)
+#legend("top",c("Outlier", "Neutral"), col=c("red","black"),bty="n",
+#	horiz=TRUE,pt.cex=0.5, pch=19,cex=0.75)
+mtext(side=1, "Genomic Location", outer = FALSE, cex=1,line=-0.5)
+mtext(side=2, "Global Fst", outer=FALSE, line=1.2,cex=1)
+#clip(x.min,x.max,y.min,y.max)
+#abline(h=np.fst.ci.99)
+#dev.off()
+
+#######PCADAPT
+pca.scaff$chr<-factor(pca.scaff$chr)
+pca.scaff$logBF<-as.numeric(pca.scaff$logBF)
+all.scaff<-split(pca.scaff, as.factor(pca.scaff$chr))
+last.max<-0
+rect.xs<-NULL
+addition.values<-0
+for(i in 1:length(all.scaff)){
+	new.max<-last.max+round(max(all.scaff[[i]]$bp), -2)
+	rect.xs<-rbind(rect.xs,c(last.max, new.max))
+	addition.values<-c(addition.values, new.max)
+	last.max<-new.max
+}
+#change BP to plot
+for(i in 1:length(all.scaff)){
+	all.scaff[[i]]$bp<-all.scaff[[i]]$bp+addition.values[i]
+}
+x.max<-max(addition.values)
+x.min<-min(all.scaff[[1]]$bp)
+y.max<-max(pca.scaff$logBF)+0.2*max(pca.scaff$logBF)
+y.min<-min(pca.scaff$logBF)-0.1*min(pca.scaff$logBF)
+if(min(pca.scaff$logBF) < 0) {
+	y.min<-min(pca.scaff$logBF) - 0.1*min(pca.scaff$logBF)
+} else {
+	y.min<-0
+}
+
+plot(c(x.min,x.max),c(y.min,y.max),xlim=c(x.min,x.max), ylim=c(y.min, y.max), 
+	bty="n",type="n",	axes=F, xlab="", ylab="")
+for(i in 1:nrow(rect.xs)){
+	if(i%%2 == 0) {
+		rect.color<-"white"
+	} else {
+		rect.color<-"gray96"
+	}
+	rect(rect.xs[i,1],y.min,rect.xs[i,2],y.max, 
+		col=rect.color, border=NA)
+}
+for(i in 1:length(all.scaff)){
+	plot.genome.wide(all.scaff[[i]]$bp, 
+		all.scaff[[i]]$logBF,plot.rect=FALSE,
+		y.max,x.max, rect.xs[i,],y.min=0,x.min=0, pt.col=neutral.col,
+		plot.new=TRUE, plot.axis=FALSE, rect.color, pt.cex=0.5)
+	temp.sig<-all.scaff[[i]][all.scaff[[i]]$radloc %in% pca.out$radloc,]
+	points(temp.sig$bp, temp.sig$logBF, col=pca.out.col, pch=19, cex=0.5)
+	temp.sig<-all.scaff[[i]][all.scaff[[i]]$radloc %in%
+		all.sig$radloc,]
+	points(temp.sig$bp, temp.sig$logBF, col="red", pch=8,
+		cex=0.75)
+}
+axis(2, at = seq(y.min,y.max,round((y.max-y.min)/2, digits=2)),
+	ylim = c(y.min, y.max), pos=0,
+	labels = seq(round(y.min,2),round(y.max,2),
+		round((y.max-y.min)/2, digits=2)),
+	las=1,tck = -0.05, xlab="", ylab="", cex.axis=0.5)
+#axis(1, at=c(0,rect.xs[,2]), xlim=c(0,(rect.xs[nrow(rect.xs),2]+5)), 
+#	ylim=c(0,y.max), las=1, tck=-0.01, labels=FALSE, pos=0, xpd=TRUE,
+#	par("usr")[3]-0.00051,srt = 38, adj = 1, xpd = TRUE,cex=0.75)
+mtext(side=1, "Genomic Location", outer = FALSE, line=-0.5,cex=1)
+mtext(side=2, "PCAdapt log10(BF)", outer=FALSE,line=1.2,cex=1)
+
+
+#######BAYENV2 POPULATION DIFFERENTIATION
+all.scaff<-split(xtx.scaff, xtx.scaff$scaffold)
+last.max<-0
+rect.xs<-NULL
+addition.values<-0
+for(i in 1:length(all.scaff)){
+	new.max<-last.max+round(max(all.scaff[[i]]$BP), -2)
+	rect.xs<-rbind(rect.xs,c(last.max, new.max))
+	addition.values<-c(addition.values, new.max)
+	last.max<-new.max
+}
+#change BP to plot
+for(i in 1:length(all.scaff)){
+	all.scaff[[i]]$BP<-all.scaff[[i]]$BP+addition.values[i]
+}
+x.max<-max(addition.values)
+x.min<-min(all.scaff[[1]]$BP)
+y.max<-max(xtx.scaff$XtX)+0.1*max(xtx.scaff$XtX)
+y.min<-min(xtx.scaff$XtX)-0.1*min(xtx.scaff$XtX)
+if(min(xtx.scaff$XtX) < 0) {
+	y.min<-min(xtx.scaff$XtX) - 0.1*min(xtx.scaff$XtX)
+} else {
+	y.min<-0
+}
+
+#jpeg("xtx.small.jpeg", width=14, height=4.5, units="in", res=300)
+#par(mar=c(0,2,1,0), oma=c(1,2,0,0),cex=2)
+plot(c(x.min,x.max),c(y.min,y.max),xlim=c(x.min,x.max), ylim=c(y.min, y.max), 
+	bty="n",type="n",	axes=F, xlab="", ylab="")
+for(i in 1:nrow(rect.xs)){
+	if(i%%2 == 0) {
+		rect.color<-"white"
+	} else {
+		rect.color<-"gray96"
+	}
+	rect(rect.xs[i,1],y.min,rect.xs[i,2],y.max, 
+		col=rect.color, border=NA)
+}
+for(i in 1:length(all.scaff)){
+	plot.genome.wide(all.scaff[[i]]$BP, 
+		all.scaff[[i]]$XtX,plot.rect=FALSE,
+		y.max,x.max, rect.xs[i,],y.min=0,x.min=0, pt.col=neutral.col,
+		plot.new=TRUE, plot.axis=FALSE, rect.color, pt.cex=0.5)
+	temp.sig<-all.scaff[[i]][all.scaff[[i]]$locus %in% xtx.5$locus,]
+	points(temp.sig$BP, temp.sig$XtX, col=xtx.out.col, pch=19, cex=0.5)
+	temp.sig<-all.scaff[[i]][all.scaff[[i]]$rad.loc %in%
+		all.sig$radloc,]
+	points(temp.sig$BP, temp.sig$XtX, col="red", pch=8,
+		cex=0.75)
+}
+axis(2, at = seq(y.min,y.max,round((y.max-y.min)/2, digits=2)),
+	ylim = c(y.min, y.max), pos=0,
+	labels = seq(round(y.min,2),round(y.max,2),
+		round((y.max-y.min)/2, digits=2)),
+	las=1,tck = -0.05, xlab="", ylab="", cex.axis=0.5)
+#axis(1, at=c(0,rect.xs[,2]), xlim=c(0,(rect.xs[nrow(rect.xs),2]+5)), 
+#	ylim=c(0,y.max), las=1, tck=-0.01, labels=FALSE, pos=0, xpd=TRUE,
+#	par("usr")[3]-0.00051,srt = 38, adj = 1, xpd = TRUE,cex=0.75)
+#legend("top", c("XtX outliers", "Fst outliers"), col=c("red", "blue"),
+#	pch=c(19,1), pt.cex=c(0.5,0.75), bty='n', horiz=TRUE, cex=0.85)
+mtext(side=1, "Genomic Location", outer = FALSE, line=-0.5,cex=1)
+mtext(side=2, "XtX", outer=FALSE,line=1.2,cex=1)
+#clip(x.min,x.max,y.min,y.max)
+#abline(h=np.fst.ci.99)
+#dev.off()
+
+
+
+#########BAYENV2 TEMPERATURE
+bf.plot<-bf.scaff
+bf.plot$Temp_BF<-log10(bf.plot$Temp_BF)
+all.scaff<-split(bf.plot, bf.scaff$scaffold)
+last.max<-0
+rect.xs<-NULL
+addition.values<-0
+for(i in 1:length(all.scaff)){
+	new.max<-last.max+round(max(all.scaff[[i]]$BP), -2)
+	rect.xs<-rbind(rect.xs,c(last.max, new.max))
+	addition.values<-c(addition.values, new.max)
+	last.max<-new.max
+}
+#change BP to plot
+for(i in 1:length(all.scaff)){
+	all.scaff[[i]]$BP<-all.scaff[[i]]$BP+addition.values[i]
+}
+x.max<-max(addition.values)
+x.min<-min(all.scaff[[1]]$BP)
+y.max<-max(bf.plot$Temp_BF)+0.1*max(bf.plot$Temp_BF)
+y.min<-min(bf.plot$Temp_BF)-0.1*min(bf.plot$Temp_BF)
+if(min(bf.plot$Temp_BF) < 0) {
+	y.min<-min(bf.plot$Temp_BF) - 0.1*min(bf.plot$Temp_BF)
+} else {
+	y.min<-0
+}
+
+#jpeg("bf.env.assoc.small.jpeg", width=14, height=4.5, units="in", res=300)
+#par(mar=c(0,3,1,0), oma=c(1,3,0,0),cex=2)
+plot(c(x.min,x.max),c(y.min,y.max),xlim=c(x.min,x.max), ylim=c(y.min, y.max), 
+	bty="n",type="n",	axes=F, xlab="", ylab="")
+for(i in 1:nrow(rect.xs)){
+	if(i%%2 == 0) {
+		rect.color<-"white"
+	} else {
+		rect.color<-"gray96"
+	}
+	rect(rect.xs[i,1],y.min,rect.xs[i,2],y.max, 
+		col=rect.color, border=NA)
+}
+for(i in 1:length(all.scaff)){
+	plot.genome.wide(all.scaff[[i]]$BP, 
+		all.scaff[[i]]$Temp_BF,plot.rect=FALSE,
+		y.max,x.max, rect.xs[i,],y.min=0,x.min=0, pt.col=neutral.col,
+		plot.new=TRUE, plot.axis=FALSE, rect.color, pt.cex=0.5)
+	temp.sig<-all.scaff[[i]][all.scaff[[i]]$locus %in% temp.bf.sig$locus,]
+	points(temp.sig$BP, temp.sig$Temp_BF, col=bft.out.col, pch=19, cex=0.5)
+	#also allsig
+	temp.sig<-all.scaff[[i]][all.scaff[[i]]$rad.loc %in%
+		all.sig$radloc,]
+	points(temp.sig$BP, temp.sig$Temp_BF, col="red", pch=8,
+		cex=0.75)
+	
+	
+}
+axis(2, at = seq(round(y.min,2),round(y.max+0.02,2),
+		round((y.max-y.min)/2, digits=8)),
+	ylim = c(y.min, y.max), pos=0,
+	labels = seq(round(y.min,2),round(y.max+0.02,2),
+		round((y.max-y.min)/2, digits=2)),
+	las=1,tck = -0.05, xlab="", ylab="", cex.axis=0.5)
+#axis(1, at=c(0,rect.xs[,2]), xlim=c(0,(rect.xs[nrow(rect.xs),2]+5)), 
+#	ylim=c(0,y.max), las=1, tck=-0.01, labels=FALSE, pos=0, xpd=TRUE,
+#	par("usr")[3]-0.00051,srt = 38, adj = 1, xpd = TRUE,cex=0.75)
+#legend("top", c("Top 5% BF", "Fst outliers", "Lositan Outliers", "XtX 1%"), 
+#	col=c("gray32","red", "blue", "purple"),
+#	pch=c(19,1,0,6), pt.cex=c(0.5,0.75,0.75,0.75), bty='n',
+#	horiz=TRUE, cex=0.85)
+mtext(side=1, "Genomic Location", outer = FALSE, cex=1, line=-0.5)
+mtext(side=2, "Temp log10(BF)", line=1.2,outer=FALSE,cex=1, las=0)
+#clip(x.min,x.max,y.min,y.max)
+#abline(h=np.fst.ci.99)
+#dev.off()
+
+#PLOT THE LEGEND
+par(fig = c(0, 1, 0, 1), oma=c(2,1,0,1), mar = c(0, 0, 0, 0), new = TRUE,
+	cex=1)
+plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
+legend("top", ncol=3,
+	col=c(neutral.col,fst.out.col,xtx.out.col,pca.out.col,bft.out.col, "red"),
+	c("Neutral","Global Fst Outliers","XtX Outliers","PCAdapt Outliers",
+		"Top 5% Temp BF"),
+	pch=c(19,19,19,19,19,8), box.lty=0)
+
 dev.off()
 
 
-y.max<-max(sig.scaff$Smoothed.Fis)+0.1*max(sig.scaff$Smoothed.Fis)
-x.max<-1481000
-y.min<-min(sig.scaff$Smoothed.Fis)-0.1*min(sig.scaff$Smoothed.Fis)
-
-jpeg("marine_scaff_fis.jpg", width=480*4, height=480*8, res=300)
-par(mfrow=c(12,1), mar=c(0,10,1,0), oma=c(4,10,0,0))
-
-plot.genome.wide(scaff.ss$TXSP$BP,scaff.ss$TXSP$Smoothed.Fis,
-	y.max,x.max,rect.pts, y.min=y.min)
-mtext("Texas South Padre",2,las=1, line=3,cex=1)
-
-plot.genome.wide(scaff.ss$TXCC$BP,scaff.ss$TXCC$Smoothed.Fis,
-	y.max,x.max,rect.pts, y.min=y.min)
-mtext("Texas Corpus Christi",2,las=1, line=3,cex=1)
-
-plot.genome.wide(scaff.ss$TXCB$BP,scaff.ss$TXCB$Smoothed.Fis,
-	y.max,x.max,rect.pts, y.min=y.min)
-mtext("Texas Christmas Bay",2,las=1, line=3,cex=1)
-
-plot.genome.wide(scaff.ss$ALST$BP,scaff.ss$ALST$Smoothed.Fis,
-	y.max,x.max,rect.pts, y.min=y.min)
-mtext("Alabama Salt Water",2,las=1, line=3,cex=1)
-
-plot.genome.wide(scaff.ss$FLSI$BP,scaff.ss$FLSI$Smoothed.Fis,
-	y.max,x.max,rect.pts, y.min=y.min)
-mtext("Florida Sanibel Island",2,las=1, line=3,cex=1)
-
-plot.genome.wide(scaff.ss$FLFD$BP,scaff.ss$FLFD$Smoothed.Fis,
-	y.max,x.max,rect.pts, y.min=y.min)
-mtext("Florida Fort Desoto",2,las=1, line=3,cex=1)
-
-plot.genome.wide(scaff.ss$FLKB$BP,scaff.ss$FLKB$Smoothed.Fis,
-	y.max,x.max,rect.pts, y.min=y.min)
-mtext("Florida Keaton Beach",2,las=1, line=3,cex=1)
-
-plot.genome.wide(scaff.ss$FLSG$BP,scaff.ss$FLSG$Smoothed.Fis,
-	y.max,x.max,rect.pts, y.min=y.min)
-mtext("Florida St. George",2,las=1, line=3,cex=1)
-
-plot.genome.wide(scaff.ss$FLAB$BP,scaff.ss$FLAB$Smoothed.Fis,
-	y.max,x.max,rect.pts, y.min=y.min)
-mtext("Florida Anne's Beach",2,las=1, line=3,cex=1)
-
-plot.genome.wide(scaff.ss$FLPB$BP,scaff.ss$FLPB$Smoothed.Fis,
-	y.max,x.max,rect.pts, y.min=y.min)
-mtext("Florida Palm Beach",2,las=1, line=3,cex=1)
-
-plot.genome.wide(scaff.ss$FLHB$BP,scaff.ss$FLHB$Smoothed.Fis,
-	y.max,x.max,rect.pts, y.min=y.min)
-mtext("Florida Harbor Branch",2,las=1, line=3,cex=1)
-
-par(mar=c(4,10,1,0))
-plot.genome.wide(scaff.ss$FLCC$BP,scaff.ss$FLCC$Smoothed.Fis,
-	y.max,x.max,rect.pts, y.min=y.min)
-mtext("Florida Cape Canaveral",2,las=1, line=3,cex=1)
-
-axis(1, at=c(0,25000, 92000, 752000, 1425500,1481000), xlim=c(0,1481000), 
-	ylim=c(y.min,y.max), las=1, tck=-0.01, labels=FALSE, pos=0, xpd=TRUE)
-text(c(25000, 92000, 752000, 1425500), 
-	labels=c("scaffold_1189","scaffold_468","scaffold_7","scaffold_854"),
-	par("usr")[3]-0.00051,srt = 38, adj = 1, xpd = TRUE,cex=0.75)
-
-mtext(side=1, "Genomic Location", outer = TRUE, line=1)
-mtext(side=2, "Smoothed Fis value for each population", outer=TRUE, line=7)
-dev.off()
-
-
-##############################################################################
-*****************************************************************************#
-#################################ALL OUTLIERS#################################
-#****************************************************************************#
-##############################################################################
-all.fst.files<-list.files("E://ubuntushare//stacks//populations",
-	pattern="fst_[A-Z].*[A-Z].txt")
-all.summ.files<-list.files("E://ubuntushare//stacks//populations",
-	pattern="fst_[A-Z].*[A-Z]_summary.txt")
-all.outliers<-data.frame()
-for(i in 1:length(all.fst.files))
-{
-	fst.file<-read.delim(paste("E://ubuntushare//stacks//populations//",
-		all.fst.files[i], sep=""), header=T)
-	summ.file<-read.delim(paste("E://ubuntushare//stacks//populations//",
-		all.summ.files[i], sep=""), header=T)
-	all.outliers<-rbind(all.outliers,
-		fst.file[fst.file$SmoothFst >= summ.file$CI99smooth,])
-}
-
-no.dups.outliers<-all.outliers[!duplicated(all.outliers$Locus),]
-length(levels(factor(no.dups.outliers$Chrom))) #number scaffolds
-length(levels(as.factor(
-	contigs[contigs$Scaffold %in% no.dups.outliers$Chrom,1]))) #num lgs
-
-
-#select those also found in non-outlier analysis
-length(levels(as.factor(no.dups.outliers[no.dups.outliers$Locus 
-	%in% pa.out.dat$Locus.ID,1])))
-#summarize fsts for those (updated 26 May 2015)
-summary(all.outliers$SmoothFst[all.outliers$Locus==3149])
-#   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-# 0.08358 0.10720 0.11510 0.10720 0.11510 0.11510 
-summary(all.outliers$SmoothFst[all.outliers$Locus==32348])
-#   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#0.3460  0.3534  0.3608  0.3608  0.3683  0.3757  
-summary(all.outliers$SmoothFst[all.outliers$Locus==37147])
-#   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#  0.1231  0.1244  0.1258  0.1258  0.1272  0.1285
-summary(all.outliers$SmoothFst[all.outliers$Locus==29715])
-#   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#0.06973 0.08017 0.09062 0.09062 0.10110 0.11150 
-summary(all.outliers$SmoothFst[all.outliers$Locus==15712])
-#Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#  0.2391  0.2498  0.2605  0.2605  0.2712  0.2819 
-
-
-
 
 ##############################################################################
 #****************************************************************************#
-##########################FST-HETEROZYGOSITY PLOT#############################
+####################################PST-FST###################################
 #****************************************************************************#
 ##############################################################################
-#Import global values generated by C++ program calculate_global_fsts
-global.fsts<-read.table(
-	"E://ubuntushare//stacks//populations//ld.hwe.sub.globalstats.txt",
-	header=T, sep='\t')
-
-fst.ci.99<-mean(global.fsts$Fst) + 2.57583*sd(global.fsts$Fst)
-#fst.het.lm<-lm(global.fsts$Fst~global.fsts$Obs.Het)
-#fst.het.pr<-predict(fst.het.lm, interval="confidence", level=0.99)
-
-jpeg("fst_het.jpeg", res=300, width=7,height=7, units="in")
-plot(global.fsts$Obs.Het, global.fsts$Fst, xlab="", ylab="", 
-	xaxt='n', yaxt='n', pch=19)
-abline(h=fst.ci.99, lwd=2)
-axis(1)
-axis(2, las=2)
-mtext("Observed Heterozygosity", 1, outer=FALSE, line =3)
-mtext("Fst", 2, outer=FALSE, line=3)
-dev.off()
-
-#what are the outliers??
-glob.fst.out<-global.fsts[global.fsts$Fst >= fst.ci.99,]
- summ.gfo<-summ.dat[summ.dat$Locus.ID %in% glob.fst.out$Locus,]
- summ.gfo<-summ.gfo[!duplicated(summ.gfo$Locus),]
-glob.fst.out<-
-	merge(summ.gfo[,2:3], glob.fst.out, by.x="Locus.ID", by.y="Locus")
-glob.fst.out<-glob.fst.out[,-3]
-
-glob.fst.out[glob.fst.out$Locus %in% no.dups.outliers$Locus,]
-##USE LOSITAN ANALYSIS
-##############################################################################
-#****************************************************************************#
-##########################FASTSTRUCTURE FST OUTLIERS##########################
-#****************************************************************************#
-##############################################################################
-#FIRST: need to run genomewide_CIs C++ code
-all.fst.files<-list.files("E://ubuntushare//stacks//populations_fstrugroups",
-	pattern="fst_[0-9]-[0-9].txt")
-all.summ.files<-list.files("E://ubuntushare//stacks//populations_fstrugroups",
-	pattern="fst_[0-9]-[0-9]_summary.txt")
-all.grp.outliers<-data.frame()
-for(i in 1:length(all.fst.files))
-{
-	fst.file<-read.delim(paste(
-		"E://ubuntushare//stacks//populations_fstrugroups//",
-		all.fst.files[i], sep=""), header=T)
-	summ.file<-read.delim(paste(
-		"E://ubuntushare//stacks//populations_fstrugroups//",
-		all.summ.files[i], sep=""), header=T)
-	all.grp.outliers<-rbind(all.grp.outliers,
-		fst.file[fst.file$SmoothFst >= summ.file$CI99smooth,])
-}
-
-grp.outliers<-all.grp.outliers[!duplicated(all.grp.outliers$Locus),]
-length(levels(factor(grp.outliers$Chrom))) #number scaffolds
-length(levels(as.factor(
-	contigs[contigs$Scaffold %in% grp.outliers$Chrom,1]))) #num lgs
-
-setwd("E://ubuntushare//stacks//populations_fstrugroups")
-g1.2<-read.delim("fst_1-2.txt", header=T)
-g1.3<-read.delim("fst_1-3.txt", header=T)
-g1.4<-read.delim("fst_1-4.txt", header=T)
-g1.5<-read.delim("fst_1-5.txt", header=T)
-g3.2<-read.delim("fst_3-2.txt", header=T)
-g3.4<-read.delim("fst_3-4.txt", header=T)
-g4.2<-read.delim("fst_4-2.txt", header=T)
-g5.2<-read.delim("fst_5-2.txt", header=T)
-g5.3<-read.delim("fst_5-3.txt", header=T)
-g5.4<-read.delim("fst_5-4.txt", header=T)
-
-g1.2.ci<-read.delim("fst_1-2_summary.txt", header=T)
-g1.3.ci<-read.delim("fst_1-3_summary.txt", header=T)
-g1.4.ci<-read.delim("fst_1-4_summary.txt", header=T)
-g1.5.ci<-read.delim("fst_1-5_summary.txt", header=T)
-g3.2.ci<-read.delim("fst_3-2_summary.txt", header=T)
-g3.4.ci<-read.delim("fst_3-4_summary.txt", header=T)
-g4.2.ci<-read.delim("fst_4-2_summary.txt", header=T)
-g5.2.ci<-read.delim("fst_5-2_summary.txt", header=T)
-g5.3.ci<-read.delim("fst_5-3_summary.txt", header=T)
-g5.4.ci<-read.delim("fst_5-4_summary.txt", header=T)
-
-jpeg("E://Docs//PopGen//groups_fsts.jpeg", width=480*6, height=480*9, res=300)
-par(mfrow=c(5,2), mar=c(0,12,1,0), oma=c(4,10,0,0))
-plot.fsts.scaffs(g1.2, "Group 1-Group 2", g1.2.ci)
-plot.fsts.scaffs(g1.3, "Group 1-Group 3", g1.3.ci)
-plot.fsts.scaffs(g1.4, "Group 1-Group 4", g1.4.ci)
-plot.fsts.scaffs(g1.5, "Group 1-Group 5", g1.5.ci)
-plot.fsts.scaffs(g3.2, "Group 3-Group 2", g3.2.ci)
-plot.fsts.scaffs(g3.4, "Group 3-Group 4", g3.4.ci)
-plot.fsts.scaffs(g4.2, "Group 4-Group 2", g4.2.ci)
-plot.fsts.scaffs(g5.2, "Group 5-Group 2", g5.2.ci)
-plot.fsts.scaffs(g5.3, "Group 5-Group 3", g5.3.ci)
-plot.fsts.scaffs(g5.4, "Group 5-Group 4", g5.4.ci)
-
-mtext(side=1, "Genomic Location", outer = TRUE, line=1)
-mtext(side=2, "Smoothed FST value", outer=TRUE, line=6)
-
-dev.off()
-
-#are any of these the same as the original pop gen analysis?
-length(levels(as.factor(grp.outliers[grp.outliers$Locus 
-	%in% no.dups.outliers$Locus,1])))
-
-##############################################################################
-#****************************************************************************#
-########################LESS STRINGENT POPULATIONS FSTS#######################
-#****************************************************************************#
-##############################################################################
-#FIRST: need to run genomewide_CIs C++ code
-nolim.fst.files<-list.files("E://ubuntushare//stacks//populations_nopopslimit",
-	pattern="fst_[A-Z].*[A-Z].txt")
-nolim.summ.files<-list.files("E://ubuntushare//stacks//populations_nopopslimit",
-	pattern="fst_[A-Z].*[A-Z]_summary.txt")
-all.nolim.outliers<-data.frame()
-for(i in 1:length(nolim.fst.files))
-{
-	fst.file<-read.delim(paste(
-		"E://ubuntushare//stacks//populations_nopopslimit//",
-		nolim.fst.files[i], sep=""), header=T)
-	summ.file<-read.delim(paste(
-		"E://ubuntushare//stacks//populations_nopopslimit//",
-		nolim.summ.files[i], sep=""), header=T)
-	all.nolim.outliers<-rbind(all.nolim.outliers,
-		fst.file[fst.file$SmoothFst >= summ.file$CI99smooth,])
-}
-
-nolim.outliers<-all.nolim.outliers[!duplicated(all.nolim.outliers$Locus),]
-length(levels(factor(nolim.outliers$Chrom))) #number scaffolds
-length(levels(as.factor(
-	contigs[contigs$Scaffold %in% nolim.outliers$Chrom,1]))) #num lgs
-length(levels(as.factor(
-	nolim.outliers[nolim.outliers$Locus %in% grp.outliers$Locus,1])))
-length(levels(as.factor(
-	nolim.outliers[nolim.outliers$Locus %in% no.dups.outliers$Locus,1])))
-dim(nolim.outliers)
-
-nolim.summ<-read.table("E://ubuntushare//stacks//populations_nopopslimit//batch_1.sumstats.tsv",
-	sep='\t', skip=12, header=T, comment.char="")
-ss<-split(nolim.summ, nolim.summ$Pop.ID)#create a list of data frames for each pop
-nolim.sum.stats<-as.data.frame(cbind(
-	unlist(lapply(ss, function(x){length(levels(as.factor(x$Locus.ID)))})),#num RAD loci
-	unlist(lapply(ss, nrow)), #num SNPS
-	unlist(lapply(ss, function(x){nrow(x[x$Private==1,])})),#num private
-	unlist(lapply(ss, function(x){(nrow(x[x$P!=1,])/nrow(x))*100})),#%SNPS polymorphic
-	unlist(lapply(ss, function(x){ 
-			den<-length(levels(as.factor(x$Locus.ID)))
-			num<-length(levels(as.factor(x[x$P!=1,]$Locus.ID)))
-			return(num/den*100)
-	})),#%RAD loci polymorphic
-	unlist(lapply(ss, function(x){mean(x$P)})),#average frequencuy of major allele
-	unlist(lapply(ss, function(x){mean(x$Obs.Het)})),#average observed heterozygosity
-	unlist(lapply(ss, function(x){mean(x$Pi)})),#average nucleotide diversity
-	unlist(lapply(ss, function(x){mean(x$Fis)}))#average Fis
-))
-colnames(nolim.sum.stats)<-c("N.RAD","N.SNP","Private","%Poly.SNP","%Poly.RAD","P","Hobs","Pi","Fis")	
-write.table(sum.stats, "E://Docs//PopGen//nolim_fst_summary_stats.txt", sep='\t', )
-
-
-
-#############################################################################
-############################MALE-FEMALE LOCI#################################	
-#############################################################################
-
-
-m.het1<-m.f.summ.dat[which(m.f.summ.dat$Pop.ID == "male" &
-	m.f.summ.dat$Obs.Het == 1),]
-m.het1.f<-m.f.summ.dat[m.f.summ.dat$Locus.ID %in% m.het1$Locus.ID,]#recover females
-f.het1<-m.f.summ.dat[which(m.f.summ.dat$Pop.ID == "female" &
-	m.f.summ.dat$Obs.Het == 1),]
-f.het1.m<-m.f.summ.dat[m.f.summ.dat$Locus.ID %in% f.het1$Locus.ID,]
-
-f1.scaff<-f.het1.m[f.het1.m$Chr %in% use.contigs$Scaffold,]
-m1.scaff<-m.het1.f[m.het1.f$Chr %in% use.contigs$Scaffold,]
-lg1<-NULL
-lg2<-NULL
-for(i in 1:nrow(f1.scaff)){
-	id<-levels(as.factor(
-		use.contigs[use.contigs$Scaffold %in% factor(f1.scaff$Chr[i]),1]))
-	lg1<-c(lg1, id)
-}
-for(i in 1:nrow(m1.scaff)){
-	id<-levels(as.factor(
-		use.contigs[use.contigs$Scaffold %in% factor(m1.scaff$Chr[i]),1]))
-	lg2<-c(lg2, id)
-}
-f1.scaff<-cbind(f1.scaff,lg1)
-m1.scaff<-cbind(m1.scaff,lg2)
-f1.scaff<-droplevels(f1.scaff)
-m1.scaff<-droplevels(m1.scaff)
-
-f1.m0.all<-f.het1.m[f.het1.m$Locus.ID %in% 
-	f.het1.m[which(f.het1.m$Pop.ID == "male" &
-	f.het1.m$Obs.Het == 0),]$Locus.ID,]
-f1.m0<-f1.scaff[f1.scaff$Locus.ID %in% 
-	f1.scaff[which(f1.scaff$Pop.ID == "male" &
-	 f1.scaff$Obs.Het == 0),]$Locus.ID,]#problem is some snps don't reflect RAD locus
-f1.m0.split<-split(f1.m0, f1.m0$Locus.ID)
-
-f0.m1.all<-m.het1.f[m.het1.f$Locus.ID %in% 
-	m.het1.f[which(m.het1.f$Pop.ID == "female" &
-	 m.het1.f$Obs.Het == 0),]$Locus.ID,]
-f0.m1<-m1.scaff[m1.scaff$Locus.ID %in% 
-	m1.scaff[which(m1.scaff$Pop.ID == "female" &
-	 m1.scaff$Obs.Het == 0),]$Locus.ID,]#problem is some snps don't reflect RAD locus
-f0.m1.split<-split(f0.m1, f0.m1$Locus.ID)
-
-write.table(f1.m0.all, "f.het1.m.het0.txt", 
-	col.names=TRUE, row.names=FALSE, sep="\t")
-write.table(f1.m0, "f.het1.m.het0.lg.txt",  
-	col.names=TRUE, row.names=FALSE, sep="\t")
-
-write.table(f0.m1.all, "m.het1.f.het0.txt",  
-	col.names=TRUE, row.names=FALSE, sep="\t")
-
-write.table(f0.m1, "m.het1.f.het0.lg.txt",  
-	col.names=TRUE, row.names=FALSE, sep="\t")
-
-
-#######Returned to this: 4 June 2015
-m.f.summ<-read.table("E://ubuntushare//stacks//populations_sex//batch_1.sumstats.tsv",
-	sep='\t', skip=2, header=T, comment.char="")
-m.f.fst<-read.delim("E://ubuntushare//stacks//populations_sex//batch_1.fst_female-male.tsv")
-mf.fst.sum<-read.delim("E://ubuntushare//stacks//populations_sex//fst_female-male.txt")
-mf.fst.ci<-read.delim("E://ubuntushare//stacks//populations_sex//fst_female-male_summary.txt")
-
-sex.outliers<-mf.fst.sum[mf.fst.sum$SmoothFst >= mf.fst.ci$CI99smooth,]
-
-
-sex.outliers<-sex.outliers[!(sex.outliers$Locus %in% no.dups.outliers$Locus),]
-
-length(levels(factor(sex.outliers$Locus)))
-length(levels(factor(sex.outliers$Chrom)))
-length(levels(as.factor(
-	contigs[contigs$Scaffold %in% sex.outliers$Chrom,1]))) #num lgs
-
-jpeg("E://Docs//PopGen//male-female.jpeg", res=300, height=480*2, width=480*4)
-par(mar=c(2,4,2,1), oma=c(2,4,2,1), las=1)
-plot.fsts.scaffs(mf.fst.sum, "", mf.fst.ci)
-mtext(side=1,"Genomic Location", outer = FALSE, cex=0.75)
-mtext("Smoothed FST value", side=2, outer=FALSE, las=0, line=4, cex=0.75)
-dev.off()
-
-#do any of the outliers have unusual heterozygosity patterns?
-out.summ<-m.f.summ[m.f.summ$Locus.ID %in% sex.outliers$Locus,]
-out.summ.split<-split(out.summ, out.summ$Pop.ID)
-
-het1.loc<-m.f.summ[(m.f.summ$Obs.Het==1),"Locus.ID"]
-het1.summ<-m.f.summ[m.f.summ$Locus.ID %in% het1.loc,]
-put.het1.loc<-het1.summ[het1.summ$Obs.Het <= 0.5,"Locus.ID"]
-put.het1<-het1.summ[het1.summ$Locus.ID %in% put.het1.loc,]
-put.het1.split<-split(put.het1, put.het1$Locus.ID)
-
-het0.loc<-m.f.summ[(m.f.summ$Obs.Het==0),"Locus.ID"]
-het0.summ<-m.f.summ[m.f.summ$Locus.ID %in% het0.loc,]
-put.het0.loc<-het0.summ[het0.summ$Obs.Het >= 0.5,"Locus.ID"]
-put.het0<-het1.summ[het0.summ$Locus.ID %in% put.het0.loc,]
-put.het0.split<-split(put.het0, put.het0$Locus.ID)
-
-###########Using PLINK's assoc results (treat male/female as case/control)
-sex.ped<-as.data.frame(read.delim(
-	"E://ubuntushare//stacks//populations_sex//batch_1.plink.ped",
-	stringsAsFactors=F, header=F,colClasses="character"))
-ped.names<-sub('sample_(\\w{4}\\w+).*[_.].*','\\1', sex.ped[,2])
-ped.names<-sub('([[:alpha:]]{5,7})([[:digit:]]{1})$', '\\10\\2', ped.names)
-ped.sex<-sub('sample_\\w{4}(\\w+).*[_.].*','\\1', sex.ped[,2])
-ped.sex[substr(ped.sex,1,2)=="DP"]<-"M"
-ped.sex[substr(ped.sex,1,2)=="DB"]<-"F"
-ped.sex[substr(ped.sex,1,2)=="NP"]<-"M"
-ped.sex[substr(ped.sex,1,1)=="P"]<-"M"
-ped.sex<-substr(ped.sex,1,1)
-ped.sex[ped.sex=="F"]<-2
-ped.sex[ped.sex=="M"]<-1
-ped.new<-sex.ped
-ped.new[,2]<-ped.names
-ped.new[,5]<-ped.sex
-ped.new[,6]<-ped.sex
-write.table(ped.new, "E://ubuntushare//stacks//populations_sex//sex.plink.ped",
-	col.names=F, row.names=F, quote=F, eol='\n', sep='\t')
-sex.assoc<-as.data.frame(read.table(
-	"E://ubuntushare//stacks//populations_sex//sex.plink.assoc",
-	header=T))
-
-sex.assoc.sig<-sex.assoc[sex.assoc$P<=0.05,]
-sex.map<-read.table("E://ubuntushare//stacks//populations_sex//batch_1.plink.map")
-
-sex.map.sig<-sex.map[sex.map$V2 %in% sex.assoc.sig$SNP,]
-sex.map.sig<-sex.map.sig[match(sex.map.sig$V2), sex.assoc.sig$SNP),]
-sex.sig<-merge(sex.assoc.sig, sex.map.sig, by.x="SNP", by.y="V2")
-sex.sig<-cbind(sex.sig, as.numeric(sub('_\\d+','',sex.sig$SNP)))
-colnames(sex.sig)[11:14]<-c("SCAFFOLD","CHROM","BPN","RADLOC")
-dim(sex.sig[sex.sig$RADLOC %in% sex.outliers,])
-sex.out.assoc<-merge(sex.sig, sex.outliers, by.x="RADLOC", by.y="Locus")
-
-dim(sex.out.assoc[sex.out.assoc$SCAFFOLD %in% use.contigs$Scaffold,])
-summary(as.factor(
-	merge(sex.out.assoc, use.contigs, by.x="SCAFFOLD", by.y="Scaffold")$LG))
-#none of the RAD loci are on the linkage map, but some of the scaffolds map back
-
-##############################################################################
-#****************************************************************************#
-######################MANIPULATING FILES FOR ASSOCIATIONS#####################
-#****************************************************************************#
-##############################################################################
-#fix the weird ones--ALAL, merge lines where necessary. It'll make life easier
-
+#************create male and female files for pst analysis******************#
 raw.pheno<-read.table("E://ubuntushare//popgen.pheno.txt", sep="\t", header=T)
 fem.keep<-raw.pheno[!is.na(raw.pheno$BandNum) & substr(raw.pheno$ID,5,5)=="F",]
 db.keep<-raw.pheno[substr(raw.pheno$ID,5,6)=="DB",]
@@ -1328,92 +1320,25 @@ not.fem.keep<-raw.pheno[substr(raw.pheno$ID,5,5)!="F" &
 	substr(raw.pheno$ID,5,6)!="DB",]
 not.fem.keep<-not.fem.keep[(not.fem.keep$Side=="LEFT" || 
 	not.fem.keep$Side == "Left"),]
-
 pheno.dat<-rbind(fem.keep, not.fem.keep, db.keep)
-#use plink file to get list of individuals to keep
 ped<-read.table("E://ubuntushare//stacks//populations//batch_1.plink.ped", 
 	skip = 1, stringsAsFactors=F, colClasses="character")
 ped.names<-sub('sample_(\\w{4}\\w+).*[_.].*','\\1', ped[,2])
 ped.names<-sub('([[:alpha:]]{5,7})([[:digit:]]{1})$', '\\10\\2', ped.names)
 pheno.dat$ID<-sub('([[:alpha:]]{5,7})([[:digit:]]{1})$', '\\10\\2', pheno.dat$ID)
-ped.sex<-sub('sample_\\w{4}(\\w+).*[_.].*','\\1', ped[,2])
-ped.sex[substr(ped.sex,1,2)=="DP"]<-"M"
-ped.sex[substr(ped.sex,1,2)=="DB"]<-"F"
-ped.sex[substr(ped.sex,1,2)=="NP"]<-"M"
-ped.sex[substr(ped.sex,1,1)=="P"]<-"M"
-ped.sex<-substr(ped.sex,1,1)
-ped.sex[ped.sex=="F"]<-2
-ped.sex[ped.sex=="M"]<-1
-ped.new<-ped
-ped.new[,2]<-ped.names
-ped.new[,5]<-ped.sex
-ped.new[,6]<-pops.pheno$std.length
-
-#first add length to phenotype row in ped file, row 6
-#order the phenotype data based on ped filename order
 pops.pheno<-pheno.dat[pheno.dat$ID %in% ped.names,] #this does not have the juveniles
 pops.pheno<-pops.pheno[match(ped.names,pops.pheno$ID),]
 pops.pheno<-replace(pops.pheno, is.na(pops.pheno),as.numeric(-9))
-pops.pheno<-pops.pheno[,-8]
+pops.pheno<-pops.pheno[,-8]#remove "SIDE" col
 pops.pheno<-cbind(substr(pops.pheno$ID,1,4), pops.pheno)
 colnames(pops.pheno)[1]<-"PopID"
-ped.new[,6]<-pops.pheno$std.length
-
-
-
-write.table(ped.new, "E://ubuntushare//stacks//populations//plink.pheno.ped",
-	row.names=F, col.names=F, quote=F, sep="\t", eol="\n")
-
-#plink format: FamID, IndID, PhenA,PhenB,PhenC,PhenD,PhenE
-#can have a header row
-plink.pheno<-as.data.frame(cbind(ped.new[,1],pops.pheno$ID, pops.pheno$SVL,
-	pops.pheno$depth,	(pops.pheno$SnoutLength/pops.pheno$HeadLength), 
-	pops.pheno$SountDepth,	pops.pheno$MBandArea, pops.pheno$BandNum))
-colnames(plink.pheno)<-c("FID", "IID", "SVL","BodyDepth", "SnoutHeadProp", 
-	"SnoutDepth", "MeanBandArea", "BandNum")
-plink.pheno<-plink.pheno[-which(plink.pheno$IID==-9),]
-write.table(plink.pheno, "E://ubuntushare//stacks//populations//pheno.txt", 
-	col.names=T, row.names=F, quote=F, sep='\t', eol='\n')
-#run plink --ped plink.pheno.ped --map batch_1.plink.map --pheno pheno.txt \
-	--assoc --all-pheno --qt-means --noweb  --out plink.pheno --allow-no-sex
-band.num.assoc<-read.table(
-	"E://ubuntushare//stacks//populations//plink.pheno.BandNum.qassoc",
-	header=T)
-dim(band.num.assoc[band.num.assoc$P<0.05,])
-
-band.area.assoc<-read.table(
-	"E://ubuntushare//stacks//populations//plink.pheno.MeanBandArea.qassoc",
-	header=T)
-snout.depth.assoc<-read.table(
-	"E://ubuntushare//stacks//populations//plink.pheno.SnoutDepth.qassoc",
-	header=T)
-snout.head.pr.assoc<-read.table(
-	"E://ubuntushare//stacks//populations//plink.pheno.SnoutHeadProp.qassoc",
-	header=T)
-body.depth.assoc<-read.table(
-	"E://ubuntushare//stacks//populations//plink.pheno.BodyDepth.qassoc",
-	header=T)
-body.length.assoc<-read.table(
-	"E://ubuntushare//stacks//populations//plink.length.qassoc",
-	header=T)
-svl.assoc<-read.table(
-	"E://ubuntushare//stacks//populations//plink.pheno.qassoc",
-	header=T)
-
-pheno.dist<-dist(pops.pheno[,3:10])
-
-
-num.bands<-pops.pheno[pops.pheno$BandNum!=-9,c("PopID","ID","BandNum")]
-numbands.lmer<-lmer(BandNum~PopID+(1|ID), data=num.bands)
-pheno.lmer<-lmer(as.matrix(pops.pheno[,3:10])~pops.pheno[,1]+(1|pops.pheno[,2]))
-
-
-
-#create male and female files for pst analysis
+#Now change traits
+pops.pheno$tail.length<-pops.pheno$std.length-pops.pheno$SVL
+pops.pheno$head<-pops.pheno$HeadLength-pops.pheno$SnoutLength
 fem.pheno<-pops.pheno[pops.pheno$BandNum!=-9,]
 fem.pheno<-replace(fem.pheno, fem.pheno==-9,NA)
 write.table(fem.pheno, 
-	"E://ubuntushare//calculate_pairwise_pst//calculate_pairwise_pst//fem.pheno.txt",
+	"E://ubuntushare//Docs//PopGen//fem.pheno.txt",
 	sep="\t", quote=F, col.names=T, row.names=F)
 mal.pheno<-pops.pheno[pops.pheno$BandNum==-9,]
 mal.pheno<-replace(mal.pheno, mal.pheno==-9, NA)
@@ -1421,214 +1346,43 @@ mal.pheno<-mal.pheno[,-9]
 mal.pheno<-mal.pheno[,-9]
 mal.pheno<-mal.pheno[complete.cases(mal.pheno),]
 write.table(mal.pheno, 
-	"E://ubuntushare//calculate_pairwise_pst//calculate_pairwise_pst//mal.pheno.txt",
+	"E://ubuntushare//Docs//PopGen//mal.pheno.txt",
 	sep="\t", quote=F, col.names=T, row.names=F)
-trait.names<-c("SVL", "Standard Length", "Body Depth", 
+trait.names<-c("SVL", "Tail Length", "Body Depth", 
 	"Snout Length", "Snout Depth", "Head Length")
 
-jpeg("trait_summaries.jpeg", res=300, height=21, width=14, units="in")
-par(mfrow=c(6,2), cex=0.5, mar=c(1,3,1,1), oma=c(3,2,3,1))
-for(i in 3:7){
-	plot(factor(fem.pheno[,1]),as.numeric(fem.pheno[,i]), 
-		xaxt='n',xlab="", las=1, cex.axis=2)
-	legend("top", trait.names[i-2], bty="n", cex=2)
-	plot(factor(mal.pheno[,1]),as.numeric(mal.pheno[,i]), 
-		xaxt='n',xlab="", las=1, cex.axis=2)
-	legend("top", trait.names[i-2], bty="n", cex=2)
-}
-par(mar=c(5,3,0,1))
-p1<-plot(factor(fem.pheno[,1]),fem.pheno[,8], xaxt='n',xlab="", las=1, 
-	cex.axis=2)
-axis(1, at=seq(1,12,1), labels=NA)
-text(x=seq(1,12,1), y=9, srt = 45, adj = 1,cex=2,
-     labels = p1$names, xpd = TRUE)
-legend("top", trait.names[6], bty="n", cex=2)
-p2<-plot(factor(mal.pheno[,1]),mal.pheno[,8], xaxt='n',xlab="", las=1,
-	cex.axis=2)
-axis(1, at=seq(1,12,1), labels=NA)
-text(x=seq(1,12,1), y=6, srt = 45, adj = 1,cex=2,
-     labels = p2$names, xpd = TRUE)
-legend("top", trait.names[6], bty="n", cex=2)
+#******SUMMARIZE TRAIT VALUES********#
+fem.pheno$PopID<-factor(fem.pheno$PopID)
+fem.pheno.mean<-aggregate(fem.pheno[,c(3,5,6,7,9,10,11,12)], 
+	by=list(fem.pheno$PopID), FUN=mean)
+fem.pheno.sd<-aggregate(fem.pheno[,c(3,5,6,7,9,10,11,12)], 
+	by=list(fem.pheno$PopID), FUN=sd)
+fem.pheno.sum<-merge(fem.pheno.mean, fem.pheno.sd, 
+	by.x="Group.1", by.y="Group.1")
+fem.pheno.sum$sex<-rep("FEMALE",12)
+write.table(fem.pheno.sum, "E://Docs//PopGen//fem.pheno.sum.txt",
+	sep="\t", quote=F, col.names=T, row.names=F)
 
-par(fig = c(0, 1, 0, 1), oma=c(1,1,0,1), mar = c(0, 0, 0, 0), new = TRUE)
-plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
-legend(-.6, 1.0752, "Females", bty='n', cex=2)
-legend(0.5, 1.0752, "Males", bty='n', cex=2)
-mtext("Length (mm)", 2, outer=T, line=-.75, cex=1)
-dev.off()
+mal.pheno$PopID<-factor(mal.pheno$PopID)
+mal.pheno.mean<-aggregate(mal.pheno[,c(3,5,6,7,9,10)], 
+	by=list(mal.pheno$PopID), FUN=mean)
+mal.pheno.sd<-aggregate(mal.pheno[,c(3,5,6,7,9,10)], 
+	by=list(mal.pheno$PopID), FUN=sd)
+mal.pheno.sum<-merge(mal.pheno.mean, mal.pheno.sd, 
+	by.x="Group.1", by.y="Group.1")
+mal.pheno.sum$sex<-rep("MALE",12)
+mal.pheno.sum$MBandArea.x<-rep("NA",12)
+mal.pheno.sum$BandNum.x<-rep("NA",12)
+mal.pheno.sum$MBandArea.y<-rep("NA",12)
+mal.pheno.sum$BandNum.y<-rep("NA",12)
+write.table(mal.pheno.sum, "E://Docs//PopGen//mal.pheno.sum.txt",
+	sep="\t", quote=F, col.names=T, row.names=F)
 
-#bands
-jpeg("female_trait_summaries.jpeg", res=300, height=7, width=14, units="in")
-par(mfrow=c(1,2))
-p1<-plot(factor(fem.pheno[,1]),fem.pheno$BandNum, xlab="",xaxt='n', las=1)
-axis(1, at=seq(1,12,1), labels=NA)
-text(x=seq(1,12,1), y=min(p1$out-1), srt = 45, adj = 1,
-     labels = p1$names, xpd = TRUE)
-mtext("Number of Bands", 2, outer=FALSE, line = 2)
-legend("top", "Band Number", bty="n")
-p2<-plot(factor(fem.pheno[,1]),fem.pheno$MBandArea, xaxt='n',xlab="", las=1)
-axis(1, at=seq(1,12,1), labels=NA)
-text(x=seq(1,12,1), y=-0.175, srt = 45, adj = 1,
-     labels = p2$names, xpd = TRUE)
-mtext(expression(paste("Area (mm"^"2)", sep="")), 2, outer=FALSE, line=2)
-legend("top", "Mean Band Area", bty="n")
-dev.off()
-
-
-#########################################################################
-#***********************************************************************#
-##########RECALCULATE FSTS OF PCADAPT LOCI FOR PST-FST ANALYSIS##########
-#***********************************************************************#
-#########################################################################
-#Fst=(variance_p)/(pbar*(1-pbar)) 
-#pbar=avg allele freq across pops
-#variance_p= variance in allele freqs among pops
-#OR Fst=(HT-HS)/HT
-#Let's go with Fst=1-((sum(HE in each pop))/(num.pops*HEtotal))
-#and HE=1-(sum(p2))
-
-pa.split<-split(pa5.out.dat, pa5.out.dat$Locus.ID)
-
-calculate.fst<-function(dataframe){
-	each.pop<-split(dataframe, dataframe$Locus.ID)	
-	pop.he<-lapply(each.pop, function(x){ he<-x$P*x$P })
-	Hs<-sum(dataframe$Exp.Het*dataframe$N)/(2*sum(dataframe$N))
-	pbar<-sum(dataframe$P)/(2*sum(dataframe$N))
-	qbar<-sum(1-dataframe$P)/
-		(2*sum(dataframe$N))
-	Ht<-1-sum((pbar*pbar)+(qbar*qbar))
-	Fst<-(Ht-Hs)/Ht
-	return(Fst)
-}
-pop.names<-levels(factor(pa.split[[1]]$Pop.ID))
-pop.names<-pop.names[match(rownames(dist), pop.names)]
-pairwise.fst<-list()
-averages<-as.data.frame(setNames(replicate(length(pop.names), 
-	numeric(0), simplify=F), pop.names))
-for(j in 1:(length(pop.names)-1)){
-		for(k in (j+1):length(pop.names)){
-			averages[j,k]<-0
-}}
-names(averages)<-pop.names
-
-for(i in 1:length(pa.split)){
-	these.names<-levels(factor(pa.split[[i]]$Pop.ID))
-	pairwise.fst[[i]]<-as.data.frame(setNames(replicate(length(these.names), 
-		numeric(0), simplify=F), these.names))
-	this.row<-names(pa.split)[i]
-	pa.split[[i]]<-pa.split[[i]][match(
-		rownames(dist), pa.split[[i]]$Pop.ID),]
-	pop.split<-split(pa.split[[i]], pa.split[[i]]$Pop.ID)
-	for(j in 1:(length(pop.split)-1)){
-		for(k in (j+1):length(pop.split)){
-			fsts<-calculate.fst(as.data.frame(
-				rbind(pop.split[[j]], pop.split[[k]])))
-			pairwise.fst[[i]][j,k]<-fsts
-			averages[j,k]<-averages[j,k]+fsts
-			this.row<-c(this.row, fsts)
-		}
-	}
-	names(pairwise.fst)[[i]]<-names(pa.split)[[i]]
-	pairwise.fst[[i]]<-rbind(pairwise.fst[[i]],
-		rep(NA, ncol(pairwise.fst[[i]])))
-	rownames(pairwise.fst[[i]])<-colnames(pairwise.fst[[i]])	
-}
-averages<-rbind(averages,rep(NA, ncol(averages)))
-rownames(averages)<-colnames(averages)
-averages<-averages/length(pa.split)#average fst values for pcadapt outliers
-
-fem.pf.outliers<-list(
-	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno[,c("PopID", "MBandArea")]))),
-		as.dist(t(averages)), nrepet=9999),
-	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno[,c("PopID", "BandNum")]))),
-		as.dist(t(averages)), nrepet=9999),
-	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno[,c("PopID", "SVL")]))),
-		as.dist(t(averages)), nrepet=9999),
-	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno[,c("PopID", "std.length")]))),
-		as.dist(t(averages)), nrepet=9999),
-	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno[,c("PopID", "depth")]))),
-		as.dist(t(averages)), nrepet=9999),
-	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno[,c("PopID", "SnoutLength")]))),
-		as.dist(t(averages)), nrepet=9999),
-	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno[,c("PopID", "SountDepth")]))),
-		as.dist(t(averages)), nrepet=9999),
-	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno[,c("PopID", "HeadLength")]))),
-		as.dist(t(averages)), nrepet=9999)
-)#none of these are significant. bummer.
-
-fem.ibd<-list(
-	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno[,c("PopID", "MBandArea")]))),
-		as.dist(dist), nrepet=9999),
-	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno[,c("PopID", "BandNum")]))),
-		as.dist(dist), nrepet=9999),
-	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno[,c("PopID", "SVL")]))),
-		as.dist(dist), nrepet=9999),
-	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno[,c("PopID", "std.length")]))),
-		as.dist(dist), nrepet=9999),
-	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno[,c("PopID", "depth")]))),
-		as.dist(dist), nrepet=9999),
-	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno[,c("PopID", "SnoutLength")]))),
-		as.dist(dist), nrepet=9999),
-	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno[,c("PopID", "SountDepth")]))),
-		as.dist(dist), nrepet=9999),
-	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno[,c("PopID", "HeadLength")]))),
-		as.dist(dist), nrepet=9999)
-)
-sub.dist<-dist[-7,-7]
-sub.dist<-sub.dist[-5,-5]
-fem.sub.ibd<-list(
-	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno.sub[,c("PopID", "MBandArea")]))),
-		as.dist(sub.dist), nrepet=9999),
-	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno.sub[,c("PopID", "BandNum")]))),
-		as.dist(sub.dist), nrepet=9999),
-	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno.sub[,c("PopID", "SVL")]))),
-		as.dist(sub.dist), nrepet=9999),
-	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno.sub[,c("PopID", "std.length")]))),
-		as.dist(sub.dist), nrepet=9999),
-	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno.sub[,c("PopID", "depth")]))),
-		as.dist(sub.dist), nrepet=9999),
-	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno.sub[,c("PopID", "SnoutLength")]))),
-		as.dist(sub.dist), nrepet=9999),
-	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno.sub[,c("PopID", "SountDepth")]))),
-		as.dist(sub.dist), nrepet=9999),
-	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno.sub[,c("PopID", "HeadLength")]))),
-		as.dist(sub.dist), nrepet=9999)
-)
-sub.avg<-averages[-7,-7]
-sub.avg<-sub.avg[-5,-5]
-fem.sub.pf<-list(
-	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno.sub[,c("PopID", "MBandArea")]))),
-		as.dist(t(sub.avg)), nrepet=9999),
-	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno.sub[,c("PopID", "BandNum")]))),
-		as.dist(t(sub.avg)), nrepet=9999),
-	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno.sub[,c("PopID", "SVL")]))),
-		as.dist(t(sub.avg)), nrepet=9999),
-	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno.sub[,c("PopID", "std.length")]))),
-		as.dist(t(sub.avg)), nrepet=9999),
-	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno.sub[,c("PopID", "depth")]))),
-		as.dist(t(sub.avg)), nrepet=9999),
-	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno.sub[,c("PopID", "SnoutLength")]))),
-		as.dist(t(sub.avg)), nrepet=9999),
-	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno.sub[,c("PopID", "SountDepth")]))),
-		as.dist(t(sub.avg)), nrepet=9999),
-	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno.sub[,c("PopID", "HeadLength")]))),
-		as.dist(t(sub.avg)), nrepet=9999)
-)
-
-
-
+pheno.sum<-rbind(fem.pheno.sum, mal.pheno.sum)
+pheno.sum<-pheno.sum[order(pheno.sum$Group.1),]
+write.table(pheno.sum, "E://Docs//PopGen//pheno.sum.txt",
+	sep="\t", quote=F, col.names=T, row.names=F)
 ##################################CALCULATE PST###########################
-fem.var<-data.frame(between=as.numeric(), within=as.numeric())
-count<-1
-for(i in 3:10){
-	fem.var[count,]<-as.data.frame(VarCorr(
-		lmer(fem.pheno[,i]~(1|fem.pheno[,1]),REML=FALSE)))[,"vcov"]
-	count<-count+1
-}
-rownames(fem.var)<-colnames(fem.pheno)[3:10]
-fem.pst<-fem.var$between/(fem.var$between+(2*fem.var$within))
-fem.var<-cbind(fem.var, fem.pst)
-
 #test with data from Sokal and Rohlf
 #data from PA Thomas
 test.dat<-data.frame(host=c(rep(1,8), rep(2,10),rep(3,13), rep(4,6)),
@@ -1637,21 +1391,20 @@ test.dat<-data.frame(host=c(rep(1,8), rep(2,10),rep(3,13), rep(4,6)),
 	354,360,362,352,366,372,362,344,342,358,351,348,348,
 	376,344,342,372,374,360))
 
-pairwise.pst<-function(dat){
+pairwise.pst<-function(dat, order){
 	#first column must be pop id/grouping factor
-	names<-levels(factor(dat[,1]))
 	dat.split<-split(dat, factor(dat[,1]))
 	dat.var<-as.data.frame(setNames(
-		replicate(length(names),numeric(0), simplify = F), names))
-	for(i in 1:(length(dat.split)-1)){
-	  for(j in (i+1):length(dat.split)){
-		temp.data<-rbind(as.data.frame(dat.split[[i]]),
-			as.data.frame(dat.split[[j]]))
+		replicate(length(order),numeric(0), simplify = F), order))
+	for(i in 1:(length(order)-1)){
+	  for(j in (i+1):length(order)){
+		temp.data<-rbind(as.data.frame(dat.split[[order[i]]]),
+			as.data.frame(dat.split[[order[j]]]))
 		aov.var<-summary.aov(
 			aov(temp.data[,2]~temp.data[,1]))[[1]]$`Sum Sq`
 		aov.df<-summary.aov(
 			aov(temp.data[,2]~temp.data[,1]))[[1]]$`Df`
-		dat.var[i,j]<-aov.var[2]/(aov.var[2]+
+		dat.var[order[i],order[j]]<-aov.var[2]/(aov.var[2]+
 			(2*(aov.var[1]/(aov.df[2]-1))))	
 	  }
 	}
@@ -1660,38 +1413,119 @@ pairwise.pst<-function(dat){
 	return(dat.var)
 }
 
-pf.ba<-mantel.rtest(as.dist(t(pairwise.pst(fem.pheno[,c("PopID", "MBandArea")]))),
-	as.dist(fsts), nrepet=9999)
-pf.bn<-mantel.rtest(as.dist(t(pairwise.pst(fem.pheno[,c("PopID", "BandNum")]))),
-	as.dist(fsts), nrepet=9999)
-pf.sv<-mantel.rtest(as.dist(t(pairwise.pst(fem.pheno[,c("PopID", "SVL")]))),
-	as.dist(fsts), nrepet=9999)
-pf.ln<-mantel.rtest(as.dist(t(pairwise.pst(fem.pheno[,c("PopID", "std.length")]))),
-	as.dist(fsts), nrepet=9999)
-pf.dp<-mantel.rtest(as.dist(t(pairwise.pst(fem.pheno[,c("PopID", "depth")]))),
-	as.dist(fsts), nrepet=9999)
-pf.sl<-mantel.rtest(as.dist(t(pairwise.pst(fem.pheno[,c("PopID", "SnoutLength")]))),
-	as.dist(fsts), nrepet=9999)
-pf.sd<-mantel.rtest(as.dist(t(pairwise.pst(fem.pheno[,c("PopID", "SountDepth")]))),
-	as.dist(fsts), nrepet=9999)
-pf.hl<-mantel.rtest(as.dist(t(pairwise.pst(fem.pheno[,c("PopID", "HeadLength")]))),
-	as.dist(fsts), nrepet=9999)
+##########read in the files I wrote########
+mal.pheno<-read.table(header=T,
+	"E://ubuntushare//stacks//pst//mal.pheno.txt")
+fem.pheno<-read.table(header=T,
+	"E://ubuntushare//stacks//pst//fem.pheno.txt")
+pop.order<-c("TXSP","TXCC","TXCB","ALST","FLSG","FLKB","FLFD","FLSI",
+	"FLAB","FLPB","FLHB","FLCC")
+#reorder them to match dist file
+fem.pheno.sep<-split(fem.pheno, fem.pheno$PopID)
+fem.pheno.new<-rbind(fem.pheno.sep$TXSP,fem.pheno.sep$TXCC,fem.pheno.sep$TXCB,
+	fem.pheno.sep$ALST,fem.pheno.sep$FLSG,fem.pheno.sep$FLKB,
+	fem.pheno.sep$FLFD,fem.pheno.sep$FLSI,fem.pheno.sep$FLAB,
+	fem.pheno.sep$FLPB,fem.pheno.sep$FLHB,fem.pheno.sep$FLCC)
+mal.pheno.sep<-split(mal.pheno, mal.pheno$PopID)
+mal.pheno.new<-rbind(mal.pheno.sep$TXSP,mal.pheno.sep$TXCC,mal.pheno.sep$TXCB,
+	mal.pheno.sep$ALST,mal.pheno.sep$FLSG,mal.pheno.sep$FLKB,
+	mal.pheno.sep$FLFD,mal.pheno.sep$FLSI,mal.pheno.sep$FLAB,
+	mal.pheno.sep$FLPB,mal.pheno.sep$FLHB,mal.pheno.sep$FLCC)
 
-pm.sv<-mantel.rtest(as.dist(t(pairwise.pst(mal.pheno[,c("PopID", "SVL")]))),
-	as.dist(fsts), nrepet=9999)
-pm.ln<-mantel.rtest(as.dist(t(pairwise.pst(mal.pheno[,c("PopID", "std.length")]))),
-	as.dist(fsts), nrepet=9999)
-pm.dp<-mantel.rtest(as.dist(t(pairwise.pst(mal.pheno[,c("PopID", "depth")]))),
-	as.dist(fsts), nrepet=9999)
-pm.sl<-mantel.rtest(as.dist(t(pairwise.pst(mal.pheno[,c("PopID", "SnoutLength")]))),
-	as.dist(fsts), nrepet=9999)
-pm.sd<-mantel.rtest(as.dist(t(pairwise.pst(mal.pheno[,c("PopID", "SountDepth")]))),
-	as.dist(fsts), nrepet=9999)
-pm.hl<-mantel.rtest(as.dist(t(pairwise.pst(mal.pheno[,c("PopID", "HeadLength")]))),
-	as.dist(fsts), nrepet=9999)
+pf.ba<-mantel.rtest(as.dist(t(pairwise.pst(
+		fem.pheno.new[,c("PopID", "MBandArea")],pop.order))),
+	as.dist(t(pwise.fst)), nrepet=9999)
+pf.bn<-mantel.rtest(as.dist(t(pairwise.pst(
+		fem.pheno.new[,c("PopID", "BandNum")],pop.order))),
+	as.dist(t(pwise.fst)), nrepet=9999)
+pf.sv<-mantel.rtest(as.dist(t(pairwise.pst(
+		fem.pheno.new[,c("PopID", "SVL")],pop.order))),
+	as.dist(t(pwise.fst)), nrepet=9999)
+pf.ln<-mantel.rtest(as.dist(t(pairwise.pst(
+		fem.pheno.new[,c("PopID", "tail.length")],pop.order))),
+	as.dist(t(pwise.fst)), nrepet=9999)
+pf.dp<-mantel.rtest(as.dist(t(pairwise.pst(
+		fem.pheno.new[,c("PopID", "depth")],pop.order))),
+	as.dist(t(pwise.fst)), nrepet=9999)
+pf.sl<-mantel.rtest(as.dist(t(pairwise.pst(
+		fem.pheno.new[,c("PopID", "SnoutLength")],pop.order))),
+	as.dist(t(pwise.fst)), nrepet=9999)
+pf.sd<-mantel.rtest(as.dist(t(pairwise.pst(
+		fem.pheno.new[,c("PopID", "SountDepth")],pop.order))),
+	as.dist(t(pwise.fst)), nrepet=9999)
+pf.hl<-mantel.rtest(as.dist(t(pairwise.pst(
+		fem.pheno.new[,c("PopID", "head")],pop.order))),
+	as.dist(t(pwise.fst)), nrepet=9999)
 
-####PCA to capture variation??
-prcomp(fem.pheno)
+pm.sv<-mantel.rtest(as.dist(t(pairwise.pst(
+		mal.pheno.new[,c("PopID", "SVL")],pop.order))),
+	as.dist(t(pwise.fst)), nrepet=9999)
+pm.ln<-mantel.rtest(as.dist(t(pairwise.pst(
+		mal.pheno.new[,c("PopID", "tail.length")],pop.order))),
+	as.dist(t(pwise.fst)), nrepet=9999)
+pm.dp<-mantel.rtest(as.dist(t(pairwise.pst(
+		mal.pheno.new[,c("PopID", "depth")],pop.order))),
+	as.dist(t(pwise.fst)), nrepet=9999)
+pm.sl<-mantel.rtest(as.dist(t(pairwise.pst(
+		mal.pheno.new[,c("PopID", "SnoutLength")],pop.order))),
+	as.dist(t(pwise.fst)), nrepet=9999)
+pm.sd<-mantel.rtest(as.dist(t(pairwise.pst(
+		mal.pheno.new[,c("PopID", "SountDepth")],pop.order))),
+	as.dist(t(pwise.fst)), nrepet=9999)
+pm.hl<-mantel.rtest(as.dist(t(pairwise.pst(
+		mal.pheno.new[,c("PopID", "head")],pop.order))),
+	as.dist(t(pwise.fst)), nrepet=9999)
+
+########USE DATA FROM LESS STRINGENT POPULATIONS RUN (NO POPS LIMIT)##########
+pwise.fst.more<-read.table("E:\\ubuntushare\\stacks\\populations_nopopslimit\\batch_1.fst_summary.tsv",
+	header=T, row.names=1, sep='\t')
+	pwise.fst.more<-rbind(pwise.fst.more,rep(NA, ncol(pwise.fst.more)))
+	rownames(pwise.fst.more)<-colnames(pwise.fst.more)
+
+f.more.ba<-mantel.rtest(as.dist(t(pairwise.pst(
+		fem.pheno[,c("PopID", "MBandArea")],pop.order))),
+	as.dist(t(pwise.fst.more)), nrepet=9999)
+f.more.bn<-mantel.rtest(as.dist(t(pairwise.pst(
+		fem.pheno[,c("PopID", "BandNum")],pop.order))),
+	as.dist(t(pwise.fst.more)), nrepet=9999)
+f.more.sv<-mantel.rtest(as.dist(t(pairwise.pst(
+		fem.pheno[,c("PopID", "SVL")],pop.order))),
+	as.dist(t(pwise.fst.more)), nrepet=9999)
+f.more.ln<-mantel.rtest(as.dist(t(pairwise.pst(
+		fem.pheno[,c("PopID", "tail.length")],pop.order))),
+	as.dist(t(pwise.fst.more)), nrepet=9999)
+f.more.dp<-mantel.rtest(as.dist(t(pairwise.pst(
+		fem.pheno[,c("PopID", "depth")],pop.order))),
+	as.dist(t(pwise.fst.more)), nrepet=9999)
+f.more.sl<-mantel.rtest(as.dist(t(pairwise.pst(
+		fem.pheno[,c("PopID", "SnoutLength")],pop.order))),
+	as.dist(t(pwise.fst.more)), nrepet=9999)
+f.more.sd<-mantel.rtest(as.dist(t(pairwise.pst(
+		fem.pheno[,c("PopID", "SountDepth")],pop.order))),
+	as.dist(t(pwise.fst.more)), nrepet=9999)
+f.more.hl<-mantel.rtest(as.dist(t(pairwise.pst(
+		fem.pheno[,c("PopID", "head")],pop.order))),
+	as.dist(t(pwise.fst.more)), nrepet=9999)
+
+m.more.sv<-mantel.rtest(as.dist(t(pairwise.pst(
+		mal.pheno[,c("PopID", "SVL")],pop.order))),
+	as.dist(t(pwise.fst.more)), nrepet=9999)
+m.more.ln<-mantel.rtest(as.dist(t(
+		pairwise.pst(mal.pheno[,c("PopID", "tail.length")],pop.order))),
+	as.dist(t(pwise.fst.more)), nrepet=9999)
+m.more.dp<-mantel.rtest(as.dist(t(pairwise.pst(
+		mal.pheno[,c("PopID", "depth")],pop.order))),
+	as.dist(t(pwise.fst.more)), nrepet=9999)
+m.more.sl<-mantel.rtest(as.dist(t(pairwise.pst(
+		mal.pheno[,c("PopID", "SnoutLength")],pop.order))),
+	as.dist(t(pwise.fst.more)), nrepet=9999)
+m.more.sd<-mantel.rtest(as.dist(t(pairwise.pst(
+		mal.pheno[,c("PopID", "SountDepth")],pop.order))),
+	as.dist(t(pwise.fst.more)), nrepet=9999)
+m.more.hl<-mantel.rtest(as.dist(t(pairwise.pst(
+		mal.pheno[,c("PopID", "head")],pop.order))),
+	as.dist(t(pwise.fst.more)), nrepet=9999)
+
 
 ##########USE DATA FROM POPULATIONS RUN WITH FASTSTRUCTURE GROUPS###########
 
@@ -1703,28 +1537,152 @@ fst.mat.fst<-t(fst.mat.fsg)
 fem.pheno<-cbind(fem.pheno,fast.groups.5[
 	sub('(sample_)([A-Z]{5,7}[0-9]?[0-9]?[0-9]?)(.fq)?(_align)',
 	'\\2',fast.groups.5$inds) %in% fem.pheno$ID,2])
+colnames(fem.pheno)[ncol(fem.pheno)]<-"V3"
+levels(fem.pheno)<-append(c("A","B","C","D","E"))
+fem.pheno[fem.pheno$V2==2,"V2"]<-"A"
+
+levels(fem.pheno$V2)[1]<-"A"
+levels(fem.pheno$V2)[2]<-"B"
+levels(fem.pheno$V2)[3]<-"C"
+levels(fem.pheno$V2)[4]<-"D"
+levels(fem.pheno$V2)[5]<-"E"
+
+group.order<-levels(fem.pheno$V2)
 
 fem.fsg.pst<-list(
-	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno[,c("V2", "MBandArea")]))),
+	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno[,c("V2", "MBandArea")],
+			group.order))),
 		as.dist(t(fst.mat.fsg)), nrepet=9999),
-	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno[,c("V2", "BandNum")]))),
+	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno[,c("V2", "BandNum")],
+			group.order))),
 		as.dist(t(fst.mat.fsg)), nrepet=9999),
-	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno[,c("V2", "SVL")]))),
+	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno[,c("V2", "SVL")],
+			group.order))),
 		as.dist(t(fst.mat.fsg)), nrepet=9999),
-	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno[,c("V2", "std.length")]))),
+	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno[,c("V2", "tail.length")],
+			group.order))),
 		as.dist(t(fst.mat.fsg)), nrepet=9999),
-	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno[,c("V2", "depth")]))),
+	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno[,c("V2", "depth")],
+			group.order))),
 		as.dist(t(fst.mat.fsg)), nrepet=9999),
-	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno[,c("V2", "SnoutLength")]))),
+	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno[,c("V2", "SnoutLength")],
+			group.order))),
 		as.dist(t(fst.mat.fsg)), nrepet=9999),
-	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno[,c("V2", "SountDepth")]))),
+	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno[,c("V2", "SountDepth")],
+			group.order))),
 		as.dist(t(fst.mat.fsg)), nrepet=9999),
-	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno[,c("V2", "HeadLength")]))),
+	mantel.rtest(as.dist(t(pairwise.pst(fem.pheno[,c("V2", "head")],
+			group.order))),
 		as.dist(t(fst.mat.fsg)), nrepet=9999)
 )
 
+#################PCA, PLOTTING#############################
+fem.pheno$PopID<-factor(fem.pheno$PopID)
+mal.pheno$PopID<-factor(mal.pheno$PopID)
+bands.pcdat<-fem.pheno[,c(1,2,9,10)]
+fem.pheno.pcdat<-fem.pheno[,c(1,2,3,5,6,7,11,12)]
+mal.pheno.pcdat<-mal.pheno[,c(1,2,3,5,6,7,9,10)]
+#pca per pop
+band.pca<-rda(bands.pcdat[,3:4])
+fem.pheno.pca<-rda(fem.pheno.pcdat[,3:8])
+mal.pheno.pca<-rda(mal.pheno.pcdat[,3:8])
 
-#############################P-MATRIX#########################################
+#extract eigenvalue
+band.eig<-NULL
+for(i in 1:length(band.pca)){
+	band.eig<-rbind(band.eig,band.pca[[i]]$CA$eig)
+	rownames(band.eig)[i]<-names(band.pca)[i]
+}
+band.dist<-as.matrix(as.dist(band.eig[,1]))#ignore warnings
+#extract PC scores
+band.u<-data.frame(cbind(as.character(bands.pcdat[,1]),band.pca$CA$u[,1]))
+band.u.sep<-split(band.u, band.u[,1])
+band.u.new<-rbind(band.u.sep$TXSP,band.u.sep$TXCC,band.u.sep$TXCB,
+	band.u.sep$ALST,band.u.sep$FLSG,band.u.sep$FLKB,
+	band.u.sep$FLFD,band.u.sep$FLSI,band.u.sep$FLAB,
+	band.u.sep$FLPB,band.u.sep$FLHB,band.u.sep$FLCC)
+band.u.new$X2<-as.numeric(as.character(band.u.new$X2))
+
+fem.pheno.eig<-NULL
+for(i in 1:length(fem.pheno.pca)){
+	fem.pheno.eig<-rbind(fem.pheno.eig,fem.pheno.pca[[i]]$CA$eig)
+	rownames(fem.pheno.eig)[i]<-levels(fem.pheno.pcdat[,1])[i]
+}
+fem.dist<-as.matrix(as.dist(fem.pheno.eig[,1]))#ignore warnings
+#extract PC scores
+fem.pheno.u<-data.frame(cbind(as.character(fem.pheno.pcdat[,1]),fem.pheno.pca$CA$u[,1]))
+fem.u.sep<-split(fem.pheno.u, fem.pheno.u[,1])
+fem.u.new<-rbind(fem.u.sep$TXSP,fem.u.sep$TXCC,fem.u.sep$TXCB,
+	fem.u.sep$ALST,fem.u.sep$FLSG,fem.u.sep$FLKB,
+	fem.u.sep$FLFD,fem.u.sep$FLSI,fem.u.sep$FLAB,
+	fem.u.sep$FLPB,fem.u.sep$FLHB,fem.u.sep$FLCC)
+fem.u.new$X2<-as.numeric(as.character(fem.u.new$X2))
+
+mal.pheno.eig<-NULL
+for(i in 1:length(mal.pheno.pca)){
+	mal.pheno.eig<-rbind(mal.pheno.eig,mal.pheno.pca[[i]]$CA$eig)
+	rownames(mal.pheno.eig)[i]<-levels(mal.pheno.pcdat[,1])[i]
+}
+mal.dist<-as.matrix(as.dist(mal.pheno.eig[,1]))#ignore warnings
+#extract PC scores
+mal.u<-data.frame(cbind(as.character(mal.pheno.pcdat[,1]),mal.pheno.pca$CA$u[,1]))
+mal.u.sep<-split(mal.u, mal.u[,1])
+mal.u.new<-rbind(mal.u.sep$TXSP,mal.u.sep$TXCC,mal.u.sep$TXCB,
+	mal.u.sep$ALST,mal.u.sep$FLSG,mal.u.sep$FLKB,
+	mal.u.sep$FLFD,mal.u.sep$FLSI,mal.u.sep$FLAB,
+	mal.u.sep$FLPB,mal.u.sep$FLHB,mal.u.sep$FLCC)
+mal.u.new$X2<-as.numeric(as.character(mal.u.new$X2))
+
+mantel.rtest(as.dist(t(pairwise.pst(cbind(rownames(band.eig),
+	as.numeric(band.eig[,1])),pop.order))),
+	as.dist(t(dist)), nrepet=9999)
+
+mantel.rtest(as.dist(band.dist),as.dist(t(dist)))
+
+env.u<-rda(t(env.dat))$CA$u
+env.u.new<-env.u[match(pop.order,rownames(env.u)),1]
+env.dist<-dist(env.u.new)
+
+band.pst<-pairwise.pst(band.u.new,pop.order)
+fem.pst<-pairwise.pst(fem.u.new,pop.order)
+mal.pst<-pairwise.pst(mal.u.new,pop.order)
+
+mantel.rtest(as.dist(t(band.pst)),as.dist(t(dist)), nrepet=9999)
+mantel.rtest(as.dist(t(fem.pst)),as.dist(t(dist)), nrepet=9999)
+mantel.rtest(as.dist(t(mal.pst)),as.dist(t(dist)), nrepet=9999)
+
+
+mantel.rtest(as.dist(t(band.pst)),as.dist(t(pwise.fst)), nrepet=9999)
+mantel.rtest(as.dist(t(fem.pst)),as.dist(t(pwise.fst)), nrepet=9999)
+mantel.rtest(as.dist(t(mal.pst)),as.dist(t(pwise.fst)), nrepet=9999)
+
+###PLOT###
+jpeg("Fig6.pst.fst.dist.jpeg",height=7,width=7, units="in", res=300)
+par(las=1, oma=c(1,1,2.5,1), mar=c(3,3,1,3))
+plot(dist[upper.tri(dist)], pwise.fst[upper.tri(pwise.fst)], pch=19,
+	ylim=c(0,1),xlab="",ylab="")
+points(dist[upper.tri(dist)],band.pst[upper.tri(band.pst)], pch=6,col="darkgreen")
+points(dist[upper.tri(dist)],fem.pst[upper.tri(fem.pst)],pch=4,col="red")
+points(dist[upper.tri(dist)],mal.pst[upper.tri(mal.pst)],pch=5,col="blue")
+#points(dist[upper.tri(dist)],env.dist[lower.tri(env.dist)],pch=15,col="purple")
+axis(4)
+mtext("Distance (miles)",1, outer=T, line=-0.5)
+mtext("Smoothed Pairwise Fst",2, las=0, outer=T, line=-0.5)
+mtext("Pairwise Pst",4, outer=T, las=0,line=-0.5)
+par(fig = c(0, 1, 0, 1), oma=c(2,1,0,1), mar = c(0, 0, 0, 0), new = TRUE,
+	cex=1)
+plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
+legend("top", ncol=2, col=c("black","blue","red","darkgreen"),pch=c(19,5,4,6),
+	c("Fst","Male PCA Pst", "Female PCA Pst", "Female Bands PCA Pst"),bty="n")
+
+dev.off()
+
+##############################################################################
+#****************************************************************************#
+################################P-MATRIX######################################
+#****************************************************************************#
+##############################################################################
+
 #standardize traits first
 standardize.trait<-function(trait){
 	trait/mean(trait)
@@ -1732,15 +1690,15 @@ standardize.trait<-function(trait){
 
 #GLOBAL
 std.fem<-as.data.frame(cbind(fem.pheno[,1:2], standardize.trait(fem.pheno[,3]), 
-	standardize.trait(fem.pheno[,4]),standardize.trait(fem.pheno[,5]),
-	standardize.trait(fem.pheno[,6]),standardize.trait(fem.pheno[,7]),
-	standardize.trait(fem.pheno[,8]),standardize.trait(fem.pheno[,9]),
-	standardize.trait(fem.pheno[,10])))
-colnames(std.fem)<-colnames(fem.pheno)
+	standardize.trait(fem.pheno[,5]),standardize.trait(fem.pheno[,6]),
+	standardize.trait(fem.pheno[,7]),standardize.trait(fem.pheno[,9]),
+	standardize.trait(fem.pheno[,10]),standardize.trait(fem.pheno[,11]),
+	standardize.trait(fem.pheno[,12])))
+colnames(std.fem)<-colnames(fem.pheno[,c(1,2,3,5,6,7,9,10,11,12)])
 pmat.fem.global<-cov(std.fem[,3:10])
 
 #pca of traits
-fem.phen.uns.rda<-rda(fem.pheno[,3:10])
+fem.phen.uns.rda<-rda(fem.pheno.new[,c(3,5,6,7,9,10,11,12)])
 fem.phen.std.rda<-rda(std.fem[,3:10])
 #pca of p-matrices
 fem.pmat.uns.rda<-rda(cov(fem.pheno[,3:10]))
@@ -1750,10 +1708,10 @@ fem.phen.uns.rda$CA$v #shows loadings per trait
 
 
 std.mal<-as.data.frame(cbind(mal.pheno[,1:2], standardize.trait(mal.pheno[,3]), 
-	standardize.trait(mal.pheno[,4]),standardize.trait(mal.pheno[,5]),
-	standardize.trait(mal.pheno[,6]),standardize.trait(mal.pheno[,7]),
-	standardize.trait(mal.pheno[,8])))
-colnames(std.mal)<-colnames(mal.pheno)
+	standardize.trait(mal.pheno[,5]),standardize.trait(mal.pheno[,6]),
+	standardize.trait(mal.pheno[,7]),standardize.trait(mal.pheno[,9]),
+	standardize.trait(mal.pheno[,10])))
+colnames(std.mal)<-colnames(mal.pheno[,c(1,2,3,5,6,7,9,10)])
 pmat.mal.global<-cov(std.mal[,3:8])
 pm.m.g.rda<-rda(pmat.mal.global)
 
@@ -1766,8 +1724,9 @@ calc.pmat<-function(phen.dat.list, dim1, dim2){
 }
 
 #females
-fem.pheno$PopID<-factor(fem.pheno$PopID)
-pops.fem.unstd.dat<-split(fem.pheno, fem.pheno$PopID)
+fem.pheno.new$PopID<-factor(fem.pheno.new$PopID)
+fem.pheno.new<-fem.pheno.new[,c(1,2,3,11,5,6,7,12,9,10)]
+pops.fem.unstd.dat<-split(fem.pheno.new, fem.pheno.new$PopID)
 pops.fem.std.dat<-lapply(pops.fem.unstd.dat, function(x){
 	y<-as.data.frame(cbind(x[,1:2], standardize.trait(x[,3]), 
 	standardize.trait(x[,4]),standardize.trait(x[,5]),
@@ -1779,8 +1738,9 @@ pmat.fem.std.pops<-calc.pmat(pops.fem.std.dat,3,10)
 pmat.fem.unst.pops<-calc.pmat(pops.fem.unstd.dat,3,10)
 
 #males
-mal.pheno$PopID<-factor(mal.pheno$PopID)
-pops.mal.unstd.dat<-split(mal.pheno, mal.pheno$PopID)
+mal.pheno.new$PopID<-factor(mal.pheno.new$PopID)
+mal.pheno.new<-mal.pheno.new[,c(1,2,3,9,5,6,7,10)]
+pops.mal.unstd.dat<-split(mal.pheno.new, mal.pheno.new$PopID)
 pops.mal.std.dat<-lapply(pops.mal.unstd.dat, function(x){
 	y<-as.data.frame(cbind(x[,1:2], standardize.trait(x[,3]), 
 	standardize.trait(x[,4]),standardize.trait(x[,5]),
@@ -1802,9 +1762,9 @@ for(i in 1:length(pmat.fem.unst.pops)){
 		upper.tri(cor(pmat.fem.unst.pops[[i]]))])
 	dat<-as.matrix(
 		cbind(dat,eigen(pmat.fem.unst.pops[[i]])$vectors[,1:3]))
-	colnames(dat)<-c(colnames(fem.pheno)[3:10],
+	colnames(dat)<-c(colnames(fem.pheno.new)[3:10],
 		"p1","p2","p3")
-	rownames(dat)<-colnames(fem.pheno)[3:10]
+	rownames(dat)<-colnames(fem.pheno.new)[3:10]
 	write.table(dat, 
 		paste("pop.",names(pmat.fem.unst.pops)[i], ".pmat_unstd.txt", sep=""), 
 		sep='\t',
@@ -1812,16 +1772,16 @@ for(i in 1:length(pmat.fem.unst.pops)){
 
 }
 for(i in 1:length(pmat.fem.std.pops)){
-	dat<-pmat.fem.std[[i]]
+	dat<-pmat.fem.std.pops[[i]]
 	dat[upper.tri(dat)]<-
 		as.numeric(cor(pmat.fem.std.pops[[i]])[
 			upper.tri(cor(pmat.fem.std.pops[[i]]))])
 	dat<-as.matrix(
 		cbind(dat,eigen(pmat.fem.std.pops[[i]])$vectors[,1:3]))
-	colnames(dat)<-c(colnames(fem.pheno)[3:10], "p1","p2","p3")
-	rownames(dat)<-colnames(fem.pheno)[3:10]
+	colnames(dat)<-c(colnames(fem.pheno.new)[3:10], "p1","p2","p3")
+	rownames(dat)<-colnames(fem.pheno.new)[3:10]
 	write.table(dat, 
-		paste("pop.",names(pmat.fem.std)[i], ".pmat.std.txt", sep=""), 
+		paste("pop.",names(pmat.fem.std.pops)[i], ".pmat.std.txt", sep=""), 
 		sep='\t',
 		eol='\n', row.names=T, col.names=T, quote=F)
 
@@ -1835,9 +1795,9 @@ for(i in 1:length(pmat.mal.unst.pops)){
 		upper.tri(cor(pmat.mal.unst.pops[[i]]))])
 	dat<-as.matrix(
 		cbind(dat,eigen(pmat.mal.unst.pops[[i]])$vectors[,1:3]))
-	colnames(dat)<-c(colnames(mal.pheno)[3:8],
+	colnames(dat)<-c(colnames(mal.pheno.new)[3:8],
 		"p1","p2","p3")
-	rownames(dat)<-colnames(mal.pheno)[3:8]
+	rownames(dat)<-colnames(mal.pheno.new)[3:8]
 	write.table(dat, 
 		paste("pop.",names(pmat.mal.unst.pops)[i], 
 			".male.pmat_unstd.txt", sep=""), 
@@ -1852,8 +1812,8 @@ for(i in 1:length(pmat.mal.std.pops)){
 			upper.tri(cor(pmat.mal.std.pops[[i]]))])
 	dat<-as.matrix(
 		cbind(dat,eigen(pmat.mal.std.pops[[i]])$vectors[,1:3]))
-	colnames(dat)<-c(colnames(mal.pheno)[3:8], "p1","p2","p3")
-	rownames(dat)<-colnames(fem.pheno)[3:8]
+	colnames(dat)<-c(colnames(mal.pheno.new)[3:8], "p1","p2","p3")
+	rownames(dat)<-colnames(mal.pheno.new)[3:8]
 	write.table(dat, 
 		paste("pop.",names(pmat.mal.std.pops)[i],
 			".male.pmat.std.txt", sep=""), 
@@ -1863,103 +1823,6 @@ for(i in 1:length(pmat.mal.std.pops)){
 }
 
 fem.pmat.rda<-lapply(pmat.fem.unst.pops, rda)
-
-###ANGLES###
-library(boot)
-lead.ueigvec<-function(data){
-	ev.1<-eigen(data)$vectors
-	e1.norm <-ev.1[,1]/sqrt(sum(ev.1[,1]^2))
-	return(e1.norm)
-}
-calculate.angle<-function(vec1, vec2){
-	angle<-acos(vec1%*%vec2)*180/pi
-	return(angle)
-}
-compare.pmatrix.angles<-function(df1, df2){
-	ev1<-lead.ueigvec(df1)
-	ev2<-lead.ueigvec(df2)
-	angle<-calculate.angle(ev1,ev2)
-}
-
-angles<-matrix(nrow=length(pmat.fem.std.pops), ncol=length(pmat.fem.std.pops))
-for(i in 1:(length(pmat.fem.std.pops)-1)){
-	for(j in (i+1):(length(pmat.fem.std.pops))){
-		angles[i,j]<-compare.pmatrix.angles(pmat.fem.std.pops[[i]], 
-			pmat.fem.std.pops[[j]])
-		
-	}
-}
-row.names(angles)<-names(pmat.fem.std.pops)
-colnames(angles)<-names(pmat.fem.std.pops)
-write.table(angles, "angles.txt", 
-	sep='\t', eol='\n', quote=F,
-	row.names=T, col.names=T)
-
-mal.angles<-matrix(nrow=length(pmat.mal.std.pops), 
-	ncol=length(pmat.mal.std.pops))
-for(i in 1:(length(pmat.mal.std.pops)-1)){
-	for(j in (i+1):(length(pmat.mal.std.pops))){
-		mal.angles[i,j]<-compare.pmatrix.angles(pmat.mal.std.pops[[i]], 
-			pmat.mal.std.pops[[j]])
-		
-	}
-}
-row.names(mal.angles)<-names(pmat.mal.std.pops)
-colnames(mal.angles)<-names(pmat.mal.std.pops)
-write.table(mal.angles, "male.angles.txt", 
-	sep='\t', eol='\n', quote=F,
-	row.names=T, col.names=T)
-
-###bootstrapping###
-angle.for.boot<-function(df, i){
-	dat<-df[i,-2]
-	dat$PopID<-factor(dat$PopID)
-	split.data<-split(dat, dat$PopID)
-	std.data<-lapply(split.data, function(x){
-		y<-as.data.frame(cbind(standardize.trait(x[,2]),
-			standardize.trait(x[,3]), 
-			standardize.trait(x[,4]),standardize.trait(x[,5]),
-			standardize.trait(x[,6]),standardize.trait(x[,7]),
-			standardize.trait(x[,8]),standardize.trait(x[,9])))
-		return(y)
-		}
-	)
-	pmat<-calc.pmat(std.data,1,8)
-	angle<-compare.pmatrix.angles(pmat[[1]],pmat[[2]])	
-	return(angle)
-}
-boot.results<-list()
-boot.angles<-matrix(nrow=length(pmat.fem.std.pops), ncol=length(pmat.fem.std.pops))
-pmat.names<-NULL
-count<-1
-for(i in 1:(length(pmat.fem.std.pops)-1)){
-	for(j in (i+1):(length(pmat.fem.std.pops))){
-		name1<-names(pmat.fem.std.pops)[i]
-		name2<-names(pmat.fem.std.pops)[j]
-		boot.data<-fem.pheno[fem.pheno$PopID==name1 | fem.pheno$PopID==name2,]
-		rownames(boot.data)<-NULL
-		boot.res<-boot(boot.data, angle.for.boot, R=999)
-		ci<-boot.ci(boot.res, 0.95, type = "basic")
-		boot.results[[count]]<-as.matrix(cbind(boot.res$t0,
-			ci$basic[,4], ci$basic[,5]))
-		pmat.names<-c(pmat.names, paste(name1,"-",name2,sep=""))
-		boot.angles[i,j]<-boot.res$t0
-		count<-count+1
-	}
-}
-names(boot.results)<-pmat.names
-
-boot.out<-data.frame(angle=numeric(length(boot.results)),
-	low.ci=numeric(length(boot.results)),
-	upp.ci=numeric(length(boot.results)))
-for(i in 1:length(boot.results)){
-	boot.out[i,]<-boot.results[[i]]
-}
-row.names(boot.out)<-pmat.names
-write.table(boot.out, "angle.bootstrap.results.txt", 
-	sep='\t', eol='\n', quote=F,
-	row.names=T, col.names=T)
-
 
 
 ###############################BLOWS METHOD#################################
@@ -2006,18 +1869,6 @@ plot.eigenvectors(dat.cov, 1)
 	plot.eigenvectors(dat.cov, 2)
 
 #######################################
-#unstandardized
-fem.sim.unstd.mat<-generate.sim.mat(pmat.fem.unst.pops)
-fem.sim.unstd.fst<-mantel.rtest(as.dist(fem.sim.unstd.mat), 
-	as.dist(t(pwise.fst)),	nrepet=9999)
-mal.sim.unstd.mat<-generate.sim.mat(pmat.mal.unst.pops)
-mal.sim.unstd.fst<-mantel.rtest(as.dist(mal.sim.unstd.mat), 
-	as.dist(t(pwise.fst)),	nrepet=9999)
-#standardized
-fem.sim.std.mat<-generate.sim.mat(pmat.fem.std)
-fem.sim.std.fst<-mantel.rtest(as.dist(fem.sim.std.mat), as.dist(t(pwise.fst)),
-	nrepet=9999)
-
 #vector correlation of pmax
 find.pmax<-function(pmatrix){
 	pmax<-eigen(pmatrix)$vectors[,which.max(eigen(pmatrix)$values)]
@@ -2041,36 +1892,62 @@ vector.correlations<-function(list.pmatrices){
 all.pmax<-lapply(pmat.fem.unst.pops, find.pmax)
 
 #standardized
-pmax.std.mat<-vector.correlations(pmat.fem.std)
-blows.sim.std.mat<-fem.sim.std.mat
-blows.sim.std.mat[upper.tri(blows.sim.std.mat)]<-
-	pmax.std.mat[upper.tri(pmax.std.mat)]
-write.table(blows.sim.std.mat, "standardized_p_sim_matrix.txt", col.names=T,
-	row.names=T, eol='\n', sep='\t', quote=F)
-#unstandardized
+#females
+pmat.f.u.p<-pmat.fem.unst.pops[match(pop.list, names(pmat.fem.unst.pops))]
+fem.sim.unstd.mat<-generate.sim.mat(pmat.f.u.p)
+fem.sim.unstd.fst<-mantel.rtest(as.dist(fem.sim.unstd.mat), 
+	as.dist(t(pwise.fst)),	nrepet=9999)
 pmax.unstd.mat<-vector.correlations(pmat.fem.unst.pops)
 blows.sim.unstd.mat<-fem.sim.unstd.mat
 blows.sim.unstd.mat[upper.tri(blows.sim.unstd.mat)]<-
 	pmax.unstd.mat[upper.tri(pmax.unstd.mat)]
 write.table(blows.sim.unstd.mat, "unstd_p_sim_matrix.txt", col.names=T,
 	row.names=T, eol='\n', sep='\t', quote=F)
-
+#males
+pmat.m.u.p<-pmat.mal.unst.pops[match(pop.list, names(pmat.mal.unst.pops))]
+mal.sim.unstd.mat<-generate.sim.mat(pmat.m.u.p)
+mal.sim.unstd.fst<-mantel.rtest(as.dist(mal.sim.unstd.mat), 
+	as.dist(t(pwise.fst)),	nrepet=9999)
 pmax.mal.unstd.mat<-vector.correlations(pmat.mal.unst.pops)
 blows.mal.sim.unstd.mat<-mal.sim.unstd.mat
 blows.mal.sim.unstd.mat[upper.tri(blows.mal.sim.unstd.mat)]<-
 	pmax.mal.unstd.mat[upper.tri(pmax.mal.unstd.mat)]
 write.table(blows.mal.sim.unstd.mat, "unstd_p_sim_matrix_male.txt", col.names=T,
 	row.names=T, eol='\n', sep='\t', quote=F)
+#standardized
+fem.sim.std.mat<-generate.sim.mat(pmat.fem.std)
+fem.sim.std.fst<-mantel.rtest(as.dist(fem.sim.std.mat), as.dist(t(pwise.fst)),
+	nrepet=9999)#unstandardized
+pmax.std.mat<-vector.correlations(pmat.fem.std)
+blows.sim.std.mat<-fem.sim.std.mat
+blows.sim.std.mat[upper.tri(blows.sim.std.mat)]<-
+	pmax.std.mat[upper.tri(pmax.std.mat)]
+write.table(blows.sim.std.mat, "standardized_p_sim_matrix.txt", col.names=T,
+	row.names=T, eol='\n', sep='\t', quote=F)
 
-
+#######PLOT##########
+#make a heatmap, males above the diagonal, females below
+plot.pmat<-mal.sim.unstd.mat
+plot.pmat[lower.tri(plot.pmat)]<-
+	fem.sim.unstd.mat[lower.tri(fem.sim.unstd.mat)]
+jpeg("blows.pmatrix.heatmap.jpeg",height=7,width=7,units="in",res=300)
+par(oma=c(3,1,2,3),mar=c(3,1,2,3),las=1)
+heatmap.2(plot.pmat, Rowv=NA, Colv=NA, dendrogram="none",col=bluered(100),
+	trace="none", margins,key.title=NA, key.ylab=NA,key.xlab=NA,srtCol=25, 
+	lmat=rbind(c(2,1),c(3,4)), lwid=c(1,4),lhei=c(4,0.5),
+	keysize=0.5, margins=c(2,2),key.par=list(yaxt="n"))
+mtext("Females", 2,outer=T, line=-4)
+mtext("Males", 3, outer=T,line=1)
+dev.off()
 #####################TENSORS############################
 #Adapted from Aguirre et al. 2013 supplemental material
-library(gdata);library(matrixcalc);library(MCMCglmm)
-
-pmat.mal.unst.pops<-calc.pmat(pops.mal.unstd.dat,3,10)
+pmat.mal.unst.pops<-calc.pmat(pops.mal.unstd.dat,3,8)
+pmat.mal.unst.pops<-pmat.mal.unst.pops[match(pop.list, names(pmat.mal.unst.pops))]
 pmat.fem.unst.pops<-calc.pmat(pops.fem.unstd.dat,3,10)
+pmat.fem.unst.pops<-pmat.fem.unst.pops[match(pop.list, names(pmat.fem.unst.pops))]
 
 covtensor<-function(matrix.list){
+#Adapted from Aguirre et al. 2013 supplemental material
 	n.traits<-dim(matrix.list[[1]])[1]
 	n.pops<-length(matrix.list)
 	trait.names<-colnames(matrix.list[[1]])
@@ -2214,7 +2091,7 @@ m.e3.L <- c(as.numeric(mal.tensor$tensor.summary[((m.n.traits*2)+1),
 #Function to do projection
 proj<- function(G, b) t(b) %*% G %*% (b)
 
-#variance along e1 and e2, 1 for each population of each replicate line
+#variance along e1 and e2
 f.e11.proj <- lapply(pmat.fem.unst.pops, proj, b = f.e1.L)
 f.e21.proj <- lapply(pmat.fem.unst.pops, proj, b = f.e2.L)
 f.e31.proj <- lapply(pmat.fem.unst.pops, proj, b = f.e3.L)
@@ -2224,9 +2101,10 @@ m.e21.proj <- lapply(pmat.mal.unst.pops, proj, b = m.e2.L)
 m.e31.proj <- lapply(pmat.mal.unst.pops, proj, b = m.e3.L)
 
 #summary plots
-jpeg("blows.method4.summary.jpeg", width=14, height=14, units="in", res=300)
-layout(matrix(c(1,1,2,3),2,2,byrow=F))
+jpeg("blows.method3.summary.jpeg", width=7, height=7, units="in", res=300)
+layout(matrix(c(0,1,2,3),2,2,byrow=F))
 layout.show(3)
+
 #plot eigenvalues of non-zero eigentensors for S
 par(mar=c(5,4,2,0))
 plot(fem.tensor$s.alpha[,1:fem.tensor$nonzero], ylab="alpha",
@@ -2234,14 +2112,15 @@ plot(fem.tensor$s.alpha[,1:fem.tensor$nonzero], ylab="alpha",
 axis(1, at=seq(1,fem.tensor$nonzero,1), 
 	labels=paste("E",1:fem.tensor$nonzero, sep=""))
 points(mal.tensor$s.alpha[,1:mal.tensor$nonzero],pch=6)
-legend("topright", pch=c(1,6), c("Males", "Females"))
+legend("top", pch=c(1,6), c("Males", "Females"))
+text(x=11,y=2000, "B", font=2)
 
 #plot the variance in each population in the direction of e11,e21, and e31
 par(mar=c(3,5,2,1))
 plot(x=seq(1,12,1),f.e11.proj, xaxt="n", las=1,ylim=c(-50,200),
 	xlab="", ylab="lambda")
 axis(1, at=seq(1,12,1), labels=F)
-text(x=seq(1,12,1), labels=pop.names, par("usr")[1]-75,
+text(x=seq(1,12,1), labels=pop.names, par("usr")[1]-80,
 	srt=-45, xpd=TRUE)
 lines(x=seq(1,12,1),f.e11.proj, lty=2)
 points(x=seq(1,12,1),f.e21.proj, pch=19)
@@ -2250,12 +2129,13 @@ points(x=seq(1,12,1),f.e31.proj, pch=15)
 lines(x=seq(1,12,1),f.e31.proj,lty=4)
 legend("bottomright", pch=c(1,19,15), lty=c(2,1,4), c("e1","e2","e3"))
 text(x=2,y=200, "Females")
+text(x=12,y=200, "C", font=2)
 
 par(mar=c(5,5,0,1))
 plot(x=seq(1,12,1),m.e11.proj, xaxt="n", las=1,ylim=c(-50,200),
 	xlab="Population", ylab="lambda")
 axis(1, at=seq(1,12,1), labels=F)
-text(x=seq(1,12,1), labels=pop.names, par("usr")[1]-75,
+text(x=seq(1,12,1), labels=pop.names, par("usr")[1]-80,
 	srt=-45, xpd=TRUE)
 lines(x=seq(1,12,1),m.e11.proj, lty=2)
 points(x=seq(1,12,1),m.e21.proj, pch=19)
@@ -2264,6 +2144,84 @@ points(x=seq(1,12,1),m.e31.proj, pch=15)
 lines(x=seq(1,12,1),m.e31.proj,lty=4)
 legend("bottomright", pch=c(1,19,15), lty=c(2,1,4), c("e1","e2","e3"))
 text(x=2,y=200, "Males")
+text(x=12,y=200, "D", font=2)
 dev.off()
+
+
+###Try to plot pc1 and pc2 for males and females
+plot.eigenvectors<-function(dat.cov, col.num, eig.lty=1, eig.col="black"){
+	#Plots the eigenvectors (scaled by the eigenvalues) 
+	j = 1.96*sqrt(eigen(dat.cov)$values[col.num])
+	delx1 = 0 + j*eigen(dat.cov)$vectors[1,col.num]
+	delx2 = 0 + j*eigen(dat.cov)$vectors[2,col.num]
+	delx11 = 0 - j*eigen(dat.cov)$vectors[1,col.num]
+	delx22 = 0 - j*eigen(dat.cov)$vectors[2,col.num]
+	x.values=c(0 , delx1, delx11)
+	y.values=c(0 , delx2, delx22)
+	lines(x.values, y.values, lwd=2, col=eig.col, lty=eig.lty)
+}
+plot.pmatrix<-function(dat, plot.new=TRUE, eig.col="black", eig.lty=1){
+	#get leading eigenvector for bands
+	#and leading eigenvector for length
+	#Plots the P-matrix 95% confidence ellipse and eigenvectors.
+	if(plot.new==TRUE){
+	plot(c(-1,1), c(-1,1) , asp=1, type="n", xlim=c(-1,1), ylim=c(-1,1), 
+		cex.lab=1.5, xlab="",ylab="", las=1)
+	}
+	dat.cov<-cov(dat)
+	ellipse(center=c(0, 0), shape=dat.cov, lty=eig.lty,
+		radius=1.96, center.cex=0.1, 
+		lwd=2, col=eig.col, add=TRUE )
+	plot.eigenvectors(dat.cov, 1, eig.col=eig.col, eig.lty=eig.lty)
+	plot.eigenvectors(dat.cov, 2, eig.col=eig.col, eig.lty=eig.lty)
+}
+
+band.u<-list()
+fem.pheno.u<-list()
+mal.pheno.u<-list()
+for(i in 1:length(band.pca)){
+	band.u[[i]]<-data.frame(cbind(as.numeric(band.pca[[i]]$CA$u[,1]),
+		as.numeric(band.pca[[i]]$CA$u[,2])))
+	fem.pheno.u[[i]]<-data.frame(cbind(as.numeric(fem.pheno.pca[[i]]$CA$u[,1]),
+		as.numeric(fem.pheno.pca[[i]]$CA$u[,2])))
+	mal.pheno.u[[i]]<-data.frame(cbind(as.numeric(mal.pheno.pca[[i]]$CA$u[,1]),
+		as.numeric(mal.pheno.pca[[i]]$CA$u[,2])))
+}
+names(band.u)<-names(band.pca)
+names(fem.pheno.u)<-names(band.pca)
+names(mal.pheno.u)<-names(band.pca)
+
+jpeg("P-matrices.female.jpeg", res=300, height=14, width=14, units="in")
+par(mfrow=c(3,4), mar=c(2,2.5,2,2.5), oma=c(2,2.5,2,2.5))
+for(i in 1:length(fem.pheno.u)){
+	plot.pmatrix(fem.pheno.u[[pop.list[i]]])
+	plot.pmatrix(cbind(fem.pheno.u[[pop.list[i]]][,1],
+		band.u[[pop.list[i]]][,1]),F, "blue", 2)
+	axis(4, las=1)
+	legend("top", pop.list[i], bty="n", cex=1.5)
+}
+par(fig = c(0, 1, 0, 1), oma=c(2,2.5,1,2.5), mar = c(0, 0, 0, 0), 
+	new = TRUE)
+plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
+legend("top", col=c("black","blue"),cex=1.5,
+	c("Body","Bands"),lty=c(1,2), box.lty=0,ncol=4)
+mtext("Body PC1",1, outer=T, line=0, cex=1)
+mtext("Body PC2",2, outer=T, line=0, cex=1)
+mtext("Band PC1",4, outer=T, line=1, cex=1)
+dev.off()
+
+jpeg("P-matrices.male.jpeg", res=300, height=14, width=14, units="in")
+par(mfrow=c(3,4), mar=c(2,2.5,2,2), oma=c(2,2.5,2,2))
+for(i in 1:length(mal.pheno.u)){
+	plot.pmatrix(mal.pheno.u[[pop.list[i]]])
+	legend("top", pop.list[i], bty="n", cex=1.5)
+}
+par(fig = c(0, 1, 0, 1), oma=c(2,2.5,1,2), mar = c(0, 0, 0, 0), 
+	new = TRUE)
+plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
+mtext("Body PC1",1, outer=T, line=0.5, cex=1)
+mtext("Body PC2",2, outer=T, line=0, cex=1)
+dev.off()
+
 
 

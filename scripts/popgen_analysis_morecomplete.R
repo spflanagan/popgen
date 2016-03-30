@@ -628,8 +628,7 @@ loading<-read.table("E://ubuntushare//pcadapt//pcadapt.4", header=T, sep="\t")
 #loading[round(loading$logBF, 4) %in% round(bf.log),] #doesn't work..
 
 #the snp is the row number in the map file for the snps
-ld.map<-read.table("E://ubuntushare//stacks//populations//ld.subset.map",
-	header=F)
+ld.map<-read.table("stacks//populations//subset.map",	header=F)
 pcadapt.outliers<-ld.map[rep.snps,]
 colnames(pcadapt.outliers)<-c("chr","loc","dist","bp")
 pa.out.radloc<-sub('(\\d+)_\\d+','\\1',pcadapt.outliers$loc)
