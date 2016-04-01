@@ -36,9 +36,10 @@ m.f.summ.dat<-read.table("sw_results//stacks//populations_sex//batch_1.sumstats.
 	sep='\t', skip=2, header=T, comment.char="")
 dist<-read.table("F://Docs//PopGen//geographical_distances.txt", 
 	header=T, row.names=1, sep='\t')
-pwise.fst<-read.table("sw_results/stacks/fst_summary_all.txt",
+pwise.fst.all<-read.table("sw_results/stacks/populations/fst_summary_all.txt",
 	 header=T, row.names=1, sep='\t')
-
+pwise.fst.sub<-read.table("sw_results/stacks/populations_subset/fst_summary_subset.txt",
+	 header=T, row.names=1, sep='\t')
 #####Re-name plink files so that Family ID contains Population ID.
 ped<-read.table("sw_results/stacks/populations/subset.ped")
 ped$V1<-gsub("sample_(\\w{4})\\w+.*align","\\1",ped$V2)
@@ -93,13 +94,69 @@ dev.off()
 #Mantel test using geographical distances and fsts
 
 #read in the subsetted fst summary from running populations with whitelist
-pwise.fst.sub<-read.table("sw_results/stacks/fst_summary_subset.txt",
-	 header=T, row.names=1, sep='\t')
-
-ibd.all<-mantel.rtest(as.dist(t(dist)),as.dist(t(pwise.fst)))
+ibd.all<-mantel.rtest(as.dist(t(dist)),as.dist(t(pwise.fst.all)))
 ibd.sub<-mantel.rtest(as.dist(t(dist)),as.dist(t(pwise.fst.sub)))
 
+######BY LOCUS#############
+pairwise.fst<-function(ped,allele1,allele2,pop.order){
+	#V1 of ped should be pop index
+	ped.split<-split(ped[,c(allele1,allele2)], factor(ped[,1]))
+	dat.var<-as.data.frame(setNames(
+		replicate(length(pop.order),numeric(0), simplify = F), pop.order))
+	for(i in 1:(length(pop.order)-1)){
+	  for(j in (i+1):length(pop.order)){
+		pop1<-factor(ped.split[[pop.order[i]]][ped.split[[pop.order[i]]]!="0"])
+		pop2<-factor(ped.split[[pop.order[j]]][ped.split[[pop.order[j]]]!="0"])
+		freq1<-summary(pop1)/sum(summary(pop1))	
+		freq2<-summary(pop2)/sum(summary(pop2))	
+		freqall<-summary(as.factor(c(pop1,pop2)))/
+			sum(summary(as.factor(c(pop1,pop2))))
+		if(length(freq1)>1){ hs1<-2*freq1[1]*freq1[2] 
+		} else {
+			hs1<-0
+		}
+		if(length(freq2)>1){ hs2<-2*freq2[1]*freq2[2] 
+		} else {
+			hs2<-0
+		}
+		if(length(freqall)>1){
+			hs<-mean(c(hs1,hs2))
+			ht<-2*freqall[1]*freqall[2]
+			fst<-(ht-hs)/ht
+		}
+		if(length(freqall)<=1){ fst<-NA }
+		dat.var[pop.order[i],pop.order[j]]<-fst
+	  }
+	}
+	dat.var<-rbind(dat.var,rep(NA, ncol(dat.var)))
+	rownames(dat.var)<-colnames(dat.var)
+	return(as.matrix(dat.var))
+}
 
+
+pairwise.fst(ped,7,8,pop.list)
+
+fst.ibd.byloc<-function(ped.file,dist.mat,pop.order){
+	results.mantel<-data.frame()
+	for(i in seq(7,ncol(ped.file),2)){
+		res<-mantel.rtest(
+			as.dist(t(pairwise.fst(ped.file,i,i+1,pop.order))),
+			as.dist(t(dist.mat)), nrepet=9999)
+		results.mantel<-rbind(results.mantel,cbind(res$obs,res$pvalue))
+	}
+	results.mantel<-as.data.frame(results.mantel)
+	colnames(results.mantel)<-c("Obs","P")
+	return(results.mantel)
+}
+
+ibd.by.loc<-fst.ibd.byloc(ped,dist,pop.list) 
+#ignore warnings?  In is.euclid(m1) : Zero distance(s)
+
+fst.test<-as.matrix(pairwise.fst(ped,7,8,pop.order))
+fst.test[which.min(abs(fst.test))]<-0.0001
+mantel.rtest(as.dist(t(fst.test)),
+			as.dist(t(dist)), nrepet=9999)
+is.euclid(as.dist(t(fst.test)))
 
 #########################################################################
 #***********************************************************************#
@@ -1060,13 +1117,11 @@ all.traits.pst.mantel<-function(trait.df,comp.df,id.index){
 	return(results.mantel)
 }
 
-#raw.pheno<-read.table("sw_results/pstfst/popgen.pheno.txt", sep="\t", header=T)
-raw.pheno<-read.table("F:/Docs/PopGen/popgen.pheno.txt", sep="\t", header=T)
 pop.order<-c("TXSP","TXCC","TXCB","ALST","FLSG","FLKB","FLFD","FLSI",
 	"FLAB","FLPB","FLHB","FLCC")
 #**********************************RAW**************************************#
 #************create male and female files for pst analysis******************#
-raw.pheno<-read.table("E://ubuntushare//popgen.pheno.txt", sep="\t", header=T)
+raw.pheno<-read.table("pstfst/popgen.pheno.txt", sep="\t", header=T)
 fem.keep<-raw.pheno[!is.na(raw.pheno$BandNum) & substr(raw.pheno$ID,5,5)=="F",]
 db.keep<-raw.pheno[substr(raw.pheno$ID,5,6)=="DB",]
 db.keep<-db.keep[(db.keep$Side=="LEFT" || 
@@ -1153,6 +1208,27 @@ mal.fst.upst<-all.traits.pst.mantel(mal.unstd.new,pwise.fst,1)
 fem.upst.dist<-all.traits.pst.mantel(fem.unstd.new,dist,1)
 mal.upst.dist<-all.traits.pst.mantel(mal.unstd.new,dist,1)
 
+fst.pst.byloc<-function(ped.file,trait.df,pop.order,trait.ind){
+	results.list<-list()
+	for(j in 3:ncol(trait.df)){
+	results.mantel<-data.frame()
+	for(i in seq(7,ncol(ped.file),2)){
+		res<-mantel.rtest(
+			as.dist(t(pairwise.fst(ped.file,i,i+1,pop.order))),
+			as.dist(t(pairwise.pst(trait.df[,c(trait.ind,j)],pop.order))),
+			 nrepet=9999)
+		results.mantel<-rbind(results.mantel,cbind(res$obs,res$pvalue))
+	}
+	results.mantel<-as.data.frame(results.mantel)
+	colnames(results.mantel)<-c("Obs","P")
+	results.list<-list(results.list,results.mantel)
+	}
+	names(results.list)<-colnames(trait.df)[3:ncol(trait.df)]
+	return(results.list)
+}
+
+fem.pst.fst.loc<-fst.pst.byloc(ped,fem.unstd.new,pop.list,1)
+mal.pst.fst.loc<-fst.pst.byloc(ped,mal.unstd.new,pop.list,1)
 
 #***************PCA*****************#
 fem.pheno$PopID<-factor(fem.pheno$PopID)
@@ -1390,7 +1466,7 @@ fem.pmat.std.rda<-rda(data.frame(pmat.fem.global))
 
 fem.phen.uns.rda$CA$v #shows loadings per trait
 
-pmat.mal.global<-cov(mal.pheno.std[,3:8])
+pmat.mal.global<-cov(mal.unstd.new[,3:8])
 pm.m.g.rda<-rda(data.frame(pmat.mal.global))
 
 #BETWEEN POPS
@@ -1540,9 +1616,27 @@ vector.correlations<-function(list.pmatrices){
 
 }
 
+calc.h<-function(P.list){
+	H<-0
+	for(i in 1:length(P.list)){
+		A<-eigen(P.list[[i]])$vectors[,1:3]
+		A.out<-A%*%t(A)
+		H<-H+A.out
+	}
+	colnames(H)<-colnames(P.list[[1]])
+	rownames(H)<-colnames(P.list[[1]])
+	return(H)
+}
+
+pop.h.angle<-function(Pmatrix,H,h.eig){
+	b<-eigen(H)$vectors[,h.eig]
+	A<-eigen(Pmatrix)$vectors[,1:3]
+	trans<-t(b)%*%A%*%t(A)%*%b
+	delta<-acos(trans^0.5)
+}
+
 #####ANALYSIS#####
 #unstandardized
-all.pmax<-lapply(pmat.fem.uns.pops, find.pmax)
 #females
 pmat.f.u.p<-pmat.fem.uns.pops[match(pop.list, names(pmat.fem.uns.pops))]
 fem.sim.unstd.mat<-generate.sim.mat(pmat.f.u.p)
@@ -1619,4 +1713,305 @@ heatmap.2(plot.pmat, Rowv=NA, Colv=NA, dendrogram="none",col=bluered(100),
 mtext("Females", 2,outer=T, line=-4)
 mtext("Males", 3, outer=T,line=1)
 dev.off()
+
+#####################MULTIPLE SUBSPACES###################
+h.fem<-calc.h(pmat.fem.uns.pops)
+h.mal<-calc.h(pmat.mal.uns.pops)
+
+h.fem.ang1<-lapply(pmat.fem.uns.pops,pop.h.angle,H=h.fem,h.eig=1)
+h.fem.ang2<-lapply(pmat.fem.uns.pops,pop.h.angle,H=h.fem,h.eig=2)
+
+h.mal.ang1<-lapply(pmat.mal.uns.pops,pop.h.angle,H=h.mal,h.eig=1)
+h.mal.ang2<-lapply(pmat.mal.uns.pops,pop.h.angle,H=h.mal,h.eig=2)
+
+
+#####################TENSORS############################
+#Adapted from Aguirre et al. 2013 supplemental material
+pmat.mal.unst.pops<-calc.pmat(pops.mal.unstd.dat,3,8)
+pmat.mal.unst.pops<-pmat.mal.unst.pops[match(pop.list, names(pmat.mal.unst.pops))]
+pmat.fem.unst.pops<-calc.pmat(pops.fem.unstd.dat,3,10)
+pmat.fem.unst.pops<-pmat.fem.unst.pops[match(pop.list, names(pmat.fem.unst.pops))]
+
+covtensor<-function(matrix.list){
+#Adapted from Aguirre et al. 2013 supplemental material
+	n.traits<-dim(matrix.list[[1]])[1]
+	n.pops<-length(matrix.list)
+	trait.names<-colnames(matrix.list[[1]])
+	pop.names<-names(matrix.list)
+	n.eigten<-n.traits*(n.traits+1)/2
+	mat.var<-matrix(nrow=n.pops,ncol=n.traits)
+	mat.cov<-matrix(nrow=n.pops,ncol=length(lowerTriangle(matrix.list[[1]])))
+	for(i in 1:n.pops){
+		mat.var[i,]<-diag(matrix.list[[i]])
+		mat.cov[i,]<-lowerTriangle(matrix.list[[i]])
+	}
+	#create the S matrix
+	s.mat<-matrix(nrow=n.eigten,ncol=n.eigten)
+	colnames(s.mat)<-paste("E", 1:n.eigten, sep="")
+	rownames(s.mat)<-paste("E", 1:n.eigten, sep="")
+	#fill in upper left quadrant
+	s.mat[1:n.traits,1:n.traits]<-cov(mat.var,mat.var)
+	#fill in lower right quadrant
+	s.mat[(n.traits+1):n.eigten,(n.traits+1):n.eigten]<-2*cov(mat.cov,mat.cov)
+	#fill in upper right quadrant
+	s.mat[1:n.traits,(n.traits+1):n.eigten]<-sqrt(2)*cov(mat.var, mat.cov)
+	#fill in lower left quadrant
+	s.mat[(n.traits+1):n.eigten,1:n.traits]<-sqrt(2)*cov(mat.cov, mat.var)
+	
+	#eigenvalues and vectors of S
+	s.val<-eigen(s.mat)$values
+	s.vec<-eigen(s.mat)$vectors
+
+	#make the eigentensors matrix
+	et.mat<-array(, c(n.traits, n.traits, n.eigten))
+	dimnames(et.mat) <- list(trait.names, trait.names, 
+		paste("E", 1:n.eigten, sep=""))  
+	for(i in 1:n.eigten){
+		e.mat <- matrix(0, n.traits, n.traits) 
+		lowerTriangle(e.mat) <- 1/sqrt(2)*s.vec[(n.traits+1):n.eigten,i]
+		e.mat <- e.mat + t(e.mat)
+		diag(e.mat) <- s.vec[1:n.traits,i]
+		et.mat[,,i] <- e.mat 
+	}
+	
+	#eigenvectors of eigentensors
+	et.eigen<-array(,c((n.traits+1),n.traits, n.eigten))
+	for(i in 1:n.eigten){
+		#eigenvalues of ith eigentensor
+		et.eigen[1,,i]<-t(eigen(et.mat[,,i])$values)
+		#eigenvectors of the ith eigentensor
+		et.eigen[2:(n.traits+1),,i]<-eigen(et.mat[,,i])$vectors
+		et.eigen [,,i]<-et.eigen[,order(abs(et.eigen[1,,i]),
+			decreasing = T), i]
+	}
+
+	#project eigenvectors of s onto s to determine alpha
+	s.alpha<-matrix(ncol=n.eigten)
+	for(i in 1:n.eigten){
+		s.alpha[,i]<-t(s.vec[,i]) %*% s.mat %*% s.vec[,i]
+	}
+	#distribution of phenotypic variance for eigenvectors of S
+	p.coord<-matrix(nrow=n.pops, ncol=n.eigten)
+	for(i in 1:n.eigten){
+		p.coord[,i]<-unlist(lapply(matrix.list, frobenius.prod, y = et.mat[,,i]))
+	}
+	rownames(p.coord)<-pop.names
+	colnames(p.coord)<-paste("E", 1:n.eigten, sep="")
+	tensor.summary <- data.frame(rep(s.val,each=n.traits), 
+		t(data.frame(et.eigen)))
+	colnames(tensor.summary) <- c("S.eigval", "eT.val", trait.names)
+	rownames(tensor.summary)<- paste(
+		paste("e", rep(1:n.eigten, each=n.traits), sep=""), 
+		rep(1:n.traits,n.eigten), sep=".")
+	#maximum number of nonzero eigentensors
+	nonzero<-min(n.traits*(n.traits+1)/2,n.pops-1)
+	
+
+	return(list(tensor.summary = tensor.summary, s.mat = s.mat, 
+		et.mat = et.mat, p.coord = p.coord, s.val = s.val, 
+		s.alpha=s.alpha, nonzero=nonzero))
+	#tensor.summary: sumamry of the covariance tensor for S.
+		#contains eigenvalues of the tensor and 
+		#the eigenvalues of the eigentensors. And the eigenvectors of 
+		#eigentensors with trait loadings identified by the column names.
+	#s.mat: the S matrix
+	#et.mat: the eigentensors of S. Rows and columns identify elements 
+		#of an eigentensor. 3rd dimension identifies the eigentensor
+	#p.coord: Coordinates of the P matrix in the space of the eigentensors 
+		#of S
+	#s.val: eigenvalues of S
+	#s.alpha: projection of the eigenvectors of S on S.
+	#nonzero: The maximum number of nonzero eigentensors.
+}
+f.n.traits<-8
+m.n.traits<-6
+pop.names<-names(pmat.fem.unst.pops)
+fem.tensor<-covtensor(pmat.fem.unst.pops)
+mal.tensor<-covtensor(pmat.mal.unst.pops)
+#eigenvalues for the nonzero eigentensors
+fem.tensor$s.alpha[,1:fem.tensor$nonzero]
+fem.tensor$tensor.summary[
+	1:((ncol(fem.tensor$tensor.summary)-2)*fem.tensor$nonzero),]
+#plot coordinates of female p matrix in the space of e1 and e2 
+plot(fem.tensor$p.coord[,1], ylim=c(-200,50), xaxt="n", las=1,
+	xlab="Population", ylab="alpha")
+axis(1, at=seq(1,12,1), labels=F)
+text(x=seq(1,12,1), labels=pop.names, par("usr")[1]-230,
+	srt=-45, xpd=TRUE)
+lines(fem.tensor$p.coord[,1], lty=2)
+points(fem.tensor$p.coord[,2], pch=19)
+lines(fem.tensor$p.coord[,2], lty=1)
+points(fem.tensor$p.coord[,3], pch=15)
+lines(fem.tensor$p.coord[,3],lty=4)
+legend("bottomright", pch=c(1,19,15), lty=c(2,1,4), c("e1","e2","e3"))
+#trait combinations for e1, e2, and e3
+round(fem.tensor$tensor.summary[1:(f.n.traits*3),
+	2:dim(fem.tensor$tensor.summary)[2]], 3)
+
+#determine which eigenvector explains the most variation in eigentensors
+max.eig.val<-function(eig.vec){
+	max.perc<-max(abs(eig.vec))/sum(abs(eig.vec))
+	max.loc<-which.max(abs(eig.vec))
+	return(list(max.loc=max.loc, max.perc=max.perc))
+}
+e1.max<-max.eig.val(fem.tensor$tensor.summary$eT.val[1:f.n.traits])
+e2.max<-max.eig.val(fem.tensor$tensor.summary$eT.val[(f.n.traits+1):(2*f.n.traits)])
+e3.max<-max.eig.val(fem.tensor$tensor.summary$eT.val[((f.n.traits*2)+1):(3*f.n.traits)])
+
+
+#project eigentensors on the observed array
+f.e1.L <- c(as.numeric(fem.tensor$tensor.summary[1,
+	3:dim(fem.tensor$tensor.summary)[2]]))
+f.e2.L <- c(as.numeric(fem.tensor$tensor.summary[(f.n.traits+1),
+	3:dim(fem.tensor$tensor.summary)[2]]))
+f.e3.L <- c(as.numeric(fem.tensor$tensor.summary[((f.n.traits*2)+1),
+	3:dim(fem.tensor$tensor.summary)[2]]))
+
+m.e1.L <- c(as.numeric(mal.tensor$tensor.summary[1,
+	3:dim(mal.tensor$tensor.summary)[2]]))
+m.e2.L <- c(as.numeric(mal.tensor$tensor.summary[(m.n.traits+1),
+	3:dim(mal.tensor$tensor.summary)[2]]))
+m.e3.L <- c(as.numeric(mal.tensor$tensor.summary[((m.n.traits*2)+1),
+	3:dim(mal.tensor$tensor.summary)[2]]))
+
+#Function to do projection
+proj<- function(G, b) t(b) %*% G %*% (b)
+
+#variance along e1 and e2
+f.e11.proj <- lapply(pmat.fem.unst.pops, proj, b = f.e1.L)
+f.e21.proj <- lapply(pmat.fem.unst.pops, proj, b = f.e2.L)
+f.e31.proj <- lapply(pmat.fem.unst.pops, proj, b = f.e3.L)
+
+m.e11.proj <- lapply(pmat.mal.unst.pops, proj, b = m.e1.L)
+m.e21.proj <- lapply(pmat.mal.unst.pops, proj, b = m.e2.L)
+m.e31.proj <- lapply(pmat.mal.unst.pops, proj, b = m.e3.L)
+
+#summary plots
+jpeg("blows.method3.summary.jpeg", width=7, height=7, units="in", res=300)
+layout(matrix(c(0,1,2,3),2,2,byrow=F))
+layout.show(3)
+
+#plot eigenvalues of non-zero eigentensors for S
+par(mar=c(5,4,2,0))
+plot(fem.tensor$s.alpha[,1:fem.tensor$nonzero], ylab="alpha",
+	xlab="", xaxt="n", las=1)#3 until it levels off.
+axis(1, at=seq(1,fem.tensor$nonzero,1), 
+	labels=paste("E",1:fem.tensor$nonzero, sep=""))
+points(mal.tensor$s.alpha[,1:mal.tensor$nonzero],pch=6)
+legend("top", pch=c(1,6), c("Males", "Females"))
+text(x=11,y=2000, "B", font=2)
+
+#plot the variance in each population in the direction of e11,e21, and e31
+par(mar=c(3,5,2,1))
+plot(x=seq(1,12,1),f.e11.proj, xaxt="n", las=1,ylim=c(-50,200),
+	xlab="", ylab="lambda")
+axis(1, at=seq(1,12,1), labels=F)
+text(x=seq(1,12,1), labels=pop.names, par("usr")[1]-80,
+	srt=-45, xpd=TRUE)
+lines(x=seq(1,12,1),f.e11.proj, lty=2)
+points(x=seq(1,12,1),f.e21.proj, pch=19)
+lines(x=seq(1,12,1),f.e21.proj, lty=1)
+points(x=seq(1,12,1),f.e31.proj, pch=15)
+lines(x=seq(1,12,1),f.e31.proj,lty=4)
+legend("bottomright", pch=c(1,19,15), lty=c(2,1,4), c("e1","e2","e3"))
+text(x=2,y=200, "Females")
+text(x=12,y=200, "C", font=2)
+
+par(mar=c(5,5,0,1))
+plot(x=seq(1,12,1),m.e11.proj, xaxt="n", las=1,ylim=c(-50,200),
+	xlab="Population", ylab="lambda")
+axis(1, at=seq(1,12,1), labels=F)
+text(x=seq(1,12,1), labels=pop.names, par("usr")[1]-80,
+	srt=-45, xpd=TRUE)
+lines(x=seq(1,12,1),m.e11.proj, lty=2)
+points(x=seq(1,12,1),m.e21.proj, pch=19)
+lines(x=seq(1,12,1),m.e21.proj, lty=1)
+points(x=seq(1,12,1),m.e31.proj, pch=15)
+lines(x=seq(1,12,1),m.e31.proj,lty=4)
+legend("bottomright", pch=c(1,19,15), lty=c(2,1,4), c("e1","e2","e3"))
+text(x=2,y=200, "Males")
+text(x=12,y=200, "D", font=2)
+dev.off()
+
+
+###Try to plot pc1 and pc2 for males and females
+plot.eigenvectors<-function(dat.cov, col.num, eig.lty=1, eig.col="black"){
+	#Plots the eigenvectors (scaled by the eigenvalues) 
+	j = 1.96*sqrt(eigen(dat.cov)$values[col.num])
+	delx1 = 0 + j*eigen(dat.cov)$vectors[1,col.num]
+	delx2 = 0 + j*eigen(dat.cov)$vectors[2,col.num]
+	delx11 = 0 - j*eigen(dat.cov)$vectors[1,col.num]
+	delx22 = 0 - j*eigen(dat.cov)$vectors[2,col.num]
+	x.values=c(0 , delx1, delx11)
+	y.values=c(0 , delx2, delx22)
+	lines(x.values, y.values, lwd=2, col=eig.col, lty=eig.lty)
+}
+plot.pmatrix<-function(dat, plot.new=TRUE, eig.col="black", eig.lty=1){
+	#get leading eigenvector for bands
+	#and leading eigenvector for length
+	#Plots the P-matrix 95% confidence ellipse and eigenvectors.
+	if(plot.new==TRUE){
+	plot(c(-1,1), c(-1,1) , asp=1, type="n", xlim=c(-1,1), ylim=c(-1,1), 
+		cex.lab=1.5, xlab="",ylab="", las=1)
+	}
+	dat.cov<-cov(dat)
+	ellipse(center=c(0, 0), shape=dat.cov, lty=eig.lty,
+		radius=1.96, center.cex=0.1, 
+		lwd=2, col=eig.col, add=TRUE )
+	plot.eigenvectors(dat.cov, 1, eig.col=eig.col, eig.lty=eig.lty)
+	plot.eigenvectors(dat.cov, 2, eig.col=eig.col, eig.lty=eig.lty)
+}
+
+band.u<-list()
+fem.pheno.u<-list()
+mal.pheno.u<-list()
+for(i in 1:length(band.pca)){
+	band.u[[i]]<-data.frame(cbind(as.numeric(band.pca[[i]]$CA$u[,1]),
+		as.numeric(band.pca[[i]]$CA$u[,2])))
+	fem.pheno.u[[i]]<-data.frame(cbind(as.numeric(fem.pheno.pca[[i]]$CA$u[,1]),
+		as.numeric(fem.pheno.pca[[i]]$CA$u[,2])))
+	mal.pheno.u[[i]]<-data.frame(cbind(as.numeric(mal.pheno.pca[[i]]$CA$u[,1]),
+		as.numeric(mal.pheno.pca[[i]]$CA$u[,2])))
+}
+names(band.u)<-names(band.pca)
+names(fem.pheno.u)<-names(band.pca)
+names(mal.pheno.u)<-names(band.pca)
+
+jpeg("P-matrices.female.jpeg", res=300, height=14, width=14, units="in")
+par(mfrow=c(3,4), mar=c(2,2.5,2,2.5), oma=c(2,2.5,2,2.5))
+for(i in 1:length(fem.pheno.u)){
+	plot.pmatrix(fem.pheno.u[[pop.list[i]]])
+	plot.pmatrix(cbind(fem.pheno.u[[pop.list[i]]][,1],
+		band.u[[pop.list[i]]][,1]),F, "blue", 2)
+	axis(4, las=1)
+	legend("top", pop.list[i], bty="n", cex=1.5)
+}
+par(fig = c(0, 1, 0, 1), oma=c(2,2.5,1,2.5), mar = c(0, 0, 0, 0), 
+	new = TRUE)
+plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
+legend("top", col=c("black","blue"),cex=1.5,
+	c("Body","Bands"),lty=c(1,2), box.lty=0,ncol=4)
+mtext("Body PC1",1, outer=T, line=0, cex=1)
+mtext("Body PC2",2, outer=T, line=0, cex=1)
+mtext("Band PC1",4, outer=T, line=1, cex=1)
+dev.off()
+
+jpeg("P-matrices.male.jpeg", res=300, height=14, width=14, units="in")
+par(mfrow=c(3,4), mar=c(2,2.5,2,2), oma=c(2,2.5,2,2))
+for(i in 1:length(mal.pheno.u)){
+	plot.pmatrix(mal.pheno.u[[pop.list[i]]])
+	legend("top", pop.list[i], bty="n", cex=1.5)
+}
+par(fig = c(0, 1, 0, 1), oma=c(2,2.5,1,2), mar = c(0, 0, 0, 0), 
+	new = TRUE)
+plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
+mtext("Body PC1",1, outer=T, line=0.5, cex=1)
+mtext("Body PC2",2, outer=T, line=0, cex=1)
+dev.off()
+
+
+
+
+
+
 

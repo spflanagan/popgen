@@ -36,7 +36,12 @@ X-Did LD pruning work as expected? Are SNPs from the same RAD locus removed?
 10. Bayenv2
 11. calculate_global_fst
 ############################################################################################################
+#####Thursday, 31 March 2016
+I'm working of Fst-Pst and Fst-IBD locus-by-locus analyses. I'm running into an error message dueto some 0s in the Fst matrices that the distance matrix is non-euclidean, but I don't thinkthis affectsthe Mantel calculations.
+
 #####Wednesday, 30 March 2016
+For some reason my P-matrix Blows analysis is reversed--females are not as different as males!?! weird.
+
 The fst-pst analysis doesn't work on band area and band number when standardized...the pst matrix is all ones. I think it's because of a lack of variance? or something? It works for males. and female body stuff. Doing PCA on standardized traits, pst matrix for bands is all 1s. But the patterns look basically the same as before. AHA!!! BandNum and Band Area mean = 0. What if I standardize by trait/mean(trait) instead of trait/mean(trait)-1? Nope, that's not solving the problem. 
 
 :::::::RESULTS::::::
