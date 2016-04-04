@@ -35,7 +35,34 @@ X-Did LD pruning work as expected? Are SNPs from the same RAD locus removed?
 	Structure Harvester
 10. Bayenv2
 11. calculate_global_fst
-############################################################################################################
+##################################################################################################
+#####Monday, 4 April 2016
+Working on the Pst-Fst by locus analysis:
+	798 of 1753 are significant in one or more female traits
+	277 of 1753 are significant in one or more male traits
+	Num Sig in males and females for each trait:
+		SVL	634
+		TailLength	414
+		BodyLength	782
+		SnoutLength	540
+		SnoutDepth	582
+		HeadLength	770
+		BandNum or BandArea	132
+	None are present in all of these.
+	
+315 loci are significant for IBD. None of those are in the above significant loci sets.
+I should export those loci and create a supplementary table of blast results for those.
+315 loci are significant for IBD. None of those are in the above significant loci sets.
+
+Are those that are significant in Fst-Pst comparison significantly IBD? NO! none of them have a significant IBD pattern. This fits.
+
+Exporting all of the rad loci to files and then I'll extract the RAD locus. Also should output the 5bk region...
+
+#####Friday, 1 April 2016
+Migrate quit but  it  didn't finish correctly. So I used plink to randomly sample 25% of the subsetted data (408 ish loci). Then re-ran migrate.
+
+I'm also working on the pst-fst analysis bylocus.
+
 #####Thursday, 31 March 2016
 I'm working of Fst-Pst and Fst-IBD locus-by-locus analyses. I'm running into an error message dueto some 0s in the Fst matrices that the distance matrix is non-euclidean, but I don't thinkthis affectsthe Mantel calculations.
 

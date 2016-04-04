@@ -132,8 +132,8 @@ int main()
 	ofstream migrate;
 	vector<population> pops;
 
-	ped_name = "../../sw_results/migrate/subset.ped"; //this has been converted to have the pop IDs in Fam ID column.
-	map_name = "../../sw_results/stacks/populations/subset.map";
+	ped_name = "../../sw_results/migrate/plink.ped"; //this has been converted to have the pop IDs in Fam ID column.
+	map_name = "../../sw_results/migrate/plink.map";
 	migrate_name = "../../sw_results/migrate/migrate_in.txt";
 
 	//read in the map file first

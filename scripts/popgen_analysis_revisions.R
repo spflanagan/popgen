@@ -15,7 +15,7 @@ library(adegenet)
 library(scales)
 library(gdata);library(matrixcalc)
 
-setwd("E:/ubuntushare/popgen/")
+setwd("E:/ubuntushare/popgen/sw_results/")
 
 
 #############################################################################
@@ -25,25 +25,29 @@ setwd("E:/ubuntushare/popgen/")
 #############################################################################
 summ.dat<-read.table("sw_results/stacks/populations/batch_1.sumstats.tsv",
 	sep='\t', skip=12, header=T, comment.char="")
-ld.hwe<-read.table("sw_results/stacks/populations/ld.hwe.whitelist.txt")
+ld.hwe<-read.table("stacks/populations/ld.hwe.whitelist.txt")
 
-catalog<-read.delim("results/stacks/batch_1.catalog.tags.tsv", 
+catalog<-read.delim("stacks/batch_1.catalog.tags.tsv", 
 	header=F)
 
 mar.coor<-read.csv("F://Docs//PopGen//marine_coordinates.csv", header=T)
 fw.coor<-read.csv("F://Docs//PopGen//fw_coordinates.csv", header=T)
-m.f.summ.dat<-read.table("sw_results//stacks//populations_sex//batch_1.sumstats.tsv",
+m.f.summ.dat<-read.table("stacks//populations_sex//batch_1.sumstats.tsv",
 	sep='\t', skip=2, header=T, comment.char="")
 dist<-read.table("F://Docs//PopGen//geographical_distances.txt", 
 	header=T, row.names=1, sep='\t')
-pwise.fst.all<-read.table("sw_results/stacks/populations/fst_summary_all.txt",
+pwise.fst.all<-read.table("stacks/populations/fst_summary_all.txt",
 	 header=T, row.names=1, sep='\t')
-pwise.fst.sub<-read.table("sw_results/stacks/populations_subset/fst_summary_subset.txt",
+pwise.fst.sub<-read.table("stacks/populations_subset/fst_summary_subset.txt",
 	 header=T, row.names=1, sep='\t')
 #####Re-name plink files so that Family ID contains Population ID.
-ped<-read.table("sw_results/stacks/populations/subset.ped")
-ped$V1<-gsub("sample_(\\w{4})\\w+.*align","\\1",ped$V2)
-write.table(ped,"sw_results/migrate/subset.ped",col.names=F,row.name=F,quote=F)
+sub.ped<-read.table("stacks/populations/subset.ped")
+sub.ped$V1<-gsub("sample_(\\w{4})\\w+.*align","\\1",sub.ped$V2)
+write.table(sub.ped,"migrate/subset.ped",col.names=F,row.name=F,quote=F)
+all.map<-read.table("stacks/populations/batch_1.plink.map")
+sub.map<-read.table("stacks/populations/subset.map")
+sub.scaffs<-all.map[all.map$V2 %in% sub.map$V2,]#not in the correct order!
+
 
 
 #############################################################################
@@ -151,6 +155,7 @@ fst.ibd.byloc<-function(ped.file,dist.mat,pop.order){
 
 ibd.by.loc<-fst.ibd.byloc(ped,dist,pop.list) 
 #ignore warnings?  In is.euclid(m1) : Zero distance(s)
+rownames(ibd.by.loc)<-sub.map$V2
 
 fst.test<-as.matrix(pairwise.fst(ped,7,8,pop.order))
 fst.test[which.min(abs(fst.test))]<-0.0001
@@ -544,8 +549,8 @@ write.table(clust.plink,
 
 
 #plink.map -> numbers instead of scaffold_#
-map<-read.table("stacks/populations/subset.map", skip = 1)
-chr.nums<-sub('scaffold_','',map[,1])
+sub.map<-read.table("stacks/populations/subset.map", skip = 1)
+chr.nums<-sub('scaffold_','',sub.map[,1])
 map[,1]<-chr.nums
 
 write.table(map, "bayenv.plink.map", 
@@ -1221,14 +1226,98 @@ fst.pst.byloc<-function(ped.file,trait.df,pop.order,trait.ind){
 	}
 	results.mantel<-as.data.frame(results.mantel)
 	colnames(results.mantel)<-c("Obs","P")
-	results.list<-list(results.list,results.mantel)
+	results.list<-append(results.list,data.frame(results.mantel))
 	}
-	names(results.list)<-colnames(trait.df)[3:ncol(trait.df)]
+	#names(results.list)<-colnames(trait.df)[3:ncol(trait.df)]
 	return(results.list)
 }
 
 fem.pst.fst.loc<-fst.pst.byloc(ped,fem.unstd.new,pop.list,1)
+fpf<-data.frame(SVL.Obs=fem.pst.fst.loc[[1]],SVL.P=fem.pst.fst.loc[[2]],
+	TailLength.Obs=fem.pst.fst.loc[[3]],TailLength.P=fem.pst.fst.loc[[4]],
+	BodyDepth.Obs=fem.pst.fst.loc[[5]],BodyDepth.P=fem.pst.fst.loc[[6]],
+	SnoutLength.Obs=fem.pst.fst.loc[[7]],SnoutLength.P=fem.pst.fst.loc[[8]],
+	SnoutDepth.Obs=fem.pst.fst.loc[[9]],SnoutDepth.P=fem.pst.fst.loc[[10]],
+	HeadLength.Obs=fem.pst.fst.loc[[11]],HeadLength.P=fem.pst.fst.loc[[12]],
+	BandArea.Obs=fem.pst.fst.loc[[13]],BandArea.P=fem.pst.fst.loc[[14]],
+	BandNum.Obs=fem.pst.fst.loc[[15]],BandNum.P=fem.pst.fst.loc[[16]])
+row.names(fpf)<-sub.map$V2
 mal.pst.fst.loc<-fst.pst.byloc(ped,mal.unstd.new,pop.list,1)
+mpf<-data.frame(SVL.Obs=mal.pst.fst.loc[[1]],SVL.P=mal.pst.fst.loc[[2]],
+	TailLength.Obs=mal.pst.fst.loc[[3]],TailLength.P=mal.pst.fst.loc[[4]],
+	BodyDepth.Obs=mal.pst.fst.loc[[5]],BodyDepth.P=mal.pst.fst.loc[[6]],
+	SnoutLength.Obs=mal.pst.fst.loc[[7]],SnoutLength.P=mal.pst.fst.loc[[8]],
+	SnoutDepth.Obs=mal.pst.fst.loc[[9]],SnoutDepth.P=mal.pst.fst.loc[[10]],
+	HeadLength.Obs=mal.pst.fst.loc[[11]],HeadLength.P=mal.pst.fst.loc[[12]])
+row.names(mpf)<-sub.map$V2
+
+fpf.sig<-fpf[fpf$SVL.P <= 0.05 | fpf$TailLength.P <= 0.05 | 
+	fpf$BodyDepth.P <= 0.05 | fpf$SnoutLength.P <= 0.05 | 
+	fpf$SnoutDepth.P <= 0.05 | fpf$HeadLength.P <= 0.05 | 
+	fpf$BandArea.P <= 0.05 | fpf$BandNum.P <= 0.05,]
+mpf.sig<-mpf[mpf$SVL.P <= 0.05 | mpf$TailLength.P <= 0.05 | 
+	mpf$BodyDepth.P <= 0.05 | mpf$SnoutLength.P <= 0.05 | 
+	mpf$SnoutDepth.P <= 0.05 | mpf$HeadLength.P <= 0.05,]
+
+svl.sig<-rownames(fpf)[rownames(fpf[fpf$SVL.P <= 0.05,]) %in%
+	rownames(mpf[mpf$SVL.P <= 0.05,])]
+write.table(svl.sig,"pstfst/SVL_pstfst.txt",col.names=F,row.names=F,quote=F)
+write.table(gsub("(\\d+)_\\d+","\\1",svl.sig),
+	"pstfst/SVL_radloc.txt",col.names=F,row.names=F,quote=F)
+svl.5kb<-sub.scaffs[sub.scaffs$V2 %in% svl.sig,c(1,4)]
+svl.5kb$start<-svl.5kb$V4-2500
+svl.5kb$stop<-svl.5kb$V4+2500
+write.table(svl.5kb[,-2]
+tail.sig<-rownames(fpf)[rownames(fpf[fpf$TailLength.P <= 0.05,]) %in%
+	rownames(mpf[mpf$TailLength.P <= 0.05,])]
+write.table(tail.sig,"pstfst/TailLength_pstfst.txt",col.names=F,row.names=F,quote=F)
+write.table(gsub("(\\d+)_\\d+","\\1",tail.sig),
+	"pstfst/TailLength_radloc.txt",col.names=F,row.names=F,quote=F)
+
+
+body.sig<-rownames(fpf)[rownames(fpf[fpf$BodyDepth.P <= 0.05,]) %in%
+	rownames(mpf[mpf$BodyDepth.P <= 0.05,])]
+write.table(body.sig,"pstfst/BodyDepth_pstfst.txt",col.names=F,row.names=F,quote=F)
+write.table(gsub("(\\d+)_\\d+","\\1",body.sig),
+	"pstfst/TailLength_radloc.txt",col.names=F,row.names=F,quote=F)
+
+sntl.sig<-rownames(fpf)[rownames(fpf[fpf$SnoutLength.P <= 0.05,]) %in%
+	rownames(mpf[mpf$SnoutLength.P <= 0.05,])]
+write.table(sntl.sig,"pstfst/SnoutLength_pstfst.txt",col.names=F,row.names=F,quote=F)
+write.table(gsub("(\\d+)_\\d+","\\1",sntl.sig),
+	"pstfst/SnoutLength_radloc.txt",col.names=F,row.names=F,quote=F)
+
+head.sig<-rownames(fpf)[rownames(fpf[fpf$HeadLength.P <= 0.05,]) %in%
+	rownames(mpf[mpf$HeadLength.P <= 0.05,])]
+write.table(head.sig,"pstfst/HeadLength_pstfst.txt",col.names=F,row.names=F,quote=F)
+write.table(gsub("(\\d+)_\\d+)","\\1",head.sig),
+	"pstfst/HeadLength_radloc.txt",col.names=F,row.names=F,quote=F)
+
+sntd.sig<-rownames(fpf)[rownames(fpf[fpf$SnoutDepth.P <= 0.05,]) %in%
+	rownames(mpf[mpf$SnoutDepth.P <= 0.05,])]
+write.table(sntd.sig,"pstfst/SnoutDepth_pstfst.txt",col.names=F,row.names=F,quote=F)
+write.table(gsub("(\\d+)_\\d+","\\1",sntd.sig),
+	"pstfst/SnoutDepth_radloc.txt",col.names=F,row.names=F,quote=F)
+
+band.sig<-rownames(fpf[fpf$BandArea.P <= 0.05 | 
+	fpf$BandNum.P <=0.05,])
+write.table(band.sig,"pstfst/Bands_pstfst.txt",col.names=F,row.names=F,quote=F)
+write.table(gsub("(\\d+)_\\d+","\\1",band.sig),
+	"pstfst/Bands_radloc.txt",col.names=F,row.names=F,quote=F)
+
+sig.all<-rownames(fpf)[rownames(fpf) %in% svl.sig & 
+	rownames(fpf) %in% tail.sig & rownames(fpf) %in% body.sig & 
+	rownames(fpf) %in% sntd.sig & rownames(fpf) %in% sntd.sig & 
+	rownames(fpf) %in% head.sig & rownames(fpf) %in% band.sig] #0
+
+sig.fst.ibd<-ibd.by.loc[ibd.by.loc$P <= 0.05,]
+length(rownames(sig.fst.ibd)[rownames(sig.fst.ibd) %in% rownames(svl.sig)])
+length(rownames(sig.fst.ibd)[rownames(sig.fst.ibd) %in% rownames(tail.sig)])
+length(rownames(sig.fst.ibd)[rownames(sig.fst.ibd) %in% rownames(body.sig)])
+length(rownames(sig.fst.ibd)[rownames(sig.fst.ibd) %in% rownames(sntl.sig)])
+length(rownames(sig.fst.ibd)[rownames(sig.fst.ibd) %in% rownames(sntd.sig)])
+length(rownames(sig.fst.ibd)[rownames(sig.fst.ibd) %in% rownames(head.sig)])
+length(rownames(sig.fst.ibd)[rownames(sig.fst.ibd) %in% rownames(band.sig)])
 
 #***************PCA*****************#
 fem.pheno$PopID<-factor(fem.pheno$PopID)
