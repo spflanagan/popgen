@@ -17,7 +17,8 @@ library(gdata);library(matrixcalc)
 
 setwd("E:/ubuntushare/popgen/sw_results/")
 
-
+pop.list<-c("TXSP","TXCC","TXCB","ALST","FLSG","FLKB","FLFD","FLSI",
+	"FLAB","FLPB","FLHB","FLCC")
 #############################################################################
 #***************************************************************************#
 ###################################FILES#####################################
@@ -41,13 +42,14 @@ pwise.fst.all<-read.table("stacks/populations/fst_summary_all.txt",
 pwise.fst.sub<-read.table("stacks/populations_subset/fst_summary_subset.txt",
 	 header=T, row.names=1, sep='\t')
 #####Re-name plink files so that Family ID contains Population ID.
-sub.ped<-read.table("stacks/populations/subset.ped")
+sub.ped<-read.table("stacks/populations_subset/batch_1.plink.ped")
 sub.ped$V1<-gsub("sample_(\\w{4})\\w+.*align","\\1",sub.ped$V2)
 write.table(sub.ped,"migrate/subset.ped",col.names=F,row.name=F,quote=F)
 all.map<-read.table("stacks/populations/batch_1.plink.map")
 sub.map<-read.table("stacks/populations/subset.map")
 sub.scaffs<-all.map[all.map$V2 %in% sub.map$V2,]#not in the correct order!
 
+raw.pheno<-read.table("pstfst/popgen.pheno.txt", sep="\t", header=T)
 
 
 #############################################################################
@@ -128,7 +130,7 @@ pairwise.fst<-function(ped,allele1,allele2,pop.order){
 			ht<-2*freqall[1]*freqall[2]
 			fst<-(ht-hs)/ht
 		}
-		if(length(freqall)<=1){ fst<-NA }
+		if(length(freqall)<=1){ fst<-1 }
 		dat.var[pop.order[i],pop.order[j]]<-fst
 	  }
 	}
@@ -138,7 +140,7 @@ pairwise.fst<-function(ped,allele1,allele2,pop.order){
 }
 
 
-pairwise.fst(ped,7,8,pop.list)
+pairwise.fst(sub.ped,9,10,pop.list)
 
 fst.ibd.byloc<-function(ped.file,dist.mat,pop.order){
 	results.mantel<-data.frame()
@@ -153,15 +155,15 @@ fst.ibd.byloc<-function(ped.file,dist.mat,pop.order){
 	return(results.mantel)
 }
 
-ibd.by.loc<-fst.ibd.byloc(ped,dist,pop.list) 
+ibd.by.loc<-fst.ibd.byloc(sub.ped,dist,pop.list) 
 #ignore warnings?  In is.euclid(m1) : Zero distance(s)
 rownames(ibd.by.loc)<-sub.map$V2
 
-fst.test<-as.matrix(pairwise.fst(ped,7,8,pop.order))
-fst.test[which.min(abs(fst.test))]<-0.0001
-mantel.rtest(as.dist(t(fst.test)),
-			as.dist(t(dist)), nrepet=9999)
-is.euclid(as.dist(t(fst.test)))
+#fst.test<-as.matrix(pairwise.fst(ped,7,8,pop.order))
+#fst.test[which.min(abs(fst.test))]<-0.0001
+#mantel.rtest(as.dist(t(fst.test)),
+#			as.dist(t(dist)), nrepet=9999)
+#is.euclid(as.dist(t(fst.test)))
 
 #########################################################################
 #***********************************************************************#
@@ -199,22 +201,21 @@ abline(h=0,v=0, col="grey")
 
 #or my custom pca plotting skillzz
 ind.names<-dimnames(pca1$scores)[[1]]
-pop.list<-c("TXSP","TXCC","TXCB","ALST","FLSG","FLKB","FLFD","FLSI",
-	"FLAB","FLPB","FLHB","FLCC")
+
 pop<-substr(ind.names, 8,11)
-col<-pop
-col[col=="TXSP"]<-rainbow(12)[1]
-col[col=="TXCC"]<-rainbow(12)[2]
-col[col=="TXCB"]<-rainbow(12)[3]
-col[col=="ALST"]<-rainbow(12)[4]
-col[col=="FLSG"]<-rainbow(12)[5]
-col[col=="FLKB"]<-rainbow(12)[6]
-col[col=="FLFD"]<-rainbow(12)[7]
-col[col=="FLSI"]<-rainbow(12)[8]
-col[col=="FLAB"]<-rainbow(12)[9]
-col[col=="FLPB"]<-rainbow(12)[10]
-col[col=="FLHB"]<-rainbow(12)[11]
-col[col=="FLCC"]<-rainbow(12)[12]
+colors<-pop
+colors[colors=="TXSP"]<-rainbow(12)[1]
+colors[colors=="TXCC"]<-rainbow(12)[2]
+colors[colors=="TXCB"]<-rainbow(12)[3]
+colors[colors=="ALST"]<-rainbow(12)[4]
+colors[colors=="FLSG"]<-rainbow(12)[5]
+colors[colors=="FLKB"]<-rainbow(12)[6]
+colors[colors=="FLFD"]<-rainbow(12)[7]
+colors[colors=="FLSI"]<-rainbow(12)[8]
+colors[colors=="FLAB"]<-rainbow(12)[9]
+colors[colors=="FLPB"]<-rainbow(12)[10]
+colors[colors=="FLHB"]<-rainbow(12)[11]
+colors[colors=="FLCC"]<-rainbow(12)[12]
 
 jpeg("E://Docs//PopGen//subset.pca1.2.jpeg",res=300,height=7,width=7,units="in")
 plot(pca1$scores[,1], pca1$scores[,2], pch=16, cex=2,lwd=1.3,
@@ -1196,6 +1197,8 @@ write.table(pheno.sum, "E://Docs//PopGen//pheno.sum.txt",
 	sep="\t", quote=F, col.names=T, row.names=F)
 
 #**********PST COMPARISONS**********#
+fem.pheno<-read.table("pstfst/unstd/fem.pheno.txt",header=T)
+mal.pheno<-read.table("pstfst/unstd/mal.pheno.txt",header=T)
 fem.pheno.sep<-split(fem.pheno, fem.pheno$PopID)
 fem.unstd.new<-rbind(fem.pheno.sep$TXSP,fem.pheno.sep$TXCC,fem.pheno.sep$TXCB,
 	fem.pheno.sep$ALST,fem.pheno.sep$FLSG,fem.pheno.sep$FLKB,
@@ -1232,7 +1235,7 @@ fst.pst.byloc<-function(ped.file,trait.df,pop.order,trait.ind){
 	return(results.list)
 }
 
-fem.pst.fst.loc<-fst.pst.byloc(ped,fem.unstd.new,pop.list,1)
+fem.pst.fst.loc<-fst.pst.byloc(sub.ped,fem.unstd.new,pop.list,1)
 fpf<-data.frame(SVL.Obs=fem.pst.fst.loc[[1]],SVL.P=fem.pst.fst.loc[[2]],
 	TailLength.Obs=fem.pst.fst.loc[[3]],TailLength.P=fem.pst.fst.loc[[4]],
 	BodyDepth.Obs=fem.pst.fst.loc[[5]],BodyDepth.P=fem.pst.fst.loc[[6]],
@@ -1242,7 +1245,7 @@ fpf<-data.frame(SVL.Obs=fem.pst.fst.loc[[1]],SVL.P=fem.pst.fst.loc[[2]],
 	BandArea.Obs=fem.pst.fst.loc[[13]],BandArea.P=fem.pst.fst.loc[[14]],
 	BandNum.Obs=fem.pst.fst.loc[[15]],BandNum.P=fem.pst.fst.loc[[16]])
 row.names(fpf)<-sub.map$V2
-mal.pst.fst.loc<-fst.pst.byloc(ped,mal.unstd.new,pop.list,1)
+mal.pst.fst.loc<-fst.pst.byloc(sub.ped,mal.unstd.new,pop.list,1)
 mpf<-data.frame(SVL.Obs=mal.pst.fst.loc[[1]],SVL.P=mal.pst.fst.loc[[2]],
 	TailLength.Obs=mal.pst.fst.loc[[3]],TailLength.P=mal.pst.fst.loc[[4]],
 	BodyDepth.Obs=mal.pst.fst.loc[[5]],BodyDepth.P=mal.pst.fst.loc[[6]],
@@ -1267,48 +1270,86 @@ write.table(gsub("(\\d+)_\\d+","\\1",svl.sig),
 svl.5kb<-sub.scaffs[sub.scaffs$V2 %in% svl.sig,c(1,4)]
 svl.5kb$start<-svl.5kb$V4-2500
 svl.5kb$stop<-svl.5kb$V4+2500
-write.table(svl.5kb[,-2]
+write.table(svl.5kb[,-2],"pstfst/SVL_extract.sh",col.names=F, row.names=F,
+	quote=F,eol='\n')
+
 tail.sig<-rownames(fpf)[rownames(fpf[fpf$TailLength.P <= 0.05,]) %in%
 	rownames(mpf[mpf$TailLength.P <= 0.05,])]
 write.table(tail.sig,"pstfst/TailLength_pstfst.txt",col.names=F,row.names=F,quote=F)
 write.table(gsub("(\\d+)_\\d+","\\1",tail.sig),
 	"pstfst/TailLength_radloc.txt",col.names=F,row.names=F,quote=F)
-
+tail.5kb<-sub.scaffs[sub.scaffs$V2 %in% tail.sig,c(1,4)]
+tail.5kb$start<-tail.5kb$V4-2500
+tail.5kb$stop<-tail.5kb$V4+2500
+write.table(tail.5kb[,-2],"pstfst/TailLength_extract.sh",col.names=F, row.names=F,
+	quote=F,eol='\n')
 
 body.sig<-rownames(fpf)[rownames(fpf[fpf$BodyDepth.P <= 0.05,]) %in%
 	rownames(mpf[mpf$BodyDepth.P <= 0.05,])]
 write.table(body.sig,"pstfst/BodyDepth_pstfst.txt",col.names=F,row.names=F,quote=F)
 write.table(gsub("(\\d+)_\\d+","\\1",body.sig),
 	"pstfst/TailLength_radloc.txt",col.names=F,row.names=F,quote=F)
+body.5kb<-sub.scaffs[sub.scaffs$V2 %in% body.sig,c(1,4)]
+body.5kb$start<-body.5kb$V4-2500
+body.5kb$stop<-body.5kb$V4+2500
+write.table(body.5kb[,-2],"pstfst/BodyDepth_extract.sh",col.names=F, row.names=F,
+	quote=F,eol='\n')
 
 sntl.sig<-rownames(fpf)[rownames(fpf[fpf$SnoutLength.P <= 0.05,]) %in%
 	rownames(mpf[mpf$SnoutLength.P <= 0.05,])]
 write.table(sntl.sig,"pstfst/SnoutLength_pstfst.txt",col.names=F,row.names=F,quote=F)
 write.table(gsub("(\\d+)_\\d+","\\1",sntl.sig),
 	"pstfst/SnoutLength_radloc.txt",col.names=F,row.names=F,quote=F)
+sntl.5kb<-sub.scaffs[sub.scaffs$V2 %in% sntl.sig,c(1,4)]
+sntl.5kb$start<-sntl.5kb$V4-2500
+sntl.5kb$stop<-sntl.5kb$V4+2500
+write.table(sntl.5kb[,-2],"pstfst/SnoutLength_extract.sh",col.names=F, row.names=F,
+	quote=F,eol='\n')
 
 head.sig<-rownames(fpf)[rownames(fpf[fpf$HeadLength.P <= 0.05,]) %in%
 	rownames(mpf[mpf$HeadLength.P <= 0.05,])]
 write.table(head.sig,"pstfst/HeadLength_pstfst.txt",col.names=F,row.names=F,quote=F)
 write.table(gsub("(\\d+)_\\d+)","\\1",head.sig),
 	"pstfst/HeadLength_radloc.txt",col.names=F,row.names=F,quote=F)
+head.5kb<-sub.scaffs[sub.scaffs$V2 %in% head.sig,c(1,4)]
+head.5kb$start<-head.5kb$V4-2500
+head.5kb$stop<-head.5kb$V4+2500
+write.table(head.5kb[,-2],"pstfst/HeadLength_extract.sh",col.names=F, row.names=F,
+	quote=F,eol='\n')
 
 sntd.sig<-rownames(fpf)[rownames(fpf[fpf$SnoutDepth.P <= 0.05,]) %in%
 	rownames(mpf[mpf$SnoutDepth.P <= 0.05,])]
 write.table(sntd.sig,"pstfst/SnoutDepth_pstfst.txt",col.names=F,row.names=F,quote=F)
 write.table(gsub("(\\d+)_\\d+","\\1",sntd.sig),
 	"pstfst/SnoutDepth_radloc.txt",col.names=F,row.names=F,quote=F)
+sntd.5kb<-sub.scaffs[sub.scaffs$V2 %in% sntd.sig,c(1,4)]
+sntd.5kb$start<-sntd.5kb$V4-2500
+sntd.5kb$stop<-sntd.5kb$V4+2500
+write.table(sntd.5kb[,-2],"pstfst/SnoutDepth_extract.sh",col.names=F, row.names=F,
+	quote=F,eol='\n')
 
 band.sig<-rownames(fpf[fpf$BandArea.P <= 0.05 | 
 	fpf$BandNum.P <=0.05,])
 write.table(band.sig,"pstfst/Bands_pstfst.txt",col.names=F,row.names=F,quote=F)
 write.table(gsub("(\\d+)_\\d+","\\1",band.sig),
 	"pstfst/Bands_radloc.txt",col.names=F,row.names=F,quote=F)
+band.5kb<-sub.scaffs[sub.scaffs$V2 %in% band.sig,c(1,4)]
+band.5kb$start<-band.5kb$V4-2500
+band.5kb$stop<-band.5kb$V4+2500
+write.table(band.5kb[,-2],"pstfst/Bands_extract.sh",col.names=F, row.names=F,
+	quote=F,eol='\n')
 
 sig.all<-rownames(fpf)[rownames(fpf) %in% svl.sig & 
 	rownames(fpf) %in% tail.sig & rownames(fpf) %in% body.sig & 
 	rownames(fpf) %in% sntd.sig & rownames(fpf) %in% sntd.sig & 
-	rownames(fpf) %in% head.sig & rownames(fpf) %in% band.sig] #0
+	rownames(fpf) %in% head.sig & rownames(fpf) %in% band.sig] #17514_61
+
+chroms<-levels(factor(c(as.character(svl.5kb$V1),as.character(body.5kb$V1),
+	as.character(sntl.5kb$V1),as.character(sntd.5kb$V1),
+	as.character(tail.5kb$V1),as.character(head.5kb$V1),
+	as.character(band.5kb$V1))))
+write.table(chroms,"pstfst/pstfst.sig_scaffolds.txt",col.names=F,row.names=F,
+	quote=F)
 
 sig.fst.ibd<-ibd.by.loc[ibd.by.loc$P <= 0.05,]
 length(rownames(sig.fst.ibd)[rownames(sig.fst.ibd) %in% rownames(svl.sig)])
@@ -1319,7 +1360,7 @@ length(rownames(sig.fst.ibd)[rownames(sig.fst.ibd) %in% rownames(sntd.sig)])
 length(rownames(sig.fst.ibd)[rownames(sig.fst.ibd) %in% rownames(head.sig)])
 length(rownames(sig.fst.ibd)[rownames(sig.fst.ibd) %in% rownames(band.sig)])
 
-#***************PCA*****************#
+#***************PST PCA*****************#
 fem.pheno$PopID<-factor(fem.pheno$PopID)
 mal.pheno$PopID<-factor(mal.pheno$PopID)
 bands.pcdat<-fem.pheno[,c(1,2,9,10)]
@@ -1327,6 +1368,66 @@ bands.pcdat<-fem.pheno[,c(1,2,9,10)]
 band.pca<-rda(bands.pcdat[,3:4])
 fem.pheno.pca<-rda(fem.pheno[,3:8])
 mal.pheno.pca<-rda(mal.pheno[,3:8])
+
+
+fem.pop<-bands.pcdat$PopID
+fem.colors<-as.character(fem.pop)
+fem.colors[fem.colors=="TXSP"]<-rainbow(12)[1]
+fem.colors[fem.colors=="TXCC"]<-rainbow(12)[2]
+fem.colors[fem.colors=="TXCB"]<-rainbow(12)[3]
+fem.colors[fem.colors=="ALST"]<-rainbow(12)[4]
+fem.colors[fem.colors=="FLSG"]<-rainbow(12)[5]
+fem.colors[fem.colors=="FLKB"]<-rainbow(12)[6]
+fem.colors[fem.colors=="FLFD"]<-rainbow(12)[7]
+fem.colors[fem.colors=="FLSI"]<-rainbow(12)[8]
+fem.colors[fem.colors=="FLAB"]<-rainbow(12)[9]
+fem.colors[fem.colors=="FLPB"]<-rainbow(12)[10]
+fem.colors[fem.colors=="FLHB"]<-rainbow(12)[11]
+fem.colors[fem.colors=="FLCC"]<-rainbow(12)[12]
+
+mal.pop<-mal.pheno$PopID
+mal.colors<-as.character(mal.pop)
+mal.colors[mal.colors=="TXSP"]<-rainbow(12)[1]
+mal.colors[mal.colors=="TXCC"]<-rainbow(12)[2]
+mal.colors[mal.colors=="TXCB"]<-rainbow(12)[3]
+mal.colors[mal.colors=="ALST"]<-rainbow(12)[4]
+mal.colors[mal.colors=="FLSG"]<-rainbow(12)[5]
+mal.colors[mal.colors=="FLKB"]<-rainbow(12)[6]
+mal.colors[mal.colors=="FLFD"]<-rainbow(12)[7]
+mal.colors[mal.colors=="FLSI"]<-rainbow(12)[8]
+mal.colors[mal.colors=="FLAB"]<-rainbow(12)[9]
+mal.colors[mal.colors=="FLPB"]<-rainbow(12)[10]
+mal.colors[mal.colors=="FLHB"]<-rainbow(12)[11]
+mal.colors[mal.colors=="FLCC"]<-rainbow(12)[12]
+
+png("PhenotypePCA.png",height=4,width=10,units="in",res=300)
+par(mfrow=c(1,3),oma=c(2,2,2,2),mar=c(2,2,2,2),lwd=1.3)
+plot(mal.pheno.pca,type="n",xlim=c(-3,3),ylim=c(-8.2,4)
+	,xlab="",ylab="",las=1,cex.axis=1.5)
+points(mal.pheno.pca,col=alpha(mal.colors,0.5),cex=1.5,pch=19)
+mtext("PC1 (95.75%)",1,line=2)
+mtext("PC2 (3.77%)",2,line=2)
+legend("top",bty='n',c("Male Body Traits"),cex=1.5)
+
+plot(fem.pheno.pca,type="n",xlab="",ylab="",las=1,cex.axis=1.5,ylim=c(-4,12),
+	xlim=c(-3,3))
+points(fem.pheno.pca,col=alpha(fem.colors,0.5),cex=1.5,pch=19)
+mtext("PC1 (91.39%)",1,line=2)
+mtext("PC2 (7.54%)",2,line=2)
+legend("top",bty='n',c("Female Body Traits"),cex=1.5)
+
+plot(band.pca,type="n",xlab="",ylab="",las=1,cex.axis=1.5,xlim=c(-2,2))
+points(band.pca,pch=19,col=alpha(fem.colors,0.5),cex=1.5)
+mtext("PC1 (98.23%)",1,line=2)
+mtext("PC2 (1.77%)",2,line=2)
+legend("top",bty='n',c("Female Band Traits"),cex=1.5)
+
+par(fig = c(0, 1, 0, 1), oma=c(2,1,0,1), mar = c(0, 0, 0, 0), new = TRUE,
+	cex=1)
+plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
+legend("top", pop.list, pch=19, pt.cex=1,bty='n',
+	col=alpha(rainbow(12), 0.5), ncol=12)
+dev.off()
 
 #extract eigenvalue
 band.eig<-band.pca$CA$eig
@@ -1544,7 +1645,7 @@ dev.off()
 ##############################################################################
 
 #GLOBAL
-pmat.fem.global<-cov(fem.pheno.std[,3:10])
+pmat.fem.global<-cov(fem.unstd.new[,3:10])
 
 #pca of traits
 fem.phen.uns.rda<-rda(fem.unstd.new[,3:10])
@@ -1556,7 +1657,7 @@ fem.pmat.std.rda<-rda(data.frame(pmat.fem.global))
 fem.phen.uns.rda$CA$v #shows loadings per trait
 
 pmat.mal.global<-cov(mal.unstd.new[,3:8])
-pm.m.g.rda<-rda(data.frame(pmat.mal.global))
+pmat.mal.uns.rda<-rda(data.frame(pmat.mal.global))
 
 #BETWEEN POPS
 calc.pmat<-function(phen.dat.list, dim1, dim2){
@@ -1730,7 +1831,7 @@ pop.h.angle<-function(Pmatrix,H,h.eig){
 pmat.f.u.p<-pmat.fem.uns.pops[match(pop.list, names(pmat.fem.uns.pops))]
 fem.sim.unstd.mat<-generate.sim.mat(pmat.f.u.p)
 fem.sim.unstd.fst<-mantel.rtest(as.dist(fem.sim.unstd.mat), 
-	as.dist(t(pwise.fst)),	nrepet=9999)
+	as.dist(t(pwise.fst.sub)),	nrepet=9999)
 pmax.unstd.mat<-vector.correlations(pmat.fem.uns.pops)
 blows.sim.unstd.mat<-fem.sim.unstd.mat
 blows.sim.unstd.mat[upper.tri(blows.sim.unstd.mat)]<-
@@ -1741,7 +1842,7 @@ write.table(blows.sim.unstd.mat, "unstd_p_sim_matrix.txt", col.names=T,
 pmat.m.u.p<-pmat.mal.uns.pops[match(pop.list, names(pmat.mal.uns.pops))]
 mal.sim.unstd.mat<-generate.sim.mat(pmat.m.u.p)
 mal.sim.unstd.fst<-mantel.rtest(as.dist(mal.sim.unstd.mat), 
-	as.dist(t(pwise.fst)),	nrepet=9999)
+	as.dist(t(pwise.fst.sub)),	nrepet=9999)
 pmax.mal.unstd.mat<-vector.correlations(pmat.mal.uns.pops)
 blows.mal.sim.unstd.mat<-mal.sim.unstd.mat
 blows.mal.sim.unstd.mat[upper.tri(blows.mal.sim.unstd.mat)]<-
