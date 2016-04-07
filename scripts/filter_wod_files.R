@@ -4,7 +4,7 @@
 #The data have already been consolidated using parse_wod_data.cpp
 #one file per collection region.
 
-setwd("B://ubuntushare//environmental_assoc")
+setwd("B:/ubuntushare/popgen/sw_results/environmental_assoc/environ_files")
 wod.files<-list.files(pattern="_out.txt")
 
 wod.dat<-data.frame()
@@ -16,7 +16,7 @@ for(i in 1:length(wod.files)){
 wod.filt<-wod.dat[wod.dat$Year >= 2004,]
 
 
-mar.coor<-read.csv("L://PopGen//marine_coordinates.csv")
+mar.coor<-read.csv("marine_coordinates_revised.csv")
 adj.coor<-as.data.frame(cbind(site=as.character(mar.coor$site), 
 	lat.l=as.numeric(mar.coor$lat-0.25), 
 	lat.r=as.numeric(mar.coor$lat),
@@ -55,5 +55,15 @@ environ.file<-environ.file[-9,]#remove Oxygen
 
 #write environmental data to file
 write.table(environ.file, "wod_data_bayenv.txt",sep='\t',eol='\n', quote=F)
+
+##include temperature variance
+temp.var<-lapply(wod.rest,function(x){
+	tempvar<-var(x$Temp)
+	return(tempvar)
+})
+temp.var<-t(do.call("rbind",temp.var))
+rownames(temp.var)<-c("tempvar")
+
+write.table(temp.var,"wod_tempvar_data.txt",sep='\t',eol='\n',quote=F
 
 

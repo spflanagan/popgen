@@ -3,20 +3,20 @@ This is started after receving first round of reviews from Molecular Ecology
 22 February 2016
 
 The reviewers want a general re-structuring of the paper, plus I need to check/fix/add the following things:
--Migration analysis with MIGRATE
--Calculate isolation by distance on contigs or single SNP per contig
--use a more statistical approach to IBD
--only do IBD on neutral loci
--Look for the distribution of IBD across loci
+X-Migration analysis with MIGRATE
+X-Calculate isolation by distance on contigs or single SNP per contig
+X-use a more statistical approach to IBD
+X-only do IBD on neutral loci
+X-Look for the distribution of IBD across loci
 -Use neutral loci to generate Fst CIs
--Test the association between Pst and Fst on a locus-by-locus basis or use morphological data in Bayenv
+X-Test the association between Pst and Fst on a locus-by-locus basis or use morphological data in Bayenv
 -Apply common subspace approach to complete set of population P-matrices
 -use GIS to calculate distances instead of Google Maps
--Standardize the traits for size (possibly--or at least justify why not)
+X-Standardize the traits for size (possibly--or at least justify why not)
 -Summary statistics output from stacks needs to be modified
 -Report sequencing coverage
--How many of the 66 SNPs were unlinked?
--Better description of evaluating K from structure
+X-How many of the 66 SNPs were unlinked?
+X-Better description of evaluating K from structure
 -Why are there so many extreme Pst values (1)
 X-Did LD pruning work as expected? Are SNPs from the same RAD locus removed?
 -Instead of mean temperature, use a temperature anomaly?
@@ -39,7 +39,10 @@ X-Did LD pruning work as expected? Are SNPs from the same RAD locus removed?
 ####Wednesday, 6 April 2016
 I made a PCA plot of the phenotypes. It looks like what I'd expect. PC1 explains SVL/TailLength vs other traits, and the populations basically group by size. FLAB and FLFD are the largest. FLAB has a weird pattern in the bands pc on PC2 where it's separate from the rest.
 
-The p-matrix analysis is still reversed, and I don't know why. I'm wondering if I messed up the analysis before? But the calculations don't match exactly either so I can't explain it. 
+The p-matrix analysis is still reversed, and I don't know why. I'm wondering if I messed up the analysis before? But the calculations don't match exactly either so I can't explain it. It worked right on the files from home!weird.
+
+I wrote code plot migrate data with the arrows and points scaled to migration rate and theta. I also output a matrix with the migration rates...it should be similar to Fst matrix. I can make a heatmap of each and compare them.
+
 
 #####Tuesday, 5 April 2016
 Migrate finished running on my subset of data. It gives me a theta for each locus for each pop and a migration rate for each direction of travel from each pop to each pop. No estimates of Ne. Just these giant tables of posterior distributions. I don't know what theta is..OK, 4Nem
