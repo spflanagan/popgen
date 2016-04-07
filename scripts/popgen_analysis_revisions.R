@@ -16,6 +16,7 @@ library(scales)
 library(gdata);library(matrixcalc)
 
 setwd("E:/ubuntushare/popgen/sw_results/")
+source("../scripts/plotting_functions.R")
 
 pop.list<-c("TXSP","TXCC","TXCB","ALST","FLSG","FLKB","FLFD","FLSI",
 	"FLAB","FLPB","FLHB","FLCC")
@@ -31,8 +32,7 @@ ld.hwe<-read.table("stacks/populations/ld.hwe.whitelist.txt")
 catalog<-read.delim("stacks/batch_1.catalog.tags.tsv", 
 	header=F)
 
-mar.coor<-read.csv("F://Docs//PopGen//marine_coordinates.csv", header=T)
-fw.coor<-read.csv("F://Docs//PopGen//fw_coordinates.csv", header=T)
+mar.coor<-read.csv("F://Docs//PopGen//marine_coordinates_revised.csv", header=T)
 m.f.summ.dat<-read.table("stacks//populations_sex//batch_1.sumstats.tsv",
 	sep='\t', skip=2, header=T, comment.char="")
 dist<-read.table("F://Docs//PopGen//geographical_distances.txt", 
@@ -49,21 +49,18 @@ all.map<-read.table("stacks/populations/batch_1.plink.map")
 sub.map<-read.table("stacks/populations/subset.map")
 sub.scaffs<-all.map[all.map$V2 %in% sub.map$V2,]#not in the correct order!
 
-raw.pheno<-read.table("pstfst/popgen.pheno.txt", sep="\t", header=T)
-
+raw.pheno<-read.table("popgen.pheno.txt", sep="\t", header=T)
+fem.pheno<-read.table("fem.pheno.txt", sep="\t", header=T)
+mal.pheno<-read.table("mal.pheno.txt", sep="\t", header=T)
 
 #############################################################################
 #######################PLOT THE POINTS ON A MAP##############################
 #############################################################################
-mar.coor$lon<-(-1*mar.coor$lon)
-fw.coor$lon<-(-1*fw.coor$lon)
-
-jpeg("mar_sites_map.jpg", res=300, width=9, height=7, units="in")
-map("worldHires", "usa",xlim=c(-100,-76), ylim=c(23,35.5), 
-	col="gray90", fill=TRUE)
-map("worldHires", "mexico",xlim=c(-100,-76), ylim=c(23,35.5), 
-	col="gray95", fill=TRUE, add=TRUE)
-map("worldHires", "cuba",xlim=c(-100,-76), ylim=c(23,35), 
+jpeg("mar_sites_map_again.jpg", res=300, height=7,width=14, units="in")
+par(oma=c(0,0,0,0),mar=c(0,0,0,0),pin=c(7,7))
+map("worldHires", "usa",xlim=c(-100,-76), ylim=c(24,32), 
+	col="gray90", mar=c(0,0,0,0),fill=TRUE, res=300,myborder=0)
+map("worldHires", "mexico",xlim=c(-100,-76), ylim=c(24,32), 
 	col="gray95", fill=TRUE, add=TRUE)
 points(mar.coor$lon, mar.coor$lat,  col="black", cex=1, pch=19)
 abline(h=c(25,30,35),lty=3)
@@ -71,8 +68,13 @@ abline(v=c(-80,-85,-90,-95,-100),lty=3)
 text(x=c(-99.5,-99.5,-99.5),y=c(25,30,35),c("25N","30N","35N"))
 text(x=c(-80,-85,-90,-95),y=rep(35.3,4),c("80W","85W","90W","95W"))
 text(y=26,x=-90,"Gulf of Mexico")
+text(y=26,x=-90,"Mexico")
 text(x=-88,y=32,"USA")
 text(x=-78,y=29.5,"Atlantic Ocean")
+abline(h=c(25,30),lty=3)
+abline(v=c(-80,-85,-90,-95,-100),lty=3)
+text(x=c(-99.5,-99.5,-99.5),y=c(25,30,35),c("25N","30N"))
+text(x=c(-80,-85,-90,-95),y=rep(31.7,4),c("80W","85W","90W","95W"))
 text(x=-96,y=26,"TXSP",font=2)
 text(x=-96.4,y=27,"TXCC",font=2)
 text(x=-94,y=29,"TXCB",font=2)
@@ -389,8 +391,7 @@ structure.k5<-read.table(
 structure.k5$V1<-sub('sample_([A-Z]{4})','\\1', structure.k5$V1)
 
 
-pop.list<-c("TXSP","TXCC","TXCB","ALST","FLSG","FLKB","FLFD","FLSI",
-		"FLAB","FLPB","FLHB","FLCC")
+
 all.colors<-c("palegreen","goldenrod1","orchid3","tomato","darkblue")
 
 tapply(structure.k2$V2,structure.k2$V1,max) #V2 has FLCC group
@@ -496,25 +497,25 @@ write.table(fast.groups.5, "E://ubuntushare//stacks//fstru.groups.popmap.txt",
 	col.names=F, sep="\t", eol="\n", quote=F, row.names=F)
 
 ##################################MAKE FIGURE 2#############################
-jpeg("Figure2_revisions.jpeg",height=10,width=7.5,units="in",res=300)
-par(mfrow=c(8,length(pop.list)),mar=c(0.5,0,1,0),oma=c(1,3,1,0))
+jpeg("Figure2_revisions.jpeg",height=7,width=7.5,units="in",res=300)
+par(mfrow=c(4,length(pop.list)),mar=c(0.5,0,1,0),oma=c(1,3,1,0))
 
 plotting.structure(str2,2,pop.list, make.file=FALSE, 
 	colors=all.colors[c(1,5)],xlabel=F,ylabel="STRUCTURE\nK=2")
-plotting.structure(fstr2,2,pop.list, make.file=FALSE, 
-	colors=all.colors[c(1,5)],xlabel=F,ylabel="FAST\nK=2")
+#plotting.structure(fstr2,2,pop.list, make.file=FALSE, 
+#	colors=all.colors[c(1,5)],xlabel=F,ylabel="FAST\nK=2")
 plotting.structure(str3,3,pop.list, make.file=FALSE, 
 	colors=all.colors[c(1,3,5)],xlabel=F,ylabel="STRUCTURE\nK=3")
-plotting.structure(fstr3,3,pop.list, make.file=FALSE, 
-	colors=all.colors[c(1,3,5)],xlabel=F,ylabel="FAST\nK=3")
+#plotting.structure(fstr3,3,pop.list, make.file=FALSE, 
+#	colors=all.colors[c(1,3,5)],xlabel=F,ylabel="FAST\nK=3")
 plotting.structure(str4,4,pop.list, make.file=FALSE,
 	colors=all.colors[c(1,2,3,5)],xlabel=F,ylabel="STRUCTURE\nK=4")
-plotting.structure(fstr4,4,pop.list, make.file=FALSE,
-	colors=all.colors[c(1,2,3,5)],xlabel=F,ylabel="FAST\nK=4")
+#plotting.structure(fstr4,4,pop.list, make.file=FALSE,
+#	colors=all.colors[c(1,2,3,5)],xlabel=F,ylabel="FAST\nK=4")
 plotting.structure(str5,5,pop.list, make.file=FALSE, colors=all.colors,
 	xlabel=F,ylabel="STRUCTURE\nK=5")
-plotting.structure(fstr5,5,pop.list, make.file=FALSE, colors=all.colors
-	,xlabel=T,ylabel="FAST\nK=5")
+#plotting.structure(fstr5,5,pop.list, make.file=FALSE, colors=all.colors
+#	,xlabel=T,ylabel="FAST\nK=5")
 dev.off()
 
 ##############################################################################
@@ -1125,80 +1126,8 @@ all.traits.pst.mantel<-function(trait.df,comp.df,id.index){
 
 pop.order<-c("TXSP","TXCC","TXCB","ALST","FLSG","FLKB","FLFD","FLSI",
 	"FLAB","FLPB","FLHB","FLCC")
-#**********************************RAW**************************************#
-#************create male and female files for pst analysis******************#
-raw.pheno<-read.table("pstfst/popgen.pheno.txt", sep="\t", header=T)
-fem.keep<-raw.pheno[!is.na(raw.pheno$BandNum) & substr(raw.pheno$ID,5,5)=="F",]
-db.keep<-raw.pheno[substr(raw.pheno$ID,5,6)=="DB",]
-db.keep<-db.keep[(db.keep$Side=="LEFT" || 
-	db.keep$Side == "Left"),]
-not.fem.keep<-raw.pheno[substr(raw.pheno$ID,5,5)!="F" & 
-	substr(raw.pheno$ID,5,6)!="DB",]
-not.fem.keep<-not.fem.keep[(not.fem.keep$Side=="LEFT" || 
-	not.fem.keep$Side == "Left"),]
-pheno.dat<-rbind(fem.keep, not.fem.keep, db.keep)
-ped<-read.table("stacks//populations//batch_1.plink.ped", 
-	skip = 1, stringsAsFactors=F, colClasses="character")
-ped.names<-sub('sample_(\\w{4}\\w+).*[_.].*','\\1', ped[,2])
-ped.names<-sub('([[:alpha:]]{5,7})([[:digit:]]{1})$', '\\10\\2', ped.names)
-pheno.dat$ID<-sub('([[:alpha:]]{5,7})([[:digit:]]{1})$', '\\10\\2', pheno.dat$ID)
-pops.pheno<-pheno.dat[pheno.dat$ID %in% ped.names,] #this does not have the juveniles
-pops.pheno<-pops.pheno[,-8]#remove "SIDE" col
-pops.pheno<-cbind(substr(pops.pheno$ID,1,4), pops.pheno)
-colnames(pops.pheno)[1]<-"PopID"
-#Now change traits
-pops.pheno$tail.length<-pops.pheno$std.length-pops.pheno$SVL
-pops.pheno$head<-pops.pheno$HeadLength-pops.pheno$SnoutLength
-pops.pheno<-pops.pheno[,c(1,2,3,11,5,6,7,12,9,10)]
-colnames(pops.pheno)<-c("PopID","ID","SVL", "TailLength", "BodyDepth", 
-	"SnoutLength", "SnoutDepth", "HeadLength", "BandArea","BandNum")
-fem.pheno<-pops.pheno[!is.na(pops.pheno$BandNum),]
-write.table(fem.pheno, "pstfst/unstd/fem.pheno.txt",
-	sep="\t", quote=F, col.names=T, row.names=F)
-mal.pheno<-pops.pheno[is.na(pops.pheno$BandNum),]
-mal.pheno<-mal.pheno[,-9]#remove the last columns
-mal.pheno<-mal.pheno[,-9]
-mal.pheno<-mal.pheno[complete.cases(mal.pheno),]
-write.table(mal.pheno, "pstfst/unstd/mal.pheno.txt",
-	sep="\t", quote=F, col.names=T, row.names=F)
-trait.names<-c("SVL", "Tail Length", "Body Depth", 
-	"Snout Length", "Snout Depth", "Head Length")
-
-#******SUMMARIZE TRAIT VALUES********#
-fem.pheno$PopID<-factor(fem.pheno$PopID)
-fem.pheno.mean<-aggregate(fem.pheno[,c(3,5,6,7,9,10,11,12)], 
-	by=list(fem.pheno$PopID), FUN=mean)
-fem.pheno.sd<-aggregate(fem.pheno[,c(3,5,6,7,9,10,11,12)], 
-	by=list(fem.pheno$PopID), FUN=sd)
-fem.pheno.sum<-merge(fem.pheno.mean, fem.pheno.sd, 
-	by.x="Group.1", by.y="Group.1")
-fem.pheno.sum$sex<-rep("FEMALE",12)
-write.table(fem.pheno.sum, "E://Docs//PopGen//fem.pheno.sum.txt",
-	sep="\t", quote=F, col.names=T, row.names=F)
-
-mal.pheno$PopID<-factor(mal.pheno$PopID)
-mal.pheno.mean<-aggregate(mal.pheno[,c(3,5,6,7,9,10)], 
-	by=list(mal.pheno$PopID), FUN=mean)
-mal.pheno.sd<-aggregate(mal.pheno[,c(3,5,6,7,9,10)], 
-	by=list(mal.pheno$PopID), FUN=sd)
-mal.pheno.sum<-merge(mal.pheno.mean, mal.pheno.sd, 
-	by.x="Group.1", by.y="Group.1")
-mal.pheno.sum$sex<-rep("MALE",12)
-mal.pheno.sum$MBandArea.x<-rep("NA",12)
-mal.pheno.sum$BandNum.x<-rep("NA",12)
-mal.pheno.sum$MBandArea.y<-rep("NA",12)
-mal.pheno.sum$BandNum.y<-rep("NA",12)
-write.table(mal.pheno.sum, "E://Docs//PopGen//mal.pheno.sum.txt",
-	sep="\t", quote=F, col.names=T, row.names=F)
-
-pheno.sum<-rbind(fem.pheno.sum, mal.pheno.sum)
-pheno.sum<-pheno.sum[order(pheno.sum$Group.1),]
-write.table(pheno.sum, "E://Docs//PopGen//pheno.sum.txt",
-	sep="\t", quote=F, col.names=T, row.names=F)
 
 #**********PST COMPARISONS**********#
-fem.pheno<-read.table("pstfst/unstd/fem.pheno.txt",header=T)
-mal.pheno<-read.table("pstfst/unstd/mal.pheno.txt",header=T)
 fem.pheno.sep<-split(fem.pheno, fem.pheno$PopID)
 fem.unstd.new<-rbind(fem.pheno.sep$TXSP,fem.pheno.sep$TXCC,fem.pheno.sep$TXCB,
 	fem.pheno.sep$ALST,fem.pheno.sep$FLSG,fem.pheno.sep$FLKB,
@@ -1210,8 +1139,8 @@ mal.unstd.new<-rbind(mal.pheno.sep$TXSP,mal.pheno.sep$TXCC,mal.pheno.sep$TXCB,
 	mal.pheno.sep$FLFD,mal.pheno.sep$FLSI,mal.pheno.sep$FLAB,
 	mal.pheno.sep$FLPB,mal.pheno.sep$FLHB,mal.pheno.sep$FLCC)
 
-fem.fst.upst<-all.traits.pst.mantel(fem.unstd.new,pwise.fst,1)
-mal.fst.upst<-all.traits.pst.mantel(mal.unstd.new,pwise.fst,1)
+fem.fst.upst<-all.traits.pst.mantel(fem.unstd.new,pwise.fst.sub,1)
+mal.fst.upst<-all.traits.pst.mantel(mal.unstd.new,pwise.fst.sub,1)
 
 fem.upst.dist<-all.traits.pst.mantel(fem.unstd.new,dist,1)
 mal.upst.dist<-all.traits.pst.mantel(mal.unstd.new,dist,1)

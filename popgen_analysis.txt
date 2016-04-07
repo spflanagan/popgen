@@ -36,6 +36,11 @@ X-Did LD pruning work as expected? Are SNPs from the same RAD locus removed?
 10. Bayenv2
 11. calculate_global_fst
 ##################################################################################################
+#####Thursday, 7 April 2016
+I'm just reading in the fem.pheno and mal.pheno files from home. Re-doing the Pst analysis. This is slow, I had kind of forgotten that.
+
+Meanwhile, some of my blast searches have finished so I'll run them through blast2go.
+
 ####Wednesday, 6 April 2016
 I made a PCA plot of the phenotypes. It looks like what I'd expect. PC1 explains SVL/TailLength vs other traits, and the populations basically group by size. FLAB and FLFD are the largest. FLAB has a weird pattern in the bands pc on PC2 where it's separate from the rest.
 
