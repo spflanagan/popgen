@@ -36,6 +36,23 @@ X-Did LD pruning work as expected? Are SNPs from the same RAD locus removed?
 10. Bayenv2
 11. calculate_global_fst
 ##################################################################################################
+#####Friday, 8 April 2016
+Of course bayenv didn't run properly on the temp variance data and I didn't send myself the temp var data. So I'll have to figure that out back at home.
+
+So I guess that means I'll need to do the Pmatrix analysis instead. 
+I've output the P matrices and they are all pretty close to 1...the biggest differences seem to be related to body size, with FLFD and FLAB being different (because they're larger)
+
+A p matrix of just the bands yields all 1s..I think maybe because there are only two traits. or something. 
+
+In the Aguirre et al review, they compare eigenvectors of H to values from "a common set of principal components". They also have confidence intervals, which I don't know how they generated. Maybe it's in their supplement? They did MCMC resampling. Also this for the null: "The null model we use assumes the G are sampled from the same population, and hence the randomised G will have all subspaces in common up to sampling error. Thus, to compare our observed and null model we will apply the kr.subspace function to the first four eigenvectors of the randomised G array".
+
+Randomly re-assigned each individual to a population.
+For calculation of H I'm using the first 3 eigenvectors of each population.
+The angles between eac eigenvector of H and each of the p population subspaces quantify how close the corresponding eigenvector of H is to each population's subspace.
+Aguirre et al says "Insight into differences among populations in genetic variance associated with common subspaces can be gained in this context by using projection to find the genetic variance in each population for those bi that are judged to form part of the common subspace."
+
+I've made a new figure 7 and am working on a supplementary document with more tables and figures that will also help me with my interpretation. 
+
 #####Thursday, 7 April 2016
 I'm just reading in the fem.pheno and mal.pheno files from home. Re-doing the Pst analysis. This is slow, I had kind of forgotten that.
 

@@ -51,14 +51,14 @@ sub.scaffs<-all.map[all.map$V2 %in% sub.map$V2,]#not in the correct order!
 
 raw.pheno<-read.table("popgen.pheno.txt", sep="\t", header=T)
 fem.pheno<-read.table("fem.pheno.txt", sep="\t", header=T)
+	fem.pheno$TailLength<-fem.pheno$std.length-fem.pheno$SVL
+	fem.pheno$HeadLength<-fem.pheno$HeadLength-fem.pheno$SnoutLength
+	fem.pheno<-fem.pheno[,c(1,2,3,11,5,6,7,8,9,10)]
 mal.pheno<-read.table("mal.pheno.txt", sep="\t", header=T)
+	mal.pheno$TailLength<-mal.pheno$std.length-mal.pheno$SVL
+	mal.pheno$HeadLength<-mal.pheno$HeadLength-mal.pheno$SnoutLength
+	mal.pheno<-mal.pheno[,c(1,2,3,9,5,6,7,8)]
 
-
-> fem.pheno$TailLength<-fem.pheno$std.length-fem.pheno$SVL
-> fem.pheno$HeadLength<-fem.pheno$HeadLength-fem.pheno$SnoutLength
-
-mal.pheno$TailLength<-mal.pheno$std.length-mal.pheno$SVL
-mal.pheno$HeadLength<-mal.pheno$HeadLength-mal.pheno$SnoutLength
 #############################################################################
 #######################PLOT THE POINTS ON A MAP##############################
 #############################################################################
@@ -686,6 +686,21 @@ write.table(bf.dat,"BF_summary.pruned_snps.txt",sep='\t',quote=F,row.names=F)
 write.table(xtx,"XtX_summary.pruned_snps.txt",sep='\t',quote=F,row.names=F)
 setwd("../../")
 
+setwd("bayenv2/new_bayenv/temp_var")
+bf.files<-list.files(pattern="bf")
+
+bf.dat<-NULL
+for(i in 1:length(bf.files)){
+	bf<-read.table(bf.files[i])
+	bf.dat<-rbind(bf.dat,bf)
+}
+colnames(bf.dat)<-c("locus", "Temp_BF", "Temp_rho", "Temp_rs", 
+	"Salinity_BF", "Salinity_rho", "Salinity_rs", "coll.temp_BF", 
+	"coll.temp_rho", "coll.temp_rs", "coll.sal_BF", "coll.sal_rho", 
+	"coll.sal_rs", "seagrass_BF", "seagrass_rho","seagrass_rs")
+bf.dat$locus<-sub("./pruned_snps/(\\d+.*)","\\1",bf.dat$locus)
+
+
 #####BAYENV: ENV
 bf.scaff<-merge(sub.map, bf.dat, by.x="V2", by.y="locus")
 colnames(bf.scaff)[1:4]<-c("locus","scaffold","dist","BP")
@@ -1145,6 +1160,23 @@ mal.unstd.new<-rbind(mal.pheno.sep$TXSP,mal.pheno.sep$TXCC,mal.pheno.sep$TXCB,
 	mal.pheno.sep$FLFD,mal.pheno.sep$FLSI,mal.pheno.sep$FLAB,
 	mal.pheno.sep$FLPB,mal.pheno.sep$FLHB,mal.pheno.sep$FLCC)
 
+fem.psts<-apply(fem.unstd.new[,3:10],2,function(x){
+	pst<-pairwise.pst(data.frame(fem.unstd.new[,1],x),pop.list)
+	return(pst)
+})
+for(i in 1:length(fem.psts)){
+	write.table(fem.psts[[i]],paste(names(fem.psts)[i],".pst.txt",sep=""),
+		sep='\t',quote=F)
+}
+mal.psts<-apply(mal.unstd.new[,3:8],2,function(x){
+	pst<-pairwise.pst(data.frame(mal.unstd.new[,1],x),pop.list)
+	return(pst)
+})
+for(i in 1:length(mal.psts)){
+	write.table(mal.psts[[i]],paste(names(mal.psts)[i],".pst.txt",sep=""),
+		sep='\t',quote=F)
+}
+
 fem.fst.upst<-all.traits.pst.mantel(fem.unstd.new,pwise.fst.sub,1)
 mal.fst.upst<-all.traits.pst.mantel(mal.unstd.new,pwise.fst.sub,1)
 
@@ -1580,19 +1612,17 @@ dev.off()
 ##############################################################################
 
 #GLOBAL
-pmat.fem.global<-cov(fem.unstd.new[,3:10])
+#pmat.fem.global<-cov(fem.unstd.new[,3:10])
+#pmat.mal.global<-cov(mal.unstd.new[,3:8])
 
 #pca of traits
-fem.phen.uns.rda<-rda(fem.unstd.new[,3:10])
-fem.phen.std.rda<-rda(fem.pheno.new[,3:10])
+#fem.phen.uns.rda<-rda(fem.unstd.new[,3:10])
+#fem.phen.std.rda<-rda(fem.pheno.new[,3:10])
 #pca of p-matrices
-fem.pmat.uns.rda<-rda(data.frame(cov(fem.unstd.new[,3:10])))
-fem.pmat.std.rda<-rda(data.frame(pmat.fem.global))
-
-fem.phen.uns.rda$CA$v #shows loadings per trait
-
-pmat.mal.global<-cov(mal.unstd.new[,3:8])
-pmat.mal.uns.rda<-rda(data.frame(pmat.mal.global))
+#fem.pmat.uns.rda<-rda(data.frame(cov(fem.unstd.new[,3:10])))
+#fem.pmat.std.rda<-rda(data.frame(pmat.fem.global))
+#fem.phen.uns.rda$CA$v #shows loadings per trait
+#pmat.mal.uns.rda<-rda(data.frame(pmat.mal.global))
 
 #BETWEEN POPS
 calc.pmat<-function(phen.dat.list, dim1, dim2){
@@ -1610,7 +1640,8 @@ pops.fem.uns.dat<-split(fem.unstd.new, fem.unstd.new$PopID)
 
 pmat.fem.std.pops<-calc.pmat(pops.fem.std.dat,3,10)
 pmat.fem.uns.pops<-calc.pmat(pops.fem.uns.dat,3,10)
-pmat.fem.uns.pops<-calc.pmat(pops.fem.uns.dat,3,8)
+pmat.fem.uns.body.pops<-calc.pmat(pops.fem.uns.dat,3,8)
+pmat.fem.uns.band.pops<-calc.pmat(pops.fem.uns.dat,9,10)
 
 #males
 pops.mal.std.dat<-split(mal.pheno.new, mal.pheno.new$PopID)
@@ -1631,9 +1662,9 @@ for(i in 1:length(pmat.fem.uns.pops)){
 		upper.tri(cor(pmat.fem.uns.pops[[i]]))])
 	dat<-as.matrix(
 		cbind(dat,eigen(pmat.fem.uns.pops[[i]])$vectors[,1:3]))
-	colnames(dat)<-c(colnames(fem.pheno.new)[3:10],
+	colnames(dat)<-c(colnames(fem.unstd.new)[3:10],
 		"p1","p2","p3")
-	rownames(dat)<-colnames(fem.pheno.new)[3:10]
+	rownames(dat)<-colnames(fem.unstd.new)[3:10]
 	write.table(dat, 
 		paste("pop.",names(pmat.fem.uns.pops)[i], ".pmat_unstd.txt", sep=""), 
 		sep='\t',
@@ -1664,9 +1695,9 @@ for(i in 1:length(pmat.mal.uns.pops)){
 		upper.tri(cor(pmat.mal.uns.pops[[i]]))])
 	dat<-as.matrix(
 		cbind(dat,eigen(pmat.mal.uns.pops[[i]])$vectors[,1:3]))
-	colnames(dat)<-c(colnames(mal.pheno.new)[3:8],
+	colnames(dat)<-c(colnames(mal.unstd.new)[3:8],
 		"p1","p2","p3")
-	rownames(dat)<-colnames(mal.pheno.new)[3:8]
+	rownames(dat)<-colnames(mal.unstd.new)[3:8]
 	write.table(dat, 
 		paste("pop.",names(pmat.mal.uns.pops)[i], 
 			".male.pmat_unstd.txt", sep=""), 
@@ -1809,6 +1840,40 @@ blows.mal.sim.std.mat[upper.tri(blows.mal.sim.std.mat)]<-
 write.table(blows.mal.sim.std.mat, "standardized_p_sim_matrix_female.txt", 
 	col.names=T,row.names=T, eol='\n', sep='\t', quote=F)
 
+#RANDOMIZED
+#female
+fem.rand<-fem.unstd.new
+fem.rand$PopID<-fem.unstd.new[sample(nrow(fem.unstd.new)),1]
+fem.rand.sep<-split(fem.rand, fem.rand$PopID)
+fem.rand.new<-rbind(fem.rand.sep$TXSP,fem.rand.sep$TXCC,fem.rand.sep$TXCB,
+	fem.rand.sep$ALST,fem.rand.sep$FLSG,fem.rand.sep$FLKB,
+	fem.rand.sep$FLFD,fem.rand.sep$FLSI,fem.rand.sep$FLAB,
+	fem.rand.sep$FLPB,fem.rand.sep$FLHB,fem.rand.sep$FLCC)
+pops.fem.rand.dat<-split(fem.rand.new, fem.rand.new$PopID)
+pmat.fem.rand.pops<-calc.pmat(pops.fem.rand.dat,3,10)
+pmat.f.r.p<-pmat.fem.rand.pops[match(pop.list, names(pmat.fem.rand.pops))]
+fem.sim.rand.mat<-generate.sim.mat(pmat.f.r.p)
+pmax.fem.rand.mat<-vector.correlations(pmat.fem.rand.pops)
+blows.sim.rand.mat<-fem.sim.rand.mat
+blows.sim.rand.mat[upper.tri(blows.sim.rand.mat)]<-
+	pmax.fem.rand.mat[upper.tri(pmax.fem.rand.mat)]
+
+#male
+mal.rand<-mal.unstd.new
+mal.rand$PopID<-mal.unstd.new[sample(nrow(mal.unstd.new)),1]
+mal.rand.sep<-split(mal.rand, mal.rand$PopID)
+mal.rand.new<-rbind(mal.rand.sep$TXSP,mal.rand.sep$TXCC,mal.rand.sep$TXCB,
+	mal.rand.sep$ALST,mal.rand.sep$FLSG,mal.rand.sep$FLKB,
+	mal.rand.sep$FLFD,mal.rand.sep$FLSI,mal.rand.sep$FLAB,
+	mal.rand.sep$FLPB,mal.rand.sep$FLHB,mal.rand.sep$FLCC)
+pops.mal.rand.dat<-split(mal.rand.new, mal.rand.new$PopID)
+pmat.mal.rand.pops<-calc.pmat(pops.mal.rand.dat,3,8)
+pmat.m.r.p<-pmat.mal.rand.pops[match(pop.list, names(pmat.mal.rand.pops))]
+mal.sim.rand.mat<-generate.sim.mat(pmat.m.r.p)
+pmax.mal.rand.mat<-vector.correlations(pmat.mal.rand.pops)
+blows.mal.rand.mat<-mal.sim.rand.mat
+blows.mal.rand.mat[upper.tri(blows.mal.rand.mat)]<-
+	pmax.mal.rand.mat[upper.tri(pmax.mal.rand.mat)]
 
 #######PLOT##########
 #make a heatmap, males above the diagonal, females below
@@ -1826,6 +1891,40 @@ mtext("Females", 2,outer=T, line=-4)
 mtext("Males", 3, outer=T,line=1)
 dev.off()
 
+#male and female body traits
+pmat.fem.uns.body.pops<-calc.pmat(pops.fem.uns.dat,3,8)
+pmat.f.ub.p<-pmat.fem.uns.body.pops[match(pop.list, names(pmat.fem.uns.body.pops))]
+fem.sim.unstd.body.mat<-generate.sim.mat(pmat.f.ub.p)
+pmax.unstd.body.mat<-vector.correlations(pmat.fem.uns.body.pops)
+blows.sim.unstd.body.mat<-fem.sim.unstd.body.mat
+blows.sim.unstd.mat[upper.tri(blows.sim.unstd.body.mat)]<-
+	pmax.unstd.body.mat[upper.tri(pmax.unstd.body.mat)]
+plot.pmat<-mal.sim.unstd.mat
+plot.pmat[lower.tri(plot.pmat)]<-
+	fem.sim.unstd.body.mat[lower.tri(fem.sim.unstd.body.mat)]
+jpeg("blows.pmatrix.bodies.heatmap.jpeg",height=7,width=7,units="in",res=300)
+par(oma=c(3,1,2,3),mar=c(3,1,2,3),las=1)
+heatmap.2(plot.pmat, Rowv=NA, Colv=NA, dendrogram="none",col=bluered(100),
+	trace="none", margins,key.title=NA, key.ylab=NA,key.xlab=NA,srtCol=25, 
+	lmat=rbind(c(2,1),c(3,4)), lwid=c(1,4),lhei=c(4,0.5),
+	keysize=0.5, margins=c(2,2),key.par=list(yaxt="n"))
+mtext("Females", 2,outer=T, line=-4)
+mtext("Males", 3, outer=T,line=1)
+dev.off()
+
+#random
+plot.pmat<-mal.sim.rand.mat
+plot.pmat[lower.tri(plot.pmat)]<-
+	fem.sim.rand.mat[lower.tri(fem.sim.rand.mat)]
+#jpeg("blows.rand.pmatrix.heatmap.jpeg",height=7,width=7,units="in",res=300)
+par(oma=c(3,1,2,3),mar=c(3,1,2,3),las=1)
+heatmap.2(plot.pmat, Rowv=NA, Colv=NA, dendrogram="none",col=bluered(100),
+	trace="none", margins,key.title=NA, key.ylab=NA,key.xlab=NA,srtCol=25, 
+	lmat=rbind(c(2,1),c(3,4)), lwid=c(1,4),lhei=c(4,0.5),
+	keysize=0.5, margins=c(2,2),key.par=list(yaxt="n"))
+mtext("Females", 2,outer=T, line=-4)
+mtext("Males", 3, outer=T,line=1)
+
 #standardized
 plot.pmat<-mal.sim.std.mat
 plot.pmat[lower.tri(plot.pmat)]<-
@@ -1840,6 +1939,19 @@ mtext("Females", 2,outer=T, line=-4)
 mtext("Males", 3, outer=T,line=1)
 dev.off()
 
+for(i in 1:length(pmat.fem.uns.pops)){
+	out.dat<-data.frame(eigenvalue=eigen(pmat.fem.uns.pops[[i]])$values,
+		eigen(pmat.fem.uns.pops[[i]])$vectors)
+	rownames(out.dat)<-rownames(pmat.fem.uns.pops[[i]])
+	write.csv(out.dat,paste(pop.order[i],".femPeigen.csv"))
+}
+for(i in 1:length(pmat.mal.uns.pops)){
+	out.dat<-data.frame(eigenvalue=eigen(pmat.mal.uns.pops[[i]])$values,
+		eigen(pmat.mal.uns.pops[[i]])$vectors)
+	rownames(out.dat)<-rownames(pmat.mal.uns.pops[[i]])
+	write.csv(out.dat,paste(pop.order[i],".malPeigen.csv"))
+}
+
 #####################MULTIPLE SUBSPACES###################
 h.fem<-calc.h(pmat.fem.uns.pops)
 h.mal<-calc.h(pmat.mal.uns.pops)
@@ -1850,6 +1962,9 @@ h.fem.ang<-data.frame(FemAngle1=do.call("rbind",
 	lapply(pmat.fem.uns.pops,pop.h.angle,H=h.fem,h.eig=2)),
 	FemAngle3=do.call("rbind",
 	lapply(pmat.fem.uns.pops,pop.h.angle,H=h.fem,h.eig=3)))
+rownames(h.fem.ang)<-names(pmat.fem.uns.pops)
+h.fem.ang<-h.fem.ang[match(pop.order,rownames(h.fem.ang)),]
+write.csv(h.fem.ang,"CommonSubspaceAngles_Fem.csv")
 
 h.mal.ang<-data.frame(MalAngle1=do.call("rbind",
 	lapply(pmat.mal.uns.pops,pop.h.angle,H=h.mal,h.eig=1)),
@@ -1857,13 +1972,40 @@ h.mal.ang<-data.frame(MalAngle1=do.call("rbind",
 	lapply(pmat.mal.uns.pops,pop.h.angle,H=h.mal,h.eig=2)),
 	MalAngle3=do.call("rbind",
 	lapply(pmat.mal.uns.pops,pop.h.angle,H=h.mal,h.eig=3)))
+rownames(h.mal.ang)<-names(pmat.mal.uns.pops)
+h.mal.ang<-h.mal.ang[match(pop.order,rownames(h.mal.ang)),]
+write.csv(h.mal.ang,"CommonSubspaceAngles_Mal.csv")
 
+write.csv(h.fem,"CommonSubspaceFemales.csv")
+write.csv(h.mal,"CommonSubspaceMales.csv")
+
+write.csv(cbind(eigen(h.fem)$values,eigen(h.fem)$vectors),
+	"HfemalesEigenvectors.csv")
+write.csv(cbind(eigen(h.mal)$values,eigen(h.mal)$vectors),
+	"HmalesEigenvectors.csv")
+
+#randomized
+h.fem.rnd<-calc.h(pmat.fem.rand.pops)
+h.mal.rnd<-calc.h(pmat.mal.rand.pops)
+png("CommonSubspaceCombinedEigenvalues.png",height=7,width=7,units="in",res=300)
+plot(seq(1,8,1),eigen(h.fem)$values,pch=16,col="red",xaxt='n',yaxt='n',
+	xlab="",ylab="")
+axis(1,at=seq(1.15,8.15,1),labels=c(expression(bolditalic(h)[1]),
+	expression(bolditalic(h)[2]),expression(bolditalic(h)[3]),
+	expression(bolditalic(h)[4]),expression(bolditalic(h)[5]),
+	expression(bolditalic(h)[6]),expression(bolditalic(h)[7]),
+	expression(bolditalic(h)[8])))
+mtext(expression(Eigenvectors~of~bold(H)),1,line=2)
+axis(2,las=1)
+mtext(expression(Eigenvalues~of~bold(H)),2,line=2)
+points(seq(1.1,6.1,1),eigen(h.mal)$values,pch=15,col="blue")
+points(seq(1.2,8.2,1),eigen(h.fem.rnd)$values,pch=1,col="red")
+points(seq(1.3,6.3,1),eigen(h.mal.rnd)$values,pch=0,col="blue")
+legend("topright",c("Observed Female","Observed Male","Randomized Female",
+	"Randomized Male"),pch=c(16,15,1,0),col=c("red","blue","red","blue"))
+dev.off()
 #####################TENSORS############################
 #Adapted from Aguirre et al. 2013 supplemental material
-pmat.mal.unst.pops<-calc.pmat(pops.mal.unstd.dat,3,8)
-pmat.mal.unst.pops<-pmat.mal.unst.pops[match(pop.list, names(pmat.mal.unst.pops))]
-pmat.fem.unst.pops<-calc.pmat(pops.fem.unstd.dat,3,10)
-pmat.fem.unst.pops<-pmat.fem.unst.pops[match(pop.list, names(pmat.fem.unst.pops))]
 
 covtensor<-function(matrix.list){
 #Adapted from Aguirre et al. 2013 supplemental material
@@ -1958,15 +2100,15 @@ covtensor<-function(matrix.list){
 }
 f.n.traits<-8
 m.n.traits<-6
-pop.names<-names(pmat.fem.unst.pops)
-fem.tensor<-covtensor(pmat.fem.unst.pops)
-mal.tensor<-covtensor(pmat.mal.unst.pops)
+pop.names<-names(pmat.fem.uns.pops)
+fem.tensor<-covtensor(pmat.fem.uns.pops)
+mal.tensor<-covtensor(pmat.mal.uns.pops)
 #eigenvalues for the nonzero eigentensors
 fem.tensor$s.alpha[,1:fem.tensor$nonzero]
 fem.tensor$tensor.summary[
 	1:((ncol(fem.tensor$tensor.summary)-2)*fem.tensor$nonzero),]
 #plot coordinates of female p matrix in the space of e1 and e2 
-plot(fem.tensor$p.coord[,1], ylim=c(-200,50), xaxt="n", las=1,
+plot(fem.tensor$p.coord[,1], ylim=c(-50,100), xaxt="n", las=1,
 	xlab="Population", ylab="alpha")
 axis(1, at=seq(1,12,1), labels=F)
 text(x=seq(1,12,1), labels=pop.names, par("usr")[1]-230,
@@ -1976,7 +2118,7 @@ points(fem.tensor$p.coord[,2], pch=19)
 lines(fem.tensor$p.coord[,2], lty=1)
 points(fem.tensor$p.coord[,3], pch=15)
 lines(fem.tensor$p.coord[,3],lty=4)
-legend("bottomright", pch=c(1,19,15), lty=c(2,1,4), c("e1","e2","e3"))
+legend("bottomright", pch=c(1,19,15),lty=c(2,1,4), c("e1","e2","e3")) 
 #trait combinations for e1, e2, and e3
 round(fem.tensor$tensor.summary[1:(f.n.traits*3),
 	2:dim(fem.tensor$tensor.summary)[2]], 3)
@@ -2011,140 +2153,191 @@ m.e3.L <- c(as.numeric(mal.tensor$tensor.summary[((m.n.traits*2)+1),
 proj<- function(G, b) t(b) %*% G %*% (b)
 
 #variance along e1 and e2
-f.e11.proj <- lapply(pmat.fem.unst.pops, proj, b = f.e1.L)
-f.e21.proj <- lapply(pmat.fem.unst.pops, proj, b = f.e2.L)
-f.e31.proj <- lapply(pmat.fem.unst.pops, proj, b = f.e3.L)
+f.e11.proj <- lapply(pmat.fem.uns.pops, proj, b = f.e1.L)
+f.e21.proj <- lapply(pmat.fem.uns.pops, proj, b = f.e2.L)
+f.e31.proj <- lapply(pmat.fem.uns.pops, proj, b = f.e3.L)
 
-m.e11.proj <- lapply(pmat.mal.unst.pops, proj, b = m.e1.L)
-m.e21.proj <- lapply(pmat.mal.unst.pops, proj, b = m.e2.L)
-m.e31.proj <- lapply(pmat.mal.unst.pops, proj, b = m.e3.L)
+m.e11.proj <- lapply(pmat.mal.uns.pops, proj, b = m.e1.L)
+m.e21.proj <- lapply(pmat.mal.uns.pops, proj, b = m.e2.L)
+m.e31.proj <- lapply(pmat.mal.uns.pops, proj, b = m.e3.L)
 
-#summary plots
-jpeg("blows.method3.summary.jpeg", width=7, height=7, units="in", res=300)
-layout(matrix(c(0,1,2,3),2,2,byrow=F))
-layout.show(3)
+###Write info to files
+write.csv(fem.tensor$s.mat,"FemaleSmatrix.csv")
+write.csv(mal.tensor$s.mat,"MaleSmatrix.csv")
 
-#plot eigenvalues of non-zero eigentensors for S
-par(mar=c(5,4,2,0))
-plot(fem.tensor$s.alpha[,1:fem.tensor$nonzero], ylab="alpha",
-	xlab="", xaxt="n", las=1)#3 until it levels off.
-axis(1, at=seq(1,fem.tensor$nonzero,1), 
-	labels=paste("E",1:fem.tensor$nonzero, sep=""))
-points(mal.tensor$s.alpha[,1:mal.tensor$nonzero],pch=6)
-legend("top", pch=c(1,6), c("Males", "Females"))
-text(x=11,y=2000, "B", font=2)
+write.csv(fem.tensor$tensor.summary,"FemaleTensorSummary.csv")
+write.csv(mal.tensor$tensor.summary,"MaleTensorSummary.csv")
+#******************************FIGURE 7***********************************#
+jpeg("Figure7_revisions.jpeg", width=14, height=14, units="in", res=300)
+#layout(matrix(c(0,1,2,3),2,2,byrow=F))
+#layout.show(3)
+par(mfrow=c(2,2),lwd=1.3,cex=1.3,oma=c(2,2,2,2))
+
+#common subspace females
+par(mar=c(3,5,2,1))
+plot(x=seq(1,12,1),h.fem.ang[,1],col="red",
+	 xaxt="n", las=1,ylim=c(0,0.4),xlab="Population", ylab="angle")
+axis(1, at=seq(1,12,1), labels=F)
+text(x=seq(1,12,1), labels=pop.order, par("usr")[1]-0.61,
+	srt=-45, xpd=TRUE)
+lines(x=seq(1,12,1),h.fem.ang[,1], lty=2,col="red")
+points(x=seq(1,12,1),h.fem.ang[,2], pch=19,col="red")
+lines(x=seq(1,12,1),h.fem.ang[,2], lty=1,col="red")
+points(x=seq(1,12,1),h.fem.ang[,3], pch=15,col="red")
+lines(x=seq(1,12,1),h.fem.ang[,3],lty=4,col="red")
+legend("topleft", pch=c(1,19,15), lty=c(2,1,4), c(expression(bolditalic(h)[1]),
+	expression(bolditalic(h)[2]),expression(bolditalic(h)[3])),col="red",
+	ncol=3)
+mtext("Females",3,line=1.5,cex=1.3)
+text(x=12,y=0.4, "A", font=2)
+
+#common subspace males
+par(mar=c(3,5,2,1))
+plot(x=seq(1,12,1),h.mal.ang[,1],col="blue",
+	 xaxt="n", las=1,ylim=c(0,1),xlab="Population", ylab="angle")
+axis(1, at=seq(1,12,1), labels=F)
+text(x=seq(1,12,1), labels=pop.order, par("usr")[1]-0.7,
+	srt=-45, xpd=TRUE)
+lines(x=seq(1,12,1),h.mal.ang[,1], lty=2,col="blue")
+points(x=seq(1,12,1),h.mal.ang[,2], pch=19,col="blue")
+lines(x=seq(1,12,1),h.mal.ang[,2], lty=1,col="blue")
+points(x=seq(1,12,1),h.mal.ang[,3], pch=15,col="blue")
+lines(x=seq(1,12,1),h.mal.ang[,3],lty=4,col="blue")
+legend("topleft", pch=c(1,19,15), lty=c(2,1,4), c(expression(bolditalic(h)[1]),
+	expression(bolditalic(h)[2]),expression(bolditalic(h)[3])),col="blue",
+	ncol=3)
+mtext("Males",3,line=1.5,cex=1.3)
+text(x=12,y=1, "B", font=2)
 
 #plot the variance in each population in the direction of e11,e21, and e31
 par(mar=c(3,5,2,1))
-plot(x=seq(1,12,1),f.e11.proj, xaxt="n", las=1,ylim=c(-50,200),
-	xlab="", ylab="lambda")
+f.e11.proj<-f.e11.proj[match(pop.order,names(f.e11.proj))]
+f.e21.proj<-f.e21.proj[match(pop.order,names(f.e21.proj))]
+f.e31.proj<-f.e31.proj[match(pop.order,names(f.e31.proj))]
+plot(x=seq(1,12,1),f.e11.proj, col="red",
+	xaxt="n", las=1,ylim=c(-50,100),xlab="", ylab="lambda")
 axis(1, at=seq(1,12,1), labels=F)
-text(x=seq(1,12,1), labels=pop.names, par("usr")[1]-80,
+text(x=seq(1,12,1), labels=pop.order, par("usr")[1]-70,
 	srt=-45, xpd=TRUE)
-lines(x=seq(1,12,1),f.e11.proj, lty=2)
-points(x=seq(1,12,1),f.e21.proj, pch=19)
-lines(x=seq(1,12,1),f.e21.proj, lty=1)
-points(x=seq(1,12,1),f.e31.proj, pch=15)
-lines(x=seq(1,12,1),f.e31.proj,lty=4)
-legend("bottomright", pch=c(1,19,15), lty=c(2,1,4), c("e1","e2","e3"))
-text(x=2,y=200, "Females")
-text(x=12,y=200, "C", font=2)
+lines(x=seq(1,12,1),f.e11.proj, lty=2,col="red")
+points(x=seq(1,12,1),f.e21.proj, pch=19,col="red")
+lines(x=seq(1,12,1),f.e21.proj, lty=1,col="red")
+points(x=seq(1,12,1),f.e31.proj, pch=15,col="red")
+lines(x=seq(1,12,1),f.e31.proj,lty=4,col="red")
+legend("bottomright", pch=c(1,19,15), lty=c(2,1,4),
+	 c(expression(bolditalic(e)[1]),expression(bolditalic(e)[2]),
+	expression(bolditalic(e)[3])),col="red")
 
-par(mar=c(5,5,0,1))
-plot(x=seq(1,12,1),m.e11.proj, xaxt="n", las=1,ylim=c(-50,200),
-	xlab="Population", ylab="lambda")
+text(x=12,y=100, "C", font=2)
+
+par(mar=c(3,5,2,1))
+m.e11.proj<-m.e11.proj[match(pop.order,names(m.e11.proj))]
+m.e21.proj<-m.e21.proj[match(pop.order,names(m.e21.proj))]
+m.e31.proj<-m.e31.proj[match(pop.order,names(m.e31.proj))]
+plot(x=seq(1,12,1),m.e11.proj,col="blue",
+	 xaxt="n", las=1,ylim=c(-50,100),xlab="Population", ylab="lambda")
 axis(1, at=seq(1,12,1), labels=F)
-text(x=seq(1,12,1), labels=pop.names, par("usr")[1]-80,
+text(x=seq(1,12,1), labels=pop.order, par("usr")[1]-70,
 	srt=-45, xpd=TRUE)
-lines(x=seq(1,12,1),m.e11.proj, lty=2)
-points(x=seq(1,12,1),m.e21.proj, pch=19)
-lines(x=seq(1,12,1),m.e21.proj, lty=1)
-points(x=seq(1,12,1),m.e31.proj, pch=15)
-lines(x=seq(1,12,1),m.e31.proj,lty=4)
-legend("bottomright", pch=c(1,19,15), lty=c(2,1,4), c("e1","e2","e3"))
-text(x=2,y=200, "Males")
-text(x=12,y=200, "D", font=2)
+lines(x=seq(1,12,1),m.e11.proj, lty=2,col="blue")
+points(x=seq(1,12,1),m.e21.proj, pch=19,col="blue")
+lines(x=seq(1,12,1),m.e21.proj, lty=1,col="blue")
+points(x=seq(1,12,1),m.e31.proj, pch=15,col="blue")
+lines(x=seq(1,12,1),m.e31.proj,lty=4,col="blue")
+legend("bottomright", pch=c(1,19,15), lty=c(2,1,4), 
+	 c(expression(bolditalic(e)[1]),expression(bolditalic(e)[2]),
+	expression(bolditalic(e)[3])),col="blue")
+#text(x=2,y=100, "Males")
+text(x=12,y=100, "D", font=2)
+mtext("Population",1,outer=T,cex=1.3)
 dev.off()
 
 
-###Try to plot pc1 and pc2 for males and females
-plot.eigenvectors<-function(dat.cov, col.num, eig.lty=1, eig.col="black"){
-	#Plots the eigenvectors (scaled by the eigenvalues) 
-	j = 1.96*sqrt(eigen(dat.cov)$values[col.num])
-	delx1 = 0 + j*eigen(dat.cov)$vectors[1,col.num]
-	delx2 = 0 + j*eigen(dat.cov)$vectors[2,col.num]
-	delx11 = 0 - j*eigen(dat.cov)$vectors[1,col.num]
-	delx22 = 0 - j*eigen(dat.cov)$vectors[2,col.num]
-	x.values=c(0 , delx1, delx11)
-	y.values=c(0 , delx2, delx22)
-	lines(x.values, y.values, lwd=2, col=eig.col, lty=eig.lty)
-}
-plot.pmatrix<-function(dat, plot.new=TRUE, eig.col="black", eig.lty=1){
-	#get leading eigenvector for bands
-	#and leading eigenvector for length
-	#Plots the P-matrix 95% confidence ellipse and eigenvectors.
-	if(plot.new==TRUE){
-	plot(c(-1,1), c(-1,1) , asp=1, type="n", xlim=c(-1,1), ylim=c(-1,1), 
-		cex.lab=1.5, xlab="",ylab="", las=1)
-	}
-	dat.cov<-cov(dat)
-	ellipse(center=c(0, 0), shape=dat.cov, lty=eig.lty,
-		radius=1.96, center.cex=0.1, 
-		lwd=2, col=eig.col, add=TRUE )
-	plot.eigenvectors(dat.cov, 1, eig.col=eig.col, eig.lty=eig.lty)
-	plot.eigenvectors(dat.cov, 2, eig.col=eig.col, eig.lty=eig.lty)
-}
-
-band.u<-list()
-fem.pheno.u<-list()
-mal.pheno.u<-list()
-for(i in 1:length(band.pca)){
-	band.u[[i]]<-data.frame(cbind(as.numeric(band.pca[[i]]$CA$u[,1]),
-		as.numeric(band.pca[[i]]$CA$u[,2])))
-	fem.pheno.u[[i]]<-data.frame(cbind(as.numeric(fem.pheno.pca[[i]]$CA$u[,1]),
-		as.numeric(fem.pheno.pca[[i]]$CA$u[,2])))
-	mal.pheno.u[[i]]<-data.frame(cbind(as.numeric(mal.pheno.pca[[i]]$CA$u[,1]),
-		as.numeric(mal.pheno.pca[[i]]$CA$u[,2])))
-}
-names(band.u)<-names(band.pca)
-names(fem.pheno.u)<-names(band.pca)
-names(mal.pheno.u)<-names(band.pca)
-
-jpeg("P-matrices.female.jpeg", res=300, height=14, width=14, units="in")
-par(mfrow=c(3,4), mar=c(2,2.5,2,2.5), oma=c(2,2.5,2,2.5))
-for(i in 1:length(fem.pheno.u)){
-	plot.pmatrix(fem.pheno.u[[pop.list[i]]])
-	plot.pmatrix(cbind(fem.pheno.u[[pop.list[i]]][,1],
-		band.u[[pop.list[i]]][,1]),F, "blue", 2)
-	axis(4, las=1)
-	legend("top", pop.list[i], bty="n", cex=1.5)
-}
-par(fig = c(0, 1, 0, 1), oma=c(2,2.5,1,2.5), mar = c(0, 0, 0, 0), 
-	new = TRUE)
-plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
-legend("top", col=c("black","blue"),cex=1.5,
-	c("Body","Bands"),lty=c(1,2), box.lty=0,ncol=4)
-mtext("Body PC1",1, outer=T, line=0, cex=1)
-mtext("Body PC2",2, outer=T, line=0, cex=1)
-mtext("Band PC1",4, outer=T, line=1, cex=1)
+#**************************SUPPLEMENTAL FIGURES*****************************#
+#summary plots
+jpeg("Subspace_eigenvalues.jpeg", width=7, height=7, units="in", res=300)
+par(lwd=1.3,cex=1.3,oma=c(2,2,2,2))
+#common subspace
+par(mar=c(3,5,2,1))
+plot(seq(1,8,1),eigen(h.fem)$values,pch=25,col="red",bg="red",xaxt='n',
+	yaxt='n',xlab="",ylab="")
+axis(1,at=seq(1.1,8.1,1),labels=c(expression(bolditalic(h)[1]),
+	expression(bolditalic(h)[2]),expression(bolditalic(h)[3]),
+	expression(bolditalic(h)[4]),expression(bolditalic(h)[5]),
+	expression(bolditalic(h)[6]),expression(bolditalic(h)[7]),
+	expression(bolditalic(h)[8])))
+mtext(expression(Eigenvectors~of~bold(H)),1,line=2,cex=1.3)
+axis(2,las=1)
+mtext(expression(Eigenvalues~of~bold(H)),2,line=2,cex=1.3)
+points(seq(1.2,6.2,1),eigen(h.mal)$values,pch=15,col="blue")
+legend("top",c("Female","Male"),pch=c(25,15),
+	col=c("red","blue"),pt.bg=c("red","blue"))
 dev.off()
 
-jpeg("P-matrices.male.jpeg", res=300, height=14, width=14, units="in")
-par(mfrow=c(3,4), mar=c(2,2.5,2,2), oma=c(2,2.5,2,2))
-for(i in 1:length(mal.pheno.u)){
-	plot.pmatrix(mal.pheno.u[[pop.list[i]]])
-	legend("top", pop.list[i], bty="n", cex=1.5)
-}
-par(fig = c(0, 1, 0, 1), oma=c(2,2.5,1,2), mar = c(0, 0, 0, 0), 
-	new = TRUE)
-plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
-mtext("Body PC1",1, outer=T, line=0.5, cex=1)
-mtext("Body PC2",2, outer=T, line=0, cex=1)
+jpeg("Eigentensor_alphas.jpeg", width=7, height=7, units="in", res=300)
+par(lwd=1.3,cex=1.3,oma=c(2,2,2,2))
+#plot eigenvalues of non-zero eigentensors for S
+par(mar=c(3,5,2,1))
+plot(fem.tensor$s.alpha[,1:fem.tensor$nonzero], ylab="alpha",
+	xlab="", xaxt="n", las=1,pch=25,col="red",bg="red")#3 until it levels off.
+axis(1, at=seq(1.1,fem.tensor$nonzero+0.1,1), 
+	labels=c(expression(bolditalic(E)[1]),
+	expression(bolditalic(E)[2]),expression(bolditalic(E)[3]),
+	expression(bolditalic(E)[4]),expression(bolditalic(E)[5]),
+	expression(bolditalic(E)[6]),expression(bolditalic(E)[7]),
+	expression(bolditalic(E)[8]),expression(bolditalic(E)[9]),
+	expression(bolditalic(E)[10]),expression(bolditalic(E)[11])))
+points(seq(1.2,mal.tensor$nonzero+0.2,1),
+	mal.tensor$s.alpha[,1:mal.tensor$nonzero],pch=15,col="blue")
+legend("top", ,c("Female","Male"),pch=c(25,15),
+	col=c("red","blue"),pt.bg=c("red","blue"))
+mtext("Eigentensors of fourth-order covariance tensor",1,line=2,cex=1.3)
+text(x=11,y=395, "B", font=2)
+dev.off()
+
+fc1<-fem.tensor$p.coord[,1][match(pop.order,names(fem.tensor$p.coord[,1]))]
+fc2<-fem.tensor$p.coord[,2][match(pop.order,names(fem.tensor$p.coord[,2]))]
+fc3<-fem.tensor$p.coord[,3][match(pop.order,names(fem.tensor$p.coord[,3]))]
+jpeg("FemaleCoordinatesInEspace.jpeg",height=7,width=21,units="in",res=300)
+par(mfrow=c(1,3),oma=c(3,2,1,1),mar=c(4,2,2,2),cex=1.3,lwd=1.3)
+plot(fc1,pch=6,xaxt='n',ylab="Coordinates",xlab="")
+axis(1, at=seq(1,12,1), labels=F)
+text(x=seq(1,12,1), labels=pop.order, par("usr")[1]-4,
+	srt=-45, xpd=TRUE)
+text(x=12,y=70,"E1")
+plot(fc2,pch=6,xaxt='n',ylab="Coordinates",xlab="")
+axis(1, at=seq(1,12,1), labels=F)
+text(x=seq(1,12,1), labels=pop.order, par("usr")[1]-12,
+	srt=-45, xpd=TRUE)
+text(x=12,y=40,"E2")
+plot(fc3,pch=6,xaxt='n',ylab="Coordinates",xlab="")
+axis(1, at=seq(1,12,1), labels=F)
+text(x=seq(1,12,1), labels=pop.order, par("usr")[1]-27,
+	srt=-45, xpd=TRUE)
+text(x=12,y=12,"E3")
 dev.off()
 
 
 
-
-
-
+mc1<-mal.tensor$p.coord[,1][match(pop.order,names(mal.tensor$p.coord[,1]))]
+mc2<-mal.tensor$p.coord[,2][match(pop.order,names(mal.tensor$p.coord[,2]))]
+mc3<-mal.tensor$p.coord[,3][match(pop.order,names(mal.tensor$p.coord[,3]))]
+jpeg("MaleCoordinatesInEspace.jpeg",height=7,width=21,units="in",res=300)
+par(mfrow=c(1,3),oma=c(3,2,1,1),mar=c(4,2,2,2),cex=1.3,lwd=1.3)
+plot(mc1,xaxt='n',ylab="Coordinates",xlab="")
+axis(1, at=seq(1,12,1), labels=F)
+text(x=seq(1,12,1), labels=pop.order, par("usr")[1]-85,
+	srt=-45, xpd=TRUE)
+text(x=12,y=-15,"E1")
+plot(mc2,xaxt='n',ylab="Coordinates",xlab="")
+axis(1, at=seq(1,12,1), labels=F)
+text(x=seq(1,12,1), labels=pop.order, par("usr")[1]-14,
+	srt=-45, xpd=TRUE)
+text(x=12,y=6,"E2")
+plot(mc3,xaxt='n',ylab="Coordinates",xlab="")
+axis(1, at=seq(1,12,1), labels=F)
+text(x=seq(1,12,1), labels=pop.order, par("usr")[1]-0.25,
+	srt=-45, xpd=TRUE)
+text(x=12,y=11.5,"E3")
+dev.off()
 
