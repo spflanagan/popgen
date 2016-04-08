@@ -53,6 +53,12 @@ raw.pheno<-read.table("popgen.pheno.txt", sep="\t", header=T)
 fem.pheno<-read.table("fem.pheno.txt", sep="\t", header=T)
 mal.pheno<-read.table("mal.pheno.txt", sep="\t", header=T)
 
+
+> fem.pheno$TailLength<-fem.pheno$std.length-fem.pheno$SVL
+> fem.pheno$HeadLength<-fem.pheno$HeadLength-fem.pheno$SnoutLength
+
+mal.pheno$TailLength<-mal.pheno$std.length-mal.pheno$SVL
+mal.pheno$HeadLength<-mal.pheno$HeadLength-mal.pheno$SnoutLength
 #############################################################################
 #######################PLOT THE POINTS ON A MAP##############################
 #############################################################################
@@ -1604,6 +1610,7 @@ pops.fem.uns.dat<-split(fem.unstd.new, fem.unstd.new$PopID)
 
 pmat.fem.std.pops<-calc.pmat(pops.fem.std.dat,3,10)
 pmat.fem.uns.pops<-calc.pmat(pops.fem.uns.dat,3,10)
+pmat.fem.uns.pops<-calc.pmat(pops.fem.uns.dat,3,8)
 
 #males
 pops.mal.std.dat<-split(mal.pheno.new, mal.pheno.new$PopID)
@@ -1750,7 +1757,7 @@ calc.h<-function(P.list){
 pop.h.angle<-function(Pmatrix,H,h.eig){
 	b<-eigen(H)$vectors[,h.eig]
 	A<-eigen(Pmatrix)$vectors[,1:3]
-	trans<-t(b)%*%A%*%t(A)%*%b
+	trans<-sqrt(t(b)%*%A%*%t(A)%*%b)
 	delta<-acos(trans^0.5)
 }
 
@@ -1837,12 +1844,19 @@ dev.off()
 h.fem<-calc.h(pmat.fem.uns.pops)
 h.mal<-calc.h(pmat.mal.uns.pops)
 
-h.fem.ang1<-lapply(pmat.fem.uns.pops,pop.h.angle,H=h.fem,h.eig=1)
-h.fem.ang2<-lapply(pmat.fem.uns.pops,pop.h.angle,H=h.fem,h.eig=2)
+h.fem.ang<-data.frame(FemAngle1=do.call("rbind",
+	lapply(pmat.fem.uns.pops,pop.h.angle,H=h.fem,h.eig=1)),
+	FemAngle2=do.call("rbind",
+	lapply(pmat.fem.uns.pops,pop.h.angle,H=h.fem,h.eig=2)),
+	FemAngle3=do.call("rbind",
+	lapply(pmat.fem.uns.pops,pop.h.angle,H=h.fem,h.eig=3)))
 
-h.mal.ang1<-lapply(pmat.mal.uns.pops,pop.h.angle,H=h.mal,h.eig=1)
-h.mal.ang2<-lapply(pmat.mal.uns.pops,pop.h.angle,H=h.mal,h.eig=2)
-
+h.mal.ang<-data.frame(MalAngle1=do.call("rbind",
+	lapply(pmat.mal.uns.pops,pop.h.angle,H=h.mal,h.eig=1)),
+	MalAngle2=do.call("rbind",
+	lapply(pmat.mal.uns.pops,pop.h.angle,H=h.mal,h.eig=2)),
+	MalAngle3=do.call("rbind",
+	lapply(pmat.mal.uns.pops,pop.h.angle,H=h.mal,h.eig=3)))
 
 #####################TENSORS############################
 #Adapted from Aguirre et al. 2013 supplemental material

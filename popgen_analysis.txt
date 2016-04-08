@@ -41,6 +41,21 @@ I'm just reading in the fem.pheno and mal.pheno files from home. Re-doing the Ps
 
 Meanwhile, some of my blast searches have finished so I'll run them through blast2go.
 
+The eigenvalues of the female H are:
+[1] 11.973398525 11.374808392 10.489751252  1.851644007  0.191285884
+[6]  0.097418370  0.012777080  0.008916491
+eigenvalues of the male H are:
+[1] 11.9978140 11.8908686 10.9745211  0.6891948  0.3391816  0.1084199
+
+where the order is SVL,length, depth,snout length, snout depth, head length,
+	band area, band num 
+UMM this doesn't have the modifications! Maybe that's the difference between my heatmap results. Yep, that's it. FML.
+Both males and females differ quite a bit if we consider only the male and female body traits (excluding female bands). the heatmap is difficult to read and interpret. 
+New 
+female eigenvalues for H: [1] 11.9937325 11.6188491  7.4354786  3.2870541  1.6045495  0.0603361
+male eigenvalues for H: [1] 11.9972371 11.7489118  6.2810093  4.5904273  1.1963887  0.1860257
+Angles are <0.03. I don't know how to best depict this.
+
 ####Wednesday, 6 April 2016
 I made a PCA plot of the phenotypes. It looks like what I'd expect. PC1 explains SVL/TailLength vs other traits, and the populations basically group by size. FLAB and FLFD are the largest. FLAB has a weird pattern in the bands pc on PC2 where it's separate from the rest.
 
