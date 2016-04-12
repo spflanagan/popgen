@@ -36,6 +36,70 @@ X-Instead of mean temperature, use a temperature anomaly?
 10. Bayenv2
 11. calculate_global_fst
 ##################################################################################################
+#####Tuesday, 12 April 2016
+Comparing analyses:
+
+summary(all.outliers[all.outliers$SNP %in% band.sig$V1,"analysis"])
+CollectionSalinity     CollectionTemp                Fst           MeanTemp            PCAdapt           Salinity           Seagrass       TempVariance                XtX 
+                 2                  4                  0                  3                  0                  4                  1                  6                  1 
+> summary(all.outliers[all.outliers$SNP %in% head.sig$V1,"analysis"])
+CollectionSalinity     CollectionTemp                Fst           MeanTemp            PCAdapt           Salinity           Seagrass       TempVariance                XtX 
+                28                 36                 11                 38                  5                 31                 43                 34                 42 
+> summary(all.outliers[all.outliers$SNP %in% svl.sig$V1,"analysis"])
+CollectionSalinity     CollectionTemp                Fst           MeanTemp            PCAdapt           Salinity           Seagrass       TempVariance                XtX 
+                34                 35                  4                 33                  4                 29                 29                 26                 36 
+> summary(all.outliers[all.outliers$SNP %in% tail.sig$V1,"analysis"])
+CollectionSalinity     CollectionTemp                Fst           MeanTemp            PCAdapt           Salinity           Seagrass       TempVariance                XtX 
+                21                 23                  3                 23                  1                 23                 24                 19                 23 
+> 
+
+setwd("E:/ubuntushare/popgen/sw_results")
+
+all.outliers<-read.table("AllOutliers.txt",header=T)
+svl.sig<-read.table("pstfst/SVL_pstfst.txt")
+tail.sig<-read.table("pstfst/TailLength_pstfst.txt")
+band.sig<-read.table("pstfst/Bands_pstfst.txt")
+head.sig<-read.table("pstfst/HeadLength_pstfst.txt")
+
+length(levels(factor(svl.sig[svl.sig$V1 %in% all.outliers$SNP,])))
+length(levels(factor(tail.sig[tail.sig$V1 %in% all.outliers$SNP,])))
+length(levels(factor(head.sig[head.sig$V1 %in% all.outliers$SNP,])))
+length(levels(factor(band.sig[band.sig$V1 %in% all.outliers$SNP,])))
+
+summary(all.outliers[all.outliers$SNP %in% band.sig$V1,"analysis"])
+summary(all.outliers[all.outliers$SNP %in% head.sig$V1,"analysis"])
+summary(all.outliers[all.outliers$SNP %in% svl.sig$V1,"analysis"])
+summary(all.outliers[all.outliers$SNP %in% tail.sig$V1,"analysis"])
+
+bf.tempvar<-read.table("bayenv2/new_bayenv/tempvar_bf.txt",header=T)
+bf.dat<-read.table("bayenv2/new_bayenv/BF_summary.pruned_snps.txt",header=T)
+bf.dat$locus<-sub("./pruned_snps/(\\d+.*)","\\1",bf.dat$locus)
+bf.dat<-merge(bf.dat,bf.tempvar,by.x="locus",by.y="SNP")
+sub.map<-read.table("stacks/populations_subset/batch_1.plink.map")
+bf.scaff<-merge(sub.map, bf.dat, by.x="V2", by.y="locus")
+colnames(bf.scaff)[1:4]<-c("locus","scaffold","dist","BP")
+bf<-bf.scaff[,c(1,2,4,5,8,11,14,17,20)]
+bf.co<-apply(bf[,4:9],2,quantile,0.95)
+temp.bf.sig<-bf[bf$Temp_BF>bf.co["Temp_BF"],c(1,2,3,4)]
+sal.bf.sig<-bf[bf$Salinity_BF>bf.co["Salinity_BF"],c(1,2,3,5)]
+ctemp.bf.sig<-bf[bf$coll.temp_BF>bf.co["coll.temp_BF"],c(1,2,3,6)]
+csal.bf.sig<-bf[bf$coll.sal_BF>bf.co["coll.sal_BF"],c(1,2,3,7)]
+grass.bf.sig<-bf[bf$seagrass_BF>bf.co["seagrass_BF"],c(1,2,3,8)]
+tvar.bf.sig<-bf[bf$BFtempvar>bf.co["BFtempvar"],c(1,2,3,9)]
+
+bf.names<-c("CollectionTemp","TempVariance","Salinity","Seagrass",
+	"CollectionSalinity","MeanTemp")
+locad.out<-all.outliers[!(all.outliers$analysis %in% bf.names),]
+
+loc.bf<-c(as.character(temp.bf.sig[temp.bf.sig$locus %in% locad.out$SNP,"locus"]),
+	as.character(ctemp.bf.sig[ctemp.bf.sig$locus %in% locad.out$SNP,"locus"]),
+	as.character(tvar.bf.sig[tvar.bf.sig$locus %in% locad.out$SNP,"locus"]),
+	as.character(sal.bf.sig[sal.bf.sig$locus %in% locad.out$SNP,"locus"]),
+	as.character(csal.bf.sig[csal.bf.sig$locus %in% locad.out$SNP,"locus"]),
+	as.character(grass.bf.sig[grass.bf.sig$locus %in% locad.out$SNP,"locus"]))
+length(levels(factor(loc.bf)))
+
+
 #####Monday, 11 April 2016
 I need to do the summary stats. I'm thinking of just including more from the stacks output. That should be fine.
 I'm also re-making all of the figures to be pdfs, as per the molecular ecology instructions.

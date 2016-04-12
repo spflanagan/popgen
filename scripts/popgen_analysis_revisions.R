@@ -14,6 +14,7 @@ library(boot)
 library(adegenet)
 library(scales)
 library(gdata);library(matrixcalc)
+library(psych)
 
 setwd("E:/ubuntushare/popgen/sw_results/")
 source("../scripts/plotting_functions.R")
@@ -46,7 +47,7 @@ sub.ped<-read.table("stacks/populations_subset/batch_1.plink.ped")
 sub.ped$V1<-gsub("sample_(\\w{4})\\w+.*align","\\1",sub.ped$V2)
 write.table(sub.ped,"migrate/subset.ped",col.names=F,row.name=F,quote=F)
 all.map<-read.table("stacks/populations/batch_1.plink.map")
-sub.map<-read.table("stacks/populations/subset.map")
+sub.map<-read.table("stacks/populations_subset/batch_1.plink.map")
 sub.scaffs<-all.map[all.map$V2 %in% sub.map$V2,]#not in the correct order!
 
 raw.pheno<-read.table("popgen.pheno.txt", sep="\t", header=T)
@@ -63,42 +64,34 @@ mal.pheno<-read.table("mal.pheno.txt", sep="\t", header=T)
 #######################PLOT THE POINTS ON A MAP##############################
 #############################################################################
 jpeg("mar_sites_map_again.jpg", res=300, height=7,width=14, units="in")
+pdf("marine_sites_map.pdf",height=7,width=14)
 par(oma=c(0,0,0,0),mar=c(0,0,0,0),pin=c(7,7))
 map("worldHires", "usa",xlim=c(-100,-76), ylim=c(24,32), 
 	col="gray90", mar=c(0,0,0,0),fill=TRUE, res=300,myborder=0)
 map("worldHires", "mexico",xlim=c(-100,-76), ylim=c(24,32), 
 	col="gray95", fill=TRUE, add=TRUE)
-points(mar.coor$lon, mar.coor$lat,  col="black", cex=1, pch=19)
+points(mar.coor$lon, mar.coor$lat,  col="black", cex=1.2, pch=19)
 abline(h=c(25,30,35),lty=3)
 abline(v=c(-80,-85,-90,-95,-100),lty=3)
-text(x=c(-99.5,-99.5,-99.5),y=c(25,30,35),c("25N","30N","35N"))
-text(x=c(-80,-85,-90,-95),y=rep(35.3,4),c("80W","85W","90W","95W"))
+text(x=c(-99.5,-99.5),y=c(25,30),c("25N","30N"))
+text(x=c(-80,-85,-90,-95),y=rep(31.8,4),c("80W","85W","90W","95W"))
 text(y=26,x=-90,"Gulf of Mexico")
-text(y=26,x=-90,"Mexico")
-text(x=-88,y=32,"USA")
+text(y=25.5,x=-98.5,"Mexico")
+text(x=-91,y=31,"USA")
 text(x=-78,y=29.5,"Atlantic Ocean")
-abline(h=c(25,30),lty=3)
-abline(v=c(-80,-85,-90,-95,-100),lty=3)
-text(x=c(-99.5,-99.5,-99.5),y=c(25,30,35),c("25N","30N"))
-text(x=c(-80,-85,-90,-95),y=rep(31.7,4),c("80W","85W","90W","95W"))
-text(x=-96,y=26,"TXSP",font=2)
-text(x=-96.4,y=27,"TXCC",font=2)
-text(x=-94,y=29,"TXCB",font=2)
-text(x=-88,y=29.7,"ALST",font=2)
-text(x=-85.7,y=29.2,"FLSG",font=2)
-text(x=-84,y=28.8,"FLKB",font=2)
-text(x=-83.6,y=27.6,"FLFD",font=2)
-text(x=-82.8,y=26,"FLSI",font=2)
-text(x=-79.5,y=25,"FLAB",font=2)
-text(x=-79,y=26.2,"FLPB",font=2)
-text(x=-79,y=27.2,"FLHB",font=2)
-text(x=-79.4,y=28.2,"FLCC",font=2)
+text(x=-96.5,y=26,"TXSP",font=2)
+text(x=-96.9,y=27.2,"TXCC",font=2)
+text(x=-94.7,y=29,"TXCB",font=2)
+text(x=-88,y=30,"ALST",font=2)
+text(x=-85,y=29.4,"FLSG",font=2)
+text(x=-83.5,y=29.2,"FLKB",font=2)
+text(x=-83.2,y=27.6,"FLFD",font=2)
+text(x=-82.2,y=26,"FLSI",font=2)
+text(x=-80,y=24.8,"FLAB",font=2)
+text(x=-79.5,y=26.8,"FLPB",font=2)
+text(x=-79.7,y=27.2,"FLHB",font=2)
+text(x=-80.2,y=28.2,"FLCC",font=2)
 dev.off()
-
-
-
-###############SUMMARY STATS PER POP######################################
-
 
 ##############################################################################
 #****************************************************************************#
@@ -180,7 +173,7 @@ rownames(ibd.by.loc)<-sub.map$V2
 #########################################################################
 
 #******************************ADEGENET*********************************#
-dat.plink<-read.PLINK("sw_results/stacks/populations/subsetA.raw",
+dat.plink<-read.PLINK("stacks/populations/subsetA.raw",
 	parallel=FALSE)
 #look at alleles
 glPlot(dat.plink, posi="topleft")
@@ -523,6 +516,63 @@ plotting.structure(str5,5,pop.list, make.file=FALSE, colors=all.colors,
 #plotting.structure(fstr5,5,pop.list, make.file=FALSE, colors=all.colors
 #	,xlabel=T,ylabel="FAST\nK=5")
 dev.off()
+########################MAKE POP STRUCTURE FIGURE#############################
+jpeg("PopStructure_revised.jpeg", height=12, width=12, units="in",
+	 res=300)
+pdf("PopStructure_revised.pdf", height=12, width=12)
+par(lwd=1.3,cex=1.3,fig=c(0,0.5,0.45,0.9),oma=c(2,2,2,1),mar=c(2,2,2,1),
+	las=1,new=F)
+#PCAdapt
+plot(as.numeric(scores[1,]),as.numeric(scores[2,]),pch=16, cex=2,
+	col=alpha(colors, 0.5), ylab="", xlab="",lwd=1.3)
+mtext("PC1 (rho2: 0.0175)", 1, line = 2,cex=1.3)
+mtext("PC2 (rho2: 0.0131)",2, line = 2,las=0,cex=1.3)
+text(x=-3,y=2.5,"PCAdapt,\nBest K = 4")
+legend("bottomleft", pop.list, pch=19, pt.cex=2,
+	col=alpha(rainbow(12),0.5), ncol=2)
+
+par(fig=c(0.5,1,0.45,0.9),new=T)
+plot(as.numeric(scores[1,]),as.numeric(scores[3,]),pch=16, cex=2,
+	col=alpha(colors, 0.5), ylab="", xlab="")
+mtext("PC1 (rho2: 0.0175)", 1, line = 2,cex=1.3)
+mtext("PC3 (rho2: 0.0019)",2, line = 2,las=0,cex=1.3)
+text(x=-3,y=3,"PCAdapt,\nBest K = 4")
+
+#Adegenet
+par(fig=c(0,0.5,0,0.45),new=T)
+plot(adegenet.da$LD1,adegenet.da$LD2,pch=as.numeric(adegenet.da$V2),
+	col=alpha(adegenet.da$pop,0.5),ylab="",xlab="",cex=2)
+legend("bottomleft",pch=c(15,16,17),pt.cex=2,c("Group 1","Group 2","Group 3"),
+	col=alpha("black",0.5),ncol=3)
+mtext("Discriminant Axis 1",1,line=2,cex=1.3)
+mtext("Discriminant Axis 2",2,line=1.5,las=0,cex=1.3)
+text(x=-8,y=4.5,"Adegenet,\nBest K = 3")
+
+par(fig=c(0.5,1,0,0.45),new=T)
+plot(pca1$scores[,1], pca1$scores[,2], pch=16, cex=2,lwd=1.3,
+	col=alpha(pop.colors, 0.5), ylab="", xlab="")
+mtext(paste("PC1: ", round(pca1$eig[1]/sum(pca1$eig)*100, 2), "%", sep=""), 
+	1, line = 2,cex=1.3)
+mtext(paste("PC2: ", round(pca1$eig[2]/sum(pca1$eig)*100, 2), "%", sep=""), 
+	2, line = 1.5,las=0,cex=1.3)
+text(x=1,y=2.8,"Adegenet,\nBest K = 3")
+
+par(mar=c(1,0,0,0), 
+		oma=c(1,2,2,2),cex=0.5)
+fig.start<-seq(0,11,1)/12
+fig.end<-seq(1,12,1)/12
+str.split<-split(str5,str5[,1])
+for(i in 1:length(str.split)){
+	pop.index<-pop.list[i]
+	par(fig=c(fig.start[i],fig.end[i],0.9,1),mar=c(1,0,0,0), 
+		oma=c(1,2,2,2),cex=0.5,new=T)
+	barplot(height=as.matrix(t(str.split[[pop.index]][,-1])),
+		beside=FALSE, space=0,	border=NA, col=all.colors,
+		xlab="", ylab="", xaxt='n', yaxt='n')
+	mtext(pop.index, 1, line=1, cex=1.3, outer=F)	
+}
+dev.off()
+
 
 ##############################################################################
 #****************************************************************************#
@@ -684,40 +734,225 @@ xtx$locus<-sub("./pruned_snps/(\\d+.*)","\\1",xtx$locus)
 setwd("../")
 write.table(bf.dat,"BF_summary.pruned_snps.txt",sep='\t',quote=F,row.names=F)
 write.table(xtx,"XtX_summary.pruned_snps.txt",sep='\t',quote=F,row.names=F)
-setwd("../../")
 
-setwd("bayenv2/new_bayenv/temp_var")
+setwd("/new_bayenv/temp_var")
 bf.files<-list.files(pattern="bf")
-
-bf.dat<-NULL
+bf.tempvar<-NULL
 for(i in 1:length(bf.files)){
 	bf<-read.table(bf.files[i])
-	bf.dat<-rbind(bf.dat,bf)
+	bf.tempvar<-rbind(bf.tempvar,bf)
 }
-colnames(bf.dat)<-c("locus", "Temp_BF", "Temp_rho", "Temp_rs", 
-	"Salinity_BF", "Salinity_rho", "Salinity_rs", "coll.temp_BF", 
-	"coll.temp_rho", "coll.temp_rs", "coll.sal_BF", "coll.sal_rho", 
-	"coll.sal_rs", "seagrass_BF", "seagrass_rho","seagrass_rs")
-bf.dat$locus<-sub("./pruned_snps/(\\d+.*)","\\1",bf.dat$locus)
+colnames(bf.tempvar)<-c("SNP","BFtempvar","rtempvar","rStempvar")
+bf.tempvar$SNP<-sub("./temp_var/(\\d+.*)","\\1",bf.tempvar$SNP)
+write.table(bf.tempvar,"../tempvar_bf.txt",quote=F)
+setwd("../../")
 
-
+bf.dat<-merge(bf.dat,bf.tempvar,by.x="locus",by.y="SNP")
 #####BAYENV: ENV
 bf.scaff<-merge(sub.map, bf.dat, by.x="V2", by.y="locus")
 colnames(bf.scaff)[1:4]<-c("locus","scaffold","dist","BP")
 #focus on Bayes Factors, because of Lotterhos & Whitlock (2015)
-bf<-bf.dat[,c(1,2,5,8,11,14)]
-bf.co<-apply(bf.dat[,-1],2,quantile,0.95)
-temp.bf.sig<-bf[bf$Temp_BF>bf.co["Temp_BF"],c(1,2)]#88
-sal.bf.sig<-bf[bf$Sal_BF>bf.co["Salinity_BF"],c(1,3)]#0
-ctemp.bf.sig<-bf[bf$ctemp_bf>bf.co["coll.temp_bf"],c(1,4)]#0
-csal.bf.sig<-bf[bf$csal_bf>bf.co["coll.sal_bf"],c(1,5)]#0
-grass.bf.sig<-bf[bf$seagrass_bf>bf.co["seagrass_bf"],c(1,6)]#0
+bf<-bf.scaff[,c(1,2,4,5,8,11,14,17,20)]
+bf.co<-apply(bf[,4:9],2,quantile,0.95)
+temp.bf.sig<-bf[bf$Temp_BF>bf.co["Temp_BF"],c(1,2,3,4)]
+sal.bf.sig<-bf[bf$Salinity_BF>bf.co["Salinity_BF"],c(1,2,3,5)]
+ctemp.bf.sig<-bf[bf$coll.temp_BF>bf.co["coll.temp_BF"],c(1,2,3,6)]
+csal.bf.sig<-bf[bf$coll.sal_BF>bf.co["coll.sal_BF"],c(1,2,3,7)]
+grass.bf.sig<-bf[bf$seagrass_BF>bf.co["seagrass_BF"],c(1,2,3,8)]
+tvar.bf.sig<-bf[bf$BFtempvar>bf.co["BFtempvar"],c(1,2,3,9)]
+
+dim(tvar.bf.sig[tvar.bf.sig$locus %in% temp.bf.sig$locus & 
+	tvar.bf.sig$locus %in% ctemp.bf.sig,])
+dim(sal.bf.sig[sal.bf.sig$locus %in% csal.bf.sig$locus,])
+dim(grass.bf.sig[grass.bf.sig$locus %in% temp.bf.sig$locus &
+	grass.bf.sig$locus %in% sal.bf.sig$locus,])
+dim(grass.bf.sig[grass.bf.sig$locus %in% ctemp.bf.sig$locus &
+	grass.bf.sig$locus %in% csal.bf.sig$locus,])
+out.venn<-venn( list("MeanSalinity"=sal.bf.sig$locus,
+	"MeanTemp"=temp.bf.sig$locus,"Seagrass"=grass.bf.sig$locus))
+
+temp.bf.sig$start<-temp.bf.sig$BP-2500
+temp.bf.sig$end<-temp.bf.sig$BP+2500
+sal.bf.sig$start<-sal.bf.sig$BP-2500
+sal.bf.sig$end<-sal.bf.sig$BP+2500
+ctemp.bf.sig$start<-ctemp.bf.sig$BP-2500
+ctemp.bf.sig$end<-ctemp.bf.sig$BP+2500
+csal.bf.sig$start<-csal.bf.sig$BP-2500
+csal.bf.sig$end<-csal.bf.sig$BP+2500
+grass.bf.sig$start<-grass.bf.sig$BP-2500
+grass.bf.sig$end<-grass.bf.sig$BP+2500
+tvar.bf.sig$start<-tvar.bf.sig$BP-2500
+tvar.bf.sig$end<-tvar.bf.sig$BP+2500
+chroms<-c(as.character(temp.bf.sig$scaffold),as.character(sal.bf.sig$scaffold),
+	as.character(ctemp.bf.sig$scaffold),as.character(csal.bf.sig$scaffold),
+	as.character(grass.bf.sig$scaffold),as.character(tvar.bf.sig$scaffold))
+chroms<-chroms[!duplicated(chroms)]
+write.table(chroms,
+	"bayenv2/new_bayenv/outliers/all_chroms.txt",col.names=F,row.names=F,
+	quote=F,eol='\n',sep='\t')
+write.table(csal.bf.sig[,c("scaffold","start","end")],
+	"bayenv2/new_bayenv/outliers/csal.txt",col.names=F,row.names=F,
+	quote=F,eol='\n',sep='\t')
+write.table(sal.bf.sig[,c("scaffold","start","end")],
+	"bayenv2/new_bayenv/outliers/sal.txt",col.names=F,row.names=F,
+	quote=F,eol='\n',sep='\t')
+write.table(grass.bf.sig[,c("scaffold","start","end")],
+	"bayenv2/new_bayenv/outliers/grass.txt",col.names=F,row.names=F,
+	quote=F,eol='\n',sep='\t')
+write.table(temp.bf.sig[,c("scaffold","start","end")],
+	"bayenv2/new_bayenv/outliers/temp.txt",col.names=F,row.names=F,
+	quote=F,eol='\n',sep='\t')
+write.table(ctemp.bf.sig[,c("scaffold","start","end")],
+	"bayenv2/new_bayenv/outliers/ctemp.txt",col.names=F,row.names=F,
+	quote=F,eol='\n',sep='\t')
+write.table(tvar.bf.sig[,c("scaffold","start","end")],
+	"bayenv2/new_bayenv/outliers/tvar.txt",col.names=F,row.names=F,
+	quote=F,eol='\n',sep='\t')
+
+tmp.sig<-tvar.bf.sig[tvar.bf.sig$locus %in% temp.bf.sig$locus,]#4
+write.table(tmp.sig[,1:3],"shared_temp_outliers.txt",sep='\t',quote=F,
+	row.names=F)
+tmp.region<-data.frame(tmp.sig$scaffold,tmp.sig$BP-2500,tmp.sig$BP+2500)
+tmp.region[,2][tmp.region[,2]<0]<-0
+write.table(tmp.region,
+	"bayenv2/new_bayenv/outliers/extract_shared_tmp_region.sh",
+	row.names=F,col.names=F,quote=F,sep='\t')
+#non-outliers: col = black, pch=19
+#Temp Variance BF outliers: col=blue, pch=19 or 1
+#Temp BF outliers: col=purple, pch=2
+
+neutral.col<-"black"
+bfv.out.col<-"mediumvioletred"
+bfm.out.col<-"orangered"
+shared.out.col<-"red"
+neutral.pch<-19
+bf.scaff$Temp_BF<-log(bf.scaff$Temp_BF)
+bf.scaff$BFtempvar<-log(bf.scaff$BFtempvar)
+
+#############FIG 4
+jpeg("Fig4_temp_revisions.jpeg", height=9,width=7.5,units="in",res=300)
+pdf("Temp_Outliers.pdf",height=9,width=7.5)
+par(mfrow=c(2,1),oma=c(1,1,0,0),mar=c(0,1,1,0),cex=2,mgp=c(3,0.5,0))
+
+###GLOBAL FSTS
+
+bf.scaff$scaffold<-factor(bf.scaff$scaffold)
+all.scaff<-split(bf.scaff, bf.scaff$scaffold)
+last.max<-0
+rect.xs<-NULL
+addition.values<-0
+for(i in 1:length(all.scaff)){
+	new.max<-last.max+round(max(all.scaff[[i]]$BP), -2)
+	rect.xs<-rbind(rect.xs,c(last.max, new.max))
+	addition.values<-c(addition.values, new.max)
+	last.max<-new.max
+}
+#change BP to plot
+for(i in 1:length(all.scaff)){
+	all.scaff[[i]]$BP<-all.scaff[[i]]$BP+addition.values[i]
+}
+x.max<-max(addition.values)
+x.min<-min(all.scaff[[1]]$BP)
+y.max<-max(bf.scaff$Temp_BF)+0.1*max(bf.scaff$Temp_BF)
+y.min<-min(bf.scaff$Temp_BF)-0.1*min(bf.scaff$Temp_BF)
+if(min(bf.scaff$Temp_BF) < 0) {
+	y.min<-min(bf.scaff$Temp_BF) - 0.1*min(bf.scaff$Temp_BF)
+} else {
+	y.min<-0
+}
+
+plot(c(x.min,x.max),c(y.min,y.max),xlim=c(x.min,x.max), ylim=c(y.min, y.max), 
+	bty="n",type="n",	axes=F, xlab="", ylab="")
+for(i in 1:nrow(rect.xs)){
+	if(i%%2 == 0) {
+		rect.color<-"white"
+	} else {
+		rect.color<-"gray75"
+	}
+	rect(rect.xs[i,1],-2,rect.xs[i,2],4, 
+		col=rect.color, border=NA)
+}
+for(i in 1:length(all.scaff)){
+	plotting.genome.wide(all.scaff[[i]]$BP, 
+		all.scaff[[i]]$Temp_BF,plot.rect=FALSE,
+		y.max=3.5,x.max, rect.xs[i,],y.min=-1.5,x.min=x.min, 
+		pt.col=neutral.col,
+		plot.new=TRUE, plot.axis=FALSE, rect.color, pt.cex=0.5)
+	temp.sig<-all.scaff[[i]][all.scaff[[i]]$locus %in% temp.bf.sig$locus,]
+	points(temp.sig$BP, temp.sig$Temp_BF, col=bfm.out.col, pch=19, cex=0.5)
+	temp.sig<-all.scaff[[i]][all.scaff[[i]]$locus %in%
+		tmp.sig$locus,]
+	points(temp.sig$BP, temp.sig$Temp_BF, col="red", pch=8,
+		cex=0.75)
+}
+axis(2, at = seq(-2,4,1),ylim = c(-1.5, 3.5), pos=0,
+	labels=seq(-2,4,1),
+	las=1,tck = -0.05, xlab="", ylab="", cex.axis=0.5)
+
+mtext(side=2, "log(Bayes Factor)", 
+	outer=FALSE, line=1.2,cex=1)
+
+
+#######Temp variance
+y.max<-max(bf.scaff$BFtempvar)+0.1*max(bf.scaff$BFtempvar)
+y.min<-min(bf.scaff$BFtempvar)-0.1*min(bf.scaff$BFtempvar)
+if(min(bf.scaff$BFtempvar) < 0) {
+	y.min<-min(bf.scaff$BFtempvar) - 0.1*min(bf.scaff$BFtempvar)
+} else {
+	y.min<-0
+}
+
+plot(c(x.min,x.max),c(y.min,y.max),xlim=c(x.min,x.max), ylim=c(y.min, y.max), 
+	bty="n",type="n",	axes=F, xlab="", ylab="")
+for(i in 1:nrow(rect.xs)){
+	if(i%%2 == 0) {
+		rect.color<-"white"
+	} else {
+		rect.color<-"gray75"
+	}
+	rect(rect.xs[i,1],-3.5,rect.xs[i,2],4, 
+		col=rect.color, border=NA)
+}
+for(i in 1:length(all.scaff)){
+	plotting.genome.wide(all.scaff[[i]]$BP, 
+		all.scaff[[i]]$BFtempvar,plot.rect=FALSE,
+		y.max=3.5,x.max, rect.xs[i,],y.min=-3.5,x.min=x.min, 
+		pt.col=neutral.col,
+		plot.new=TRUE, plot.axis=FALSE, rect.color, pt.cex=0.5)
+	temp.sig<-all.scaff[[i]][all.scaff[[i]]$locus %in% tvar.bf.sig$locus,]
+	points(temp.sig$BP, temp.sig$BFtempvar, col=bfv.out.col, pch=19, cex=0.5)
+	temp.sig<-all.scaff[[i]][all.scaff[[i]]$locus %in%
+		tmp.sig$locus,]
+	points(temp.sig$BP, temp.sig$BFtempvar, col="red", pch=8,
+		cex=0.75)
+}
+axis(2, at = seq(-3,4,1),
+	ylim = c(-4,3.5), pos=0,
+	labels=seq(-3,4,1),
+	las=1,tck = -0.05, xlab="", ylab="", cex.axis=0.5)
+mtext(side=2, "log(Bayes Factor)", 
+	outer=FALSE, line=1.2,cex=1)
+mtext("Position in Genome",1,line=1.2,cex=1,outer=F)
+
+#PLOT THE LEGEND
+par(fig = c(0, 1, 0, 1), oma=c(2,1,0,1), mar = c(0, 0, 0, 0), new = TRUE,
+	cex=1)
+plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
+legend("topright", ncol=3,
+	col=c(bfm.out.col,bfv.out.col, "red"),
+	c("Mean Temp Outliers","Temp Variance Outliers",
+		"Shared Outliers"),
+	pch=c(19,19,8), box.lty=0)
+
+dev.off()
+
+
 
 
 #####BAYENV: XTX
 xtx$rad.loc<-sub('(\\d+)(_\\d+)','\\1',xtx$locus)
-xtx.scaff<-merge(all.map, xtx, by.x="V2", by.y="locus")
-colnames(xtx.scaff)<-c("locus","scaffold","dist","BP","radloc","XtX", "rad.loc")
+xtx.scaff<-merge(sub.map, xtx, by.x="V2", by.y="locus")
+colnames(xtx.scaff)<-c("locus","scaffold","dist","BP","XtX", "rad.loc")
 xtx.1<-xtx.scaff[xtx.scaff$XtX >= quantile(xtx.scaff$XtX,0.99),] #18
 xtx.5<-xtx.scaff[xtx.scaff$XtX >= quantile(xtx.scaff$XtX,0.95),] #88
 
@@ -726,15 +961,14 @@ xtx.5<-xtx.scaff[xtx.scaff$XtX >= quantile(xtx.scaff$XtX,0.95),] #88
 #pruned loci found in all 12 populations, 1753 of them.
 global.fsts<-read.table("stacks//populations//subset.globalstats.txt",
 	header=T, sep='\t')
-#missing useful chrom info. let's get some.
-all.map<-read.table("stacks//populations//all.6348.plink.map",header=F)
-all.map$radloc<-sub("(\\d+)(_\\d+)","\\1",all.map$V2)
-global.fsts<-merge(global.fsts,all.map,by.x="Locus",by.y="V2")
+global.fsts<-merge(global.fsts,sub.map,by.x="Locus",by.y="V2")
 global.fsts$Chrom<-global.fsts$V1
+global.fsts$radloc<-sub('(\\d+)(_\\d+)','\\1',global.fsts$Locus)
 #outliers:
 fst.ci.99<-mean(global.fsts$Fst) + 2.57583*sd(global.fsts$Fst)
-glob.fst.out<-global.fsts[global.fsts$Fst >= fst.ci.99,]
-
+glob.fst.out<-global.fsts[global.fsts$Fst >= fst.ci.99,]#44
+glob.fst.99<-global.fsts[global.fsts$Fst >=quantile(global.fsts$Fst,0.99),]#18
+glob.fst.95<-global.fsts[global.fsts$Fst >=quantile(global.fsts$Fst,0.95),]#88
 
 #**********************************PCADAPT**********************************#
 #K=4 WAS BEST
@@ -791,66 +1025,95 @@ pca.out$index<-rownames(pca.out)
 
 
 #*********************COMPARE ALL OF THE OUTLIER ANALYSES********************#
-glob.fst.out$Locus<-factor(glob.fst.out$radloc)
+glob.fst.99$radloc<-factor(glob.fst.99$radloc)
 pca.out$radloc<-factor(pca.out$radloc)
-temp.bf.sig$radloc<-factor(sub('(\\d+)_\\d+','\\1',temp.bf.sig$locus))
-xtx.1$rad.loc<-factor(xtx.1$rad.loc)
+#temp.bf.sig$radloc<-factor(sub('(\\d+)_\\d+','\\1',temp.bf.sig$locus))
+xtx.5$rad.loc<-factor(xtx.5$rad.loc)
+locad.out<-c(as.character(pca.out$loc),as.character(glob.fst.99$Locus),
+	as.character(xtx.5$locus))
 
 
 pca.loc<-pca.out$radloc[!duplicated(pca.out$radloc)]
-fst.loc<-glob.fst.out$radloc[!duplicated(glob.fst.out$radloc)]
+fst.loc<-glob.fst.99$radloc[!duplicated(glob.fst.99$radloc)]
 xtx.loc<-xtx.5$rad.loc[!duplicated(xtx.5$rad.loc)]
-bft.loc<-temp.bf.sig$radloc[!duplicated(temp.bf.sig$radloc)]
 ###base=fst
-fst.pca<-np.glob.fst.out[np.glob.fst.out$Locus %in% pca.out$radloc,]
-fst.bft<-np.glob.fst.out[np.glob.fst.out$Locus %in% temp.bf.sig$rad.loc,]
-fst.xtx<-np.glob.fst.out[np.glob.fst.out$Locus %in% xtx.1$rad.loc,]
+fst.pca<-glob.fst.out[glob.fst.out$Locus %in% pca.out$radloc,]
+fst.bft<-glob.fst.out[glob.fst.out$Locus %in% temp.bf.sig$rad.loc,]
+fst.xtx<-glob.fst.out[glob.fst.out$Locus %in% xtx.5$rad.loc,]
 
 ###base=xtx
-xtx.pca<-xtx.1[xtx.1$rad.loc %in% pca.out$radloc,]
-xtx.bft<-xtx.1[xtx.1$rad.loc %in% temp.bf.sig$rad.loc,]
-xtx.fst<-xtx.1[xtx.1$rad.loc %in% np.glob.fst.out$Locus,]
+xtx.pca<-xtx.5[xtx.5$rad.loc %in% pca.out$radloc,]
+xtx.bft<-xtx.5[xtx.5$rad.loc %in% temp.bf.sig$rad.loc,]
+xtx.fst<-xtx.5[xtx.5$rad.loc %in% glob.fst.out$radloc,]
 
-###base=BF (focus on temp)
-bft.pca<-temp.bf.sig[temp.bf.sig$rad.loc %in% pca.out$radloc,]
-bft.fst<-temp.bf.sig[temp.bf.sig$rad.loc %in% np.glob.fst.out$Locus,]
-bft.xtx<-temp.bf.sig[temp.bf.sig$rad.loc %in% xtx.1$rad.loc,]
+#compare to environment
+dim(temp.bf.sig[temp.bf.sig$locus %in% locad.out,])
+dim(ctemp.bf.sig[ctemp.bf.sig$locus %in% locad.out,])
+dim(tvar.bf.sig[tvar.bf.sig$locus %in% locad.out,])
+dim(sal.bf.sig[sal.bf.sig$locus %in% locad.out,])
+dim(csal.bf.sig[csal.bf.sig$locus %in% locad.out,])
+dim(grass.bf.sig[grass.bf.sig$locus %in% locad.out,])
 
+temp.bf.sig$analysis<-"MeanTemp"
+ctemp.bf.sig$analysis<-"CollectionTemp"
+tvar.bf.sig$analysis<-"TempVariance"
+sal.bf.sig$analysis<-"Salinity"
+csal.bf.sig$analysis<-"CollectionSalinity"
+grass.bf.sig$analysis<-"Seagrass"
+xtx.5$analysis<-"XtX"
+xtx<-xtx.5[,c("locus","scaffold","BP","analysis")]
+glob.fst.99$analysis<-"Fst"
+fst.99<-glob.fst.99[,c("Locus","Chrom","BP","analysis")]
+colnames(fst.99)<-c("locus","scaffold","BP","analysis")
+pca.out$analysis<-"PCAdapt"
+pca.o<-pca.out[,c("loc","chr","bp","analysis")]
+colnames(pca.o)<-c("locus","scaffold","BP","analysis")
+outliers<-rbind(temp.bf.sig[,c("locus","scaffold","BP","analysis")],
+	ctemp.bf.sig[,c("locus","scaffold","BP","analysis")],
+	tvar.bf.sig[,c("locus","scaffold","BP","analysis")],	
+	sal.bf.sig[,c("locus","scaffold","BP","analysis")],
+	csal.bf.sig[,c("locus","scaffold","BP","analysis")],
+	grass.bf.sig[,c("locus","scaffold","BP","analysis")],
+	fst.99,xtx,pca.o)
+outliers<-outliers[sort(outliers$locus),]
+write.table(outliers,"AllOutliers.txt",sep='\t',row.names=F,col.names=T,
+	quote=F)
 
 ##########################PLOT FIGURE 4: VENN DIAGRAM#########################
 out.venn<-venn( list("."=pca.loc, "."=fst.loc,"."=xtx.loc))
 
-jpeg("Fig4_revisions.jpeg", height=7,width=7,units="in", res=300)
+jpeg("Fig4_Venn_revisions.jpeg", height=7,width=7,units="in", res=300)
+pdf("local_adaptation_venn.pdf",height=7,width=7)
 plot(out.venn, small=0.9)
 text(x=40,y=120,"PCAdapt")
-text(x=200,y=370,expression("X"^T*"X"))
+text(x=200,y=365,expression("X"^T*"X"))
 text(x=345,y=120, expression(italic(F)[italic(ST)]))
 dev.off()
 
-#which two is shared among all 4?
+#which one is shared among all 4?
 all.sig<-pca.out[pca.out$radloc %in% fst.loc & pca.out$radloc %in% xtx.loc,]
+write.table(all.sig[,c(1,2,4)],"shared_outlier.txt",quote=F,row.names=F)
 
-
+sig.region<-data.frame(all.sig$chr,all.sig$bp-2500,all.sig$bp+2500)
+write.table(sig.region,"shared_outlier_region.sh",quote=F,row.names=F,
+	col.names=F,sep='\t',eol='\n')
 ##########################PLOT FIGURE 5: OUTLIERS#############################
 #non-outliers: col = grey53, pch=19
 #Fst outliers: col=black
 #XtX outliers: col=blue, pch=19 or 1
-#Temp BF outliers: col=purple, pch=2
-
 #pcadapt=dark green, pch=0
-neutral.col<-"grey53"
+neutral.col<-"black"
 fst.out.col<-"purple"
 xtx.out.col<-"blue"
-#bft.out.col<-"black"
 pca.out.col<-"forestgreen"
 neutral.pch<-19
 fst.out.pch<-1
 xtx.out.pch<-2
-#bft.out.pch<-2
 pca.out.pch<-0
 
 #############FIG 5
-jpeg("Fig5_revisions.jpeg", height=9,width=7.5,units="in",res=300)
+jpeg("LocalAdaptationOutliers_revisions.jpeg", height=9,width=7.5,units="in",res=300)
+pdf("LocalAdaptationOutliers_revisions.pdf", height=9,width=7.5)
 par(mfrow=c(3,1),oma=c(1,1,0,0),mar=c(0,1,1,0),cex=2,mgp=c(3,0.5,0))
 
 ###GLOBAL FSTS
@@ -871,21 +1134,15 @@ for(i in 1:length(all.scaff)){
 }
 x.max<-max(addition.values)
 x.min<-min(all.scaff[[1]]$BP)
-y.max<-max(global.fsts$Fst)+0.1*max(global.fsts$Fst)
-y.min<-min(global.fsts$Fst)-0.1*min(global.fsts$Fst)
-if(min(global.fsts$Fst) < 0) {
-	y.min<-min(global.fsts$Fst) - 0.1*min(global.fsts$Fst)
-} else {
-	y.min<-0
-}
-
+y.max<-0.35
+y.min<-0
 plot(c(x.min,x.max),c(y.min,y.max),xlim=c(x.min,x.max), ylim=c(y.min, y.max), 
 	bty="n",type="n",	axes=F, xlab="", ylab="")
 for(i in 1:nrow(rect.xs)){
 	if(i%%2 == 0) {
 		rect.color<-"white"
 	} else {
-		rect.color<-"gray96"
+		rect.color<-"gray75"
 	}
 	rect(rect.xs[i,1],y.min,rect.xs[i,2],y.max, 
 		col=rect.color, border=NA)
@@ -895,15 +1152,15 @@ for(i in 1:length(all.scaff)){
 		all.scaff[[i]]$Fst,plot.rect=FALSE,
 		y.max,x.max, rect.xs[i,],y.min=y.min,x.min=x.min, pt.col=neutral.col,
 		plot.new=TRUE, plot.axis=FALSE, rect.color, pt.cex=0.5)
-	temp.sig<-all.scaff[[i]][all.scaff[[i]]$Fst >= fst.ci.99,]
+	temp.sig<-all.scaff[[i]][all.scaff[[i]]$radloc %in% glob.fst.99$radloc,]
 	points(temp.sig$BP, temp.sig$Fst, col=fst.out.col, pch=19, cex=0.5)
 	temp.sig<-all.scaff[[i]][all.scaff[[i]]$radloc %in%
 		all.sig$radloc,]
 	points(temp.sig$BP, temp.sig$Fst, col="red", pch=8,
 		cex=0.75)
 }
-axis(2, at = c(y.min,y.max/2,y.max),ylim = c(y.min, y.max), pos=0,
-	labels=c(round(y.min,2),round(y.max/2,2),round(y.max,2)),
+axis(2, at = seq(0,0.4,0.1),ylim = c(y.min, y.max), pos=0,
+	labels=seq(0,0.4,0.1),
 	las=1,tck = -0.05, xlab="", ylab="", cex.axis=0.5)
 mtext(side=2, expression(italic(F)[italic(ST)]), 
 	outer=FALSE, line=1.2,cex=1)
@@ -928,13 +1185,8 @@ for(i in 1:length(all.scaff)){
 }
 x.max<-max(addition.values)
 x.min<-min(all.scaff[[1]]$BP)
-y.max<-max(pca.scaff$logBF)+0.2*max(pca.scaff$logBF)
-y.min<-min(pca.scaff$logBF)-0.1*min(pca.scaff$logBF)
-if(min(pca.scaff$logBF) < 0) {
-	y.min<-min(pca.scaff$logBF) - 0.1*min(pca.scaff$logBF)
-} else {
-	y.min<-0
-}
+y.max<-30
+y.min<--1
 
 plot(c(x.min,x.max),c(y.min,y.max),xlim=c(x.min,x.max), ylim=c(y.min, y.max), 
 	bty="n",type="n",	axes=F, xlab="", ylab="")
@@ -942,29 +1194,28 @@ for(i in 1:nrow(rect.xs)){
 	if(i%%2 == 0) {
 		rect.color<-"white"
 	} else {
-		rect.color<-"gray96"
+		rect.color<-"gray75"
 	}
 	rect(rect.xs[i,1],y.min,rect.xs[i,2],y.max, 
 		col=rect.color, border=NA)
 }
 for(i in 1:length(all.scaff)){
-	plot.genome.wide(all.scaff[[i]]$BP, 
+	plotting.genome.wide(all.scaff[[i]]$BP, 
 		all.scaff[[i]]$logBF,plot.rect=FALSE,
 		y.max,x.max, rect.xs[i,],y.min=0,x.min=0, pt.col=neutral.col,
 		plot.new=TRUE, plot.axis=FALSE, rect.color, pt.cex=0.5)
-	temp.sig<-all.scaff[[i]][all.scaff[[i]]$radloc %in% pca.out$radloc,]
+	temp.sig<-all.scaff[[i]][all.scaff[[i]]$loc %in% pca.out$loc,]
 	points(temp.sig$BP, temp.sig$logBF, col=pca.out.col, pch=19, cex=0.5)
 	temp.sig<-all.scaff[[i]][all.scaff[[i]]$radloc %in%
 		all.sig$radloc,]
 	points(temp.sig$BP, temp.sig$logBF, col="red", pch=8,
 		cex=0.75)
 }
-axis(2, at = seq(y.min,y.max,round((y.max-y.min)/2, digits=2)),
+axis(2, at = c(0,15,30),
 	ylim = c(y.min, y.max), pos=0,
-	labels = seq(round(y.min,2),round(y.max,2),
-		round((y.max-y.min)/2, digits=2)),
+	labels = c(0,15,30),
 	las=1,tck = -0.05, xlab="", ylab="", cex.axis=0.5)
-mtext(side=2, "PCAdapt log10(BF)", outer=FALSE,line=1.2,cex=1)
+mtext(side=2, expression(PCAdapt~log[10](BF)), outer=FALSE,line=1.2,cex=1)
 
 
 #######BAYENV2 POPULATION DIFFERENTIATION
@@ -985,13 +1236,8 @@ for(i in 1:length(all.scaff)){
 }
 x.max<-max(addition.values)
 x.min<-min(all.scaff[[1]]$BP)
-y.max<-max(xtx.scaff$XtX)+0.1*max(xtx.scaff$XtX)
-y.min<-min(xtx.scaff$XtX)-0.1*min(xtx.scaff$XtX)
-if(min(xtx.scaff$XtX) < 0) {
-	y.min<-min(xtx.scaff$XtX) - 0.1*min(xtx.scaff$XtX)
-} else {
-	y.min<-0
-}
+y.max<-60
+y.min<-0
 
 plot(c(x.min,x.max),c(y.min,y.max),xlim=c(x.min,x.max), ylim=c(y.min, y.max), 
 	bty="n",type="n",	axes=F, xlab="", ylab="")
@@ -999,13 +1245,13 @@ for(i in 1:nrow(rect.xs)){
 	if(i%%2 == 0) {
 		rect.color<-"white"
 	} else {
-		rect.color<-"gray96"
+		rect.color<-"gray75"
 	}
 	rect(rect.xs[i,1],y.min,rect.xs[i,2],y.max, 
 		col=rect.color, border=NA)
 }
 for(i in 1:length(all.scaff)){
-	plot.genome.wide(all.scaff[[i]]$BP, 
+	plotting.genome.wide(all.scaff[[i]]$BP, 
 		all.scaff[[i]]$XtX,plot.rect=FALSE,
 		y.max,x.max, rect.xs[i,],y.min=0,x.min=0, pt.col=neutral.col,
 		plot.new=TRUE, plot.axis=FALSE, rect.color, pt.cex=0.5)
@@ -1016,10 +1262,9 @@ for(i in 1:length(all.scaff)){
 	points(temp.sig$BP, temp.sig$XtX, col="red", pch=8,
 		cex=0.75)
 }
-axis(2, at = seq(y.min,y.max,round((y.max-y.min)/2, digits=2)),
+axis(2, at = seq(0,60,10),
 	ylim = c(y.min, y.max), pos=0,
-	labels = seq(round(y.min,2),round(y.max,2),
-		round((y.max-y.min)/2, digits=2)),
+	labels = seq(0,60,10),
 	las=1,tck = -0.05, xlab="", ylab="", cex.axis=0.5)
 mtext(side=1, "Genomic Location", outer = FALSE, line=-0.5,cex=1)
 mtext(side=2,  expression("X"^T*"X"), outer=FALSE,line=1.2,cex=1)
@@ -1028,81 +1273,14 @@ mtext(side=2,  expression("X"^T*"X"), outer=FALSE,line=1.2,cex=1)
 par(fig = c(0, 1, 0, 1), oma=c(2,1,0,1), mar = c(0, 0, 0, 0), new = TRUE,
 	cex=1)
 plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
-legend("top", ncol=3,
-	col=c(neutral.col,fst.out.col,xtx.out.col,pca.out.col, "red"),
-	c("Neutral","Global Fst Outliers","XtX Outliers","PCAdapt Outliers",
+legend("top", ncol=4,
+	col=c(fst.out.col,xtx.out.col,pca.out.col, "red"),
+	c("Global Fst Outliers","XtX Outliers","PCAdapt Outliers",
 		"Shared"),
-	pch=c(19,19,19,19,8), box.lty=0)
+	pch=c(19,19,19,8), box.lty=0)
 
 dev.off()
 
-
-
-#########BAYENV2 TEMPERATURE
-bf.plot<-merge(bf.scaff,all.map,by.x="locus",by.y="V2")
-bf.plot$scaffold<-factor(bf.plot$V1)
-bf.plot$Temp_BF<-log10(bf.plot$Temp_BF)
-all.scaff<-split(bf.plot, bf.plot$scaffold)
-last.max<-0
-rect.xs<-NULL
-addition.values<-0
-for(i in 1:length(all.scaff)){
-	new.max<-last.max+round(max(all.scaff[[i]]$BP), -2)
-	rect.xs<-rbind(rect.xs,c(last.max, new.max))
-	addition.values<-c(addition.values, new.max)
-	last.max<-new.max
-}
-#change BP to plot
-for(i in 1:length(all.scaff)){
-	all.scaff[[i]]$BP<-all.scaff[[i]]$BP+addition.values[i]
-}
-x.max<-max(addition.values)
-x.min<-min(all.scaff[[1]]$BP)
-y.max<-max(bf.plot$Temp_BF)+0.1*max(bf.plot$Temp_BF)
-y.min<-min(bf.plot$Temp_BF)-0.1*min(bf.plot$Temp_BF)
-if(min(bf.plot$Temp_BF) < 0) {
-	y.min<-min(bf.plot$Temp_BF) - 0.1*min(bf.plot$Temp_BF)
-} else {
-	y.min<-0
-}
-
-jpeg("bf.temp.assoc.jpeg", width=8, height=4.5, units="in", res=300)
-par(mar=c(0,1,1,0), oma=c(1,1,0,0),cex=2)
-plot(c(x.min,x.max),c(y.min,y.max),xlim=c(x.min,x.max), ylim=c(y.min, y.max), 
-	bty="n",type="n",	axes=F, xlab="", ylab="")
-for(i in 1:nrow(rect.xs)){
-	if(i%%2 == 0) {
-		rect.color<-"white"
-	} else {
-		rect.color<-"gray96"
-	}
-	rect(rect.xs[i,1],y.min,rect.xs[i,2],y.max, 
-		col=rect.color, border=NA)
-}
-for(i in 1:length(all.scaff)){
-	plot.genome.wide(all.scaff[[i]]$BP, 
-		all.scaff[[i]]$Temp_BF,plot.rect=FALSE,
-		y.max,x.max, rect.xs[i,],y.min=y.min,x.min=x.min, pt.col=neutral.col,
-		plot.new=TRUE, plot.axis=FALSE, rect.color, pt.cex=0.5)
-	temp.sig<-all.scaff[[i]][all.scaff[[i]]$locus %in% temp.bf.sig$locus,]
-	points(temp.sig$BP, temp.sig$Temp_BF, col=bft.out.col, pch=19, cex=0.5)
-	#also allsig
-	temp.sig<-all.scaff[[i]][all.scaff[[i]]$rad.loc %in%
-		all.sig$radloc,]
-	points(temp.sig$BP, temp.sig$Temp_BF, col="red", pch=8,
-		cex=0.75)
-	
-	
-}
-axis(2, at = seq(round(y.min,2),round(y.max+0.02,2),
-		round((y.max-y.min)/2, digits=8)),
-	ylim = c(y.min, y.max), pos=0,
-	labels = seq(round(y.min,2),round(y.max+0.02,2),
-		round((y.max-y.min)/2, digits=2)),
-	las=1,tck = -0.05, xlab="", ylab="", cex.axis=0.5)
-mtext(side=1, "Genomic Location", outer = FALSE, cex=1, line=-0.5)
-mtext(side=2, "Temp log10(BF)", line=1.2,outer=FALSE,cex=1, las=0)
-dev.off()
 
 
 ##############################################################################
@@ -1165,7 +1343,7 @@ fem.psts<-apply(fem.unstd.new[,3:10],2,function(x){
 	return(pst)
 })
 for(i in 1:length(fem.psts)){
-	write.table(fem.psts[[i]],paste(names(fem.psts)[i],".pst.txt",sep=""),
+	write.table(fem.psts[[i]],paste(names(fem.psts)[i],".fem.pst.txt",sep=""),
 		sep='\t',quote=F)
 }
 mal.psts<-apply(mal.unstd.new[,3:8],2,function(x){
@@ -1173,7 +1351,7 @@ mal.psts<-apply(mal.unstd.new[,3:8],2,function(x){
 	return(pst)
 })
 for(i in 1:length(mal.psts)){
-	write.table(mal.psts[[i]],paste(names(mal.psts)[i],".pst.txt",sep=""),
+	write.table(mal.psts[[i]],paste(names(mal.psts)[i],".mal.pst.txt",sep=""),
 		sep='\t',quote=F)
 }
 
@@ -1311,6 +1489,58 @@ sig.all<-rownames(fpf)[rownames(fpf) %in% svl.sig &
 	rownames(fpf) %in% sntd.sig & rownames(fpf) %in% sntd.sig & 
 	rownames(fpf) %in% head.sig & rownames(fpf) %in% band.sig] #17514_61
 
+#WRITE TO FILE, after other files have been written
+svl.sig<-read.table("pstfst/SVL_pstfst.txt")
+tail.sig<-read.table("pstfst/TailLength_pstfst.txt")
+body.sig<-read.table("pstfst/BodyDepth_pstfst.txt")
+sntl.sig<-read.table("pstfst/SnoutLength_pstfst.txt")
+head.sig<-read.table("pstfst/HeadLength_pstfst.txt")
+sntd.sig<-read.table("pstfst/SnoutDepth_pstfst.txt")
+band.sig<-read.table("pstfst/Bands_pstfst.txt")
+
+svl.sig<-merge(svl.sig,sub.map,by.x="V1",by.y="V2")
+colnames(svl.sig)<-c("SNP","scaffold","Dist","BP")
+svl.sig$locus<-gsub("(\\d+)_\\d+","\\1",svl.sig$SNP)
+tail.sig<-merge(tail.sig,sub.map,by.x="V1",by.y="V2")
+colnames(tail.sig)<-c("SNP","scaffold","Dist","BP")
+tail.sig$locus<-gsub("(\\d+)_\\d+","\\1",tail.sig$SNP)
+body.sig<-merge(body.sig,sub.map,by.x="V1",by.y="V2")
+colnames(body.sig)<-c("SNP","scaffold","Dist","BP")
+body.sig$locus<-gsub("(\\d+)_\\d+","\\1",body.sig$SNP)
+sntl.sig<-merge(sntl.sig,sub.map,by.x="V1",by.y="V2")
+colnames(sntl.sig)<-c("SNP","scaffold","Dist","BP")
+sntl.sig$locus<-gsub("(\\d+)_\\d+","\\1",sntl.sig$SNP)
+head.sig<-merge(head.sig,sub.map,by.x="V1",by.y="V2")
+colnames(head.sig)<-c("SNP","scaffold","Dist","BP")
+head.sig$locus<-gsub("(\\d+)_\\d+","\\1",head.sig$SNP)
+sntd.sig<-merge(sntd.sig,sub.map,by.x="V1",by.y="V2")
+colnames(sntd.sig)<-c("SNP","scaffold","Dist","BP")
+sntd.sig$locus<-gsub("(\\d+)_\\d+","\\1",sntd.sig$SNP)
+band.sig<-merge(band.sig,sub.map,by.x="V1",by.y="V2")
+colnames(band.sig)<-c("SNP","scaffold","Dist","BP")
+band.sig$locus<-gsub("(\\d+)_\\d+","\\1",band.sig$SNP)
+
+tags<-read.table("stacks/batch_1.catalog.tags.tsv",sep='\t',header=F)
+seqs<-tags[,c("V3","V10")]
+svl.sig<-merge(svl.sig,seqs, by.x="locus",by.y="V3")
+svl.sig$Trait<-"SVL"
+tail.sig<-merge(tail.sig,seqs, by.x="locus",by.y="V3")
+tail.sig$Trait<-"Tail Length"
+body.sig<-merge(body.sig,seqs, by.x="locus",by.y="V3")
+body.sig$Trait<-"Body Depth"
+sntl.sig<-merge(sntl.sig,seqs, by.x="locus",by.y="V3")
+sntl.sig$Trait<-"Snout Length"
+head.sig<-merge(head.sig,seqs, by.x="locus",by.y="V3")
+head.sig$Trait<-"Head Length"
+sntd.sig<-merge(sntd.sig,seqs, by.x="locus",by.y="V3")
+sntd.sig$Trait<-"Snout Depth"
+band.sig<-merge(band.sig,seqs, by.x="locus",by.y="V3")
+band.sig$Trait<-"Bands"
+pstfst.sig<-data.frame(rbind(svl.sig,tail.sig,body.sig,sntl.sig,head.sig,
+	sntd.sig,band.sig))
+write.csv(pstfst.sig,"pstfst/pstfst_loci_summary.csv")
+
+
 chroms<-levels(factor(c(as.character(svl.5kb$V1),as.character(body.5kb$V1),
 	as.character(sntl.5kb$V1),as.character(sntd.5kb$V1),
 	as.character(tail.5kb$V1),as.character(head.5kb$V1),
@@ -1327,6 +1557,10 @@ length(rownames(sig.fst.ibd)[rownames(sig.fst.ibd) %in% rownames(sntd.sig)])
 length(rownames(sig.fst.ibd)[rownames(sig.fst.ibd) %in% rownames(head.sig)])
 length(rownames(sig.fst.ibd)[rownames(sig.fst.ibd) %in% rownames(band.sig)])
 
+#merge with outlier and BF analyses
+pstfst.sig$analysis<-pstfst.sig$Trait
+pst.out.bf<-data.frame(rbind(pstfst.sig[,c("locus","scaffold","BP","analysis")],
+	outliers))
 #***************PST PCA*****************#
 fem.pheno$PopID<-factor(fem.pheno$PopID)
 mal.pheno$PopID<-factor(mal.pheno$PopID)
@@ -1368,25 +1602,26 @@ mal.colors[mal.colors=="FLHB"]<-rainbow(12)[11]
 mal.colors[mal.colors=="FLCC"]<-rainbow(12)[12]
 
 png("PhenotypePCA.png",height=4,width=10,units="in",res=300)
+pdf("PhenotypePCA.pdf",height=4,width=10)
 par(mfrow=c(1,3),oma=c(2,2,2,2),mar=c(2,2,2,2),lwd=1.3)
 plot(mal.pheno.pca,type="n",xlim=c(-3,3),ylim=c(-8.2,4)
 	,xlab="",ylab="",las=1,cex.axis=1.5)
 points(mal.pheno.pca,col=alpha(mal.colors,0.5),cex=1.5,pch=19)
 mtext("PC1 (95.75%)",1,line=2)
-mtext("PC2 (3.77%)",2,line=2)
+mtext("PC2 (3.77%)",2,line=2.5)
 legend("top",bty='n',c("Male Body Traits"),cex=1.5)
 
 plot(fem.pheno.pca,type="n",xlab="",ylab="",las=1,cex.axis=1.5,ylim=c(-4,12),
 	xlim=c(-3,3))
 points(fem.pheno.pca,col=alpha(fem.colors,0.5),cex=1.5,pch=19)
 mtext("PC1 (91.39%)",1,line=2)
-mtext("PC2 (7.54%)",2,line=2)
+mtext("PC2 (7.54%)",2,line=2.5)
 legend("top",bty='n',c("Female Body Traits"),cex=1.5)
 
 plot(band.pca,type="n",xlab="",ylab="",las=1,cex.axis=1.5,xlim=c(-2,2))
 points(band.pca,pch=19,col=alpha(fem.colors,0.5),cex=1.5)
 mtext("PC1 (98.23%)",1,line=2)
-mtext("PC2 (1.77%)",2,line=2)
+mtext("PC2 (1.77%)",2,line=2.5)
 legend("top",bty='n',c("Female Band Traits"),cex=1.5)
 
 par(fig = c(0, 1, 0, 1), oma=c(2,1,0,1), mar = c(0, 0, 0, 0), new = TRUE,
@@ -1449,8 +1684,9 @@ env.dist<-dist(env.u.new)
 
 ###PLOT###
 jpeg("Fig6.pst.fst.dist.jpeg",height=7,width=7, units="in", res=300)
+pdf("pst.fst.dist.pdf",height=7,width=7)
 par(las=1, oma=c(1,1,2.5,1), mar=c(3,3,1,3))
-plot(dist[upper.tri(dist)], pwise.fst[upper.tri(pwise.fst)], pch=19,
+plot(dist[upper.tri(dist)], pwise.fst.sub[upper.tri(pwise.fst.sub)], pch=19,
 	ylim=c(0,1),xlab="",ylab="")
 points(dist[upper.tri(dist)],band.pst[upper.tri(band.pst)], pch=6,col="darkgreen")
 points(dist[upper.tri(dist)],fem.pst[upper.tri(fem.pst)],pch=4,col="red")
@@ -1458,13 +1694,15 @@ points(dist[upper.tri(dist)],mal.pst[upper.tri(mal.pst)],pch=5,col="blue")
 #points(dist[upper.tri(dist)],env.dist[lower.tri(env.dist)],pch=15,col="purple")
 axis(4)
 mtext("Distance (miles)",1, outer=T, line=-0.5)
-mtext("Smoothed Pairwise Fst",2, las=0, outer=T, line=-0.5)
-mtext("Pairwise Pst",4, outer=T, las=0,line=-0.5)
+mtext(expression(Smoothed~Pairwise~italic(F)[ST]),2, las=0, outer=T, line=-0.5)
+mtext(expression(Pairwise~italic(P)[ST]),4, outer=T, las=0,line=-0.5)
 par(fig = c(0, 1, 0, 1), oma=c(2,1,0,1), mar = c(0, 0, 0, 0), new = TRUE,
 	cex=1)
 plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
 legend("top", ncol=2, col=c("black","blue","red","darkgreen"),pch=c(19,5,4,6),
-	c("Fst","Male PCA Pst", "Female PCA Pst", "Female Bands PCA Pst"),bty="n")
+	c(expression(italic(F)[ST]),expression(Male~PCA~italic(P)[ST]), 
+		expression(Female~PCA~italic(P)[ST]), 
+		expression(Female~Bands~PCA~italic(P)[ST])),bty="n")
 
 dev.off()
 
@@ -1951,6 +2189,24 @@ for(i in 1:length(pmat.mal.uns.pops)){
 	rownames(out.dat)<-rownames(pmat.mal.uns.pops[[i]])
 	write.csv(out.dat,paste(pop.order[i],".malPeigen.csv"))
 }
+#look at the loadings
+fem.loadings<-list()
+for(i in 1:length(pmat.fem.uns.pops)){
+	ep<-eigen(pmat.fem.uns.pops[[i]])
+	el<-eigen.loadings(ep)
+	rownames(el)<-rownames(pmat.fem.uns.pops[[i]])
+	fem.loadings[[i]]<-as.data.frame(el)
+}
+names(fem.loadings)<-names(pmat.fem.uns.pops)
+
+mal.loadings<-list()
+for(i in 1:length(pmat.mal.uns.pops)){
+	ep<-eigen(pmat.mal.uns.pops[[i]])
+	el<-eigen.loadings(ep)
+	rownames(el)<-rownames(pmat.mal.uns.pops[[i]])
+	mal.loadings[[i]]<-as.data.frame(el)
+}
+names(mal.loadings)<-names(pmat.mal.uns.pops)
 
 #####################MULTIPLE SUBSPACES###################
 h.fem<-calc.h(pmat.fem.uns.pops)
@@ -2169,6 +2425,7 @@ write.csv(fem.tensor$tensor.summary,"FemaleTensorSummary.csv")
 write.csv(mal.tensor$tensor.summary,"MaleTensorSummary.csv")
 #******************************FIGURE 7***********************************#
 jpeg("Figure7_revisions.jpeg", width=14, height=14, units="in", res=300)
+pdf("Pmatrix_analyses.pdf",width=14,height=14)
 #layout(matrix(c(0,1,2,3),2,2,byrow=F))
 #layout.show(3)
 par(mfrow=c(2,2),lwd=1.3,cex=1.3,oma=c(2,2,2,2))
@@ -2225,8 +2482,8 @@ lines(x=seq(1,12,1),f.e21.proj, lty=1,col="red")
 points(x=seq(1,12,1),f.e31.proj, pch=15,col="red")
 lines(x=seq(1,12,1),f.e31.proj,lty=4,col="red")
 legend("bottomright", pch=c(1,19,15), lty=c(2,1,4),
-	 c(expression(bolditalic(e)[1]),expression(bolditalic(e)[2]),
-	expression(bolditalic(e)[3])),col="red")
+	 c(expression(bolditalic(e)[11]),expression(bolditalic(e)[21]),
+	expression(bolditalic(e)[31])),col="red")
 
 text(x=12,y=100, "C", font=2)
 
@@ -2245,8 +2502,8 @@ lines(x=seq(1,12,1),m.e21.proj, lty=1,col="blue")
 points(x=seq(1,12,1),m.e31.proj, pch=15,col="blue")
 lines(x=seq(1,12,1),m.e31.proj,lty=4,col="blue")
 legend("bottomright", pch=c(1,19,15), lty=c(2,1,4), 
-	 c(expression(bolditalic(e)[1]),expression(bolditalic(e)[2]),
-	expression(bolditalic(e)[3])),col="blue")
+	 c(expression(bolditalic(e)[11]),expression(bolditalic(e)[21]),
+	expression(bolditalic(e)[31])),col="blue")
 #text(x=2,y=100, "Males")
 text(x=12,y=100, "D", font=2)
 mtext("Population",1,outer=T,cex=1.3)
@@ -2256,6 +2513,7 @@ dev.off()
 #**************************SUPPLEMENTAL FIGURES*****************************#
 #summary plots
 jpeg("Subspace_eigenvalues.jpeg", width=7, height=7, units="in", res=300)
+pdf("Subspace_eigenvalues.pdf", width=7, height=7)
 par(lwd=1.3,cex=1.3,oma=c(2,2,2,2))
 #common subspace
 par(mar=c(3,5,2,1))
@@ -2275,6 +2533,7 @@ legend("top",c("Female","Male"),pch=c(25,15),
 dev.off()
 
 jpeg("Eigentensor_alphas.jpeg", width=7, height=7, units="in", res=300)
+pdf("Eigentensor_alphas.pdf", width=7, height=7)
 par(lwd=1.3,cex=1.3,oma=c(2,2,2,2))
 #plot eigenvalues of non-zero eigentensors for S
 par(mar=c(3,5,2,1))
@@ -2299,6 +2558,7 @@ fc1<-fem.tensor$p.coord[,1][match(pop.order,names(fem.tensor$p.coord[,1]))]
 fc2<-fem.tensor$p.coord[,2][match(pop.order,names(fem.tensor$p.coord[,2]))]
 fc3<-fem.tensor$p.coord[,3][match(pop.order,names(fem.tensor$p.coord[,3]))]
 jpeg("FemaleCoordinatesInEspace.jpeg",height=7,width=21,units="in",res=300)
+pdf("FemaleCoordinatesInEspace.pdf",height=7,width=21)
 par(mfrow=c(1,3),oma=c(3,2,1,1),mar=c(4,2,2,2),cex=1.3,lwd=1.3)
 plot(fc1,pch=6,xaxt='n',ylab="Coordinates",xlab="")
 axis(1, at=seq(1,12,1), labels=F)
@@ -2323,6 +2583,7 @@ mc1<-mal.tensor$p.coord[,1][match(pop.order,names(mal.tensor$p.coord[,1]))]
 mc2<-mal.tensor$p.coord[,2][match(pop.order,names(mal.tensor$p.coord[,2]))]
 mc3<-mal.tensor$p.coord[,3][match(pop.order,names(mal.tensor$p.coord[,3]))]
 jpeg("MaleCoordinatesInEspace.jpeg",height=7,width=21,units="in",res=300)
+pdf("MaleCoordinatesInEspace.pdf",height=7,width=21)
 par(mfrow=c(1,3),oma=c(3,2,1,1),mar=c(4,2,2,2),cex=1.3,lwd=1.3)
 plot(mc1,xaxt='n',ylab="Coordinates",xlab="")
 axis(1, at=seq(1,12,1), labels=F)

@@ -36,7 +36,7 @@ add.arrows<-function(row,shift.x,shift.y){
 }
 
 
-png("migrate_map.png",height=7,width=14,units="in",res=300)
+pdf("migrate_map.pdf",height=7,width=14)#,units="in",res=300)
 par(oma=c(0,0,0,0),mar=c(0,0,0,0),pin=c(7,7))
 map("worldHires", "usa",xlim=c(-100,-76), ylim=c(24,32), 
 	col="gray90", mar=c(0,0,0,0),fill=TRUE, res=300,myborder=0)

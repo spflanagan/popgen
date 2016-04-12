@@ -1,6 +1,6 @@
 rm(list=ls())
 library(ggplot2)
-setwd("C:/Users/Sarah/OneDrive/blastresults/popgen/bayenv")
+setwd("C:/Users/sflanagan/OneDrive/blastresults/popgen/bayenv")
 
 
 go.plot<-function(file.list, file.name, analyses=NULL){
@@ -31,8 +31,9 @@ go.plot<-function(file.list, file.name, analyses=NULL){
 	}
 	dat<-dat[order(dat$GO),]
 	library(ggplot2)
-	file.name<-paste(file.name,'.jpeg',sep="")
-	jpeg(file.name,height=9,width=9,units="in",res=300)
+	file.name<-paste(file.name,'.pdf',sep="")
+	#jpeg(file.name,height=9,width=9,units="in",res=300)
+	pdf(file.name,height=9,width=9)
 	par(mar=c(2,2,2,2),oma=c(2,2,2,2),cex=2,lwd=1.3)
 	p<-ggplot(dat,aes(factor(GO),Number,fill = factor(Analysis))) + 
 		geom_bar(stat="identity",position="dodge") + 
