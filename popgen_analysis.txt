@@ -8,18 +8,18 @@ X-Calculate isolation by distance on contigs or single SNP per contig
 X-use a more statistical approach to IBD
 X-only do IBD on neutral loci
 X-Look for the distribution of IBD across loci
--Use neutral loci to generate Fst CIs
+X-Use neutral loci to generate Fst CIs
 X-Test the association between Pst and Fst on a locus-by-locus basis or use morphological data in Bayenv
--Apply common subspace approach to complete set of population P-matrices
--use GIS to calculate distances instead of Google Maps
+X-Apply common subspace approach to complete set of population P-matrices
+X-use GIS to calculate distances instead of Google Maps
 X-Standardize the traits for size (possibly--or at least justify why not)
--Summary statistics output from stacks needs to be modified
--Report sequencing coverage
+X-Summary statistics output from stacks needs to be modified
+X-Report sequencing coverage
 X-How many of the 66 SNPs were unlinked?
 X-Better description of evaluating K from structure
--Why are there so many extreme Pst values (1)
+X-Why are there so many extreme Pst values (1)
 X-Did LD pruning work as expected? Are SNPs from the same RAD locus removed?
--Instead of mean temperature, use a temperature anomaly?
+X-Instead of mean temperature, use a temperature anomaly?
 
 #THE PIPELINE
 1. align with bowtie 2
@@ -36,6 +36,108 @@ X-Did LD pruning work as expected? Are SNPs from the same RAD locus removed?
 10. Bayenv2
 11. calculate_global_fst
 ##################################################################################################
+#####Monday, 11 April 2016
+I need to do the summary stats. I'm thinking of just including more from the stacks output. That should be fine.
+I'm also re-making all of the figures to be pdfs, as per the molecular ecology instructions.
+
+#####Sunday, 10 April 2016
+OK, bayenv2 finished and provided useful output. There were 88 loci associated with variance in temperature, and 4 of those were also in the mean temperature analysis. What now? I should blast those four. And make a plot for the temperature comparisons. 
+
+Still to do: 
+-update paper
+-coverage analysis
+-summary statistics
+-use quantile() to ID outlier Fsts
+-update MS
+-organize files and annotate info on github
+
+I re-did the Fst analysis using quantile() and 0.99 and now there's one overlapping SNP. This is fine (there are 4 with quantile() and 0.95).
+
+I'm running coverage_from_stacks.
+
+Comparing loadings etc. from PCA:
+fem.pheno.pca (body traits)
+				   PC1      PC2      PC3        PC4      PC5       PC6
+	SVL         -7.8222 -2.67375 -0.13739  0.0003987 -0.01577 -0.002399
+	TailLength  -9.3092  2.28507 -0.07646 -0.0027316  0.02766 -0.001429
+	depth       -1.2765  0.02343  0.53818 -0.0644711 -0.48566 -0.007264
+	SnoutLength -0.9573 -0.20964  0.53620 -0.4570516  0.29055 -0.016289
+	SountDepth  -0.3009 -0.03534  0.07418 -0.0211756  0.01171  0.212012
+	HeadLength  -1.0488 -0.16777  0.53763  0.5230155  0.19467 -0.006552
+	Importance of components:
+							   PC1     PC2     PC3     PC4     PC5     PC6
+	Eigenvalue            101.3515 8.32052 0.59936 0.32565 0.24025 0.03030
+	Proportion Explained    0.9142 0.07505 0.00541 0.00294 0.00217 0.00027
+	Cumulative Proportion   0.9142 0.98922 0.99462 0.99756 0.99973 1.00000
+
+mal.pheno.pca
+					 PC1      PC2       PC3      PC4      PC5        PC6
+	SVL          -7.8154  2.10852  0.023154  0.08940 -0.03854  2.334e-04
+	TailLength  -10.7317 -1.60014 -0.018902  0.02363 -0.01443  2.294e-05
+	depth        -1.3536  0.12363  0.316103 -0.11005  0.34219  2.535e-02
+	SnoutLength  -1.0014  0.25384 -0.552500 -0.15971  0.16346  1.864e-02
+	SountDepth   -0.3602  0.05437 -0.005883 -0.05611  0.05398 -1.893e-01
+	HeadLength   -1.2963  0.19451  0.115248 -0.48074 -0.14682  1.015e-02
+	Importance of components:
+							   PC1     PC2     PC3     PC4    PC5     PC6
+	Eigenvalue            129.4529 5.10017 0.30013 0.20068 0.1216 0.02644
+	Proportion Explained    0.9575 0.03772 0.00222 0.00148 0.0009 0.00020
+	Cumulative Proportion   0.9575 0.99520 0.99742 0.99890 0.9998 1.00000
+
+band.pca
+				PC1      PC2
+	MBandArea 0.131 -0.74800
+	BandNum   5.593  0.01752
+	Importance of components:
+							 PC1     PC2
+	Eigenvalue            4.0198 0.07191
+	Proportion Explained  0.9824 0.01757
+	Cumulative Proportion 0.9824 1.00000
+
+The loadings of the eigenanalysis of each population are generally the same..
+Females:
+	the first eigenvector is mainly explained by SVL/TailLength, and second is also SVL/TailLength, with headlength and bnad num also having larger loadings. The third one is band num. There are some exceptions like FLHB,  FLSG, FLSI, TXCC, and TXSP which flip e2 and e3. 
+Males:
+	e1 is SVL/TailLength, e2 is also SVL/TailLength, and e3 is HeadLength, snoutlength, or body depth
+	
+These generally amtch the PCA results above. It also matches the eigenanalysis of the H matrix. I'm not sure if this is at all equivalent to the eigentensor analyses. 
+
+Looking at the tensor summary: 
+Females:
+	e11 is mostly SVL, e21 is mostly tail and SVL, e31 is mostly SVL, Tail, and Band num (look at tensorsummary)
+Males:
+	e11 is SVL and tail length, e21 is SVL and tail length, e31 is SVL and tail length.
+
+Coverage from Stacks summary:
+	Num individuals	524
+	Num loci	194294
+	Average per-locus coverage	7.07612
+	average per-individual coverage	10.0782
+	Num Loci with >=5x coverage 	95145
+	Num loci with >=10x coverage 	36227
+	Overall minimum per-locus coverage 	0
+	Overall maximum per-locus coverage 	6905
+
+dim(temp.bf.sig[temp.bf.sig$locus %in% locad.out,])
+[1] 10  4
+> dim(ctemp.bf.sig[ctemp.bf.sig$locus %in% locad.out,])
+[1] 14  4
+> dim(tvar.bf.sig[tvar.bf.sig$locus %in% locad.out,])
+[1] 14  4
+> dim(sal.bf.sig[sal.bf.sig$locus %in% locad.out,])
+[1] 21  4
+> dim(csal.bf.sig[csal.bf.sig$locus %in% locad.out,])
+[1] 20  4
+> dim(grass.bf.sig[grass.bf.sig$locus %in% locad.out,])
+[1] 18  4
+Total of 383 SNPs in all 6. 
+I made a table of all of the outliers..I should add the RAD sequences probably and share it as a supplement--did that!
+
+#####Saturday, 9 April 2016
+I changed the temperature variance file to have the unix line endings. Now I'm re-running Bayenv. It's still giving me nan...maybe I'll try it on the lab computer. Last time it didn't work right. It's still giving me nan...probably because it's not formatted correctly. I needed to remove the row and column names.  That seems to have fixed it!
+
+I've been updating the manuscript. I've also been running the pst-fst significant ones in blast2go to see if there are any differences/similarities.
+
 #####Friday, 8 April 2016
 Of course bayenv didn't run properly on the temp variance data and I didn't send myself the temp var data. So I'll have to figure that out back at home.
 
