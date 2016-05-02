@@ -1,11 +1,11 @@
 #!/bin/bash
 
 
-denovo_map.pl -T 6 -m 3 -M 3 -n 1 -t \
-	-b 3 -D "Nerophis ophidion pop gen" -S \
+denovo_map.pl -T 6 -m 5 -M 2 -n 3 -t \
+	-b 3 -D "Nerophis ophidion pop gen redo" -S \
 	-O ./nop_map.txt -X "populations:-r 0.75"\
 	-X "populations:-a 0.05" -X "populations:--genomic" \
-	-o ./stacks/ \
+	-o ./stacks/redo/ \
 	-s ./samples/LEMO011.fq \
 	-s ./samples/LEMF008.fq \
 	-s ./samples/SEWF006.fq \

@@ -1,4 +1,5 @@
 #Author: Sarah P. Flanagan
+#Last updated: 1 May 2016
 #Date: 26 March 2015
 #Purpose: Analyze Population genetics data
 #Re-analyses in response to reviewer comments
@@ -1290,6 +1291,7 @@ dev.off()
 ##############################################################################
 pairwise.pst<-function(dat, pop.order){
 	#first column must be pop id/grouping factor
+	library(nlme)
 	dat.split<-split(dat, factor(dat[,1]))
 	dat.var<-as.data.frame(setNames(
 		replicate(length(pop.order),numeric(0), simplify = F), pop.order))
@@ -1297,12 +1299,20 @@ pairwise.pst<-function(dat, pop.order){
 	  for(j in (i+1):length(pop.order)){
 		temp.data<-rbind(as.data.frame(dat.split[[pop.order[i]]]),
 			as.data.frame(dat.split[[pop.order[j]]]))
-		aov.var<-summary.aov(
-			aov(temp.data[,2]~temp.data[,1]))[[1]]$`Sum Sq`
-		aov.df<-summary.aov(
-			aov(temp.data[,2]~temp.data[,1]))[[1]]$`Df`
-		dat.var[pop.order[i],pop.order[j]]<-aov.var[2]/(aov.var[2]+
-			(2*(aov.var[1]/(aov.df[2]-1))))	
+		colnames(temp.data)<-c("PopID","Var")
+		temp.data$PopID<-factor(temp.data$PopID)
+		anv <- lme(fixed=Var ~ 1, random=~1|PopID,data=temp.data)
+		varcomp <- VarCorr(anv)
+		v.btwn<- as.numeric(varcomp[1])
+		v.wthn <- as.numeric(varcomp[2])
+		pst <- v.btwn/(v.btwn+2*v.wthn)
+		dat.var[pop.order[i],pop.order[j]]<-pst
+		#aov.var<-summary.aov(
+		#	aov(temp.data[,2]~temp.data[,1]))[[1]]$`Sum Sq`
+		#aov.df<-summary.aov(
+		#	aov(temp.data[,2]~temp.data[,1]))[[1]]$`Df`
+		#dat.var[pop.order[i],pop.order[j]]<-aov.var[2]/(aov.var[2]+
+		#	(2*(aov.var[1]/(aov.df[2]-1))))	
 	  }
 	}
 	dat.var<-rbind(dat.var,rep(NA, ncol(dat.var)))
@@ -1407,15 +1417,24 @@ mpf.sig<-mpf[mpf$SVL.P <= 0.05 | mpf$TailLength.P <= 0.05 |
 	mpf$BodyDepth.P <= 0.05 | mpf$SnoutLength.P <= 0.05 | 
 	mpf$SnoutDepth.P <= 0.05 | mpf$HeadLength.P <= 0.05,]
 
+create.extract.sh<-function(df){
+	#the df needs chrom, start, end as columns
+	commands<-paste(
+		"../SCA/programs/extract_sequence_part/extract_sequence_part",
+		" -f ./sw_results/pstfst/sig_regions/",df[,1],".fasta -s ",
+		df[,2], " -e ", df[,3],sep="")
+	return(commands)
+}
 svl.sig<-rownames(fpf)[rownames(fpf[fpf$SVL.P <= 0.05,]) %in%
 	rownames(mpf[mpf$SVL.P <= 0.05,])]
 write.table(svl.sig,"pstfst/SVL_pstfst.txt",col.names=F,row.names=F,quote=F)
 write.table(gsub("(\\d+)_\\d+","\\1",svl.sig),
 	"pstfst/SVL_radloc.txt",col.names=F,row.names=F,quote=F)
-svl.5kb<-sub.scaffs[sub.scaffs$V2 %in% svl.sig,c(1,4)]
+svl.5kb<-all.map[all.map$V2 %in% svl.sig,c(1,4)]
 svl.5kb$start<-svl.5kb$V4-2500
 svl.5kb$stop<-svl.5kb$V4+2500
-write.table(svl.5kb[,-2],"pstfst/SVL_extract.sh",col.names=F, row.names=F,
+write.table(create.extract.sh(svl.5kb[,-2]),
+	"pstfst/SVL_extract.sh",col.names=F, row.names=F,
 	quote=F,eol='\n')
 
 tail.sig<-rownames(fpf)[rownames(fpf[fpf$TailLength.P <= 0.05,]) %in%
@@ -1423,10 +1442,11 @@ tail.sig<-rownames(fpf)[rownames(fpf[fpf$TailLength.P <= 0.05,]) %in%
 write.table(tail.sig,"pstfst/TailLength_pstfst.txt",col.names=F,row.names=F,quote=F)
 write.table(gsub("(\\d+)_\\d+","\\1",tail.sig),
 	"pstfst/TailLength_radloc.txt",col.names=F,row.names=F,quote=F)
-tail.5kb<-sub.scaffs[sub.scaffs$V2 %in% tail.sig,c(1,4)]
+tail.5kb<-all.map[all.map$V2 %in% tail.sig,c(1,4)]
 tail.5kb$start<-tail.5kb$V4-2500
 tail.5kb$stop<-tail.5kb$V4+2500
-write.table(tail.5kb[,-2],"pstfst/TailLength_extract.sh",col.names=F, row.names=F,
+write.table(create.extract.sh(tail.5kb[,-2]),
+	"pstfst/TailLength_extract.sh",col.names=F, row.names=F,
 	quote=F,eol='\n')
 
 body.sig<-rownames(fpf)[rownames(fpf[fpf$BodyDepth.P <= 0.05,]) %in%
@@ -1434,10 +1454,11 @@ body.sig<-rownames(fpf)[rownames(fpf[fpf$BodyDepth.P <= 0.05,]) %in%
 write.table(body.sig,"pstfst/BodyDepth_pstfst.txt",col.names=F,row.names=F,quote=F)
 write.table(gsub("(\\d+)_\\d+","\\1",body.sig),
 	"pstfst/TailLength_radloc.txt",col.names=F,row.names=F,quote=F)
-body.5kb<-sub.scaffs[sub.scaffs$V2 %in% body.sig,c(1,4)]
+body.5kb<-all.map[all.map$V2 %in% body.sig,c(1,4)]
 body.5kb$start<-body.5kb$V4-2500
 body.5kb$stop<-body.5kb$V4+2500
-write.table(body.5kb[,-2],"pstfst/BodyDepth_extract.sh",col.names=F, row.names=F,
+write.table(create.extract.sh(body.5kb[,-2]),
+	"pstfst/BodyDepth_extract.sh",col.names=F, row.names=F,
 	quote=F,eol='\n')
 
 sntl.sig<-rownames(fpf)[rownames(fpf[fpf$SnoutLength.P <= 0.05,]) %in%
@@ -1445,10 +1466,11 @@ sntl.sig<-rownames(fpf)[rownames(fpf[fpf$SnoutLength.P <= 0.05,]) %in%
 write.table(sntl.sig,"pstfst/SnoutLength_pstfst.txt",col.names=F,row.names=F,quote=F)
 write.table(gsub("(\\d+)_\\d+","\\1",sntl.sig),
 	"pstfst/SnoutLength_radloc.txt",col.names=F,row.names=F,quote=F)
-sntl.5kb<-sub.scaffs[sub.scaffs$V2 %in% sntl.sig,c(1,4)]
+sntl.5kb<-all.map[all.map$V2 %in% sntl.sig,c(1,4)]
 sntl.5kb$start<-sntl.5kb$V4-2500
 sntl.5kb$stop<-sntl.5kb$V4+2500
-write.table(sntl.5kb[,-2],"pstfst/SnoutLength_extract.sh",col.names=F, row.names=F,
+write.table(create.extract.sh(sntl.5kb[,-2]),
+	"pstfst/SnoutLength_extract.sh",col.names=F, row.names=F,
 	quote=F,eol='\n')
 
 head.sig<-rownames(fpf)[rownames(fpf[fpf$HeadLength.P <= 0.05,]) %in%
@@ -1456,10 +1478,11 @@ head.sig<-rownames(fpf)[rownames(fpf[fpf$HeadLength.P <= 0.05,]) %in%
 write.table(head.sig,"pstfst/HeadLength_pstfst.txt",col.names=F,row.names=F,quote=F)
 write.table(gsub("(\\d+)_\\d+)","\\1",head.sig),
 	"pstfst/HeadLength_radloc.txt",col.names=F,row.names=F,quote=F)
-head.5kb<-sub.scaffs[sub.scaffs$V2 %in% head.sig,c(1,4)]
+head.5kb<-all.map[all.map$V2 %in% head.sig,c(1,4)]
 head.5kb$start<-head.5kb$V4-2500
 head.5kb$stop<-head.5kb$V4+2500
-write.table(head.5kb[,-2],"pstfst/HeadLength_extract.sh",col.names=F, row.names=F,
+write.table(create.extract.sh(head.5kb[,-2]),
+	"pstfst/HeadLength_extract.sh",col.names=F, row.names=F,
 	quote=F,eol='\n')
 
 sntd.sig<-rownames(fpf)[rownames(fpf[fpf$SnoutDepth.P <= 0.05,]) %in%
@@ -1467,10 +1490,11 @@ sntd.sig<-rownames(fpf)[rownames(fpf[fpf$SnoutDepth.P <= 0.05,]) %in%
 write.table(sntd.sig,"pstfst/SnoutDepth_pstfst.txt",col.names=F,row.names=F,quote=F)
 write.table(gsub("(\\d+)_\\d+","\\1",sntd.sig),
 	"pstfst/SnoutDepth_radloc.txt",col.names=F,row.names=F,quote=F)
-sntd.5kb<-sub.scaffs[sub.scaffs$V2 %in% sntd.sig,c(1,4)]
+sntd.5kb<-all.map[all.map$V2 %in% sntd.sig,c(1,4)]
 sntd.5kb$start<-sntd.5kb$V4-2500
 sntd.5kb$stop<-sntd.5kb$V4+2500
-write.table(sntd.5kb[,-2],"pstfst/SnoutDepth_extract.sh",col.names=F, row.names=F,
+write.table(create.extract.sh(sntd.5kb[,-2]),
+	"pstfst/SnoutDepth_extract.sh",col.names=F, row.names=F,
 	quote=F,eol='\n')
 
 band.sig<-rownames(fpf[fpf$BandArea.P <= 0.05 | 
@@ -1478,16 +1502,17 @@ band.sig<-rownames(fpf[fpf$BandArea.P <= 0.05 |
 write.table(band.sig,"pstfst/Bands_pstfst.txt",col.names=F,row.names=F,quote=F)
 write.table(gsub("(\\d+)_\\d+","\\1",band.sig),
 	"pstfst/Bands_radloc.txt",col.names=F,row.names=F,quote=F)
-band.5kb<-sub.scaffs[sub.scaffs$V2 %in% band.sig,c(1,4)]
+band.5kb<-all.map[all.map$V2 %in% band.sig,c(1,4)]
 band.5kb$start<-band.5kb$V4-2500
 band.5kb$stop<-band.5kb$V4+2500
-write.table(band.5kb[,-2],"pstfst/Bands_extract.sh",col.names=F, row.names=F,
+write.table(create.extract.sh(band.5kb[,-2]),
+	"pstfst/Bands_extract.sh",col.names=F, row.names=F,
 	quote=F,eol='\n')
 
 sig.all<-rownames(fpf)[rownames(fpf) %in% svl.sig & 
 	rownames(fpf) %in% tail.sig & rownames(fpf) %in% body.sig & 
-	rownames(fpf) %in% sntd.sig & rownames(fpf) %in% sntd.sig & 
-	rownames(fpf) %in% head.sig & rownames(fpf) %in% band.sig] #17514_61
+	rownames(fpf) %in% sntd.sig & rownames(fpf) %in% sntl.sig & 
+	rownames(fpf) %in% head.sig & rownames(fpf) %in% band.sig] # "7875_9"   "24777_60" "5317_10" 
 
 #WRITE TO FILE, after other files have been written
 svl.sig<-read.table("pstfst/SVL_pstfst.txt")
@@ -1498,26 +1523,26 @@ head.sig<-read.table("pstfst/HeadLength_pstfst.txt")
 sntd.sig<-read.table("pstfst/SnoutDepth_pstfst.txt")
 band.sig<-read.table("pstfst/Bands_pstfst.txt")
 
-svl.sig<-merge(svl.sig,sub.map,by.x="V1",by.y="V2")
-colnames(svl.sig)<-c("SNP","scaffold","Dist","BP")
+svl.sig<-all.map[all.map$V2 %in% svl.sig$V1,]
+colnames(svl.sig)<-c("scaffold","SNP","Dist","BP")
 svl.sig$locus<-gsub("(\\d+)_\\d+","\\1",svl.sig$SNP)
-tail.sig<-merge(tail.sig,sub.map,by.x="V1",by.y="V2")
-colnames(tail.sig)<-c("SNP","scaffold","Dist","BP")
+tail.sig<-all.map[all.map$V2 %in% tail.sig$V1,]
+colnames(tail.sig)<-c("scaffold","SNP","Dist","BP")
 tail.sig$locus<-gsub("(\\d+)_\\d+","\\1",tail.sig$SNP)
-body.sig<-merge(body.sig,sub.map,by.x="V1",by.y="V2")
-colnames(body.sig)<-c("SNP","scaffold","Dist","BP")
+body.sig<-all.map[all.map$V2 %in% body.sig$V1,]
+colnames(body.sig)<-c("scaffold","SNP","Dist","BP")
 body.sig$locus<-gsub("(\\d+)_\\d+","\\1",body.sig$SNP)
-sntl.sig<-merge(sntl.sig,sub.map,by.x="V1",by.y="V2")
-colnames(sntl.sig)<-c("SNP","scaffold","Dist","BP")
+sntl.sig<-all.map[all.map$V2 %in% sntl.sig$V1,]
+colnames(sntl.sig)<-c("scaffold","SNP","Dist","BP")
 sntl.sig$locus<-gsub("(\\d+)_\\d+","\\1",sntl.sig$SNP)
-head.sig<-merge(head.sig,sub.map,by.x="V1",by.y="V2")
-colnames(head.sig)<-c("SNP","scaffold","Dist","BP")
+head.sig<-all.map[all.map$V2 %in% head.sig$V1,]
+colnames(head.sig)<-c("scaffold","SNP","Dist","BP")
 head.sig$locus<-gsub("(\\d+)_\\d+","\\1",head.sig$SNP)
-sntd.sig<-merge(sntd.sig,sub.map,by.x="V1",by.y="V2")
-colnames(sntd.sig)<-c("SNP","scaffold","Dist","BP")
+sntd.sig<-all.map[all.map$V2 %in% sntd.sig$V1,]
+colnames(sntd.sig)<-c("scaffold","SNP","Dist","BP")
 sntd.sig$locus<-gsub("(\\d+)_\\d+","\\1",sntd.sig$SNP)
-band.sig<-merge(band.sig,sub.map,by.x="V1",by.y="V2")
-colnames(band.sig)<-c("SNP","scaffold","Dist","BP")
+band.sig<-all.map[all.map$V2 %in% band.sig$V1,]
+colnames(band.sig)<-c("scaffold","SNP","Dist","BP")
 band.sig$locus<-gsub("(\\d+)_\\d+","\\1",band.sig$SNP)
 
 tags<-read.table("stacks/batch_1.catalog.tags.tsv",sep='\t',header=F)
@@ -1556,6 +1581,14 @@ length(rownames(sig.fst.ibd)[rownames(sig.fst.ibd) %in% rownames(sntl.sig)])
 length(rownames(sig.fst.ibd)[rownames(sig.fst.ibd) %in% rownames(sntd.sig)])
 length(rownames(sig.fst.ibd)[rownames(sig.fst.ibd) %in% rownames(head.sig)])
 length(rownames(sig.fst.ibd)[rownames(sig.fst.ibd) %in% rownames(band.sig)])
+
+length(outliers$SNP[outliers$SNP %in% svl.sig$SNP])
+length(outliers$SNP[outliers$SNP %in% tail.sig$SNP])
+length(outliers$SNP[outliers$SNP %in% body.sig$SNP])
+length(outliers$SNP[outliers$SNP %in% sntl.sig$SNP])
+length(outliers$SNP[outliers$SNP %in% sntd.sig$SNP])
+length(outliers$SNP[outliers$SNP %in% head.sig$SNP])
+length(outliers$SNP[outliers$SNP %in% band.sig$SNP])
 
 #merge with outlier and BF analyses
 pstfst.sig$analysis<-pstfst.sig$Trait
@@ -1673,9 +1706,9 @@ mantel.rtest(as.dist(t(fem.pst)),as.dist(t(dist)), nrepet=9999)
 mantel.rtest(as.dist(t(mal.pst)),as.dist(t(dist)), nrepet=9999)
 
 
-mantel.rtest(as.dist(t(band.pst)),as.dist(t(pwise.fst)), nrepet=9999)
-mantel.rtest(as.dist(t(fem.pst)),as.dist(t(pwise.fst)), nrepet=9999)
-mantel.rtest(as.dist(t(mal.pst)),as.dist(t(pwise.fst)), nrepet=9999)
+mantel.rtest(as.dist(t(band.pst)),as.dist(t(pwise.fst.sub)), nrepet=9999)
+mantel.rtest(as.dist(t(fem.pst)),as.dist(t(pwise.fst.sub)), nrepet=9999)
+mantel.rtest(as.dist(t(mal.pst)),as.dist(t(pwise.fst.sub)), nrepet=9999)
 
 env.dat<-read.table("bayenv2//env_data_bayenv_raw.txt")
 env.u<-rda(t(env.dat))$CA$u
@@ -1825,7 +1858,7 @@ env.dist<-dist(env.u.new)
 ###PLOT###
 jpeg("Fig6_standardized.jpeg",height=7,width=7, units="in", res=300)
 par(las=1, oma=c(1,1,2.5,1), mar=c(3,3,1,3))
-plot(dist[upper.tri(dist)], pwise.fst[upper.tri(pwise.fst)], pch=19,
+plot(dist[upper.tri(dist)], pwise.fst.sub[upper.tri(pwise.fst.sub)], pch=19,
 	ylim=c(0,1),xlab="",ylab="")
 points(dist[upper.tri(dist)],sband.pst[upper.tri(sband.pst)], pch=6,col="darkgreen")
 points(dist[upper.tri(dist)],sfem.pst[upper.tri(sfem.pst)],pch=4,col="red")

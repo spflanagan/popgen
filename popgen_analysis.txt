@@ -36,6 +36,12 @@ X-Instead of mean temperature, use a temperature anomaly?
 10. Bayenv2
 11. calculate_global_fst
 ##################################################################################################
+
+cat scaffold_9632586230862.fasta >> ../bands_region.fasta
+cat scaffold_9683537340373.fasta >> ../bands_region.fasta
+
+sed -i 's/>/\n>/g' ../bands_region.fasta
+
 #####Tuesday, 12 April 2016
 Comparing analyses:
 
