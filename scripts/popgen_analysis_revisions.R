@@ -1,5 +1,5 @@
 #Author: Sarah P. Flanagan
-#Last updated: 1 May 2016
+#Last updated: 4 May 2016
 #Date: 26 March 2015
 #Purpose: Analyze Population genetics data
 #Re-analyses in response to reviewer comments
@@ -408,93 +408,6 @@ tapply(structure.k5$V2,structure.k5$V1,max)#V2=TX,V3=FLKB,V4=TXCB,V5=FLAB,V6=FLC
 str5<-data.frame(structure.k5$V1,structure.k5$V2, structure.k5$V4,structure.k5$V3,
 	structure.k5$V5,structure.k5$V6)
 
-#***************************FASTSTRUCTURE*********************************#
-str.in<-read.table("faststructure/subset.structure.recode.str")
-inds<-str.in[,1]
-inds<-sub('.*_([ATF]\\w+)[_.].*','\\1', inds)
-inds<-inds[c(TRUE,FALSE)]
-pop.id<-substr(inds,1,4)
-pop.list<-c("TXSP","TXCC","TXCB","ALST","FLSG","FLKB","FLFD","FLSI",
-	"FLAB","FLPB","FLHB","FLCC")
-
-#process a faststructure file
-faststr.barplot<-function(meanQ.file, k, plot.order, to.file=TRUE){
-	rownames(meanQ.file)<-inds
-	meanQ.file<-cbind(meanQ.file,pop.id)
-	colnames(meanQ.file)<-c(seq(1,k,1), "pop.id")
-	pop.means<-rowsum(meanQ.file[,1:k],
-		meanQ.file$pop.id)/summary(meanQ.file$pop.id)
-	pop.means.plot<-pop.means[match(plot.order,rownames(pop.means)),]
-	filename<-paste("structure.barplot.",k,".jpeg",sep="")
-	if(to.file==TRUE){
-		jpeg(filename,res=300,height=7,width=7, units="in")
-		par(mar=c(5,4,4,1),oma=c(2,2,2,1),xpd=TRUE)
-	}
-	
-	bp<-barplot(as.matrix(t(pop.means.plot)), col=rainbow(k, 0.5), 
-		legend=FALSE, axes=FALSE, axisnames=FALSE)
-	legend("top", inset=c(0,-0.15), box.lty=0,title="Group",
-		legend=seq(1,k,1),
-		pch=15, col=rainbow(k,0.5), horiz=TRUE)
-	axis(2,las=1, pos=0)
-	axis(1,labels=FALSE, at=bp,pos=0)
-	text(bp, labels=plot.order,srt=30, xpd=TRUE, pos=1,
-		par("usr")[3])
-	if(to.file==TRUE){
-		dev.off()}
-}
-#simple
-fstr2<-read.table("faststructure/pruned_out_simple.2.meanQ",header=F)
-fstr2<-cbind(pop.id,fstr2)
-fstr2<-data.frame(fstr2$pop.id,fstr2$V2,fstr2$V1)
-fstr3<-read.table("faststructure/pruned_out_simple.3.meanQ",header=F)
-fstr3<-cbind(pop.id,fstr3)
-fstr3<-data.frame(fstr3$pop.id,fstr3$V3,fstr3$V2,fstr3$V1)
-fstr4<-read.table("faststructure/pruned_out_simple.4.meanQ",header=F)
-fstr4<-cbind(pop.id,fstr4)
-fstr4<-data.frame(fstr4$pop.id,fstr4$V1,fstr4$V2,fstr4$V3,fstr4$V4)
-fstr5<-read.table("faststructure/pruned_out_simple.5.meanQ",header=F)
-fstr5<-cbind(pop.id,fstr5)
-fstr5<-data.frame(fstr5$pop.id,fstr5$V1,fstr5$V3,fstr5$V2,fstr5$V4,fstr5$V5)
-
-#res
-fstr2res<-read.table("faststructure/res.k2.output_log.2.meanQ",header=F)
-fstr2res<-cbind(pop.id,fstr2)
-fstr2<-data.frame(fstr2$pop.id,fstr2$V2,fstr2$V1)
-fstr3<-read.table("faststructure/pruned_out_simple.3.meanQ",header=F)
-fstr3<-cbind(pop.id,fstr3)
-fstr3<-data.frame(fstr3$pop.id,fstr3$V3,fstr3$V2,fstr3$V1)
-fstr4<-read.table("faststructure/pruned_out_simple.4.meanQ",header=F)
-fstr4<-cbind(pop.id,fstr4)
-fstr4<-data.frame(fstr4$pop.id,fstr4$V3,fstr4$V2,fstr4$V1)
-
-fstr5<-read.table("faststructure/pruned_out_simple.5.meanQ",header=F)
-fstr5<-cbind(pop.id,fstr5)
-
-
-#assign each ind to a group
-fast.groups.3<-as.data.frame(cbind(inds, apply(stru3, 1, which.max)))
-fast.groups.3$inds<-sub('([[:alpha:]]{5,7})([[:digit:]]{1})$', '\\10\\2', 
-	group.inds.3$inds)
-
-fast.groups.5<-as.data.frame(cbind(inds, apply(stru5, 1, which.max)))
-fast.groups.5$inds<-sub('([[:alpha:]]{5,7})([[:digit:]]{1})$', '\\10\\2', 
-	fast.groups.5$inds)
-
-#make a populations map for stacks
-#first need to get names from marine_map
-marine.map<-read.table("E://ubuntushare//stacks//marine_map.txt") 
-marine.map$V1<-sub('([A-Z]{5,7})([[:digit:]]{1}[[:punct:]])', '\\10\\2', 
-	marine.map$V1)
-
-fast.groups.5$inds<-marine.map$V1[match(
-	sub(
-	'(sample_)([A-Z]{5,7}[0-9]?[0-9]?[0-9]?)(.fq)?(_align)',
-	'\\2',marine.map$V1), 
-	fast.groups.5$inds)]
-
-write.table(fast.groups.5, "E://ubuntushare//stacks//fstru.groups.popmap.txt", 
-	col.names=F, sep="\t", eol="\n", quote=F, row.names=F)
 
 ##################################MAKE FIGURE 2#############################
 jpeg("Figure2_revisions.jpeg",height=7,width=7.5,units="in",res=300)
@@ -830,8 +743,8 @@ neutral.pch<-19
 bf.scaff$Temp_BF<-log(bf.scaff$Temp_BF)
 bf.scaff$BFtempvar<-log(bf.scaff$BFtempvar)
 
-#############FIG 4
-jpeg("Fig4_temp_revisions.jpeg", height=9,width=7.5,units="in",res=300)
+#############PLOTTING
+jpeg("temp_revisions.jpeg", height=9,width=7.5,units="in",res=300)
 pdf("Temp_Outliers.pdf",height=9,width=7.5)
 par(mfrow=c(2,1),oma=c(1,1,0,0),mar=c(0,1,1,0),cex=2,mgp=c(3,0.5,0))
 
@@ -1080,7 +993,7 @@ outliers<-outliers[sort(outliers$locus),]
 write.table(outliers,"AllOutliers.txt",sep='\t',row.names=F,col.names=T,
 	quote=F)
 
-##########################PLOT FIGURE 4: VENN DIAGRAM#########################
+########################PLOT APPENDIX 2: VENN DIAGRAM#########################
 out.venn<-venn( list("."=pca.loc, "."=fst.loc,"."=xtx.loc))
 
 jpeg("Fig4_Venn_revisions.jpeg", height=7,width=7,units="in", res=300)
@@ -1098,7 +1011,7 @@ write.table(all.sig[,c(1,2,4)],"shared_outlier.txt",quote=F,row.names=F)
 sig.region<-data.frame(all.sig$chr,all.sig$bp-2500,all.sig$bp+2500)
 write.table(sig.region,"shared_outlier_region.sh",quote=F,row.names=F,
 	col.names=F,sep='\t',eol='\n')
-##########################PLOT FIGURE 5: OUTLIERS#############################
+##########################PLOT FIGURE 3: OUTLIERS#############################
 #non-outliers: col = grey53, pch=19
 #Fst outliers: col=black
 #XtX outliers: col=blue, pch=19 or 1
@@ -1112,7 +1025,7 @@ fst.out.pch<-1
 xtx.out.pch<-2
 pca.out.pch<-0
 
-#############FIG 5
+#############FIG 3
 jpeg("LocalAdaptationOutliers_revisions.jpeg", height=9,width=7.5,units="in",res=300)
 pdf("LocalAdaptationOutliers_revisions.pdf", height=9,width=7.5)
 par(mfrow=c(3,1),oma=c(1,1,0,0),mar=c(0,1,1,0),cex=2,mgp=c(3,0.5,0))
@@ -1715,8 +1628,8 @@ env.u<-rda(t(env.dat))$CA$u
 env.u.new<-env.u[match(pop.order,rownames(env.u)),1]
 env.dist<-dist(env.u.new)
 
-###PLOT###
-jpeg("Fig6.pst.fst.dist.jpeg",height=7,width=7, units="in", res=300)
+###************************************PLOT********************************###
+jpeg("Fig5.pst.fst.dist.jpeg",height=7,width=7, units="in", res=300)
 pdf("pst.fst.dist.pdf",height=7,width=7)
 par(las=1, oma=c(1,1,2.5,1), mar=c(3,3,1,3))
 plot(dist[upper.tri(dist)], pwise.fst.sub[upper.tri(pwise.fst.sub)], pch=19,
@@ -1856,25 +1769,25 @@ env.u.new<-env.u[match(pop.order,rownames(env.u)),1]
 env.dist<-dist(env.u.new)
 
 ###PLOT###
-jpeg("Fig6_standardized.jpeg",height=7,width=7, units="in", res=300)
-par(las=1, oma=c(1,1,2.5,1), mar=c(3,3,1,3))
-plot(dist[upper.tri(dist)], pwise.fst.sub[upper.tri(pwise.fst.sub)], pch=19,
-	ylim=c(0,1),xlab="",ylab="")
-points(dist[upper.tri(dist)],sband.pst[upper.tri(sband.pst)], pch=6,col="darkgreen")
-points(dist[upper.tri(dist)],sfem.pst[upper.tri(sfem.pst)],pch=4,col="red")
-points(dist[upper.tri(dist)],smal.pst[upper.tri(smal.pst)],pch=5,col="blue")
+#jpeg("Fig6_standardized.jpeg",height=7,width=7, units="in", res=300)
+#par(las=1, oma=c(1,1,2.5,1), mar=c(3,3,1,3))
+#plot(dist[upper.tri(dist)], pwise.fst.sub[upper.tri(pwise.fst.sub)], pch=19,#
+#	ylim=c(0,1),xlab="",ylab="")
+#points(dist[upper.tri(dist)],sband.pst[upper.tri(sband.pst)], pch=6,col="darkgreen")
+#points(dist[upper.tri(dist)],sfem.pst[upper.tri(sfem.pst)],pch=4,col="red")
+#points(dist[upper.tri(dist)],smal.pst[upper.tri(smal.pst)],pch=5,col="blue")
 #points(dist[upper.tri(dist)],env.dist[lower.tri(env.dist)],pch=15,col="purple")
-axis(4)
-mtext("Distance (miles)",1, outer=T, line=-0.5)
-mtext("Smoothed Pairwise Fst",2, las=0, outer=T, line=-0.5)
-mtext("Pairwise Pst",4, outer=T, las=0,line=-0.5)
-par(fig = c(0, 1, 0, 1), oma=c(2,1,0,1), mar = c(0, 0, 0, 0), new = TRUE,
-	cex=1)
-plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
-legend("top", ncol=2, col=c("black","blue","red","darkgreen"),pch=c(19,5,4,6),
-	c("Fst","Male PCA Pst", "Female PCA Pst", "Female Bands PCA Pst"),bty="n")
+#axis(4)
+#mtext("Distance (miles)",1, outer=T, line=-0.5)
+#mtext("Smoothed Pairwise Fst",2, las=0, outer=T, line=-0.5)
+#mtext("Pairwise Pst",4, outer=T, las=0,line=-0.5)
+#par(fig = c(0, 1, 0, 1), oma=c(2,1,0,1), mar = c(0, 0, 0, 0), new = TRUE,#
+#	cex=1)
+#plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
+#legend("top", ncol=2, col=c("black","blue","red","darkgreen"),pch=c(19,5,4,6),
+#	c("Fst","Male PCA Pst", "Female PCA Pst", "Female Bands PCA Pst"),bty="n")
 
-dev.off()
+#dev.off()
 
 ##############################################################################
 #****************************************************************************#
@@ -2456,7 +2369,7 @@ write.csv(mal.tensor$s.mat,"MaleSmatrix.csv")
 
 write.csv(fem.tensor$tensor.summary,"FemaleTensorSummary.csv")
 write.csv(mal.tensor$tensor.summary,"MaleTensorSummary.csv")
-#******************************FIGURE 7***********************************#
+#******************************FIGURE 6***********************************#
 jpeg("Figure7_revisions.jpeg", width=14, height=14, units="in", res=300)
 pdf("Pmatrix_analyses.pdf",width=14,height=14)
 #layout(matrix(c(0,1,2,3),2,2,byrow=F))

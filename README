@@ -1,0 +1,290 @@
+popgen Analysis README
+
+This file contains information about each program and script
+
+The order in which these were run (in parentheses is s for "SCRIPTS" or p for "PROGRMS" to describe which section you'll find information about the item) for the population genomics analysis for Flanagan et al. Molecular Ecology paper:
+1. process_radtags*.sh (s)
+2. bowtie2
+3. refmap_marine.sh (s)
+4. marine_populations.sh (s)
+5. coverage_from_stacks (p)
+6. prune_snps (p) 
+7. plink --file pruned --hwe 0.001 --noweb --allow-no-sex --write-snplist
+	plink --file pruned --extract plink.snplist --recode --recodeA --recode-structure --out subset --noweb --allow-no-sex
+8. Migrate-N 
+	make_migrate_map.R (s)
+8. Structure
+	Structure Harvester
+	parse_swscovelli_structure.sh (s)
+	popgen_analysis_revisions.R (s)
+9. PCAdapt
+	run_pcadapt.sh (s)
+	->popgen_analysis_revisions.R (s)
+10. Adegenet in popgen_analysis_revisions (s)
+11. Bayenv2
+	parse_wod_data (p)
+	filter_wod_files.R (s)
+	run_bayenv2.sh (s)
+	->popgen_analysis_revisions.R (s)
+	run_bayenv2_environ.sh (s)
+	->popgen_analysis_revisions.R (s)
+	GO_plot_popgen.R (s)
+13. calculate_global_fst
+	-> popgen_analysis_revisions.R (s)
+14. All phenotype analyses in popgen_analysis_revisions.R (s)
+
+
+######################################################################################
+****************************************PROGRAMS**************************************
+######################################################################################
+
+**********************************coverage_from_stacks*******************************
+PURPOSE
+	This program calculates coverage from Stacks (Catchen et al. 2011, Catchen et al. 2013).
+NOTES
+	There are other methods for estimating coverage, including parsing the ref_mal.log, but this is the way I did it. This was last tested with output from Stacks v.1.39.
+INPUT
+	The path to the directory with all of the *.matches.tsv files from Stacks
+	A list of sample IDs (the names of the files prior to .matches.tsv)
+OUTPUT
+	This outputs three files. One file contains the average coverage per individual (*_ind_sum.txt), another reports the average coverage per locus (*_loc_sum.txt), and a final file contains overall summary statistics (*_summary.txt)
+HOW TO RUN
+	This program can be run interactively or on the command line with flags.
+		-p: path to directory with stacks *.matches.tsv file
+		-i: List of sample IDs (the component of the filenames before the .matches.tsv)
+		-n: output name (e.g. pop ID, without any extensions; default = coverage)
+		no arguments: interactive mode
+
+**************************************prune_snps**************************************
+PURPOSE
+	This program prunes RAD loci to retain one SNP per RAD locus and to only keep one RAD locus per 2kb. 
+NOTES
+	In theory this could work with any plink format files but was designed to work with RAD loci. 
+	I wrote this code because PLINK was behaving irregularly with my data, which don't have typical chromosome names.
+INPUT
+	PLINK-format *.ped and *.map file
+	Output file name
+OUTPUT
+	New ped and map files with the output file name as the prefix (out_name.ped and out_name.map).
+HOW TO RUN
+	This program can be run interactively or on the command line with flags.
+		-p:	Input Plink .ped file (include path)
+		-m:	Input plink .map file (include path)
+		-o:	output name (which will be used for both ped and map files)
+		no arguments:	interactive mode
+		
+*********************************parse_structure_output*******************************
+PURPOSE
+	STRUCTURE (Pritchard et al.) outputs files with the cluster assignments for each individuals in a /Results/ directory. This program takes those files and extracts the cluster assignments for plotting in R.
+NOTES
+	This should be run in conjunction with the R script plot_structure.README
+INPUT
+	Simply provide the program with the filename, including the path.
+OUTPUT
+	This program produces a text file (*_clusters.txt) with the individual name and the proportion of each cluster assigned to that individual.
+HOW TO RUN
+	This program can be run interactively or on the command line with flags.
+		-f:	Input Filename (include path)
+		-h:	Prints this message
+		no arguments:	interactive mode
+
+************************************parse_wod_data***********************************
+PURPOSE
+	This program reads in a .csv file from the World Oceans Database and pulls out the data for each entry. It outputs multiple variables.
+NOTES
+	This is how I gathered the average 10-year temperature and salinity data for the popgen paper.
+INPUT
+	Provide the program with the name of the .csv file from the World Oceans Database.
+OUTPUT
+	A text file with a row for each entry. In addition to the latitude, longitude, year, month, day, and depth of each sample, the program also outputs the temperatures, salinity, oxygen, and pH readings for each sample.
+HOW TO RUN
+	This program can be run interactively or on the command line with flags.
+		-f:	Input Filename (include path)
+		-h:	Prints this message
+		no arguments:	interactive mode
+		
+***********************************plink_to_migrate***********************************
+PURPOSE	
+	This program converts data in plink format (a *.map and a *.ped file) into a format that will be compatible with MIGRATE-N.
+NOTES
+	Plink format: two files, a map file and a ped file
+		map file has four columns: Chr, SNPID, MapDistance, BP
+		ped file has Family ID,Individual ID,Paternal ID,Maternal ID,Sex(1 = male; 2 = female; other = unknown),Phenotype (-9 is missing), 
+		followed by two columns for each locus.
+
+	migrate format has:
+		<Number of populations> <number of loci>[project title 0 - 79]
+		<Any Number> <title for population 0 - 79>
+		<Position on chromosome locus1> <TAB><allele><TAB><number><TAB><allele><TAB><number><TAB><total>
+		<Position on chromosome locus2> <TAB><allele><TAB><number><TAB><allele><TAB><number><TAB><total>
+		....
+		<Any Number> <title for population 0 - 79>
+		<Position on chromosome locus1> <TAB><allele><TAB><number><TAB><allele><TAB><number><TAB><total>
+		<Position on chromosome locus2> <TAB><allele><TAB><number><TAB><allele><TAB><number><TAB><total>
+INPUT
+	A plink ped file and a plink map file.
+OUTPUT
+	A single migrate file
+HOW TO RUN
+	The program currently (3 May 2016) cannot be run interactively or on the command line. I plan to change this in the near future to make it more user-friendly.
+	You must go into the source file and edit the ped_name, map_name, and migrate_name (output file name) settings.
+	
+**********************************calculate_global_fst********************************
+PURPOSE
+	The purpose of calculate_global_fst is to calculate the overall FST at each locus across all populations.
+NOTES
+	It uses Nei's formula:
+	Fst=1-((sum of each population's expected heterozygosity)/((number of populations)*(overall expected heterozygosity)))
+INPUT
+	The input are plink files (a *.map and *.ped file), and the program does not accept files with a header. Each locus should have two columns per individual.
+OUTPUT
+	The program outputs a file with the Chromosome, Locus ID, and BP for each SNP, along with the observed heterozygosity, the expected heterozygosity (HT), and Fst.
+HOW TO RUN
+	The program currently (3 May 2016) cannot be run interactively or on the command line. I plan to change this in the near future to make it more user-friendly.
+	You must go into the source file and edit the ped_name, map_name, and out_file_name settings. 
+
+***********************************stacks_genomeCIs***********************************
+PURPOSE
+	Generate genome-wide confidence intervals for smoothed Fsts calculated by Stacks.
+NOTES
+	This program wasn't actually used in the population genomics paper's analysis because we used the global Fsts instead, but I include this because it could be useful.
+INPUT
+	The batch_x.fst_Y-Z.tsv file from Stacks populations.
+	The path for the output files
+OUTPUT
+	Summary stats for each individual (e.g. average per-locus coverage, number of loci, etc.)
+	Summary stats for each locus (e.g. average per-individual coverage, number of individuals with that locus, etc.)
+	Overall summary stats (e.g. average per-locus coverage, average per-individual per-locus coverage, total number of loci, etc.)
+HOW TO RUN
+	This program can be run interactively or on the command line with flags.
+		-i: Stacks Fst input filename (including the path)
+		-o: path to directory where output files will be written (include the final backslash)
+		-h: prints a help message
+		no arguments: interactive mode
+		
+**************************************compare_lists***********************************
+PURPOSE
+	This file will compare lists of strings/characters.
+NOTES
+	Although this program was not used in the analysis of the Flanagan et al. population genomics paper, I'm including it because it could be useful to other researchers.
+INPUT
+	Provide the program with two lists and an output filename.
+OUTPUT
+	It outputs all of the shared elements.
+HOW TO RUN
+	This program can be run interactively or on the command line with flags.
+		-a: first list of scaffolds (include path)
+		-b: second list of scaffolds (include path)
+		-o: output file name (include path)
+		-h: display this message
+		no arguments: interactive mode
+
+######################################################################################
+****************************************SCRIPTS***************************************
+######################################################################################
+
+**************************************process_radtags*********************************
+process_radtags.sh, process_radtags_multiplepops.sh, process_radtags_finalpops.sh, and process_radtags_finalpops_fwsw.sh
+PURPOSE
+	These scripts ran process_radtags.pl on all of the 8 RAD seq libraries (containing both saltwater and freshwater populations).
+	
+*****************************************refmap***************************************
+refmap_marine.sh, refmap_fwsw.sh
+PURPOSE
+	Run ref_map.pl (Stacks) on all of the aligned samples. 
+NOTES
+	refmap_marine.sh mapped all of the individuals in the 12 saltwater populations in the population genomics study. refmap_fwsw.sh also includes individuals from an additional 4 freshwater populations.
+
+**************************************populations*************************************
+marine_populations.sh
+PURPOSE
+	Run the populations module of Stacks.
+
+*******************************run_stacks_genomeCIs.sh********************************
+PURPOSE
+	This runs the program stacks_genomeCIs to generate confidence intervals for all of the pairwise Fst distributions.
+NOTES
+	This analysis was not actually included in the population genomics paper.
+
+********************************make_migrate_map**********************************
+PURPOSE
+	To take the information extracted manually from the Migrate-N output (for "all" SNPs) and create a plot and summary tables.
+	
+**************************parse_swscovelli_structure.sh*******************************
+PURPOSE
+	This script ran the parse_structure_output program (see above) to extract relevant information to create the plot. The output was then analyzed in popgen_analysis_revisions.R
+
+********************************run_pcadapt.sh****************************************
+PURPOSE
+	This script was how we ran PCAdapt. The output was then analyzed in popgen_analysis_revisions.R
+	
+********************************run_pcadapt.sh****************************************
+PURPOSE
+	This script was how we ran PCAdapt. The output was then analyzed in popgen_analysis_revisions.R
+	
+******************************filter_wod_files.R**************************************
+PURPOSE
+	This R script selected datapoints from the output of parse_wod_data (p) that were in the appropriate year range (2004-2014) and kept only the mean and variances of interest.
+
+**********************************run_bayenv2.sh**************************************
+PURPOSE	
+	Run bayenv2 to estimate XTX (population differentiation parameter)
+
+******************************run_bayenv2_environ.sh***********************************
+PURPOSE		
+	Run bayenv2 to estimate genetic-environment associations.
+
+**********************************GO_plot_popgen.R**************************************
+PURPOSE	
+	Generate barplots of the gene ontology categories from the pie chart output from Blast2Go.
+	
+*********************************plotting_functions.R***********************************
+PURPOSE
+	Contains plotting functions to generate Structure plots and genome-wide Fst plots.
+	Can be included using source("plotting_functions.R") in any other script.
+	
+****************************popgen_analysis_revisions.R**********************************
+PURPOSE		
+	This script is where most of the analysis happened for the population genomics paper. This script is divided into sections:
+		FILES
+			-contains the file locations of most of the files necessary for the analysis
+		PLOT THE POINTS ON A MAP
+			-generates Fig. 1 (points on a map)
+		TEST FOR ISOLATION BY DISTANCE
+			-runs Mantel tests on average pairwise Fsts and SNP-by-SNP Fsts
+			-contains function pairwise.fst()
+		POPULATION STRUCTURE
+			-runs Adegenet on file output from plink (subsetA.raw)
+			-analyzes PCAdapt output to identify best K value
+			-plots Figure 2 using plotting.structure() function in plotting_functions.R
+		OUTLIER ANALYSES
+			-begins with the prep work to run Bayenv2 (must run this before run_bayenv2.sh or run_bayenv2_environ.sh)
+			-The bit after "#####GET OUTPUT" under Bayenv2 is the analysis of the Bayenv outliers, both the environmental associations and XTX
+			-Analyzes global Fst outliers from calculate_global_fsts
+			-Analyzes PCAdapt local adaptation Bayes Factors
+			-compares all of the outlier analyses and creates Figures 3 (plus Appendix 2 and some others)
+		PST-FST
+			-contains function pairwise.pst() which calculates pairwise Pst
+			-contains function all.traits.pst.mantel() which runs mantel tests on pairwise Pst matrices for all of the traits in a data frame
+			-contains fst.pst.byloc() which compares pairwise Pst matrices and pairwise Fst matrices, looping through all SNPs in a ped file.
+			-analyzes Pst matrices and outputs all loci associated with Pst.
+			-runs PCA on traits and then does Pst analysis on PC scores.
+			-Plots Figures 4 and 5
+			-Also includes the same analysis with standardized traits, although this was not included in the analysis for the paper
+		P-MATRIX
+			-contains calc.pmat(), which calculates the p-matrix for a population
+			-calculates P-matrices and writes them to file.
+			"BLOWS METHOD": 
+				-calc.sim() calculates the similarity matrix
+				-generate.sim.mat() generates similarity matrices using calc.sim() for a set of P-matrices
+				-find.pmax() calculates the leading eigenvector of the P-matrix (pmax)
+				-vector.correlations() compares the leading eigenvecotrs between two populations
+				-calc.h() calculates the H matrix (common subspace matrix)
+				-pop.h.angle() calculates the angle between the leading eigenvector of the common subspace matrix and the P-matrix for a population.
+				-Two analyses: pairwise and common subspace. Common subspace was actually used in the paper
+			"TENSORS"
+				-covtensor() does the analysis. It's modified from the Aguirre et al. 2013 supplementary material.
+				-max.eig.val() determines which eigenvector explains the most variation in eigentensors
+				-the tensor analysis is contained here.
+			-Plot Figure 6.
+			-Plots figures for Supplementary File 3.

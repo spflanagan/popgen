@@ -98,7 +98,7 @@ int main(int argc, char* argv[])
 		{
 			cout << "\nparse_wod_data:\n";
 			cout << "Read in a World Oceans Database .csv file and extract relevant info.\n";
-			cout << "-f:\tFilename (includ path)\n";
+			cout << "-f:\tFilename (include path)\n";
 			cout << "-h:\tPrints this message\n";
 			cout << "no arguments:\tinteractive mode\n";
 			return 0;
@@ -112,7 +112,7 @@ int main(int argc, char* argv[])
 		{
 			cout << "\nparse_wod_data:\n";
 			cout << "Read in a World Oceans Database .csv file and extract relevant info.\n";
-			cout << "-f:\tFilename (includ path)\n";
+			cout << "-f:\tFilename (include path)\n";
 			cout << "-h:\tPrints this message\n";
 			cout << "no arguments:\tinteractive mode\n";
 			return 0;

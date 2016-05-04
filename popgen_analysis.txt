@@ -1,4 +1,5 @@
 Population genetics Analysis Log File
+LAST UPDATED: 3 May 2016
 This is started after receving first round of reviews from Molecular Ecology
 22 February 2016
 
@@ -22,7 +23,7 @@ X-Did LD pruning work as expected? Are SNPs from the same RAD locus removed?
 X-Instead of mean temperature, use a temperature anomaly?
 
 #THE PIPELINE
-1. align with bowtie 2
+1. align with bowtie2
 2. ref_map.pl
 3. populations -r 0.75 -p 12 -a 0.05
 4. prune_snps.cpp
@@ -36,11 +37,19 @@ X-Instead of mean temperature, use a temperature anomaly?
 10. Bayenv2
 11. calculate_global_fst
 ##################################################################################################
+#####Monday, 2 May 2016
+I've re-done the analysis, blastx is running, and the supplemental has been re-done.
 
-cat scaffold_9632586230862.fasta >> ../bands_region.fasta
-cat scaffold_9683537340373.fasta >> ../bands_region.fasta
+Migrate map:
+	calculated by multiplying M2->1 by theta 1 for each arrow pointing to pop 1.
+	So for TXCC, it's got an arrow that's MTXCB->TXCC and MTXSP->TXCC, plus its own average theta. so I calculated Nm as:
+		Nm=((thetaTXCC*MTXCB->TXCC)+(thetaTXSP*MTXCB->TXCC))/2
+	OK, need Nm for each arrow.
+		(thetaTXCC*MTXCB->TXCC)/4
 
-sed -i 's/>/\n>/g' ../bands_region.fasta
+#####Sunday, 1 May 2016
+Re-doing the Pst-Fst analysis with linear model instead of the anova.
+This changes things slightly.
 
 #####Tuesday, 12 April 2016
 Comparing analyses:
