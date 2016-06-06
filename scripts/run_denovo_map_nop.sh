@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-denovo_map.pl -T 6 -m 5 -M 2 -n 3 -t \
+denovo_map.pl -T 3 -m 5 -M 2 -n 3 -t \
 	-b 3 -D "Nerophis ophidion pop gen redo" -S \
 	-O ./nop_map.txt -X "populations:-r 0.75"\
 	-X "populations:-a 0.05" -X "populations:--genomic" \

@@ -17,6 +17,31 @@ plink --file ld.subset --extract neutral.snplist --recode-structure --noweb --al
 plink --file ld.subset --extract neutral.snplist --recodeA --noweb --allow-no-sex
 
 #############################################LAB BOOK######################################################
+#####Monday, 9 May 2016
+The structure run showed that deltaK was maximized at K=4. Looking at the graphs, though, I'm not sure that's the best interpretation (they all look kind of the same).
+Adegenet does not provide clear clusters
+
+I want to re-run populations with the whitelist to get a Fst matrix...
+Moved old populations output to 'populations' folder. 
+
+Opened up plink.snplist and replaced _ with \t to have locus\tbp setup. Saved as nop.subset.whitelist.txt
+
+populations -b 3 -P ./stacks -M ./nop_map.txt -s -W ./stacks/nop.subset.whitelist.txt -t 3 --fstats --plink --vcf
+
+#####Sunday, 8 May 2016
+I re-ran stacks with different filters and got only 41 polymorphic sites...
+I'll just go with the populations run with a 0.05, p 2 and r 0.5. 
+
+Ran the plink files through prune_snps (saved as pruned.ped and pruned.map)
+plink --file pruned --hwe 0.001 --noweb --allow-no-sex --write-snplist
+1295 markers excluded (genotyping rate is 0.284024)
+plink --file pruned --extract plink.snplist --recode --recodeA --recode-structure --out subset --noweb --allow-no-sex
+Using 3317 SNPs.
+
+Started structure, admix 10000 and 10000 k=1 through k=6.
+
+The adegenet plot showing missing data shows that the SEW population is missing the most and LEM is missing a lot too.
+
 #####Saturday, 19 March 2016
 Starting to parse the structure output
 Using Structure harvester, I found that K=4 is best in admixture model but K=2 is best in no admixture model. So clearly I need to do more analyses.
