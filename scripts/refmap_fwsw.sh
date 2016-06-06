@@ -1,701 +1,710 @@
-ref_map.pl -b 2 -S -n 2 -m 3 -T 7 -O fwsw_map.txt \
--o ./stacks/ \
--s ./samples/popgen_5/sample_FLKBF01.fq_align.sam \
--s ./samples/popgen_5/sample_FLKBF02.fq_align.sam \
--s ./samples/popgen_5/sample_FLKBF04.fq_align.sam \
--s ./samples/popgen_5/sample_FLKBF05.fq_align.sam \
--s ./samples/popgen_5/sample_FLKBF06.fq_align.sam \
--s ./samples/popgen_5/sample_FLKBF07.fq_align.sam \
--s ./samples/popgen_5/sample_FLKBF09.fq_align.sam \
--s ./samples/popgen_5/sample_FLKBF10.fq_align.sam \
--s ./samples/popgen_5/sample_FLKBF11.fq_align.sam \
--s ./samples/popgen_5/sample_FLKBF13.fq_align.sam \
--s ./samples/popgen_5/sample_FLKBF14.fq_align.sam \
--s ./samples/popgen_5/sample_FLKBF15.fq_align.sam \
--s ./samples/popgen_5/sample_FLKBF16.fq_align.sam \
--s ./samples/popgen_5/sample_FLKBF17.fq_align.sam \
--s ./samples/popgen_5/sample_FLKBF18.fq_align.sam \
--s ./samples/popgen_5/sample_FLKBF19.fq_align.sam \
--s ./samples/popgen_5/sample_FLKBF20.fq_align.sam \
--s ./samples/popgen_5/sample_FLKBF21.fq_align.sam \
--s ./samples/popgen_5/sample_FLKBF22.fq_align.sam \
--s ./samples/popgen_5/sample_FLKBF23.fq_align.sam \
--s ./samples/popgen_5/sample_FLKBF24.fq_align.sam \
--s ./samples/popgen_5/sample_FLKBP01.fq_align.sam \
--s ./samples/popgen_5/sample_FLKBP02.fq_align.sam \
--s ./samples/popgen_5/sample_FLKBP03.fq_align.sam \
--s ./samples/popgen_5/sample_FLKBP06.fq_align.sam \
--s ./samples/popgen_5/sample_FLKBP07.fq_align.sam \
--s ./samples/popgen_5/sample_FLKBP08.fq_align.sam \
--s ./samples/popgen_5/sample_FLKBP09.fq_align.sam \
--s ./samples/popgen_5/sample_FLKBP10.fq_align.sam \
--s ./samples/popgen_5/sample_FLKBP11.fq_align.sam \
--s ./samples/popgen_5/sample_FLKBP12.fq_align.sam \
--s ./samples/popgen_5/sample_FLKBP13.fq_align.sam \
--s ./samples/popgen_5/sample_FLKBP14.fq_align.sam \
--s ./samples/popgen_5/sample_FLKBP15.fq_align.sam \
--s ./samples/popgen_5/sample_FLKBP16.fq_align.sam \
--s ./samples/popgen_5/sample_FLKBP17.fq_align.sam \
--s ./samples/popgen_5/sample_FLKBP18.fq_align.sam \
--s ./samples/popgen_5/sample_FLKBP19.fq_align.sam \
--s ./samples/popgen_5/sample_FLKBP20.fq_align.sam \
--s ./samples/popgen_5/sample_FLKBP22.fq_align.sam \
--s ./samples/popgen_5/sample_FLKBP23.fq_align.sam \
--s ./samples/popgen_5/sample_FLKBP24.fq_align.sam \
--s ./samples/popgen_5/sample_FLPBDB02.fq_align.sam \
--s ./samples/popgen_5/sample_FLPBDB03.fq_align.sam \
--s ./samples/popgen_5/sample_FLPBDB04.fq_align.sam \
--s ./samples/popgen_5/sample_FLPBDB05.fq_align.sam \
--s ./samples/popgen_5/sample_FLPBDB06.fq_align.sam \
--s ./samples/popgen_5/sample_FLPBDB07.fq_align.sam \
--s ./samples/popgen_5/sample_FLPBDB08.fq_align.sam \
--s ./samples/popgen_5/sample_FLPBDB09.fq_align.sam \
--s ./samples/popgen_5/sample_FLPBDB10.fq_align.sam \
--s ./samples/popgen_5/sample_FLPBF01.fq_align.sam \
--s ./samples/popgen_5/sample_FLPBF02.fq_align.sam \
--s ./samples/popgen_5/sample_FLPBF03.fq_align.sam \
--s ./samples/popgen_5/sample_FLPBF04.fq_align.sam \
--s ./samples/popgen_5/sample_FLPBF05.fq_align.sam \
--s ./samples/popgen_5/sample_FLPBF06.fq_align.sam \
--s ./samples/popgen_5/sample_FLPBF07.fq_align.sam \
--s ./samples/popgen_5/sample_FLPBF08.fq_align.sam \
--s ./samples/popgen_5/sample_FLPBF10.fq_align.sam \
--s ./samples/popgen_5/sample_FLPBF12.fq_align.sam \
--s ./samples/popgen_5/sample_FLPBJA.fq_align.sam \
--s ./samples/popgen_5/sample_FLPBJB.fq_align.sam \
--s ./samples/popgen_5/sample_FLPBJC.fq_align.sam \
--s ./samples/popgen_5/sample_FLPBJD.fq_align.sam \
--s ./samples/popgen_5/sample_FLPBJE.fq_align.sam \
--s ./samples/popgen_5/sample_FLPBNP1.fq_align.sam \
--s ./samples/popgen_5/sample_FLPBP01.fq_align.sam \
--s ./samples/popgen_5/sample_FLPBP02.fq_align.sam \
--s ./samples/popgen_5/sample_FLPBP03.fq_align.sam \
--s ./samples/popgen_5/sample_FLPBP04.fq_align.sam \
--s ./samples/popgen_5/sample_FLPBP05.fq_align.sam \
--s ./samples/popgen_5/sample_FLPBP06.fq_align.sam \
--s ./samples/popgen_5/sample_FLPBP07.fq_align.sam \
--s ./samples/popgen_5/sample_FLPBP08.fq_align.sam \
--s ./samples/popgen_5/sample_FLPBP09.fq_align.sam \
--s ./samples/popgen_5/sample_FLPBP10.fq_align.sam \
--s ./samples/popgen_5/sample_FLPBP12.fq_align.sam \
--s ./samples/popgen_5/sample_FLPBP13.fq_align.sam \
--s ./samples/popgen_5/sample_FLPBP14.fq_align.sam \
--s ./samples/popgen_5/sample_FLPBP16.fq_align.sam \
--s ./samples/popgen_5/sample_FLPBP17.fq_align.sam \
--s ./samples/popgen_5/sample_FLPBP18.fq_align.sam \
--s ./samples/popgen_5/sample_FLPBP19.fq_align.sam \
--s ./samples/popgen_5/sample_FLPBP20.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPDB2.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPDB3.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPDB4.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPF01.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPF02.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPF03.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPF04.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPF05.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPF06.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPF07.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPF08.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPF09.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPF10.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPF11.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPF12.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPF13.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPF14.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPF15.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPF16.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPF17.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPF18.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPF19.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPF20.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPP01.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPP02.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPP03.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPP04.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPP05.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPP06.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPP07.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPP08.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPP09.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPP10.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPP11.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPP12.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPP13.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPP14.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPP16.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPP17.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPP18.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPP19.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPP20.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPP21.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPP22.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPP23.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPP24.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPP25.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPP27.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPP28.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPP29.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPP30.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPP32.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPP33.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPP34.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPP35.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPP36.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPP37.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPP38.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPP39.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPP40.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPP41.fq_align.sam \
--s ./samples/popgen_6/sample_TXSPP42.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTF01.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTF02.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTF04.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTF05.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTF06.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTF07.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTF08.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTF09.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTF10.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTF11.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTF12.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTF13.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTF14.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTF15.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTF16.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTF17.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTF18.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTF19.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTF20.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTF21.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTF22.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTF23.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTF24.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTP01.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTP02.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTP03.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTP04.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTP05.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTP06.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTP07.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTP08.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTP09.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTP10.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTP11.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTP12.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTP13.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTP14.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTP15.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTP16.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTP17.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTP18.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTP19.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTP20.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTP21.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTP22.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTP23.fq_align.sam \
--s ./samples/popgen_7/sample_ALSTP24.fq_align.sam \
--s ./samples/sample_FLABF10_align.sam \
--s ./samples/sample_FLABF11_align.sam \
--s ./samples/sample_FLABF12_align.sam \
--s ./samples/sample_FLABF13_align.sam \
--s ./samples/sample_FLABF14_align.sam \
--s ./samples/sample_FLABF16_align.sam \
--s ./samples/sample_FLABF17_align.sam \
--s ./samples/sample_FLABF18_align.sam \
--s ./samples/sample_FLABF19_align.sam \
--s ./samples/sample_FLABF1_align.sam \
--s ./samples/sample_FLABF20_align.sam \
--s ./samples/sample_FLABF21_align.sam \
--s ./samples/sample_FLABF22_align.sam \
--s ./samples/sample_FLABF2_align.sam \
--s ./samples/sample_FLABF3_align.sam \
--s ./samples/sample_FLABF4_align.sam \
--s ./samples/sample_FLABF6_align.sam \
--s ./samples/sample_FLABF7_align.sam \
--s ./samples/sample_FLABF8_align.sam \
--s ./samples/sample_FLABNP10_align.sam \
--s ./samples/sample_FLABNP12_align.sam \
--s ./samples/sample_FLABNP13_align.sam \
--s ./samples/sample_FLABNP14_align.sam \
--s ./samples/sample_FLABNP15_align.sam \
--s ./samples/sample_FLABNP16_align.sam \
--s ./samples/sample_FLABNP17_align.sam \
--s ./samples/sample_FLABNP18_align.sam \
--s ./samples/sample_FLABNP1_align.sam \
--s ./samples/sample_FLABNP21_align.sam \
--s ./samples/sample_FLABNP2_align.sam \
--s ./samples/sample_FLABNP3_align.sam \
--s ./samples/sample_FLABNP4_align.sam \
--s ./samples/sample_FLABNP5_align.sam \
--s ./samples/sample_FLABNP6_align.sam \
--s ./samples/sample_FLABNP7_align.sam \
--s ./samples/sample_FLABNP8_align.sam \
--s ./samples/sample_FLABNP9_align.sam \
--s ./samples/sample_FLABP1_align.sam \
--s ./samples/sample_FLABP2_align.sam \
--s ./samples/sample_FLABP3_align.sam \
--s ./samples/sample_FLABP4_align.sam \
--s ./samples/sample_FLABP6_align.sam \
--s ./samples/sample_FLCCDB1_align.sam \
--s ./samples/sample_FLCCDB2_align.sam \
--s ./samples/sample_FLCCDB6_align.sam \
--s ./samples/sample_FLCCDB7_align.sam \
--s ./samples/sample_FLCCF11_align.sam \
--s ./samples/sample_FLCCF12_align.sam \
--s ./samples/sample_FLCCF13_align.sam \
--s ./samples/sample_FLCCF14_align.sam \
--s ./samples/sample_FLCCF15_align.sam \
--s ./samples/sample_FLCCF16_align.sam \
--s ./samples/sample_FLCCF17_align.sam \
--s ./samples/sample_FLCCF18_align.sam \
--s ./samples/sample_FLCCF19_align.sam \
--s ./samples/sample_FLCCF1_align.sam \
--s ./samples/sample_FLCCF20_align.sam \
--s ./samples/sample_FLCCF21_align.sam \
--s ./samples/sample_FLCCF22_align.sam \
--s ./samples/sample_FLCCF3_align.sam \
--s ./samples/sample_FLCCF4_align.sam \
--s ./samples/sample_FLCCF5_align.sam \
--s ./samples/sample_FLCCF8_align.sam \
--s ./samples/sample_FLCCF9_align.sam \
--s ./samples/sample_FLCCNP11_align.sam \
--s ./samples/sample_FLCCNP12_align.sam \
--s ./samples/sample_FLCCNP13_align.sam \
--s ./samples/sample_FLCCNP14_align.sam \
--s ./samples/sample_FLCCNP1_align.sam \
--s ./samples/sample_FLCCNP2_align.sam \
--s ./samples/sample_FLCCNP3_align.sam \
--s ./samples/sample_FLCCNP4_align.sam \
--s ./samples/sample_FLCCNP5_align.sam \
--s ./samples/sample_FLCCNP6_align.sam \
--s ./samples/sample_FLCCNP8_align.sam \
--s ./samples/sample_FLCCNP9_align.sam \
--s ./samples/sample_FLCCP1_align.sam \
--s ./samples/sample_FLCCP2_align.sam \
--s ./samples/sample_FLCCP3_align.sam \
--s ./samples/sample_FLCCP4_align.sam \
--s ./samples/sample_FLCCP5_align.sam \
--s ./samples/sample_FLCCP6_align.sam \
--s ./samples/sample_FLCCP7_align.sam \
--s ./samples/sample_FLFDF10_align.sam \
--s ./samples/sample_FLFDF11_align.sam \
--s ./samples/sample_FLFDF13_align.sam \
--s ./samples/sample_FLFDF14_align.sam \
--s ./samples/sample_FLFDF15_align.sam \
--s ./samples/sample_FLFDF16_align.sam \
--s ./samples/sample_FLFDF17_align.sam \
--s ./samples/sample_FLFDF18_align.sam \
--s ./samples/sample_FLFDF1_align.sam \
--s ./samples/sample_FLFDF20_align.sam \
--s ./samples/sample_FLFDF23_align.sam \
--s ./samples/sample_FLFDF2_align.sam \
--s ./samples/sample_FLFDF4_align.sam \
--s ./samples/sample_FLFDF5_align.sam \
--s ./samples/sample_FLFDF6_align.sam \
--s ./samples/sample_FLFDF7_align.sam \
--s ./samples/sample_FLFDF8_align.sam \
--s ./samples/sample_FLFDF9_align.sam \
--s ./samples/sample_FLFDP11_align.sam \
--s ./samples/sample_FLFDP12_align.sam \
--s ./samples/sample_FLFDP13_align.sam \
--s ./samples/sample_FLFDP15_align.sam \
--s ./samples/sample_FLFDP16_align.sam \
--s ./samples/sample_FLFDP17_align.sam \
--s ./samples/sample_FLFDP18_align.sam \
--s ./samples/sample_FLFDP19_align.sam \
--s ./samples/sample_FLFDP1_align.sam \
--s ./samples/sample_FLFDP20_align.sam \
--s ./samples/sample_FLFDP21_align.sam \
--s ./samples/sample_FLFDP22_align.sam \
--s ./samples/sample_FLFDP23_align.sam \
--s ./samples/sample_FLFDP24_align.sam \
--s ./samples/sample_FLFDP2_align.sam \
--s ./samples/sample_FLFDP3_align.sam \
--s ./samples/sample_FLFDP4_align.sam \
--s ./samples/sample_FLFDP5_align.sam \
--s ./samples/sample_FLFDP6_align.sam \
--s ./samples/sample_FLFDP7_align.sam \
--s ./samples/sample_FLFDP8_align.sam \
--s ./samples/sample_FLFDP9_align.sam \
--s ./samples/sample_FLHBDB1_align.sam \
--s ./samples/sample_FLHBDB2_align.sam \
--s ./samples/sample_FLHBDB3_align.sam \
--s ./samples/sample_FLHBDB4_align.sam \
--s ./samples/sample_FLHBDB5_align.sam \
--s ./samples/sample_FLHBDB6_align.sam \
--s ./samples/sample_FLHBDB7_align.sam \
--s ./samples/sample_FLHBDB8_align.sam \
--s ./samples/sample_FLHBF10_align.sam \
--s ./samples/sample_FLHBF11_align.sam \
--s ./samples/sample_FLHBF12_align.sam \
--s ./samples/sample_FLHBF13_align.sam \
--s ./samples/sample_FLHBF14_align.sam \
--s ./samples/sample_FLHBF15_align.sam \
--s ./samples/sample_FLHBF16_align.sam \
--s ./samples/sample_FLHBF17_align.sam \
--s ./samples/sample_FLHBF18_align.sam \
--s ./samples/sample_FLHBF1_align.sam \
--s ./samples/sample_FLHBF20_align.sam \
--s ./samples/sample_FLHBF21_align.sam \
--s ./samples/sample_FLHBF22_align.sam \
--s ./samples/sample_FLHBF23_align.sam \
--s ./samples/sample_FLHBF2_align.sam \
--s ./samples/sample_FLHBF3_align.sam \
--s ./samples/sample_FLHBF4_align.sam \
--s ./samples/sample_FLHBF6_align.sam \
--s ./samples/sample_FLHBF8_align.sam \
--s ./samples/sample_FLHBF9_align.sam \
--s ./samples/sample_FLHBNP1_align.sam \
--s ./samples/sample_FLHBNP2_align.sam \
--s ./samples/sample_FLHBP10_align.sam \
--s ./samples/sample_FLHBP11_align.sam \
--s ./samples/sample_FLHBP13_align.sam \
--s ./samples/sample_FLHBP14_align.sam \
--s ./samples/sample_FLHBP15_align.sam \
--s ./samples/sample_FLHBP1_align.sam \
--s ./samples/sample_FLHBP2_align.sam \
--s ./samples/sample_FLHBP3_align.sam \
--s ./samples/sample_FLHBP6_align.sam \
--s ./samples/sample_FLHBP7_align.sam \
--s ./samples/sample_FLHBP9_align.sam \
--s ./samples/sample_FLSGDB1_align.sam \
--s ./samples/sample_FLSGDB2_align.sam \
--s ./samples/sample_FLSGDB3_align.sam \
--s ./samples/sample_FLSGF10_align.sam \
--s ./samples/sample_FLSGF11_align.sam \
--s ./samples/sample_FLSGF12_align.sam \
--s ./samples/sample_FLSGF13_align.sam \
--s ./samples/sample_FLSGF14_align.sam \
--s ./samples/sample_FLSGF15_align.sam \
--s ./samples/sample_FLSGF16_align.sam \
--s ./samples/sample_FLSGF17_align.sam \
--s ./samples/sample_FLSGF18_align.sam \
--s ./samples/sample_FLSGF19_align.sam \
--s ./samples/sample_FLSGF1_align.sam \
--s ./samples/sample_FLSGF20_align.sam \
--s ./samples/sample_FLSGF21_align.sam \
--s ./samples/sample_FLSGF2_align.sam \
--s ./samples/sample_FLSGF3_align.sam \
--s ./samples/sample_FLSGF4_align.sam \
--s ./samples/sample_FLSGF5_align.sam \
--s ./samples/sample_FLSGF6_align.sam \
--s ./samples/sample_FLSGF7_align.sam \
--s ./samples/sample_FLSGF8_align.sam \
--s ./samples/sample_FLSGF9_align.sam \
--s ./samples/sample_FLSGP10_align.sam \
--s ./samples/sample_FLSGP11_align.sam \
--s ./samples/sample_FLSGP13_align.sam \
--s ./samples/sample_FLSGP14_align.sam \
--s ./samples/sample_FLSGP15_align.sam \
--s ./samples/sample_FLSGP16_align.sam \
--s ./samples/sample_FLSGP17_align.sam \
--s ./samples/sample_FLSGP18_align.sam \
--s ./samples/sample_FLSGP19_align.sam \
--s ./samples/sample_FLSGP1_align.sam \
--s ./samples/sample_FLSGP20_align.sam \
--s ./samples/sample_FLSGP23_align.sam \
--s ./samples/sample_FLSGP24_align.sam \
--s ./samples/sample_FLSGP2_align.sam \
--s ./samples/sample_FLSGP4_align.sam \
--s ./samples/sample_FLSGP5_align.sam \
--s ./samples/sample_FLSGP6_align.sam \
--s ./samples/sample_FLSGP7_align.sam \
--s ./samples/sample_FLSGP8_align.sam \
--s ./samples/sample_FLSGP9_align.sam \
--s ./samples/sample_FLSIF10_align.sam \
--s ./samples/sample_FLSIF11_align.sam \
--s ./samples/sample_FLSIF12_align.sam \
--s ./samples/sample_FLSIF13_align.sam \
--s ./samples/sample_FLSIF14_align.sam \
--s ./samples/sample_FLSIF15_align.sam \
--s ./samples/sample_FLSIF16_align.sam \
--s ./samples/sample_FLSIF17_align.sam \
--s ./samples/sample_FLSIF1_align.sam \
--s ./samples/sample_FLSIF20_align.sam \
--s ./samples/sample_FLSIF21_align.sam \
--s ./samples/sample_FLSIF22_align.sam \
--s ./samples/sample_FLSIF23_align.sam \
--s ./samples/sample_FLSIF24_align.sam \
--s ./samples/sample_FLSIF2_align.sam \
--s ./samples/sample_FLSIF3_align.sam \
--s ./samples/sample_FLSIF4_align.sam \
--s ./samples/sample_FLSIF5_align.sam \
--s ./samples/sample_FLSIF6_align.sam \
--s ./samples/sample_FLSIF7_align.sam \
--s ./samples/sample_FLSIF8_align.sam \
--s ./samples/sample_FLSIF9_align.sam \
--s ./samples/sample_FLSIP10_align.sam \
--s ./samples/sample_FLSIP11_align.sam \
--s ./samples/sample_FLSIP12_align.sam \
--s ./samples/sample_FLSIP13_align.sam \
--s ./samples/sample_FLSIP14_align.sam \
--s ./samples/sample_FLSIP15_align.sam \
--s ./samples/sample_FLSIP16_align.sam \
--s ./samples/sample_FLSIP17_align.sam \
--s ./samples/sample_FLSIP18_align.sam \
--s ./samples/sample_FLSIP19_align.sam \
--s ./samples/sample_FLSIP1_align.sam \
--s ./samples/sample_FLSIP20_align.sam \
--s ./samples/sample_FLSIP21_align.sam \
--s ./samples/sample_FLSIP22_align.sam \
--s ./samples/sample_FLSIP23_align.sam \
--s ./samples/sample_FLSIP24_align.sam \
--s ./samples/sample_FLSIP2_align.sam \
--s ./samples/sample_FLSIP3_align.sam \
--s ./samples/sample_FLSIP4_align.sam \
--s ./samples/sample_FLSIP5_align.sam \
--s ./samples/sample_FLSIP6_align.sam \
--s ./samples/sample_FLSIP7_align.sam \
--s ./samples/sample_FLSIP9_align.sam \
--s ./samples/sample_TXCBF10_align.sam \
--s ./samples/sample_TXCBF11_align.sam \
--s ./samples/sample_TXCBF12_align.sam \
--s ./samples/sample_TXCBF13_align.sam \
--s ./samples/sample_TXCBF14_align.sam \
--s ./samples/sample_TXCBF16_align.sam \
--s ./samples/sample_TXCBF18_align.sam \
--s ./samples/sample_TXCBF21_align.sam \
--s ./samples/sample_TXCBF22_align.sam \
--s ./samples/sample_TXCBF24_align.sam \
--s ./samples/sample_TXCBF2_align.sam \
--s ./samples/sample_TXCBF4_align.sam \
--s ./samples/sample_TXCBF8_align.sam \
--s ./samples/sample_TXCBF9_align.sam \
--s ./samples/sample_TXCBNP1_align.sam \
--s ./samples/sample_TXCBP10_align.sam \
--s ./samples/sample_TXCBP11_align.sam \
--s ./samples/sample_TXCBP12_align.sam \
--s ./samples/sample_TXCBP14_align.sam \
--s ./samples/sample_TXCBP15_align.sam \
--s ./samples/sample_TXCBP16_align.sam \
--s ./samples/sample_TXCBP17_align.sam \
--s ./samples/sample_TXCBP18_align.sam \
--s ./samples/sample_TXCBP19_align.sam \
--s ./samples/sample_TXCBP1_align.sam \
--s ./samples/sample_TXCBP20_align.sam \
--s ./samples/sample_TXCBP21_align.sam \
--s ./samples/sample_TXCBP22_align.sam \
--s ./samples/sample_TXCBP23_align.sam \
--s ./samples/sample_TXCBP24_align.sam \
--s ./samples/sample_TXCBP2_align.sam \
--s ./samples/sample_TXCBP3_align.sam \
--s ./samples/sample_TXCBP4_align.sam \
--s ./samples/sample_TXCBP6_align.sam \
--s ./samples/sample_TXCBP8_align.sam \
--s ./samples/sample_TXCBP9_align.sam \
--s ./samples/sample_TXCCF10_align.sam \
--s ./samples/sample_TXCCF11_align.sam \
--s ./samples/sample_TXCCF12_align.sam \
--s ./samples/sample_TXCCF13_align.sam \
--s ./samples/sample_TXCCF16_align.sam \
--s ./samples/sample_TXCCF17_align.sam \
--s ./samples/sample_TXCCF19_align.sam \
--s ./samples/sample_TXCCF1_align.sam \
--s ./samples/sample_TXCCF20_align.sam \
--s ./samples/sample_TXCCF21_align.sam \
--s ./samples/sample_TXCCF22_align.sam \
--s ./samples/sample_TXCCF23_align.sam \
--s ./samples/sample_TXCCF24_align.sam \
--s ./samples/sample_TXCCF3_align.sam \
--s ./samples/sample_TXCCF4_align.sam \
--s ./samples/sample_TXCCF5_align.sam \
--s ./samples/sample_TXCCF6_align.sam \
--s ./samples/sample_TXCCF8_align.sam \
--s ./samples/sample_TXCCF9_align.sam \
--s ./samples/sample_TXCCJB_align.sam \
--s ./samples/sample_TXCCJC_align.sam \
--s ./samples/sample_TXCCJD_align.sam \
--s ./samples/sample_TXCCJE_align.sam \
--s ./samples/sample_TXCCJF_align.sam \
--s ./samples/sample_TXCCNP1_align.sam \
--s ./samples/sample_TXCCNP2_align.sam \
--s ./samples/sample_TXCCP10_align.sam \
--s ./samples/sample_TXCCP11_align.sam \
--s ./samples/sample_TXCCP12_align.sam \
--s ./samples/sample_TXCCP13_align.sam \
--s ./samples/sample_TXCCP14_align.sam \
--s ./samples/sample_TXCCP15_align.sam \
--s ./samples/sample_TXCCP16_align.sam \
--s ./samples/sample_TXCCP1_align.sam \
--s ./samples/sample_TXCCP2_align.sam \
--s ./samples/sample_TXCCP3_align.sam \
--s ./samples/sample_TXCCP4_align.sam \
--s ./samples/sample_TXCCP5_align.sam \
--s ./samples/sample_TXCCP6_align.sam \
--s ./samples/sample_TXCCP8_align.sam \
--s ./samples/sample_TXCCP9_align.sam \
--s ./samples/popgen_8/sample_FLLGDB1.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGDB2.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGDB3.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGDB4.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGDB5.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGF01.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGF02.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGF03.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGF04.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGF05.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGF06.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGF07.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGF08.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGF09.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGF10.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGF11.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGF12.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGF13.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGF14.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGF15.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGF16.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGF17.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGJA.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGJB.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGJC.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGJD.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGJE.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGJF.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGJG.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGJH.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGJI.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGJJ.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGJK.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGJL.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGJM.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGJN.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGJO.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGJP.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGJQ.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGJR.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGJS.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGJT.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGJU.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGJV.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGNP1.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGNP2.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGNP3.fq_align.sam \
--s ./samples/popgen_8/sample_FLLGNP4.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWDB1.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWDB2.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWDB3.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWDB4.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWF01.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWF02.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWF03.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWF04.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWF05.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWF06.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWF07.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWF08.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWF09.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWNP01.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWNP02.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWNP03.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWNP04.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWNP05.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWNP06.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWNP07.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWNP08.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWNP09.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWNP10.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWP01.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWP02.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWP03.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWP04.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWP05.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWP06.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWP07.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWP08.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWP09.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWP10.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWP11.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWP12.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWP13.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWP14.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWP15.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWP16.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWP17.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWP18.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWP19.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWP20.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWP21.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWP22.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWP23.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWP24.fq_align.sam \
--s ./samples/popgen_8/sample_LAFWP26.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWF01.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWF02.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWF03.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWF04.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWF05.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWF06.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWF07.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWF08.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWF09.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWF10.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWF11.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWF12.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWF13.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWF14.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWF15.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWF16.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWF17.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWF18.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWF19.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWF20.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWF21.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWNP11.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWNP1.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWNP2.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWNP3.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWP01.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWP02.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWP03.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWP04.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWP05.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWP06.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWP07.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWP09.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWP10.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWP11.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWP12.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWP13.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWP14.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWP15.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWP16.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWP17.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWP18.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWP19.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWP20.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWP21.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWP22.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWP23.fq_align.sam \
--s ./samples/popgen_7/sample_ALFWP24.fq_align.sam \
--s ./samples/popgen_6/sample_TXFWDB1.fq_align.sam \
--s ./samples/popgen_6/sample_TXFWF01.fq_align.sam \
--s ./samples/popgen_6/sample_TXFWF02.fq_align.sam \
--s ./samples/popgen_6/sample_TXFWF03.fq_align.sam \
--s ./samples/popgen_6/sample_TXFWF04.fq_align.sam \
--s ./samples/popgen_6/sample_TXFWF05.fq_align.sam \
--s ./samples/popgen_6/sample_TXFWJ02.fq_align.sam \
--s ./samples/popgen_6/sample_TXFWJ03.fq_align.sam \
--s ./samples/popgen_6/sample_TXFWJ04.fq_align.sam \
--s ./samples/popgen_6/sample_TXFWJ05.fq_align.sam \
--s ./samples/popgen_6/sample_TXFWJ06.fq_align.sam \
--s ./samples/popgen_6/sample_TXFWJ07.fq_align.sam \
--s ./samples/popgen_6/sample_TXFWJ08.fq_align.sam \
--s ./samples/popgen_6/sample_TXFWJ09.fq_align.sam \
--s ./samples/popgen_6/sample_TXFWJ10.fq_align.sam \
--s ./samples/popgen_6/sample_TXFWJ11.fq_align.sam \
--s ./samples/popgen_6/sample_TXFWJ12.fq_align.sam \
--s ./samples/popgen_6/sample_TXFWJ13.fq_align.sam \
--s ./samples/popgen_6/sample_TXFWJ14.fq_align.sam \
--s ./samples/popgen_6/sample_TXFWJ15.fq_align.sam \
--s ./samples/popgen_6/sample_TXFWJ16.fq_align.sam \
--s ./samples/popgen_6/sample_TXFWJ18.fq_align.sam \
--s ./samples/popgen_6/sample_TXFWJ19.fq_align.sam \
--s ./samples/popgen_6/sample_TXFWJ20.fq_align.sam \
--s ./samples/popgen_6/sample_TXFWJ21.fq_align.sam \
--s ./samples/popgen_6/sample_TXFWJ22.fq_align.sam \
--s ./samples/popgen_6/sample_TXFWNP2.fq_align.sam \
--s ./samples/popgen_6/sample_TXFWNP3.fq_align.sam \
--s ./samples/popgen_6/sample_TXFWNP4.fq_align.sam \
--s ./samples/popgen_6/sample_TXFWNP5.fq_align.sam \
--s ./samples/popgen_6/sample_TXFWP01.fq_align.sam 
+#!/bin/bash
+
+ref_map.pl -T 3 -m 3 \
+	-X "cstacks:-n 2" \
+	-b 2 -D "Popgen new genome, incl. FW" -S \
+	-X "populations:-r 0.5"\
+	-X "populations:-a 0.05" -X "populations:--fstats" \
+	-X "populations:--vcf" -X "populations:--plink" \
+	-X "populations:-p 2" -X "populations:--structure" \
+	-O fwsw_map.txt \
+	-o ./results/stacks/ \
+	-s ./samples/sample_FLKBF01.sam \
+	-s ./samples/sample_FLKBF02.sam \
+	-s ./samples/sample_FLKBF04.sam \
+	-s ./samples/sample_FLKBF05.sam \
+	-s ./samples/sample_FLKBF06.sam \
+	-s ./samples/sample_FLKBF07.sam \
+	-s ./samples/sample_FLKBF09.sam \
+	-s ./samples/sample_FLKBF10.sam \
+	-s ./samples/sample_FLKBF11.sam \
+	-s ./samples/sample_FLKBF13.sam \
+	-s ./samples/sample_FLKBF14.sam \
+	-s ./samples/sample_FLKBF15.sam \
+	-s ./samples/sample_FLKBF16.sam \
+	-s ./samples/sample_FLKBF17.sam \
+	-s ./samples/sample_FLKBF18.sam \
+	-s ./samples/sample_FLKBF19.sam \
+	-s ./samples/sample_FLKBF20.sam \
+	-s ./samples/sample_FLKBF21.sam \
+	-s ./samples/sample_FLKBF22.sam \
+	-s ./samples/sample_FLKBF23.sam \
+	-s ./samples/sample_FLKBF24.sam \
+	-s ./samples/sample_FLKBP01.sam \
+	-s ./samples/sample_FLKBP02.sam \
+	-s ./samples/sample_FLKBP03.sam \
+	-s ./samples/sample_FLKBP06.sam \
+	-s ./samples/sample_FLKBP07.sam \
+	-s ./samples/sample_FLKBP08.sam \
+	-s ./samples/sample_FLKBP09.sam \
+	-s ./samples/sample_FLKBP10.sam \
+	-s ./samples/sample_FLKBP11.sam \
+	-s ./samples/sample_FLKBP12.sam \
+	-s ./samples/sample_FLKBP13.sam \
+	-s ./samples/sample_FLKBP14.sam \
+	-s ./samples/sample_FLKBP15.sam \
+	-s ./samples/sample_FLKBP16.sam \
+	-s ./samples/sample_FLKBP17.sam \
+	-s ./samples/sample_FLKBP18.sam \
+	-s ./samples/sample_FLKBP19.sam \
+	-s ./samples/sample_FLKBP20.sam \
+	-s ./samples/sample_FLKBP22.sam \
+	-s ./samples/sample_FLKBP23.sam \
+	-s ./samples/sample_FLKBP24.sam \
+	-s ./samples/sample_FLPBDB02.sam \
+	-s ./samples/sample_FLPBDB03.sam \
+	-s ./samples/sample_FLPBDB04.sam \
+	-s ./samples/sample_FLPBDB05.sam \
+	-s ./samples/sample_FLPBDB06.sam \
+	-s ./samples/sample_FLPBDB07.sam \
+	-s ./samples/sample_FLPBDB08.sam \
+	-s ./samples/sample_FLPBDB09.sam \
+	-s ./samples/sample_FLPBDB10.sam \
+	-s ./samples/sample_FLPBF01.sam \
+	-s ./samples/sample_FLPBF02.sam \
+	-s ./samples/sample_FLPBF03.sam \
+	-s ./samples/sample_FLPBF04.sam \
+	-s ./samples/sample_FLPBF05.sam \
+	-s ./samples/sample_FLPBF06.sam \
+	-s ./samples/sample_FLPBF07.sam \
+	-s ./samples/sample_FLPBF08.sam \
+	-s ./samples/sample_FLPBF10.sam \
+	-s ./samples/sample_FLPBF12.sam \
+	-s ./samples/sample_FLPBJA.sam \
+	-s ./samples/sample_FLPBJB.sam \
+	-s ./samples/sample_FLPBJC.sam \
+	-s ./samples/sample_FLPBJD.sam \
+	-s ./samples/sample_FLPBJE.sam \
+	-s ./samples/sample_FLPBNP1.sam \
+	-s ./samples/sample_FLPBP01.sam \
+	-s ./samples/sample_FLPBP02.sam \
+	-s ./samples/sample_FLPBP03.sam \
+	-s ./samples/sample_FLPBP04.sam \
+	-s ./samples/sample_FLPBP05.sam \
+	-s ./samples/sample_FLPBP06.sam \
+	-s ./samples/sample_FLPBP07.sam \
+	-s ./samples/sample_FLPBP08.sam \
+	-s ./samples/sample_FLPBP09.sam \
+	-s ./samples/sample_FLPBP10.sam \
+	-s ./samples/sample_FLPBP12.sam \
+	-s ./samples/sample_FLPBP13.sam \
+	-s ./samples/sample_FLPBP14.sam \
+	-s ./samples/sample_FLPBP16.sam \
+	-s ./samples/sample_FLPBP17.sam \
+	-s ./samples/sample_FLPBP18.sam \
+	-s ./samples/sample_FLPBP19.sam \
+	-s ./samples/sample_FLPBP20.sam \
+	-s ./samples/sample_TXSPDB2.sam \
+	-s ./samples/sample_TXSPDB3.sam \
+	-s ./samples/sample_TXSPDB4.sam \
+	-s ./samples/sample_TXSPF01.sam \
+	-s ./samples/sample_TXSPF02.sam \
+	-s ./samples/sample_TXSPF03.sam \
+	-s ./samples/sample_TXSPF04.sam \
+	-s ./samples/sample_TXSPF05.sam \
+	-s ./samples/sample_TXSPF06.sam \
+	-s ./samples/sample_TXSPF07.sam \
+	-s ./samples/sample_TXSPF08.sam \
+	-s ./samples/sample_TXSPF09.sam \
+	-s ./samples/sample_TXSPF10.sam \
+	-s ./samples/sample_TXSPF11.sam \
+	-s ./samples/sample_TXSPF12.sam \
+	-s ./samples/sample_TXSPF13.sam \
+	-s ./samples/sample_TXSPF14.sam \
+	-s ./samples/sample_TXSPF15.sam \
+	-s ./samples/sample_TXSPF16.sam \
+	-s ./samples/sample_TXSPF17.sam \
+	-s ./samples/sample_TXSPF18.sam \
+	-s ./samples/sample_TXSPF19.sam \
+	-s ./samples/sample_TXSPF20.sam \
+	-s ./samples/sample_TXSPP01.sam \
+	-s ./samples/sample_TXSPP02.sam \
+	-s ./samples/sample_TXSPP03.sam \
+	-s ./samples/sample_TXSPP04.sam \
+	-s ./samples/sample_TXSPP05.sam \
+	-s ./samples/sample_TXSPP06.sam \
+	-s ./samples/sample_TXSPP07.sam \
+	-s ./samples/sample_TXSPP08.sam \
+	-s ./samples/sample_TXSPP09.sam \
+	-s ./samples/sample_TXSPP10.sam \
+	-s ./samples/sample_TXSPP11.sam \
+	-s ./samples/sample_TXSPP12.sam \
+	-s ./samples/sample_TXSPP13.sam \
+	-s ./samples/sample_TXSPP14.sam \
+	-s ./samples/sample_TXSPP16.sam \
+	-s ./samples/sample_TXSPP17.sam \
+	-s ./samples/sample_TXSPP18.sam \
+	-s ./samples/sample_TXSPP19.sam \
+	-s ./samples/sample_TXSPP20.sam \
+	-s ./samples/sample_TXSPP21.sam \
+	-s ./samples/sample_TXSPP22.sam \
+	-s ./samples/sample_TXSPP23.sam \
+	-s ./samples/sample_TXSPP24.sam \
+	-s ./samples/sample_TXSPP25.sam \
+	-s ./samples/sample_TXSPP27.sam \
+	-s ./samples/sample_TXSPP28.sam \
+	-s ./samples/sample_TXSPP29.sam \
+	-s ./samples/sample_TXSPP30.sam \
+	-s ./samples/sample_TXSPP32.sam \
+	-s ./samples/sample_TXSPP33.sam \
+	-s ./samples/sample_TXSPP34.sam \
+	-s ./samples/sample_TXSPP35.sam \
+	-s ./samples/sample_TXSPP36.sam \
+	-s ./samples/sample_TXSPP37.sam \
+	-s ./samples/sample_TXSPP38.sam \
+	-s ./samples/sample_TXSPP39.sam \
+	-s ./samples/sample_TXSPP40.sam \
+	-s ./samples/sample_TXSPP41.sam \
+	-s ./samples/sample_TXSPP42.sam \
+	-s ./samples/sample_ALSTF01.sam \
+	-s ./samples/sample_ALSTF02.sam \
+	-s ./samples/sample_ALSTF04.sam \
+	-s ./samples/sample_ALSTF05.sam \
+	-s ./samples/sample_ALSTF06.sam \
+	-s ./samples/sample_ALSTF07.sam \
+	-s ./samples/sample_ALSTF08.sam \
+	-s ./samples/sample_ALSTF09.sam \
+	-s ./samples/sample_ALSTF10.sam \
+	-s ./samples/sample_ALSTF11.sam \
+	-s ./samples/sample_ALSTF12.sam \
+	-s ./samples/sample_ALSTF13.sam \
+	-s ./samples/sample_ALSTF14.sam \
+	-s ./samples/sample_ALSTF15.sam \
+	-s ./samples/sample_ALSTF16.sam \
+	-s ./samples/sample_ALSTF17.sam \
+	-s ./samples/sample_ALSTF18.sam \
+	-s ./samples/sample_ALSTF19.sam \
+	-s ./samples/sample_ALSTF20.sam \
+	-s ./samples/sample_ALSTF21.sam \
+	-s ./samples/sample_ALSTF22.sam \
+	-s ./samples/sample_ALSTF23.sam \
+	-s ./samples/sample_ALSTF24.sam \
+	-s ./samples/sample_ALSTP01.sam \
+	-s ./samples/sample_ALSTP02.sam \
+	-s ./samples/sample_ALSTP03.sam \
+	-s ./samples/sample_ALSTP04.sam \
+	-s ./samples/sample_ALSTP05.sam \
+	-s ./samples/sample_ALSTP06.sam \
+	-s ./samples/sample_ALSTP07.sam \
+	-s ./samples/sample_ALSTP08.sam \
+	-s ./samples/sample_ALSTP09.sam \
+	-s ./samples/sample_ALSTP10.sam \
+	-s ./samples/sample_ALSTP11.sam \
+	-s ./samples/sample_ALSTP12.sam \
+	-s ./samples/sample_ALSTP13.sam \
+	-s ./samples/sample_ALSTP14.sam \
+	-s ./samples/sample_ALSTP15.sam \
+	-s ./samples/sample_ALSTP16.sam \
+	-s ./samples/sample_ALSTP17.sam \
+	-s ./samples/sample_ALSTP18.sam \
+	-s ./samples/sample_ALSTP19.sam \
+	-s ./samples/sample_ALSTP20.sam \
+	-s ./samples/sample_ALSTP21.sam \
+	-s ./samples/sample_ALSTP22.sam \
+	-s ./samples/sample_ALSTP23.sam \
+	-s ./samples/sample_ALSTP24.sam \
+	-s ./samples/sample_FLABF10.sam \
+	-s ./samples/sample_FLABF11.sam \
+	-s ./samples/sample_FLABF12.sam \
+	-s ./samples/sample_FLABF13.sam \
+	-s ./samples/sample_FLABF14.sam \
+	-s ./samples/sample_FLABF16.sam \
+	-s ./samples/sample_FLABF17.sam \
+	-s ./samples/sample_FLABF18.sam \
+	-s ./samples/sample_FLABF19.sam \
+	-s ./samples/sample_FLABF1.sam \
+	-s ./samples/sample_FLABF20.sam \
+	-s ./samples/sample_FLABF21.sam \
+	-s ./samples/sample_FLABF22.sam \
+	-s ./samples/sample_FLABF2.sam \
+	-s ./samples/sample_FLABF3.sam \
+	-s ./samples/sample_FLABF4.sam \
+	-s ./samples/sample_FLABF6.sam \
+	-s ./samples/sample_FLABF7.sam \
+	-s ./samples/sample_FLABF8.sam \
+	-s ./samples/sample_FLABNP10.sam \
+	-s ./samples/sample_FLABNP12.sam \
+	-s ./samples/sample_FLABNP13.sam \
+	-s ./samples/sample_FLABNP14.sam \
+	-s ./samples/sample_FLABNP15.sam \
+	-s ./samples/sample_FLABNP16.sam \
+	-s ./samples/sample_FLABNP17.sam \
+	-s ./samples/sample_FLABNP18.sam \
+	-s ./samples/sample_FLABNP1.sam \
+	-s ./samples/sample_FLABNP21.sam \
+	-s ./samples/sample_FLABNP2.sam \
+	-s ./samples/sample_FLABNP3.sam \
+	-s ./samples/sample_FLABNP4.sam \
+	-s ./samples/sample_FLABNP5.sam \
+	-s ./samples/sample_FLABNP6.sam \
+	-s ./samples/sample_FLABNP7.sam \
+	-s ./samples/sample_FLABNP8.sam \
+	-s ./samples/sample_FLABNP9.sam \
+	-s ./samples/sample_FLABP1.sam \
+	-s ./samples/sample_FLABP2.sam \
+	-s ./samples/sample_FLABP3.sam \
+	-s ./samples/sample_FLABP4.sam \
+	-s ./samples/sample_FLABP6.sam \
+	-s ./samples/sample_FLCCDB1.sam \
+	-s ./samples/sample_FLCCDB2.sam \
+	-s ./samples/sample_FLCCDB6.sam \
+	-s ./samples/sample_FLCCDB7.sam \
+	-s ./samples/sample_FLCCF11.sam \
+	-s ./samples/sample_FLCCF12.sam \
+	-s ./samples/sample_FLCCF13.sam \
+	-s ./samples/sample_FLCCF14.sam \
+	-s ./samples/sample_FLCCF15.sam \
+	-s ./samples/sample_FLCCF16.sam \
+	-s ./samples/sample_FLCCF17.sam \
+	-s ./samples/sample_FLCCF18.sam \
+	-s ./samples/sample_FLCCF19.sam \
+	-s ./samples/sample_FLCCF1.sam \
+	-s ./samples/sample_FLCCF20.sam \
+	-s ./samples/sample_FLCCF21.sam \
+	-s ./samples/sample_FLCCF22.sam \
+	-s ./samples/sample_FLCCF3.sam \
+	-s ./samples/sample_FLCCF4.sam \
+	-s ./samples/sample_FLCCF5.sam \
+	-s ./samples/sample_FLCCF8.sam \
+	-s ./samples/sample_FLCCF9.sam \
+	-s ./samples/sample_FLCCNP11.sam \
+	-s ./samples/sample_FLCCNP12.sam \
+	-s ./samples/sample_FLCCNP13.sam \
+	-s ./samples/sample_FLCCNP14.sam \
+	-s ./samples/sample_FLCCNP1.sam \
+	-s ./samples/sample_FLCCNP2.sam \
+	-s ./samples/sample_FLCCNP3.sam \
+	-s ./samples/sample_FLCCNP4.sam \
+	-s ./samples/sample_FLCCNP5.sam \
+	-s ./samples/sample_FLCCNP6.sam \
+	-s ./samples/sample_FLCCNP8.sam \
+	-s ./samples/sample_FLCCNP9.sam \
+	-s ./samples/sample_FLCCP1.sam \
+	-s ./samples/sample_FLCCP2.sam \
+	-s ./samples/sample_FLCCP3.sam \
+	-s ./samples/sample_FLCCP4.sam \
+	-s ./samples/sample_FLCCP5.sam \
+	-s ./samples/sample_FLCCP6.sam \
+	-s ./samples/sample_FLCCP7.sam \
+	-s ./samples/sample_FLFDF10.sam \
+	-s ./samples/sample_FLFDF11.sam \
+	-s ./samples/sample_FLFDF13.sam \
+	-s ./samples/sample_FLFDF14.sam \
+	-s ./samples/sample_FLFDF15.sam \
+	-s ./samples/sample_FLFDF16.sam \
+	-s ./samples/sample_FLFDF17.sam \
+	-s ./samples/sample_FLFDF18.sam \
+	-s ./samples/sample_FLFDF1.sam \
+	-s ./samples/sample_FLFDF20.sam \
+	-s ./samples/sample_FLFDF23.sam \
+	-s ./samples/sample_FLFDF2.sam \
+	-s ./samples/sample_FLFDF4.sam \
+	-s ./samples/sample_FLFDF5.sam \
+	-s ./samples/sample_FLFDF6.sam \
+	-s ./samples/sample_FLFDF7.sam \
+	-s ./samples/sample_FLFDF8.sam \
+	-s ./samples/sample_FLFDF9.sam \
+	-s ./samples/sample_FLFDP11.sam \
+	-s ./samples/sample_FLFDP12.sam \
+	-s ./samples/sample_FLFDP13.sam \
+	-s ./samples/sample_FLFDP15.sam \
+	-s ./samples/sample_FLFDP16.sam \
+	-s ./samples/sample_FLFDP17.sam \
+	-s ./samples/sample_FLFDP18.sam \
+	-s ./samples/sample_FLFDP19.sam \
+	-s ./samples/sample_FLFDP1.sam \
+	-s ./samples/sample_FLFDP20.sam \
+	-s ./samples/sample_FLFDP21.sam \
+	-s ./samples/sample_FLFDP22.sam \
+	-s ./samples/sample_FLFDP23.sam \
+	-s ./samples/sample_FLFDP24.sam \
+	-s ./samples/sample_FLFDP2.sam \
+	-s ./samples/sample_FLFDP3.sam \
+	-s ./samples/sample_FLFDP4.sam \
+	-s ./samples/sample_FLFDP5.sam \
+	-s ./samples/sample_FLFDP6.sam \
+	-s ./samples/sample_FLFDP7.sam \
+	-s ./samples/sample_FLFDP8.sam \
+	-s ./samples/sample_FLFDP9.sam \
+	-s ./samples/sample_FLHBDB1.sam \
+	-s ./samples/sample_FLHBDB2.sam \
+	-s ./samples/sample_FLHBDB3.sam \
+	-s ./samples/sample_FLHBDB4.sam \
+	-s ./samples/sample_FLHBDB5.sam \
+	-s ./samples/sample_FLHBDB6.sam \
+	-s ./samples/sample_FLHBDB7.sam \
+	-s ./samples/sample_FLHBDB8.sam \
+	-s ./samples/sample_FLHBF10.sam \
+	-s ./samples/sample_FLHBF11.sam \
+	-s ./samples/sample_FLHBF12.sam \
+	-s ./samples/sample_FLHBF13.sam \
+	-s ./samples/sample_FLHBF14.sam \
+	-s ./samples/sample_FLHBF15.sam \
+	-s ./samples/sample_FLHBF16.sam \
+	-s ./samples/sample_FLHBF17.sam \
+	-s ./samples/sample_FLHBF18.sam \
+	-s ./samples/sample_FLHBF1.sam \
+	-s ./samples/sample_FLHBF20.sam \
+	-s ./samples/sample_FLHBF21.sam \
+	-s ./samples/sample_FLHBF22.sam \
+	-s ./samples/sample_FLHBF23.sam \
+	-s ./samples/sample_FLHBF2.sam \
+	-s ./samples/sample_FLHBF3.sam \
+	-s ./samples/sample_FLHBF4.sam \
+	-s ./samples/sample_FLHBF6.sam \
+	-s ./samples/sample_FLHBF8.sam \
+	-s ./samples/sample_FLHBF9.sam \
+	-s ./samples/sample_FLHBNP1.sam \
+	-s ./samples/sample_FLHBNP2.sam \
+	-s ./samples/sample_FLHBP10.sam \
+	-s ./samples/sample_FLHBP11.sam \
+	-s ./samples/sample_FLHBP13.sam \
+	-s ./samples/sample_FLHBP14.sam \
+	-s ./samples/sample_FLHBP15.sam \
+	-s ./samples/sample_FLHBP1.sam \
+	-s ./samples/sample_FLHBP2.sam \
+	-s ./samples/sample_FLHBP3.sam \
+	-s ./samples/sample_FLHBP6.sam \
+	-s ./samples/sample_FLHBP7.sam \
+	-s ./samples/sample_FLHBP9.sam \
+	-s ./samples/sample_FLSGDB1.sam \
+	-s ./samples/sample_FLSGDB2.sam \
+	-s ./samples/sample_FLSGDB3.sam \
+	-s ./samples/sample_FLSGF10.sam \
+	-s ./samples/sample_FLSGF11.sam \
+	-s ./samples/sample_FLSGF12.sam \
+	-s ./samples/sample_FLSGF13.sam \
+	-s ./samples/sample_FLSGF14.sam \
+	-s ./samples/sample_FLSGF15.sam \
+	-s ./samples/sample_FLSGF16.sam \
+	-s ./samples/sample_FLSGF17.sam \
+	-s ./samples/sample_FLSGF18.sam \
+	-s ./samples/sample_FLSGF19.sam \
+	-s ./samples/sample_FLSGF1.sam \
+	-s ./samples/sample_FLSGF20.sam \
+	-s ./samples/sample_FLSGF21.sam \
+	-s ./samples/sample_FLSGF2.sam \
+	-s ./samples/sample_FLSGF3.sam \
+	-s ./samples/sample_FLSGF4.sam \
+	-s ./samples/sample_FLSGF5.sam \
+	-s ./samples/sample_FLSGF6.sam \
+	-s ./samples/sample_FLSGF7.sam \
+	-s ./samples/sample_FLSGF8.sam \
+	-s ./samples/sample_FLSGF9.sam \
+	-s ./samples/sample_FLSGP10.sam \
+	-s ./samples/sample_FLSGP11.sam \
+	-s ./samples/sample_FLSGP13.sam \
+	-s ./samples/sample_FLSGP14.sam \
+	-s ./samples/sample_FLSGP15.sam \
+	-s ./samples/sample_FLSGP16.sam \
+	-s ./samples/sample_FLSGP17.sam \
+	-s ./samples/sample_FLSGP18.sam \
+	-s ./samples/sample_FLSGP19.sam \
+	-s ./samples/sample_FLSGP1.sam \
+	-s ./samples/sample_FLSGP20.sam \
+	-s ./samples/sample_FLSGP23.sam \
+	-s ./samples/sample_FLSGP24.sam \
+	-s ./samples/sample_FLSGP2.sam \
+	-s ./samples/sample_FLSGP4.sam \
+	-s ./samples/sample_FLSGP5.sam \
+	-s ./samples/sample_FLSGP6.sam \
+	-s ./samples/sample_FLSGP7.sam \
+	-s ./samples/sample_FLSGP8.sam \
+	-s ./samples/sample_FLSGP9.sam \
+	-s ./samples/sample_FLSIF10.sam \
+	-s ./samples/sample_FLSIF11.sam \
+	-s ./samples/sample_FLSIF12.sam \
+	-s ./samples/sample_FLSIF13.sam \
+	-s ./samples/sample_FLSIF14.sam \
+	-s ./samples/sample_FLSIF15.sam \
+	-s ./samples/sample_FLSIF16.sam \
+	-s ./samples/sample_FLSIF17.sam \
+	-s ./samples/sample_FLSIF1.sam \
+	-s ./samples/sample_FLSIF20.sam \
+	-s ./samples/sample_FLSIF21.sam \
+	-s ./samples/sample_FLSIF22.sam \
+	-s ./samples/sample_FLSIF23.sam \
+	-s ./samples/sample_FLSIF24.sam \
+	-s ./samples/sample_FLSIF2.sam \
+	-s ./samples/sample_FLSIF3.sam \
+	-s ./samples/sample_FLSIF4.sam \
+	-s ./samples/sample_FLSIF5.sam \
+	-s ./samples/sample_FLSIF6.sam \
+	-s ./samples/sample_FLSIF7.sam \
+	-s ./samples/sample_FLSIF8.sam \
+	-s ./samples/sample_FLSIF9.sam \
+	-s ./samples/sample_FLSIP10.sam \
+	-s ./samples/sample_FLSIP11.sam \
+	-s ./samples/sample_FLSIP12.sam \
+	-s ./samples/sample_FLSIP13.sam \
+	-s ./samples/sample_FLSIP14.sam \
+	-s ./samples/sample_FLSIP15.sam \
+	-s ./samples/sample_FLSIP16.sam \
+	-s ./samples/sample_FLSIP17.sam \
+	-s ./samples/sample_FLSIP18.sam \
+	-s ./samples/sample_FLSIP19.sam \
+	-s ./samples/sample_FLSIP1.sam \
+	-s ./samples/sample_FLSIP20.sam \
+	-s ./samples/sample_FLSIP21.sam \
+	-s ./samples/sample_FLSIP22.sam \
+	-s ./samples/sample_FLSIP23.sam \
+	-s ./samples/sample_FLSIP24.sam \
+	-s ./samples/sample_FLSIP2.sam \
+	-s ./samples/sample_FLSIP3.sam \
+	-s ./samples/sample_FLSIP4.sam \
+	-s ./samples/sample_FLSIP5.sam \
+	-s ./samples/sample_FLSIP6.sam \
+	-s ./samples/sample_FLSIP7.sam \
+	-s ./samples/sample_FLSIP9.sam \
+	-s ./samples/sample_TXCBF10.sam \
+	-s ./samples/sample_TXCBF11.sam \
+	-s ./samples/sample_TXCBF12.sam \
+	-s ./samples/sample_TXCBF13.sam \
+	-s ./samples/sample_TXCBF14.sam \
+	-s ./samples/sample_TXCBF16.sam \
+	-s ./samples/sample_TXCBF18.sam \
+	-s ./samples/sample_TXCBF21.sam \
+	-s ./samples/sample_TXCBF22.sam \
+	-s ./samples/sample_TXCBF24.sam \
+	-s ./samples/sample_TXCBF2.sam \
+	-s ./samples/sample_TXCBF4.sam \
+	-s ./samples/sample_TXCBF8.sam \
+	-s ./samples/sample_TXCBF9.sam \
+	-s ./samples/sample_TXCBNP1.sam \
+	-s ./samples/sample_TXCBP10.sam \
+	-s ./samples/sample_TXCBP11.sam \
+	-s ./samples/sample_TXCBP12.sam \
+	-s ./samples/sample_TXCBP14.sam \
+	-s ./samples/sample_TXCBP15.sam \
+	-s ./samples/sample_TXCBP16.sam \
+	-s ./samples/sample_TXCBP17.sam \
+	-s ./samples/sample_TXCBP18.sam \
+	-s ./samples/sample_TXCBP19.sam \
+	-s ./samples/sample_TXCBP1.sam \
+	-s ./samples/sample_TXCBP20.sam \
+	-s ./samples/sample_TXCBP21.sam \
+	-s ./samples/sample_TXCBP22.sam \
+	-s ./samples/sample_TXCBP23.sam \
+	-s ./samples/sample_TXCBP24.sam \
+	-s ./samples/sample_TXCBP2.sam \
+	-s ./samples/sample_TXCBP3.sam \
+	-s ./samples/sample_TXCBP4.sam \
+	-s ./samples/sample_TXCBP6.sam \
+	-s ./samples/sample_TXCBP8.sam \
+	-s ./samples/sample_TXCBP9.sam \
+	-s ./samples/sample_TXCCF10.sam \
+	-s ./samples/sample_TXCCF11.sam \
+	-s ./samples/sample_TXCCF12.sam \
+	-s ./samples/sample_TXCCF13.sam \
+	-s ./samples/sample_TXCCF16.sam \
+	-s ./samples/sample_TXCCF17.sam \
+	-s ./samples/sample_TXCCF19.sam \
+	-s ./samples/sample_TXCCF1.sam \
+	-s ./samples/sample_TXCCF20.sam \
+	-s ./samples/sample_TXCCF21.sam \
+	-s ./samples/sample_TXCCF22.sam \
+	-s ./samples/sample_TXCCF23.sam \
+	-s ./samples/sample_TXCCF24.sam \
+	-s ./samples/sample_TXCCF3.sam \
+	-s ./samples/sample_TXCCF4.sam \
+	-s ./samples/sample_TXCCF5.sam \
+	-s ./samples/sample_TXCCF6.sam \
+	-s ./samples/sample_TXCCF8.sam \
+	-s ./samples/sample_TXCCF9.sam \
+	-s ./samples/sample_TXCCJB.sam \
+	-s ./samples/sample_TXCCJC.sam \
+	-s ./samples/sample_TXCCJD.sam \
+	-s ./samples/sample_TXCCJE.sam \
+	-s ./samples/sample_TXCCJF.sam \
+	-s ./samples/sample_TXCCNP1.sam \
+	-s ./samples/sample_TXCCNP2.sam \
+	-s ./samples/sample_TXCCP10.sam \
+	-s ./samples/sample_TXCCP11.sam \
+	-s ./samples/sample_TXCCP12.sam \
+	-s ./samples/sample_TXCCP13.sam \
+	-s ./samples/sample_TXCCP14.sam \
+	-s ./samples/sample_TXCCP15.sam \
+	-s ./samples/sample_TXCCP16.sam \
+	-s ./samples/sample_TXCCP1.sam \
+	-s ./samples/sample_TXCCP2.sam \
+	-s ./samples/sample_TXCCP3.sam \
+	-s ./samples/sample_TXCCP4.sam \
+	-s ./samples/sample_TXCCP5.sam \
+	-s ./samples/sample_TXCCP6.sam \
+	-s ./samples/sample_TXCCP8.sam \
+	-s ./samples/sample_TXCCP9.sam \
+	-s ./samples/sample_FLLGDB1.sam \
+	-s ./samples/sample_FLLGDB2.sam \
+	-s ./samples/sample_FLLGDB3.sam \
+	-s ./samples/sample_FLLGDB4.sam \
+	-s ./samples/sample_FLLGDB5.sam \
+	-s ./samples/sample_FLLGF01.sam \
+	-s ./samples/sample_FLLGF02.sam \
+	-s ./samples/sample_FLLGF03.sam \
+	-s ./samples/sample_FLLGF04.sam \
+	-s ./samples/sample_FLLGF05.sam \
+	-s ./samples/sample_FLLGF06.sam \
+	-s ./samples/sample_FLLGF07.sam \
+	-s ./samples/sample_FLLGF08.sam \
+	-s ./samples/sample_FLLGF09.sam \
+	-s ./samples/sample_FLLGF10.sam \
+	-s ./samples/sample_FLLGF11.sam \
+	-s ./samples/sample_FLLGF12.sam \
+	-s ./samples/sample_FLLGF13.sam \
+	-s ./samples/sample_FLLGF14.sam \
+	-s ./samples/sample_FLLGF15.sam \
+	-s ./samples/sample_FLLGF16.sam \
+	-s ./samples/sample_FLLGF17.sam \
+	-s ./samples/sample_FLLGJA.sam \
+	-s ./samples/sample_FLLGJB.sam \
+	-s ./samples/sample_FLLGJC.sam \
+	-s ./samples/sample_FLLGJD.sam \
+	-s ./samples/sample_FLLGJE.sam \
+	-s ./samples/sample_FLLGJF.sam \
+	-s ./samples/sample_FLLGJG.sam \
+	-s ./samples/sample_FLLGJH.sam \
+	-s ./samples/sample_FLLGJI.sam \
+	-s ./samples/sample_FLLGJJ.sam \
+	-s ./samples/sample_FLLGJK.sam \
+	-s ./samples/sample_FLLGJL.sam \
+	-s ./samples/sample_FLLGJM.sam \
+	-s ./samples/sample_FLLGJN.sam \
+	-s ./samples/sample_FLLGJO.sam \
+	-s ./samples/sample_FLLGJP.sam \
+	-s ./samples/sample_FLLGJQ.sam \
+	-s ./samples/sample_FLLGJR.sam \
+	-s ./samples/sample_FLLGJS.sam \
+	-s ./samples/sample_FLLGJT.sam \
+	-s ./samples/sample_FLLGJU.sam \
+	-s ./samples/sample_FLLGJV.sam \
+	-s ./samples/sample_FLLGNP1.sam \
+	-s ./samples/sample_FLLGNP2.sam \
+	-s ./samples/sample_FLLGNP3.sam \
+	-s ./samples/sample_FLLGNP4.sam \
+	-s ./samples/sample_LAFWDB1.sam \
+	-s ./samples/sample_LAFWDB2.sam \
+	-s ./samples/sample_LAFWDB3.sam \
+	-s ./samples/sample_LAFWDB4.sam \
+	-s ./samples/sample_LAFWF01.sam \
+	-s ./samples/sample_LAFWF02.sam \
+	-s ./samples/sample_LAFWF03.sam \
+	-s ./samples/sample_LAFWF04.sam \
+	-s ./samples/sample_LAFWF05.sam \
+	-s ./samples/sample_LAFWF06.sam \
+	-s ./samples/sample_LAFWF07.sam \
+	-s ./samples/sample_LAFWF08.sam \
+	-s ./samples/sample_LAFWF09.sam \
+	-s ./samples/sample_LAFWNP01.sam \
+	-s ./samples/sample_LAFWNP02.sam \
+	-s ./samples/sample_LAFWNP03.sam \
+	-s ./samples/sample_LAFWNP04.sam \
+	-s ./samples/sample_LAFWNP05.sam \
+	-s ./samples/sample_LAFWNP06.sam \
+	-s ./samples/sample_LAFWNP07.sam \
+	-s ./samples/sample_LAFWNP08.sam \
+	-s ./samples/sample_LAFWNP09.sam \
+	-s ./samples/sample_LAFWNP10.sam \
+	-s ./samples/sample_LAFWP01.sam \
+	-s ./samples/sample_LAFWP02.sam \
+	-s ./samples/sample_LAFWP03.sam \
+	-s ./samples/sample_LAFWP04.sam \
+	-s ./samples/sample_LAFWP05.sam \
+	-s ./samples/sample_LAFWP06.sam \
+	-s ./samples/sample_LAFWP07.sam \
+	-s ./samples/sample_LAFWP08.sam \
+	-s ./samples/sample_LAFWP09.sam \
+	-s ./samples/sample_LAFWP10.sam \
+	-s ./samples/sample_LAFWP11.sam \
+	-s ./samples/sample_LAFWP12.sam \
+	-s ./samples/sample_LAFWP13.sam \
+	-s ./samples/sample_LAFWP14.sam \
+	-s ./samples/sample_LAFWP15.sam \
+	-s ./samples/sample_LAFWP16.sam \
+	-s ./samples/sample_LAFWP17.sam \
+	-s ./samples/sample_LAFWP18.sam \
+	-s ./samples/sample_LAFWP19.sam \
+	-s ./samples/sample_LAFWP20.sam \
+	-s ./samples/sample_LAFWP21.sam \
+	-s ./samples/sample_LAFWP22.sam \
+	-s ./samples/sample_LAFWP23.sam \
+	-s ./samples/sample_LAFWP24.sam \
+	-s ./samples/sample_LAFWP26.sam \
+	-s ./samples/sample_ALFWF01.sam \
+	-s ./samples/sample_ALFWF02.sam \
+	-s ./samples/sample_ALFWF03.sam \
+	-s ./samples/sample_ALFWF04.sam \
+	-s ./samples/sample_ALFWF05.sam \
+	-s ./samples/sample_ALFWF06.sam \
+	-s ./samples/sample_ALFWF07.sam \
+	-s ./samples/sample_ALFWF08.sam \
+	-s ./samples/sample_ALFWF09.sam \
+	-s ./samples/sample_ALFWF10.sam \
+	-s ./samples/sample_ALFWF11.sam \
+	-s ./samples/sample_ALFWF12.sam \
+	-s ./samples/sample_ALFWF13.sam \
+	-s ./samples/sample_ALFWF14.sam \
+	-s ./samples/sample_ALFWF15.sam \
+	-s ./samples/sample_ALFWF16.sam \
+	-s ./samples/sample_ALFWF17.sam \
+	-s ./samples/sample_ALFWF18.sam \
+	-s ./samples/sample_ALFWF19.sam \
+	-s ./samples/sample_ALFWF20.sam \
+	-s ./samples/sample_ALFWF21.sam \
+	-s ./samples/sample_ALFWNP11.sam \
+	-s ./samples/sample_ALFWNP1.sam \
+	-s ./samples/sample_ALFWNP2.sam \
+	-s ./samples/sample_ALFWNP3.sam \
+	-s ./samples/sample_ALFWP01.sam \
+	-s ./samples/sample_ALFWP02.sam \
+	-s ./samples/sample_ALFWP03.sam \
+	-s ./samples/sample_ALFWP04.sam \
+	-s ./samples/sample_ALFWP05.sam \
+	-s ./samples/sample_ALFWP06.sam \
+	-s ./samples/sample_ALFWP07.sam \
+	-s ./samples/sample_ALFWP09.sam \
+	-s ./samples/sample_ALFWP10.sam \
+	-s ./samples/sample_ALFWP11.sam \
+	-s ./samples/sample_ALFWP12.sam \
+	-s ./samples/sample_ALFWP13.sam \
+	-s ./samples/sample_ALFWP14.sam \
+	-s ./samples/sample_ALFWP15.sam \
+	-s ./samples/sample_ALFWP16.sam \
+	-s ./samples/sample_ALFWP17.sam \
+	-s ./samples/sample_ALFWP18.sam \
+	-s ./samples/sample_ALFWP19.sam \
+	-s ./samples/sample_ALFWP20.sam \
+	-s ./samples/sample_ALFWP21.sam \
+	-s ./samples/sample_ALFWP22.sam \
+	-s ./samples/sample_ALFWP23.sam \
+	-s ./samples/sample_ALFWP24.sam \
+	-s ./samples/sample_TXFWDB1.sam \
+	-s ./samples/sample_TXFWF01.sam \
+	-s ./samples/sample_TXFWF02.sam \
+	-s ./samples/sample_TXFWF03.sam \
+	-s ./samples/sample_TXFWF04.sam \
+	-s ./samples/sample_TXFWF05.sam \
+	-s ./samples/sample_TXFWJ02.sam \
+	-s ./samples/sample_TXFWJ03.sam \
+	-s ./samples/sample_TXFWJ04.sam \
+	-s ./samples/sample_TXFWJ05.sam \
+	-s ./samples/sample_TXFWJ06.sam \
+	-s ./samples/sample_TXFWJ07.sam \
+	-s ./samples/sample_TXFWJ08.sam \
+	-s ./samples/sample_TXFWJ09.sam \
+	-s ./samples/sample_TXFWJ10.sam \
+	-s ./samples/sample_TXFWJ11.sam \
+	-s ./samples/sample_TXFWJ12.sam \
+	-s ./samples/sample_TXFWJ13.sam \
+	-s ./samples/sample_TXFWJ14.sam \
+	-s ./samples/sample_TXFWJ15.sam \
+	-s ./samples/sample_TXFWJ16.sam \
+	-s ./samples/sample_TXFWJ18.sam \
+	-s ./samples/sample_TXFWJ19.sam \
+	-s ./samples/sample_TXFWJ20.sam \
+	-s ./samples/sample_TXFWJ21.sam \
+	-s ./samples/sample_TXFWJ22.sam \
+	-s ./samples/sample_TXFWNP2.sam \
+	-s ./samples/sample_TXFWNP3.sam \
+	-s ./samples/sample_TXFWNP4.sam \
+	-s ./samples/sample_TXFWNP5.sam \
+	-s ./samples/sample_TXFWP01.sam 

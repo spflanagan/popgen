@@ -1,0 +1,31 @@
+Population genetics Analysis (FW-SW) Log File
+LAST UPDATED: 5 June 2016
+
+#GOAL: DESCRIBE DIFFERENCES BETWEEN FRESHWATER AND SALTWATER POPULATIONS OF S. SCOVELLI
+
+#THE PIPELINE
+1. align with bowtie2
+2. ref_map.pl
+3. populations -r 0.75 -p 12 -a 0.05
+4. prune_snps.cpp
+5. plink --file pruned --hwe 0.001 --noweb --allow-no-sex --write-snplist
+	plink --file pruned --extract plink.snplist --recode --recodeA --recode-structure --out subset --noweb --allow-no-sex
+6. PCAdapt
+7. Adegenet
+8. FastStructure 
+9. Structure
+	Structure Harvester
+10. Bayenv2
+11. calculate_global_fst
+
+##################################################################################################
+#####Monday, 6 June 2016
+I missed some of the individuals so I'm running the fwsw_align_to_scovelli_genome.sh script again with a different list of individuals.
+
+
+
+
+
+#####Sunday, 5 June 2016
+Installed bowtie2 v 2-2.2.9 and ran bowtie2-build -f SSC_integrated.fa ssc_chromonome in sf_ubuntushare/scovelli_genome
+Ran fwsw_align_to_scovelli_genome.sh to align to the new genome
