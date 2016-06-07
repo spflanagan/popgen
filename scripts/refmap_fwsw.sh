@@ -8,7 +8,7 @@ ref_map.pl -T 3 -m 3 \
 	-X "populations:--vcf" -X "populations:--plink" \
 	-X "populations:-p 2" -X "populations:--structure" \
 	-O fwsw_map.txt \
-	-o ./results/stacks/ \
+	-o ./fwsw_results/stacks/ \
 	-s ./samples/sample_FLKBF01.sam \
 	-s ./samples/sample_FLKBF02.sam \
 	-s ./samples/sample_FLKBF04.sam \

@@ -19,12 +19,11 @@ LAST UPDATED: 5 June 2016
 11. calculate_global_fst
 
 ##################################################################################################
+#####Tuesday, 7 June 2016
+Started ref_map.pl run with all individuals (699).
+
 #####Monday, 6 June 2016
 I missed some of the individuals so I'm running the fwsw_align_to_scovelli_genome.sh script again with a different list of individuals.
-
-
-
-
 
 #####Sunday, 5 June 2016
 Installed bowtie2 v 2-2.2.9 and ran bowtie2-build -f SSC_integrated.fa ssc_chromonome in sf_ubuntushare/scovelli_genome
