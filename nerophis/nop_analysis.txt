@@ -16,7 +16,39 @@ plink --file ld.subset --hardy --noweb --allow-no-sex --write-snplist
 plink --file ld.subset --extract neutral.snplist --recode-structure --noweb --allow-no-sex
 plink --file ld.subset --extract neutral.snplist --recodeA --noweb --allow-no-sex
 
-#############################################LAB BOOK######################################################
+#######################################LAB BOOK#############################################
+#####Tuesday, 7 June 2016
+What do I need to continue?
+	Get the coordinates of the collecting locations to do IBD analysis
+	Use coordinates to download salinity data
+	Look at Fsts among populations (pairwise and global).
+
+Emailed Josefin and Olivia for coordinates of the collecting sites. Also emailed Nilla for info about the Finland samples.
+
+Meanwhile, running calculate_global_fst on pruned.ped and pruned.map (these are unlinked but not pruned for HWE).
+
+Fsts are surprisingly clumped around 0.05...it's a normal distribution rather than skewed. Weird. Probalby an artifact due to sequencing error or something.
+
+Plotted the Stacks distributions and they don't seem to be quite as weird.
+#####Wednesday, 11 May 2016
+	SEW	LEM	GEL	STR	GTL	FIN
+SEW		0.0241251	0.0233355	0.0231902	0.036876	0.037098
+LEM			0.0279487	0.0270594	0.0374785	0.0363935
+GEL				0.0133522	0.0194884	0.0209477
+STR					0.0234515	0.0249285
+GTL						0.0142245
+FIN						
+
+Running coverage_From_stacks
+Num individuals	288
+Num loci	618457
+Average per-locus coverage	3.81336
+average per-individual coverage	4.71528
+Num Loci with >=5x coverage 	105597
+Num loci with >=10x coverage 	5436
+Overall minimum per-locus coverage 	0
+Overall maximum per-locus coverage 	46198
+
 #####Monday, 9 May 2016
 The structure run showed that deltaK was maximized at K=4. Looking at the graphs, though, I'm not sure that's the best interpretation (they all look kind of the same).
 Adegenet does not provide clear clusters

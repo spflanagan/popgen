@@ -126,9 +126,9 @@ int main()
 	bool found;
 
 	
-	ped_name = "E://ubuntushare//popgen//sw_results//stacks//populations//subset.ped";
-	map_name = "E://ubuntushare//popgen//sw_results//stacks//populations//subset.map";
-	out_file_name = "E://ubuntushare//popgen//sw_results//stacks//populations//subset.globalstats.txt";
+	ped_name = "B://ubuntushare//popgen//nerophis//stacks//pruned.ped";
+	map_name = "B://ubuntushare//popgen//nerophis//stacks//pruned.map";
+	out_file_name = "B://ubuntushare//popgen//nerophis//stacks//pruned.globalstats.txt";
 
 	ped_file.open(ped_name);
 	FileTest(ped_file, ped_name);
