@@ -17,6 +17,10 @@ plink --file ld.subset --extract neutral.snplist --recode-structure --noweb --al
 plink --file ld.subset --extract neutral.snplist --recodeA --noweb --allow-no-sex
 
 #######################################LAB BOOK#############################################
+#####Thursday, 9 June 2016
+I've received the coordinates from Josefin Sundin and Kai Linstrom, waiting on Olivia Roth.
+Meanwhile I'm downloading World Oceans Database data for the Baltic region.
+
 #####Tuesday, 7 June 2016
 What do I need to continue?
 	Get the coordinates of the collecting locations to do IBD analysis
