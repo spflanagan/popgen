@@ -19,6 +19,113 @@ LAST UPDATED: 5 June 2016
 11. calculate_global_fst
 
 ##################################################################################################
+#####Thursday, 9 June 2016
+Male phenotype PCA:
+	Partitioning of variance:
+				  Inertia Proportion
+	Total           123.6          1
+	Unconstrained   123.6          1
+
+	Eigenvalues, and their contribution to the variance 
+
+	Importance of components:
+							   PC1     PC2     PC3    PC4     PC5     PC6
+	Eigenvalue            117.7219 5.07283 0.38212 0.2220 0.14085 0.02961
+	Proportion Explained    0.9527 0.04105 0.00309 0.0018 0.00114 0.00024
+	Cumulative Proportion   0.9527 0.99373 0.99682 0.9986 0.99976 1.00000
+
+	Scaling 2 for species and site scores
+	* Species are scaled proportional to eigenvalues
+	* Sites are unscaled: weighted dispersion equal on all dimensions
+	* General scaling constant of scores:  15.83642 
+
+
+	Species scores
+
+					PC1      PC2      PC3      PC4       PC5        PC6
+	SVL          8.8667 -2.55921 -0.04341  0.11615  0.026320  0.0008413
+	TailLength  12.4342  1.89719 -0.02704  0.03031  0.008606  0.0018388
+	depth        1.4183 -0.17784  0.59931 -0.11483 -0.357814 -0.0538443
+	SnoutLength  1.1955 -0.24008 -0.54153 -0.44024 -0.224181 -0.0161109
+	SountDepth   0.3893 -0.08002  0.12496 -0.09359 -0.071118  0.2378501
+	HeadLength   1.4509 -0.22607  0.32384 -0.46946  0.318990 -0.0188108
+
+Female phenotype PCA:
+	Partitioning of variance:
+				  Inertia Proportion
+	Total           114.4          1
+	Unconstrained   114.4          1
+
+	Eigenvalues, and their contribution to the variance 
+
+	Importance of components:
+							   PC1     PC2     PC3     PC4     PC5     PC6
+	Eigenvalue            104.0851 8.84083 0.62620 0.50907 0.30629 0.06790
+	Proportion Explained    0.9095 0.07726 0.00547 0.00445 0.00268 0.00059
+	Cumulative Proportion   0.9095 0.98681 0.99228 0.99673 0.99941 1.00000
+
+	Scaling 2 for species and site scores
+	* Species are scaled proportional to eigenvalues
+	* Sites are unscaled: weighted dispersion equal on all dimensions
+	* General scaling constant of scores:  14.59949 
+
+
+	Species scores
+
+					PC1        PC2      PC3       PC4       PC5        PC6
+	SVL          8.7132  3.1147395  0.08561  0.099386  0.037970 -7.219e-05
+	TailLength  10.6424 -2.5894404  0.07414  0.060240 -0.004039  1.511e-03
+	depth        1.3816  0.0135563 -0.76434 -0.357294  0.434611  5.454e-02
+	SnoutLength  1.0807  0.1697296  0.32627 -0.873386 -0.195996  6.070e-02
+	SountDepth   0.3172  0.0003717  0.01283 -0.210261  0.098791 -3.440e-01
+	HeadLength   1.2285  0.1759639 -0.68021 -0.002336 -0.576174 -3.850e-02
+
+Female bands:		
+		Partitioning of variance:
+				  Inertia Proportion
+	Total           4.965          1
+	Unconstrained   4.965          1
+
+	Eigenvalues, and their contribution to the variance 
+
+	Importance of components:
+							 PC1     PC2
+	Eigenvalue            4.8842 0.08030
+	Proportion Explained  0.9838 0.01617
+	Cumulative Proportion 0.9838 1.00000
+
+	Scaling 2 for species and site scores
+	* Species are scaled proportional to eigenvalues
+	* Sites are unscaled: weighted dispersion equal on all dimensions
+	* General scaling constant of scores:  6.662956 
+
+
+	Species scores
+
+				  PC1      PC2
+	MBandArea -0.1555 -0.84715
+	BandNum   -6.6070  0.01994
+
+
+	**THESE ARE FOR ALL INDIVIDUALS, NOT JUST THOSE THAT WERE GENOTYPED
+	**ALSO FEMALES INCLUDE DEVELOPING BANDS INDS AND MALES ARE BOTH PREG AND NON PREG
+	
+Ran the P-matrix analysis too! It's so easy to run now that I've figured out all the code
+#####Wednesday, 8 June 2016
+I got an error from stacks, "Catalog construction failed."
+The log says,
+	"Error parsing ./fwsw_results/stacks/sample_FLLGNP3.tags.tsv at line: 41014. (1 fields).
+	Failed to load sample 571"
+There's nothing obviously wrong with that file, so it's likely a different issue (like running out of memory?)
+
+I'll try running just cstacks on a sample. Used R to randomly sample each population and took 10, and then added FLLGNP3 to the list. We'll see if that works. If it does, then I had just run out of memory.
+
+I got the same error!
+Error parsing ./fwsw_results/stacks/sample_FLLGNP3.tags.tsv at line: 41014. (1 fields).
+Failed to load sample 161
+
+So maybe there's something actually off with FLLGNP3..maybe try cstacks with all of them except this one?
+
 #####Tuesday, 7 June 2016
 Started ref_map.pl run with all individuals (699).
 
