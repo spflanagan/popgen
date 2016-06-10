@@ -20,6 +20,7 @@ pop.list<-c("SEW","LEM","GEL","STR","GTL","FIN")
 
 pwise.fst.sub<-read.table("stacks/fst_summary_subset.txt",
 	 header=T, row.names=1, sep='\t')
+global.fst<-read.delim("stacks/pruned.globalstats.txt")
 
 
 #########################################################################
@@ -197,4 +198,67 @@ plotting.structure(str6,6,pop.list, make.file=FALSE, colors=all.colors,
 	xlabel=F,ylabel="STRUCTURE\nK=6")
 dev.off()
 #It looks like k=2 is best...they are kind of panmictic.
+
+
+
+#########################################################################
+#***********************************************************************#
+#####################POPULATION DIFFERENTIATION##########################
+#***********************************************************************#
+#########################################################################
+
+#**************************GLOBAL FSTS********************************#
+plot(global.fst$Fst,pch=19)
+
+#**************************STACKS FSTS********************************#
+setwd("stacks")
+stacks.files<-data.frame(file=list.files(pattern="batch_3.fst_\\w{3}-\\w{3}"))
+stacks.files$pop1<-gsub("batch_3.fst_(\\w{3})-\\w{3}.tsv","\\1",stacks.files[,1])
+stacks.files$pop2<-gsub("batch_3.fst_\\w{3}-(\\w{3}).tsv","\\1",stacks.files[,1])
+
+png("stacks_AMOVAfsts.png",height=10,width=10,units="in",res=300)
+par(mfrow=c(length(pop.list),length(pop.list)),mar=c(0.5,1,0.5,0.5),
+	oma=c(2,2,2,2))
+for(i in 1:length(pop.list)){
+	for(j in 1:length(pop.list)){
+		
+		file<-as.character(stacks.files[stacks.files$pop1==pop.list[i] &
+			stacks.files$pop2==pop.list[j] | 
+			stacks.files$pop1==pop.list[j] &
+			stacks.files$pop2==pop.list[i] ,"file"])
+		if(length(file)>0 & i <=j){
+			print(pop.list[i])
+			dat<-read.delim(file)
+			plot(dat$AMOVA.Fst,pch=19,axes=F,xlab="",ylab="")
+			axis(2,las=1,pos=0)
+			abline(h=mean(dat$AMOVA.Fst),lty=2,col="dodgerblue")
+		} else{
+			plot(x=c(0,1),y=c(0,1),axes=F,type='n')
+		}
+	}
+}
+mtext(expression(italic(F)[italic(ST)]),2,outer=T)
+par(fig = c(0, 1, 0, 1), oma=c(2,1,0,1), mar = c(0, 0, 0, 0), new = TRUE,
+	cex=1)
+plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
+#column labels
+text(x=-0.85,y=1,pop.list[1])
+text(x=-0.5,y=1,pop.list[2])
+text(x=-0.15,y=1,pop.list[3])
+text(x=0.15,y=1,pop.list[4])
+text(x=0.5,y=1,pop.list[5])
+text(x=0.85,y=1,pop.list[6])
+#row labels
+text(x=-1,y=0.85,pop.list[1])
+text(x=-1,y=0.5,pop.list[2])
+text(x=-1,y=0.15,pop.list[3])
+text(x=-1,y=-0.15,pop.list[4])
+text(x=-1,y=-0.5,pop.list[5])
+text(x=-1,y=-0.85,pop.list[6])
+dev.off()
+
+
+
+
+
 
