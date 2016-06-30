@@ -18,7 +18,15 @@ LAST UPDATED: 5 June 2016
 10. Bayenv2
 11. calculate_global_fst
 
-##################################################################################################
+###############################################################################################
+#####Monday, 13 June 2016
+Running cstacks without that one individual.
+This seems to have worked. Now sstacks. I'm giving it a try with the problematic one too.
+
+So far I'm just excluding the FLLGNP3 sample because it's super problematic apparently.
+
+populations -b 2 -P ./fwsw_results/stacks -M ./fwsw_map.txt -r 0.75 -p 16 -a 0.05 -t 3 --vcf --fstats --plink 
+
 #####Thursday, 9 June 2016
 Male phenotype PCA:
 	Partitioning of variance:

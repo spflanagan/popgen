@@ -9,9 +9,9 @@ library(vegan)
 library(ggplot2)
 library(gdata);library(matrixcalc)
 
-setwd("B:/ubuntushare/popgen/fwsw_results/")
+setwd("E:/ubuntushare/popgen/fwsw_results/")
 source("../scripts/plotting_functions.R")
-source("../scripts/pst_script.R")
+source("../scripts/phenotype_functions.R")
 
 pop.list<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
 	"FLFD","FLSI","FLAB","FLPB","FLHB","FLCC","FLLG")
@@ -38,6 +38,7 @@ mal.pheno<-raw.pheno[raw.pheno$sex %in% c("P","N"),-8]
 	mal.pheno<-mal.pheno[order(match(mal.pheno$PopID,pop.list)),]
 	write.table(mal.pheno,"mal.pheno.txt",sep='\t',row.names=F,col.names=T,
 		quote=F)
+
 
 ##############################################################################
 #****************************************************************************#
@@ -925,3 +926,18 @@ legend("top", ncol=2, col=c("black","blue","red","darkgreen"),pch=c(19,5,4,6),
 		expression(Female~Bands~PCA~italic(P)[ST])),bty="n")
 
 dev.off()
+
+
+##############################################################################
+#****************************************************************************#
+#################################T-TESTS####################################
+#****************************************************************************#
+##############################################################################
+fem.pheno$PopType[fem.pheno$PopID %in% fw.list]<-"FW"
+fem.pheno$PopType[fem.pheno$PopID %in% sw.list]<-"SW"
+mal.pheno$PopType[mal.pheno$PopID %in% fw.list]<-"FW"
+mal.pheno$PopType[mal.pheno$PopID %in% sw.list]<-"SW"
+
+t.test(mal.pheno$SVL ~ mal.pheno$PopType)
+boxplot(fem.pheno$SVL ~ fem.pheno$PopType)
+t.test(fem.pheno$TailLength ~ fem.pheno$PopType)
