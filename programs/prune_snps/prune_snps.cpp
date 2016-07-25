@@ -165,7 +165,7 @@ int main(int argc, char* argv[])
 		cout << "\n\nProceed? (y to proceed)\n";
 		cin >> query;
 
-		if (query != "y" || query != "Y")
+		if (query != "y" && query != "Y")
 		{
 			cout << "\n\nEnter an integer to exit!!\n";
 			cin >> i;

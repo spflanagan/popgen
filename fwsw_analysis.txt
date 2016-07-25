@@ -6,10 +6,12 @@ LAST UPDATED: 5 June 2016
 #THE PIPELINE
 1. align with bowtie2
 2. ref_map.pl
-3. populations -r 0.75 -p 12 -a 0.05
+3. populations -r 0.75 -p 16 -a 0.05
 4. prune_snps.cpp
 5. plink --file pruned --hwe 0.001 --noweb --allow-no-sex --write-snplist
-	plink --file pruned --extract plink.snplist --recode --recodeA --recode-structure --out subset --noweb --allow-no-sex
+	plink --file pruned --extract plink.snplist -recode-structure --out subset --noweb --allow-no-sex
+	plink --file pruned --extract plink.snplist --recodeA --out subsetA --noweb --allow-no-sex
+	plink --file pruned --extract plink.snplist --recode --out subset --noweb --allow-no-sex
 6. PCAdapt
 7. Adegenet
 8. FastStructure 
@@ -19,6 +21,71 @@ LAST UPDATED: 5 June 2016
 11. calculate_global_fst
 
 ###############################################################################################
+#####Monday, 25 July 2016
+Running IBD per locus using the subsetted ped file..we'll see if it works.
+
+#####Friday, 22 July 2016
+Running PCAdapt in R (following vignette https://cran.r-project.org/web/packages/pcadapt/vignettes/pcadapt.html):
+	Reading file stacks/subset.pcadapt...
+	Number of SNPs: 9820
+	Number of individuals: 698
+	Number of SNPs with minor allele frequency lower than 0.05 ignored: 2048
+	2835120 out of 6854360 missing data ignored.
+
+The scree plot seems to level off around 7 PCs, so we keep K=6.
+	Reading file stacks/subset.pcadapt...
+	Number of SNPs: 9820
+	Number of individuals: 698
+	Number of SNPs with minor allele frequency lower than 0.05 ignored: 2048
+	2835120 out of 6854360 missing data ignored.
+
+They seem to group by IBD but each FW pop has its own group (although LAFW and ALFW are sort of together)
+	PC1: Atlantic vs Gulf
+	PC2: FL vs TX
+	PC3: FLLG vs all others
+	PC4: TXFW vs all others
+	PC5: northern Gulf FL vs. southern Gulf FL
+	PC6: TX vs AL/LA
+
+I'm thinking of using this one primarily and not adegenet.
+
+What if I run dapc with k=6??
+
+#####Thursday, 21 July 2016
+Pruning the stacks run where they have to be in 4 populations.
+Starting: 57252, keeping 27528 SNPs, and then 25805 SNPs not within 2kb of each other
+plink --file pruned --hwe 0.001 --noweb --allow-no-sex --write-snplist
+This excluded 15985 markers, so keeping 9820.
+
+Running structure on those 9820 with K=2-16 with 10 reps each.
+
+IBD on the subset:
+	Monte-Carlo test
+	Observation: 0.7007163 
+	Call: mantelnoneuclid(m1 = m1, m2 = m2, nrepet = nrepet)
+	Based on 99 replicates
+	Simulated p-value: 0.01 
+	
+Also running adegenet.
+
+#####Wednesday, 20 July 2016
+IBD with all the fsts:
+	Monte-Carlo test
+	Observation: 0.6381267 
+	Call: mantelnoneuclid(m1 = m1, m2 = m2, nrepet = nrepet)
+	Based on 99 replicates
+	Simulated p-value: 0.01 
+Ran prune_snps...the original dataset had 3901 and 2546 Snps retained one per locus and 2538 SNPs were retained overall after 2kb pruning.
+
+Weird, HWE pruning does odd things: threshold of 0.05 increases the number of SNPs excluded (2137) compared to 0.001 (1723 excluded).
+
+I'm thinking that I will try populations with a lower populations inclusion threshold
+	populations -b 2 -P ./fwsw_results/stacks/ -t 3 -M ./fwsw_pops_map.txt -s -r 0.75 -p 4 -a 0.05 --fstats --vcf --genomic --plink
+
+#####Monday, 18 July 2016
+Running populations:
+	populations -b 2 -P ./fwsw_results/stacks/ -t 3 -M ./fwsw_pops_map.txt -s -r 0.75 -p 16 -a 0.05 --fstats --vcf --genomic --plink
+
 #####Monday, 13 June 2016
 Running cstacks without that one individual.
 This seems to have worked. Now sstacks. I'm giving it a try with the problematic one too.

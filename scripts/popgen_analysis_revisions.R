@@ -18,7 +18,7 @@ library(gdata);library(matrixcalc)
 library(psych)
 
 setwd("E:/ubuntushare/popgen/sw_results/")
-source("../scripts/plotting_functions.R")
+source("../scripts/popgen_functions.R")
 source("../phenotype_functions.R")
 
 pop.list<-c("TXSP","TXCC","TXCB","ALST","FLSG","FLKB","FLFD","FLSI",
