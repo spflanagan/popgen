@@ -23,6 +23,10 @@ pop.list<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
 fw.list<-c("TXFW","LAFW","ALFW","FLLG")
 sw.list<-c("TXSP","TXCC","TXCB","ALST","FLSG","FLKB",
 	"FLFD","FLSI","FLAB","FLPB","FLHB","FLCC")
+lgs<-c("LG1","LG2","LG3","LG4","LG5","LG6","LG7","LG8","LG9","LG10","LG11",
+	"LG12","LG13","LG14","LG15","LG16","LG17","LG18","LG19","LG20","LG21",
+	"LG22")
+lgn<-seq(1,22)
 
 #############################################################################
 #######################**********FILES*********##############################
@@ -84,9 +88,10 @@ dev.off()
 ibd.all<-mantel.rtest(as.dist(t(dist)),as.dist(t(pwise.fst.all)))
 ibd.sub<-mantel.rtest(as.dist(t(dist)),as.dist(t(pwise.fst.sub)))
 
-pairwise.fst(sub.ped,9,10,pop.list)
+#test
+pairwise.fst(ped.sub,9,10,pop.list)
 
-ibd.by.loc<-fst.ibd.byloc(sub.ped,dist,pop.list) 
+ibd.by.loc<-fst.ibd.byloc(ped.sub,dist,pop.list)  #all NAs
 #ignore warnings?  In is.euclid(m1) : Zero distance(s)
 rownames(ibd.by.loc)<-sub.map$V2
 
@@ -94,7 +99,76 @@ rownames(ibd.by.loc)<-sub.map$V2
 #############################################################################
 #################################OUTLIERS####################################
 #############################################################################
+#******************************STACKS*********************************#
+fwsw.tx<-read.delim("stacks/batch_2.fst_TXCB-TXFW.tsv")
+fwsw.la<-read.delim("stacks/batch_2.fst_ALST-LAFW.tsv")
+fwsw.al<-read.delim("stacks/batch_2.fst_ALFW-ALST.tsv")
+fwsw.fl<-read.delim("stacks/batch_2.fst_FLCC-FLLG.tsv")
 
+fwfw.tf<-read.delim("stacks/batch_2.fst_FLLG-TXFW.tsv")
+fwfw.ta<-read.delim("stacks/batch_2.fst_ALFW-TXFW.tsv")
+fwfw.tl<-read.delim("stacks/batch_2.fst_LAFW-TXFW.tsv")
+fwfw.la<-read.delim("stacks/batch_2.fst_ALFW-LAFW.tsv")
+fwfw.lf<-read.delim("stacks/batch_2.fst_FLLG-LAFW.tsv")
+fwfw.af<-read.delim("stacks/batch_2.fst_ALFW-FLLG.tsv")
+
+swsw.tf<-read.delim("stacks/batch_2.fst_FLCC-TXCB.tsv")
+swsw.ta<-read.delim("stacks/batch_2.fst_ALST-TXCB.tsv")
+swsw.af<-read.delim("stacks/batch_2.fst_ALST-FLCC.tsv")
+
+png("FW-SW_Fsts.png"
+par(mfrow=c(4,1),oma=c(0,0,0,0),mar=c(1,1,1,1))
+fs.t<-plotting.fsts.scaffs(fwsw.tx,"Fst",pt.lty=1,axis.size=0.75)
+legend("top",c("TX FW-SW"),bty='n')
+last<-0
+for(i in 1:length(lgs)){
+	text(x=mean(fs.t[fs.t$Chr ==lgs[i],"BP"]),y=-0.13,
+		labels=lgn[i], adj=1, xpd=TRUE,srt=90,cex=0.75)
+	last<-max(fs.t[fs.t$Chr ==lgs[i],"BP"])
+}
+fs.l<-plotting.fsts.scaffs(fwsw.la,"Fst",pt.lty=1,axis.size=0.75)
+legend("top",c("LA FW-SW"),bty='n')
+last<-0
+for(i in 1:length(lgs)){
+	text(x=mean(fs.l[fs.l$Chr ==lgs[i],"BP"]),y=-0.03,
+		labels=lgn[i], adj=1, xpd=TRUE,srt=90,cex=0.75)
+	last<-max(fs.l[fs.l$Chr ==lgs[i],"BP"])
+}
+fs.a<-plotting.fsts.scaffs(fwsw.al,"Fst",pt.lty=1,axis.size=0.75)
+legend("top",c("AL FW-SW"),bty='n')
+last<-0
+for(i in 1:length(lgs)){
+	text(x=mean(fs.a[fs.a$Chr ==lgs[i],"BP"]),y=-0.03,
+		labels=lgn[i], adj=1, xpd=TRUE,srt=90,cex=0.75)
+	last<-max(fs.t[fs.a$Chr ==lgs[i],"BP"])
+}
+fs.f<-plotting.fsts.scaffs(fwsw.fl,"Fst",pt.lty=1,axis.size=0.75)
+legend("top",c("FL FW-SW"),bty='n')
+last<-0
+for(i in 1:length(lgs)){
+	text(x=mean(fs.f[fs.f$Chr ==lgs[i],"BP"]),y=-0.13,
+		labels=lgn[i], adj=1, xpd=TRUE,srt=90,cex=0.75)
+	last<-max(fs.f[fs.f$Chr ==lgs[i],"BP"])
+}
+dev.off()
+
+par(mfrow=c(6,1),oma=c(0,0,0,0),mar=c(1,1,1,1))
+ff.tf<-plotting.fsts.scaffs(fwfw.tf,"Fst",pt.lty=1)
+ff.ta<-plotting.fsts.scaffs(fwfw.ta,"Fst",pt.lty=1)
+ff.tl<-plotting.fsts.scaffs(fwfw.tl,"Fst",pt.lty=1)
+ff.la<-plotting.fsts.scaffs(fwfw.la,"Fst",pt.lty=1)
+ff.lf<-plotting.fsts.scaffs(fwfw.lf,"Fst",pt.lty=1)
+ff.af<-plotting.fsts.scaffs(fwfw.af,"Fst",pt.lty=1)
+
+par(mfrow=c(3,1),oma=c(0,0,0,0),mar=c(1,1,1,1))
+ss.tf<-plotting.fsts.scaffs(swsw.tf,"Fst",pt.lty=1)
+ss.ta<-plotting.fsts.scaffs(swsw.ta,"Fst",pt.lty=1)
+ss.af<-plotting.fsts.scaffs(swsw.af,"Fst",pt.lty=1)
+
+
+#############################################################################
+##############################POP STRUCTURE##################################
+#############################################################################
 #******************************ADEGENET*********************************#
 dat.plink<-read.PLINK("stacks/subset.raw",parallel=FALSE)
 #look at alleles
