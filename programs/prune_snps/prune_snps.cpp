@@ -165,7 +165,7 @@ int main(int argc, char* argv[])
 		cout << "\n\nProceed? (y to proceed)\n";
 		cin >> query;
 
-		if (query != "y" || query != "Y")
+		if (query != "y" && query != "Y")
 		{
 			cout << "\n\nEnter an integer to exit!!\n";
 			cin >> i;
@@ -296,10 +296,10 @@ int main(int argc, char* argv[])
 	out_map.close();
 	cout << '\n' << count << " SNPs were retained.";
 
-	cout << "\nRe-writing ped file.";
 	ped.open(ped_name);
 	FileTest(ped, ped_name);
 	out_ped.open(out_ped_name);
+	cout << "\nRe-writing ped file to " << out_ped_name;
 	line_count = 0;
 	while (universal_getline(ped, line))
 	{

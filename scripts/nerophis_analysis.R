@@ -12,6 +12,7 @@ setwd("B:/ubuntushare/popgen/nerophis/")
 source("../scripts/plotting_functions.R")
 
 pop.list<-c("SEW","LEM","GEL","STR","GTL","FIN")
+pop.list<-c("LEM","GEL","STR","GTL","FIN")
 #############################################################################
 #***************************************************************************#
 ###################################FILES#####################################
@@ -21,6 +22,9 @@ pop.list<-c("SEW","LEM","GEL","STR","GTL","FIN")
 pwise.fst.sub<-read.table("stacks/fst_summary_subset.txt",
 	 header=T, row.names=1, sep='\t')
 global.fst<-read.delim("stacks/pruned.globalstats.txt")
+nerophis.coor<-read.csv("collecting_sites.csv")
+sumstats<-read.delim("stacks/batch_3.sumstats.tsv",skip=5,header=T)
+sumstats$Locus<-paste(sumstats$Locus.ID,sumstats$Col,sep=".")
 
 
 #########################################################################
@@ -32,7 +36,7 @@ global.fst<-read.delim("stacks/pruned.globalstats.txt")
 #******************************ADEGENET*********************************#
 dat.plink<-read.PLINK("stacks/subset.raw",parallel=FALSE)
 #look at alleles
-png("Missingness.png",height=7, width=7,units="in",res=300)
+png("Missingness_noSEW.png",height=7, width=7,units="in",res=300)
 glPlot(dat.plink, posi="topleft")
 dev.off()
 #summarize allele freq distribution
@@ -66,7 +70,7 @@ colors[colors=="FIN"]<-rainbow(6)[1]
 colors[colors=="GEL"]<-rainbow(6)[2]
 colors[colors=="GTL"]<-rainbow(6)[3]
 colors[colors=="LEM"]<-rainbow(6)[4]
-colors[colors=="SEW"]<-rainbow(6)[5]
+#colors[colors=="SEW"]<-rainbow(6)[5]
 colors[colors=="STR"]<-rainbow(6)[6]
 pop.list<-levels(as.factor(pop))
 
@@ -208,7 +212,11 @@ dev.off()
 #########################################################################
 
 #**************************GLOBAL FSTS********************************#
-plot(global.fst$Fst,pch=19)
+png("global_fsts.png",height=4,width=10,units="in",res=300)
+par(mar=c(2,2,2,2),oma=c(2,2,2,2))
+plot(global.fst$Fst,pch=19,ylab=expression(italic(F)[italic(ST)]),
+	xlab="SNP Index")
+dev.off()
 
 #**************************STACKS FSTS********************************#
 setwd("stacks")

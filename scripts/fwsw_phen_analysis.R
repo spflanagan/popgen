@@ -11,7 +11,7 @@ library(gdata);library(matrixcalc)
 
 setwd("B:/ubuntushare/popgen/fwsw_results/")
 source("../scripts/plotting_functions.R")
-source("../scripts/pst_script.R")
+source("../scripts/phenotype_functions.R")
 
 pop.list<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
 	"FLFD","FLSI","FLAB","FLPB","FLHB","FLCC","FLLG")
@@ -20,6 +20,7 @@ sw.list<-c("TXSP","TXCC","TXCB","ALST","FLSG","FLKB",
 	"FLFD","FLSI","FLAB","FLPB","FLHB","FLCC")
 npops<-16
 
+###***************************GENERATE THE FILES**************************###
 raw.pheno<-read.table("../sw_results/popgen.pheno.txt", sep="\t", header=T)
 	raw.pheno$PopID<-gsub("(\\w{4})\\w+","\\1",raw.pheno$ID)
 	raw.pheno<-raw.pheno[raw.pheno$PopID %in% pop.list,]
@@ -38,6 +39,10 @@ mal.pheno<-raw.pheno[raw.pheno$sex %in% c("P","N"),-8]
 	mal.pheno<-mal.pheno[order(match(mal.pheno$PopID,pop.list)),]
 	write.table(mal.pheno,"mal.pheno.txt",sep='\t',row.names=F,col.names=T,
 		quote=F)
+###*****************************READ THE FILES*****************************###
+fem.pheno<-read.table("fem.pheno.txt",header=T)
+	fem.pheno<-fem.pheno[!is.na(fem.pheno$BandNum),]
+mal.pheno<-read.table("mal.pheno.txt",header=T)
 
 ##############################################################################
 #****************************************************************************#
@@ -522,29 +527,18 @@ dev.off()
 #****************************************************************************#
 ##############################################################################
 
-
-#**********PST COMPARISONS**********#
-fem.pheno.sep<-split(fem.pheno, fem.pheno$PopID)
-fem.unstd.new<-rbind(fem.pheno.sep$TXSP,fem.pheno.sep$TXCC,fem.pheno.sep$TXCB,
-	fem.pheno.sep$ALST,fem.pheno.sep$FLSG,fem.pheno.sep$FLKB,
-	fem.pheno.sep$FLFD,fem.pheno.sep$FLSI,fem.pheno.sep$FLAB,
-	fem.pheno.sep$FLPB,fem.pheno.sep$FLHB,fem.pheno.sep$FLCC)
-mal.pheno.sep<-split(mal.pheno, mal.pheno$PopID)
-mal.unstd.new<-rbind(mal.pheno.sep$TXSP,mal.pheno.sep$TXCC,mal.pheno.sep$TXCB,
-	mal.pheno.sep$ALST,mal.pheno.sep$FLSG,mal.pheno.sep$FLKB,
-	mal.pheno.sep$FLFD,mal.pheno.sep$FLSI,mal.pheno.sep$FLAB,
-	mal.pheno.sep$FLPB,mal.pheno.sep$FLHB,mal.pheno.sep$FLCC)
-
-fem.psts<-apply(fem.unstd.new[,3:10],2,function(x){
-	pst<-pairwise.pst(data.frame(fem.unstd.new[,1],x),pop.list)
+setwd("pst-fst")
+#*******************************PST COMPARISONS******************************#
+fem.psts<-apply(fem.pheno[,4:11],2,function(x){
+	pst<-pairwise.pst(data.frame(fem.pheno[,3],x),pop.list)
 	return(pst)
 })
 for(i in 1:length(fem.psts)){
 	write.table(fem.psts[[i]],paste(names(fem.psts)[i],".fem.pst.txt",sep=""),
 		sep='\t',quote=F)
 }
-mal.psts<-apply(mal.unstd.new[,3:8],2,function(x){
-	pst<-pairwise.pst(data.frame(mal.unstd.new[,1],x),pop.list)
+mal.psts<-apply(mal.pheno[,4:9],2,function(x){
+	pst<-pairwise.pst(data.frame(mal.pheno[,3],x),pop.list)
 	return(pst)
 })
 for(i in 1:length(mal.psts)){
@@ -557,25 +551,6 @@ mal.fst.upst<-all.traits.pst.mantel(mal.unstd.new,pwise.fst.sub,1)
 
 fem.upst.dist<-all.traits.pst.mantel(fem.unstd.new,dist,1)
 mal.upst.dist<-all.traits.pst.mantel(mal.unstd.new,dist,1)
-
-fst.pst.byloc<-function(ped.file,trait.df,pop.order,trait.ind){
-	results.list<-list()
-	for(j in 3:ncol(trait.df)){
-	results.mantel<-data.frame()
-	for(i in seq(7,ncol(ped.file),2)){
-		res<-mantel.rtest(
-			as.dist(t(pairwise.fst(ped.file,i,i+1,pop.order))),
-			as.dist(t(pairwise.pst(trait.df[,c(trait.ind,j)],pop.order))),
-			 nrepet=9999)
-		results.mantel<-rbind(results.mantel,cbind(res$obs,res$pvalue))
-	}
-	results.mantel<-as.data.frame(results.mantel)
-	colnames(results.mantel)<-c("Obs","P")
-	results.list<-append(results.list,data.frame(results.mantel))
-	}
-	#names(results.list)<-colnames(trait.df)[3:ncol(trait.df)]
-	return(results.list)
-}
 
 fem.pst.fst.loc<-fst.pst.byloc(sub.ped,fem.unstd.new,pop.list,1)
 fpf<-data.frame(SVL.Obs=fem.pst.fst.loc[[1]],SVL.P=fem.pst.fst.loc[[2]],
@@ -604,14 +579,7 @@ mpf.sig<-mpf[mpf$SVL.P <= 0.05 | mpf$TailLength.P <= 0.05 |
 	mpf$BodyDepth.P <= 0.05 | mpf$SnoutLength.P <= 0.05 | 
 	mpf$SnoutDepth.P <= 0.05 | mpf$HeadLength.P <= 0.05,]
 
-create.extract.sh<-function(df){
-	#the df needs chrom, start, end as columns
-	commands<-paste(
-		"../SCA/programs/extract_sequence_part/extract_sequence_part",
-		" -f ./sw_results/pstfst/sig_regions/",df[,1],".fasta -s ",
-		df[,2], " -e ", df[,3],sep="")
-	return(commands)
-}
+
 svl.sig<-rownames(fpf)[rownames(fpf[fpf$SVL.P <= 0.05,]) %in%
 	rownames(mpf[mpf$SVL.P <= 0.05,])]
 write.table(svl.sig,"pstfst/SVL_pstfst.txt",col.names=F,row.names=F,quote=F)

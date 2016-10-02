@@ -8,15 +8,35 @@ Nerophis ophidion Pop Gen notes
 7. Ran run_denovo_map.sh
 8. Now first pruning with populations
 populations -b 3 -P ./stacks/ -M ./nop_map.txt -r 0.75 -a 0.05 -p 6 -t 8 --vcf --plink --structure
-9. Then use plink
-./plink --file ./stacks/batch_3.plink --r2 --ld-window-r2 0.2 --hardy --noweb --allow-no-sex --write-snplist #to create snplist
-plink --file plink --extract neutral.list --allow-no-sex --recode --out neutral --noweb
-plink --file ld.subset --freq --within plink.clust.txt --noweb --out ld.subset
-plink --file ld.subset --hardy --noweb --allow-no-sex --write-snplist
-plink --file ld.subset --extract neutral.snplist --recode-structure --noweb --allow-no-sex
-plink --file ld.subset --extract neutral.snplist --recodeA --noweb --allow-no-sex
+9.  prune_snps.cpp
+5. plink --file pruned --hwe 0.001 --noweb --allow-no-sex --write-snplist
+	plink --file pruned --extract plink.snplist --recode --recodeA --recode-structure --out subset --noweb --allow-no-sex
+	 plink --file pruned --extract plink.snplist --recodeA --out subset --noweb --allow-no-sex
+
+6. PCAdapt
+7. Adegenet
+8. FastStructure
+9. Structure
+	Structure Harvester
+10. Bayenv2
+11. calculate_global_fst
 
 #######################################LAB BOOK#############################################
+#####Wednesday, 14 September 2016
+Structure finished running, so I ran Structure Harvester..got K=3 as best (admixture model).
+
+#####Sunday, 11 September 2016
+Running structure on the no-SEW group in STRUCTURE with 9 reps, K=1 through K=5.
+
+#####Thursday, 14 July 2016
+The new populations run seems to have yielded 49740 SNPs.
+I ran prune_snps.cpp and retained 15398 SNPs. After plink hwe pruning, 14526 SNPs retained.
+
+
+#####Friday, 8 July 2016
+I'm running populations without the SEW population. I think this might help things, since SEW had so much missing data. 
+populations -b 3 -P ./stacks -M ./nop_map_nosew.txt -s -t 3 --fstats --plink --vcf
+
 #####Thursday, 9 June 2016
 I've received the coordinates from Josefin Sundin and Kai Linstrom, waiting on Olivia Roth.
 Meanwhile I'm downloading World Oceans Database data for the Baltic region.
