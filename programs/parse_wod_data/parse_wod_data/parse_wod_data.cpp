@@ -103,6 +103,8 @@ int main(int argc, char* argv[])
 			cout << "no arguments:\tinteractive mode\n";
 			return 0;
 		}
+		else
+			interactive_mode = true;
 	}
 
 	if (argc > 1)
@@ -119,6 +121,11 @@ int main(int argc, char* argv[])
 		}
 	}
 
+	if (interactive_mode == true)
+	{
+		cout << "\nInput file name: ";
+		cin >> csv_file_name;
+	}
 	for (i = 1; i < argc - 1; i++)
 	{
 		tempstring1 = argv[i];

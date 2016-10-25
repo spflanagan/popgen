@@ -1,5 +1,6 @@
 Population genetics Analysis (FW-SW) Log File
-LAST UPDATED: 5 June 2016
+LAST UPDATED: 2 Oct 2016
+DATE STARTED: 5 June 2016
 
 #GOAL: DESCRIBE DIFFERENCES BETWEEN FRESHWATER AND SALTWATER POPULATIONS OF S. SCOVELLI
 
@@ -21,6 +22,11 @@ LAST UPDATED: 5 June 2016
 11. calculate_global_fst
 
 ###############################################################################################
+#####Sunday, 2 October 2016
+Starting to run it in structure. Running it once each with K=1 through K=16, then I'll narrow down the K range and run it multiple times.
+Using admixture model w/ 10000 burnins and 10000 MCMCs, allele freqs can be correlated.
+
+
 #####Monday, 25 July 2016
 Running IBD per locus using the subsetted ped file..we'll see if it works.
 
