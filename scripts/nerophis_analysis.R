@@ -7,12 +7,15 @@ rm(list=ls())
 
 library(ade4)
 library(adegenet)
+library(pcadapt)
+library(scales)
 
 setwd("B:/ubuntushare/popgen/nerophis/")
-source("../scripts/plotting_functions.R")
+source("../../SCA/scripts/plotting_functions.R")
 
 pop.list<-c("SEW","LEM","GEL","STR","GTL","FIN")
 pop.list<-c("LEM","GEL","STR","GTL","FIN")
+pop.labels<-c("DKW","DKE","DEN","SEE","FIS")
 #############################################################################
 #***************************************************************************#
 ###################################FILES#####################################
@@ -66,19 +69,19 @@ ind.names<-dimnames(pca1$scores)[[1]]
 
 pop<-substr(ind.names, 1,3)
 colors<-pop
-colors[colors=="FIN"]<-rainbow(6)[1]
-colors[colors=="GEL"]<-rainbow(6)[2]
-colors[colors=="GTL"]<-rainbow(6)[3]
-colors[colors=="LEM"]<-rainbow(6)[4]
+colors[colors=="FIN"]<-rainbow(5)[1]
+colors[colors=="GEL"]<-rainbow(5)[2]
+colors[colors=="GTL"]<-rainbow(5)[3]
+colors[colors=="LEM"]<-rainbow(5)[4]
 #colors[colors=="SEW"]<-rainbow(6)[5]
-colors[colors=="STR"]<-rainbow(6)[6]
+colors[colors=="STR"]<-rainbow(5)[5]
 pop.list<-levels(as.factor(pop))
 
 jpeg("subset.adegenet.pca1.2.jpeg",res=300,height=7,width=7,units="in")
 plot(pca1$scores[,1], pca1$scores[,2], pch=16, cex=2,lwd=1.3,
 	col=alpha(colors, 0.5), ylab="", xlab="")
 legend("topleft", pop.list, pch=19, pt.cex=2,
-	col=alpha(rainbow(6), 0.5), ncol=3)
+	col=alpha(rainbow(5), 0.5), ncol=3)
 mtext(paste("PC1: ", round(pca1$eig[1]/sum(pca1$eig)*100, 2), "%", sep=""), 
 	1, line = 2)
 mtext(paste("PC2: ", round(pca1$eig[2]/sum(pca1$eig)*100, 2), "%", sep=""), 
@@ -86,10 +89,10 @@ mtext(paste("PC2: ", round(pca1$eig[2]/sum(pca1$eig)*100, 2), "%", sep=""),
 dev.off()
 
 jpeg("subset.adegenet.pca1.3.jpeg",res=300,height=7,width=7,units="in")
-plot(pca1$scores[,1], pca1$scores[,3], pch=16, cex=2,
+plot(pca1$scores[,2], pca1$scores[,3], pch=16, cex=2,
 	col=alpha(colors, 0.5), ylab="", xlab="")
 legend("topleft", pop.list, pch=19, pt.cex=2,
-	col=alpha(rainbow(6), 0.5), ncol=3)
+	col=alpha(rainbow(5), 0.5), ncol=3)
 mtext(paste("PC1: ", round(pca1$eig[1]/sum(pca1$eig)*100, 2), "%", sep=""), 
 	1, line = 2)
 mtext(paste("PC3: ", round(pca1$eig[3]/sum(pca1$eig)*100, 2), "%", sep=""), 
@@ -265,6 +268,71 @@ text(x=-1,y=-0.5,pop.list[5])
 text(x=-1,y=-0.85,pop.list[6])
 dev.off()
 
+
+#########################################################################
+##########################BAYENV-FILTER WOD##############################
+#########################################################################
+setwd("./wod_files")
+wod.files<-list.files(pattern="_out.txt")
+
+wod.dat<-data.frame()
+
+for(i in 1:length(wod.files)){
+  wod.dat<-rbind(wod.dat,read.delim(wod.files[i], sep="\t"))
+}
+#keep only those from 2004-2014 (2014 is newest)
+wod.filt<-wod.dat[wod.dat$Year >= 2004,]
+
+
+mar.coor<-read.csv("marine_coordinates_revised.csv")
+adj.coor<-as.data.frame(cbind(site=as.character(mar.coor$site), 
+                              lat.l=as.numeric(mar.coor$lat-0.5), 
+                              lat.r=as.numeric(mar.coor$lat),
+                              lat.h=as.numeric(mar.coor$lat+0.5), 
+                              lon.l=as.numeric(mar.coor$lon-0.5),
+                              lon.r=as.numeric(mar.coor$lon),
+                              lon.h=as.numeric(mar.coor$lon+0.5)), stringsAsFactors = FALSE)
+adj.coor[,2:7]<-as.data.frame(sapply(adj.coor[,2:7],as.numeric))
+adj.coor[adj.coor$site=="FLCC",5]<-adj.coor[adj.coor$site=="FLCC",6]-0.5
+adj.coor[adj.coor$site=="FLCC",7]<-adj.coor[adj.coor$site=="FLCC",6]+0.5
+#restrict to the actual coordinates
+wod.rest<-list()
+for(i in 1:nrow(adj.coor)){
+  wod.temp<-as.data.frame(subset(wod.filt,
+                                 round(Long,1) <= adj.coor$lon.h[i] & round(Long,1) >= adj.coor$lon.l[i]))
+  wod.rest[[i]]<-as.data.frame(subset(wod.temp,  
+                                      Lat <= adj.coor$lat.h[i] & Lat >= adj.coor$lat.l[i]))
+}
+names(wod.rest)<-paste(mar.coor$site)
+averages<-lapply(wod.rest, function(x){
+  avgs<-apply(x,2,mean)
+  n<-nrow(x)
+  return(list("avgs"=avgs, "n"=n))
+})
+
+environ.file<-NULL
+for(i in 1:length(averages)){
+  temp.avg<-append(averages[[i]]$avgs,averages[[i]]$n)
+  environ.file<-cbind(environ.file,temp.avg)
+}
+colnames(environ.file)<-mar.coor$site
+rownames(environ.file)<-c(names(averages[[1]]$avgs), "n")
+environ.file<-environ.file[-9,]#remove pH
+environ.file<-environ.file[-9,]#remove Oxygen
+
+#write environmental data to file
+write.table(environ.file, "wod_data_bayenv.txt",sep='\t',eol='\n', quote=F)
+
+##include temperature variance
+temp.var<-lapply(wod.rest,function(x){
+  tempvar<-var(x$Temp)
+  return(tempvar)
+})
+temp.var<-t(do.call("rbind",temp.var))
+rownames(temp.var)<-c("tempvar")
+std.tempvar<-(temp.var-mean(temp.var))/sd(temp.var)
+write.table(temp.var,"../new_bayenv/wod_tempvar_data_std.txt",sep='\t',
+            eol="\t\n",quote=F)
 
 
 
