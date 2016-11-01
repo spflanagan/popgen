@@ -22,9 +22,37 @@ populations -b 3 -P ./stacks/ -M ./nop_map.txt -r 0.75 -a 0.05 -p 6 -t 8 --vcf -
 11. calculate_global_fst
 
 #######################################LAB BOOK#############################################
+#####Tuesday, 1 November 2016
+OK, I fixed it--for some reason it hadn't been re-written? IDK but now it works and I have bayenv.frq.strat
+Ran:
+plink --ped bayenv.plink.ped --map subset.map --out bayenv --noweb --allow-no-sex --freq --within plink.clust.txt 
+to get the correct SNPSFILE format.
+First need to run bayenv2 for matrix estimation (run_bayenv2_matrix_general.sh)
+Then I can use R to find consensus matrix for environmental associations and XtX.
+
+Meanwhile also making the snpfiles for all 49740 markers using R
+
+And made the standardized environmental file in R
+(and environmental variables not correlated with geographic distance)
+>mantel.rtest(as.dist(t(geo.dist)),as.dist(env.dist),999)
+	Monte-Carlo test
+	Observation: 0.01898832 
+	Call: mantelnoneuclid(m1 = m1, m2 = m2, nrepet = nrepet)
+	Based on 999 replicates
+	Simulated p-value: 0.438 
+
+Input for bayenv:
+	nop.snpsfile	SNPSFILE
+	env_data_bayenv_std.txt	ENVIRONFILE
+
+
+
 #####Monday, 31 October 2016
 I need the coordinates for the nerophis sites, which I'm not sure where the file is.
 
+plink --file pruned --extract plink.snplist --freq --within --out subset --noweb --allow-no-sex
+
+Trying to do the clustering to generate bayenv files but it keeps saying "0 of 240 individuals assigned to clusters"
 #####Wednesday, 14 September 2016
 Structure finished running, so I ran Structure Harvester..got K=3 as best (admixture model).
 
