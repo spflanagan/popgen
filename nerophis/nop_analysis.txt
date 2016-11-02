@@ -22,6 +22,12 @@ populations -b 3 -P ./stacks/ -M ./nop_map.txt -r 0.75 -a 0.05 -p 6 -t 8 --vcf -
 11. calculate_global_fst
 
 #######################################LAB BOOK#############################################
+#####Wednesday, 2 November 2016
+Made a map in R.
+Also ran isolation by distance.
+Need to analyze bayenv output, see if any of my outliers are similar, and see if they match anything in scovelli.
+What is the overall pattern I'm seeing here??
+
 #####Tuesday, 1 November 2016
 OK, I fixed it--for some reason it hadn't been re-written? IDK but now it works and I have bayenv.frq.strat
 Ran:
