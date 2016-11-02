@@ -45,7 +45,13 @@ Input for bayenv:
 	nop.snpsfile	SNPSFILE
 	env_data_bayenv_std.txt	ENVIRONFILE
 
-
+Meanwhile, at work:
+Ran PCAdapt and got very little information. Excellent. There is basically no population structure (just like adegenet). But I was able to identify 1032 significant outliers (alpha = 0.05). 
+These outliers have varied global Fst values
+> summary(global.fst[global.fst$RADloc %in% outliers,"Fst"])
+     Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
+3.734e-05 3.989e-02 5.816e-02 5.524e-02 7.230e-02 1.169e-01 
+If there's not much population structure, then is Fst informative? 
 
 #####Monday, 31 October 2016
 I need the coordinates for the nerophis sites, which I'm not sure where the file is.

@@ -17,11 +17,8 @@ source("../../SCA/scripts/plotting_functions.R")
 pop.list<-c("SEW","LEM","GEL","STR","GTL","FIN")
 pop.list<-c("LEM","GEL","STR","GTL","FIN")
 pop.labels<-c("DKW","DKE","DEN","SEE","FIS")
-#############################################################################
-#***************************************************************************#
+
 ###################################FILES#####################################
-#***************************************************************************#
-#############################################################################
 
 pwise.fst.sub<-read.table("stacks/fst_summary_subset.txt",
 	 header=T, row.names=1, sep='\t')
@@ -29,16 +26,115 @@ global.fst<-read.delim("stacks/pruned.globalstats.txt")
 nerophis.coor<-read.csv("collecting_sites.csv")
 sumstats<-read.delim("stacks/batch_3.sumstats.tsv",skip=5,header=T)
 sumstats$Locus<-paste(sumstats$Locus.ID,sumstats$Col,sep=".")
-geo.dist<-as.matrix(read.delim("nerophis_distances.txt",
+geo.dist<-as.matrix(read.delim("nerophis_distances_nosew.txt",
 	header=T,row.names=1,sep='\t'))
+sub.ped<-read.table("stacks/subset.ped")
 
-#########################################################################
-#***********************************************************************#
-########################POPULATION STRUCTURE#############################
-#***********************************************************************#
-#########################################################################
+#############################################################################
+#######################PLOT THE POINTS ON A MAP##############################
+#############################################################################
+library(maps);library(gplots)
+library(mapdata)
+jpeg("nerophis_sites_map.jpg", res=300, height=7,width=14, units="in")
+#pdf("nerophis_sites_map.pdf",height=7,width=14)
+par(oma=c(0,0,0,0),mar=c(0,0,0,0),pin=c(7,7))
+map("worldHires",xlim=c(5,25), ylim=c(53.5,61), 
+    col="gray95", fill=TRUE,res=300,myborder=0, mar=c(0,0,0,0))
+#map("worldHires", c("norway","sweden","denmark","finland","germany"),xlim=c(5,30), ylim=c(54,61), 
+#    col="gray90",fill=TRUE,add=T,myborder=0)
 
-#******************************ADEGENET*********************************#
+points(nerophis.coor$Longitute[nerophis.coor$Location!="SEW"], nerophis.coor$Latitude[nerophis.coor$Location!="SEW"], 
+       col="black", cex=1.2, pch=19)
+abline(h=seq(50,60,5),lty=3)
+abline(v=seq(0,30,10),lty=3)
+text(x=c(24.5,24.5),y=c(54.8,59.8),c("55N","60N"))
+text(x=c(10.7,20.7),y=c(60.8,60.8),c("10E","20E"))
+text(y=59,x=8,"NO")
+text(y=60.7,x=23.7,"FI")
+text(x=9,y=56,"DK")
+text(x=11.5,y=53.7,"DE")
+text(x=14,y=58,"SE")
+text(x=17,y=53.7,"PL")
+text(x=7.5,y=56.6,"DKW",font=2)
+text(x=10.4,y=54.7,"DKE",font=2)
+text(x=10.6,y=54.2,"DEN",font=2)
+text(x=19.5,y=57.7,"SEE",font=2)
+text(x=22.6,y=59.8,"FIS",font=2)
+dev.off()
+
+##############################################################################
+#****************************************************************************#
+#########################TEST FOR ISOLATION BY DISTANCE#######################
+#****************************************************************************#
+##############################################################################
+#Mantel test using geographical distances and fsts
+
+#read in the subsetted fst summary from running populations with whitelist
+#ibd.all<-mantel.rtest(as.dist(t(geo.dist)),as.dist(t(pwise.fst.all)))
+ibd.sub<-mantel.rtest(as.dist(t(geo.dist)),as.dist(t(pwise.fst.sub)))
+
+######BY LOCUS#############
+pairwise.fst<-function(ped,allele1,allele2,pop.order){
+  #V1 of ped should be pop index
+  ped.split<-split(ped[,c(allele1,allele2)], factor(ped[,1]))
+  dat.var<-as.data.frame(setNames(
+    replicate(length(pop.order),numeric(0), simplify = F), pop.order))
+  for(i in 1:(length(pop.order)-1)){
+    for(j in (i+1):length(pop.order)){
+      pop1<-factor(ped.split[[pop.order[i]]][ped.split[[pop.order[i]]]!="0"])
+      pop2<-factor(ped.split[[pop.order[j]]][ped.split[[pop.order[j]]]!="0"])
+      freq1<-summary(pop1)/sum(summary(pop1))	
+      freq2<-summary(pop2)/sum(summary(pop2))	
+      freqall<-summary(as.factor(c(pop1,pop2)))/
+        sum(summary(as.factor(c(pop1,pop2))))
+      if(length(freq1)>1){ hs1<-2*freq1[1]*freq1[2] 
+      } else {
+        hs1<-0
+      }
+      if(length(freq2)>1){ hs2<-2*freq2[1]*freq2[2] 
+      } else {
+        hs2<-0
+      }
+      if(length(freqall)>1){
+        hs<-mean(c(hs1,hs2))
+        ht<-2*freqall[1]*freqall[2]
+        fst<-(ht-hs)/ht
+      }
+      if(length(freqall)<=1){ fst<-1 }
+      dat.var[pop.order[i],pop.order[j]]<-fst
+    }
+  }
+  dat.var<-rbind(dat.var,rep(NA, ncol(dat.var)))
+  rownames(dat.var)<-colnames(dat.var)
+  return(as.matrix(dat.var))
+}
+
+fst.ibd.byloc<-function(ped.file,dist.mat,pop.order){
+  results.mantel<-data.frame()
+  for(i in seq(7,ncol(ped.file),2)){
+    res<-mantel.rtest(
+      as.dist(t(pairwise.fst(ped.file,i,i+1,pop.order))),
+      as.dist(t(dist.mat)), nrepet=9999)
+    results.mantel<-rbind(results.mantel,cbind(res$obs,res$pvalue))
+  }
+  results.mantel<-as.data.frame(results.mantel)
+  colnames(results.mantel)<-c("Obs","P")
+  return(results.mantel)
+}
+
+sub.ped$V1<-gsub("(\\w{3})\\w+\\d+","\\1",sub.ped$V2)
+sub.ped$V1[sub.ped$V1=="LEM"]<-"DKW"
+sub.ped$V1[sub.ped$V1=="GEL"]<-"DKE"
+sub.ped$V1[sub.ped$V1=="STR"]<-"DEN"
+sub.ped$V1[sub.ped$V1=="GTL"]<-"SEE"
+sub.ped$V1[sub.ped$V1=="FIN"]<-"FIS"
+ibd.by.loc<-fst.ibd.byloc(sub.ped,geo.dist,pop.labels) 
+#ignore warnings?  In is.euclid(m1) : Zero distance(s)
+rownames(ibd.by.loc)<-sub.map$V2
+
+####################****POPULATION STRUCTURE****#########################
+
+################################ADEGENET################################
 dat.plink<-read.PLINK("stacks/subset.raw",parallel=FALSE)
 #look at alleles
 png("Missingness_noSEW.png",height=7, width=7,units="in",res=300)
@@ -154,7 +250,7 @@ mtext(paste("PC2: ", round(pca1$eig[2]/sum(pca1$eig)*100, 2), "%", sep=""),
 	2, line = 1.5,las=0,cex=1.3)
 text(x=1,y=2.8,"Adegenet,\nBest K = 3")
 
-#*****************************STRUCTURE***********************************#
+####################################STRUCTURE####################################
 str.path<-"structure/nop_str/admix/Results/"
 structure.k2<-read.table(paste(str.path,"admix_run_2_f_clusters.txt",sep=""),
 	sep='\t', header=F)
@@ -208,19 +304,38 @@ plotting.structure(str6,6,pop.list, make.file=FALSE, colors=all.colors,
 dev.off()
 #It looks like k=2 is best...they are kind of panmictic.
 
+##############################PCADAPT####################################
+pcadapt.dat<-read.pcadapt("stacks/subset.ped", type="ped")
+x<-pcadapt("stacks/subset.pcadapt",K=20)
+plot(x,option="screeplot")
+ped<-read.table("stacks/subset.ped", 
+                stringsAsFactors=F, colClasses="character")
+ped.pops<-substr(ped[,2],1,3)
+plot(x,option="scores",pop=as.factor(as.character(ped.pops)))
+plot(x,option="manhattan")
+#useq qvalue to identify outliers
+#source("https://bioconductor.org/biocLite.R")
+#biocLite("qvalue")
+library(qvalue)
+qval <- qvalue(x$pvalues)$qvalues
+alpha <- 0.05
+outliers <- which(qval<alpha)
+snp_pc<-get.pc(x,outliers)
 
+x_com<-pcadapt(pcadapt.dat,K=20,method="communality")
+write.table(outliers,"pcadapt.outliers.txt",quote=F,col.names=F,row.names=F)
 
-#########################################################################
-#***********************************************************************#
-#####################POPULATION DIFFERENTIATION##########################
-#***********************************************************************#
-#########################################################################
+###################****POPULATION DIFFERENTIATION****######################
 
 #**************************GLOBAL FSTS********************************#
+global.fst$RADloc<-gsub("(\\d+)_\\d+","\\1",global.fst$Locus)
+global.fst$Pos<-as.numeric(rownames(global.fst))
 png("global_fsts.png",height=4,width=10,units="in",res=300)
 par(mar=c(2,2,2,2),oma=c(2,2,2,2))
-plot(global.fst$Fst,pch=19,ylab=expression(italic(F)[italic(ST)]),
+plot(global.fst$Pos,global.fst$Fst,pch=19,ylab=expression(italic(F)[italic(ST)]),
 	xlab="SNP Index")
+points(global.fst[global.fst$RADloc %in% outliers,"Pos"],global.fst[global.fst$RADloc %in% outliers,"Fst"],
+       pch=17,col="purple")
 dev.off()
 
 #**************************STACKS FSTS********************************#
@@ -242,7 +357,10 @@ for(i in 1:length(pop.list)){
 		if(length(file)>0 & i <=j){
 			print(pop.list[i])
 			dat<-read.delim(file)
+			dat$Pos<-as.numeric(rownames(dat))
 			plot(dat$AMOVA.Fst,pch=19,axes=F,xlab="",ylab="")
+			points(dat$Pos[dat$Locus.ID %in% outliers],dat$AMOVA.Fst[dat$Locus.ID %in% outliers],
+			     pch=17,col="purple")
 			axis(2,las=1,pos=0)
 			abline(h=mean(dat$AMOVA.Fst),lty=2,col="dodgerblue")
 		} else{
@@ -274,67 +392,7 @@ dev.off()
 #########################################################################
 ##########################BAYENV-FILTER WOD##############################
 #########################################################################
-setwd("./wod_files")
-wod.files<-list.files(pattern="_out.txt")
 
-wod.dat<-data.frame()
-
-for(i in 1:length(wod.files)){
-  wod.dat<-rbind(wod.dat,read.delim(wod.files[i], sep="\t"))
-}
-#keep only those from 2004-2014 (2014 is newest)
-wod.filt<-wod.dat[wod.dat$Year >= 2004,]
-
-
-mar.coor<-read.csv("../collecting_sites.csv")
-adj.coor<-as.data.frame(cbind(site=as.character(mar.coor$Location), 
-      lat.l=as.numeric(mar.coor$Latitude-0.5), 
-      lat.r=as.numeric(mar.coor$Latitude),
-	lat.h=as.numeric(mar.coor$Latitude+0.5), 
-      lon.l=as.numeric(mar.coor$Longitute-0.5),
-      lon.r=as.numeric(mar.coor$Longitute),
-	lon.h=as.numeric(mar.coor$Longitute+0.5)), stringsAsFactors = FALSE)
-adj.coor[,2:7]<-as.data.frame(sapply(adj.coor[,2:7],as.numeric))
-
-#restrict to the actual coordinates
-wod.rest<-list()
-for(i in 1:nrow(adj.coor)){
-  wod.temp<-as.data.frame(subset(wod.filt,
-                                 round(Long,1) <= adj.coor$lon.h[i] & round(Long,1) >= adj.coor$lon.l[i]))
-  wod.rest[[i]]<-as.data.frame(subset(wod.temp,  
-                                      Lat <= adj.coor$lat.h[i] & Lat >= adj.coor$lat.l[i]))
-}
-names(wod.rest)<-paste(mar.coor$Location)
-averages<-lapply(wod.rest, function(x){
-  avgs<-apply(x,2,mean,na.rm=T)
-  n<-nrow(x)
-  return(list("avgs"=avgs, "n"=n))
-})
-
-environ.file<-NULL
-for(i in 1:length(averages)){
-  temp.avg<-append(averages[[i]]$avgs,averages[[i]]$n)
-  environ.file<-cbind(environ.file,temp.avg)
-}
-colnames(environ.file)<-mar.coor$Location
-rownames(environ.file)<-c(names(averages[[1]]$avgs), "n")
-environ.file<-environ.file[-9,]#remove pH
-environ.file<-environ.file[-9,]#remove Oxygen
-
-
-##include temperature variance
-temp.var<-lapply(wod.rest,function(x){
-  tempvar<-var(x$Temp)
-  return(tempvar)
-})
-temp.var<-t(do.call("rbind",temp.var))
-rownames(temp.var)<-c("tempvar")
-std.tempvar<-(temp.var-mean(temp.var))/sd(temp.var)
-environ.file<-rbind(environ.file,temp.var)
-#write environmental data to file
-
-write.table(environ.file, "bayenv/wod_data_nop_bayenv.txt",
-	sep='\t',eol="\t\n", quote=F)
 
 #**********************************BAYENV2***********************************#
 #####STARTING WITH PLINK FILES
@@ -379,6 +437,131 @@ write.table(snpsfile, "bayenv/nop.snpsfile",
 
 #NOW RUN MATRIX ESTIMATION: run_bayenv2_matrix_general.sh
 
+setwd("./wod_files")
+wod.files<-list.files(pattern="_out.txt")
+
+wod.dat<-data.frame()
+
+for(i in 1:length(wod.files)){
+  wod.dat<-rbind(wod.dat,read.delim(wod.files[i], sep="\t"))
+}
+#keep only those from 2004-2014 (2014 is newest)
+wod.filt<-wod.dat[wod.dat$Year >= 2004,]
+
+
+mar.coor<-read.csv("../collecting_sites.csv")
+adj.coor<-as.data.frame(cbind(site=as.character(mar.coor$Location), 
+                              lat.l=as.numeric(mar.coor$Latitude-0.5), 
+                              lat.r=as.numeric(mar.coor$Latitude),
+                              lat.h=as.numeric(mar.coor$Latitude+0.5), 
+                              lon.l=as.numeric(mar.coor$Longitute-0.5),
+                              lon.r=as.numeric(mar.coor$Longitute),
+                              lon.h=as.numeric(mar.coor$Longitute+0.5)), stringsAsFactors = FALSE)
+adj.coor[,2:7]<-as.data.frame(sapply(adj.coor[,2:7],as.numeric))
+
+#restrict to the actual coordinates
+wod.rest<-list()
+for(i in 1:nrow(adj.coor)){
+  wod.temp<-as.data.frame(subset(wod.filt,
+                                 round(Long,1) <= adj.coor$lon.h[i] & round(Long,1) >= adj.coor$lon.l[i]))
+  wod.rest[[i]]<-as.data.frame(subset(wod.temp,  
+                                      Lat <= adj.coor$lat.h[i] & Lat >= adj.coor$lat.l[i]))
+}
+names(wod.rest)<-paste(mar.coor$Location)
+averages<-lapply(wod.rest, function(x){
+  avgs<-apply(x,2,mean,na.rm=T)
+  n<-nrow(x)
+  return(list("avgs"=avgs, "n"=n))
+})
+
+environ.file<-NULL
+for(i in 1:length(averages)){
+  temp.avg<-append(averages[[i]]$avgs,averages[[i]]$n)
+  environ.file<-cbind(environ.file,temp.avg)
+}
+colnames(environ.file)<-mar.coor$Location
+rownames(environ.file)<-c(names(averages[[1]]$avgs), "n")
+environ.file<-environ.file[-9,]#remove pH
+environ.file<-environ.file[-9,]#remove Oxygen
+
+
+##include temperature variance
+temp.var<-lapply(wod.rest,function(x){
+  tempvar<-var(x$Temp)
+  return(tempvar)
+})
+temp.var<-t(do.call("rbind",temp.var))
+rownames(temp.var)<-c("tempvar")
+std.tempvar<-(temp.var-mean(temp.var))/sd(temp.var)
+environ.file<-rbind(environ.file,temp.var)
+#write environmental data to file
+
+write.table(environ.file, "bayenv/wod_data_nop_bayenv.txt",
+            sep='\t',eol="\t\n", quote=F)
+
+#####CREATE ENVFILE
+env.raw<-read.table("bayenv/wod_data_nop_bayenv.txt")
+env.raw<-env.raw[,colnames(snpsfile)]
+env.raw<-env.raw[c("Depth","Temp","Salinity","tempvar"),]
+  #Each environmental variable should be standardized, 
+  #i.e. subtract the mean and then divided through by the standard deviation 
+  #of the variable across populations.
+  std.by.mean<-function(x){
+    m<-mean(x,na.rm=T)
+    s<-sd(x,na.rm=T)
+    newx<-(x-m)/s	
+  }
+env.std<-t(apply(env.raw,1,std.by.mean))
+write.table(env.std,
+            "bayenv/env_data_bayenv_std.txt",
+            sep='\t',quote=F,col.names=F,row.names=F,eol='\n')
+
+##Are they correlated with distance?
+colnames(env.std)<-colnames(env.raw)
+rownames(env.std)<-rownames(env.raw)
+env.dist<-as.matrix(vegdist(t(env.raw)))
+env.dist<-env.dist[rownames(geo.dist),colnames(geo.dist)]
+mantel.rtest(as.dist(t(geo.dist)),as.dist(env.dist),999)
+#Monte-Carlo test
+#Observation: 0.01898832 
+#Call: mantelnoneuclid(m1 = m1, m2 = m2, nrepet = nrepet)
+#Based on 999 replicates
+#Simulated p-value: 0.438 
+
+
+#####SNPFILEs
+#for SNPFILE, need just one file per SNP apparently.
+#want to use all of the snps...need to get map with those inds.
+all.snps.ped<-read.table("stacks/batch_3.plink.ped", header=F, stringsAsFactors=F)
+ped.pop<-sub('(\\w{3})\\w+\\d+','\\1', all.snps.ped[,2])
+all.snps.clust<-cbind(all.snps.ped[,1],all.snps.ped[,2],all.snps.ped[,1])
+write.table(all.snps.clust, "bayenv/all.clust.txt", sep="\t", eol="\n", quote=F,
+            row.names=F, col.names=F)
+#then need to run plink --file stacks/batch_3.plink --freq --within bayenv/all.clust.txt \
+#	--allow-no-sex --noweb --out bayenv/all.bayenv.plink
+
+#read in frequency per pop
+all.snps.frq<-read.table("bayenv/all.bayenv.plink.frq.strat", 
+                         header=T, stringsAsFactors=F)
+freq<-cbind(all.snps.frq,all.snps.frq$NCHROBS-all.snps.frq$MAC)
+colnames(freq)[ncol(freq)]<-"NAC"
+pop.order<-levels(as.factor(freq$CLST))
+snp.names<-split(freq$SNP,freq$CLST)[[1]]
+
+mac.by.pop<-as.data.frame(split(freq$MAC,freq$CLST))
+rownames(mac.by.pop)<-snp.names
+nac.by.pop<-as.data.frame(split(freq$NAC,freq$CLST))
+rownames(nac.by.pop)<-snp.names
+snpsfile<-interleave(mac.by.pop,nac.by.pop)
+
+write.table(snpsfile, "bayenv/nop.all.snpsfile", 
+            col.names=F,row.names=F,quote=F,sep="\t",eol="\n")
+for(i in seq(1,(nrow(snpsfile)/2),2)){
+  write.table(snpsfile[i:(i+1),],
+              paste("bayenv/snpfiles/",rownames(snpsfile)[i],sep=""),
+              col.names=F,row.names=F,quote=F,sep='\t',eol='\n')
+}
+
 #####check Bayenv2 matrix
 matrix.files<-list.files("bayenv/",pattern="matrix")
 matrices<-list()
@@ -403,65 +586,7 @@ image(matrices[[10]])
 
 #I took a representative matrix rather than averaging.
 
-#####SNPFILEs
-#for SNPFILE, need just one file per SNP apparently.
-#want to use all of the snps...need to get map with those inds.
-all.snps.ped<-read.table("stacks/batch_3.plink.ped", header=F, stringsAsFactors=F)
-ped.pop<-sub('(\\w{3})\\w+\\d+','\\1', all.snps.ped[,2])
-all.snps.clust<-cbind(all.snps.ped[,1],all.snps.ped[,2],all.snps.ped[,1])
-write.table(all.snps.clust, "bayenv/all.clust.txt", sep="\t", eol="\n", quote=F,
-	row.names=F, col.names=F)
-#then need to run plink --file stacks/batch_3.plink --freq --within bayenv/all.clust.txt \
-	--allow-no-sex --noweb --out bayenv/all.bayenv.plink
-
-#read in frequency per pop
-all.snps.frq<-read.table("bayenv/all.bayenv.plink.frq.strat", 
-	header=T, stringsAsFactors=F)
-freq<-cbind(all.snps.frq,all.snps.frq$NCHROBS-all.snps.frq$MAC)
-colnames(freq)[ncol(freq)]<-"NAC"
-pop.order<-levels(as.factor(freq$CLST))
-snp.names<-split(freq$SNP,freq$CLST)[[1]]
-
-mac.by.pop<-as.data.frame(split(freq$MAC,freq$CLST))
-rownames(mac.by.pop)<-snp.names
-nac.by.pop<-as.data.frame(split(freq$NAC,freq$CLST))
-rownames(nac.by.pop)<-snp.names
-snpsfile<-interleave(mac.by.pop,nac.by.pop)
-
-write.table(snpsfile, "bayenv/nop.all.snpsfile", 
-	col.names=F,row.names=F,quote=F,sep="\t",eol="\n")
-for(i in seq(1,(nrow(snpsfile)/2),2)){
-	write.table(snpsfile[i:(i+1),],
-		paste("bayenv/snpfiles/",rownames(snpsfile)[i],sep=""),
-		col.names=F,row.names=F,quote=F,sep='\t',eol='\n')
-}
-#####ENVFILE
-env.raw<-read.table("bayenv/wod_data_nop_bayenv.txt")
-#Each environmental variable should be standardized, 
-#i.e. subtract the mean and then divided through by the standard deviation 
-#of the variable across populations.
-std.by.mean<-function(x){
-	m<-mean(x)
-	s<-sd(x)
-	newx<-(x-m)/s	
-}
-env.std<-t(apply(env.raw,1,std.by.mean))
-write.table(env.std,
-	"bayenv/env_data_bayenv_std.txt",
-	sep='\t',quote=F,col.names=F,row.names=F,eol='\n')
-
-##Are they correlated with distance?
-colnames(env.std)<-colnames(env.raw)
-rownames(env.std)<-rownames(env.raw)
-env.dist<-as.matrix(vegdist(t(env.raw)))
-env.dist<-env.dist[rownames(geo.dist),colnames(geo.dist)]
-mantel.rtest(as.dist(t(geo.dist)),as.dist(env.dist),999)
-#Monte-Carlo test
-#Observation: 0.01898832 
-#Call: mantelnoneuclid(m1 = m1, m2 = m2, nrepet = nrepet)
-#Based on 999 replicates
-#Simulated p-value: 0.438 
-
+#####Analyze Bayenv2 Output
 
 
 
