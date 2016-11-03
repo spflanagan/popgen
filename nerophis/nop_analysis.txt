@@ -27,6 +27,9 @@ Bayenv seems to not have worked because matrix.5.out is the actual output not a 
 I copied the last matrix from matrix.5.out into its own file and am re-running run_bayenv_general.sh
 This seems to be working--but I need to delete old .freqs files. NOW we're on the right track.
 
+Meanwhile, 601 of 14526 SNPs show significant IBD.
+41 of those are also outliers in the PCAdapt analysis.
+
 #####Wednesday, 2 November 2016
 Made a map in R.
 Also ran isolation by distance.

@@ -29,6 +29,7 @@ sumstats$Locus<-paste(sumstats$Locus.ID,sumstats$Col,sep=".")
 geo.dist<-as.matrix(read.delim("nerophis_distances_nosew.txt",
 	header=T,row.names=1,sep='\t'))
 sub.ped<-read.table("stacks/subset.ped")
+sub.map<-read.table("stacks/subset.map")
 
 #############################################################################
 #######################PLOT THE POINTS ON A MAP##############################
@@ -131,6 +132,8 @@ sub.ped$V1[sub.ped$V1=="FIN"]<-"FIS"
 ibd.by.loc<-fst.ibd.byloc(sub.ped,geo.dist,pop.labels) 
 #ignore warnings?  In is.euclid(m1) : Zero distance(s)
 rownames(ibd.by.loc)<-sub.map$V2
+write.table(ibd.by.loc, "IBDperLoc.txt",col.names=T,row.names=T,sep='\t',quote=F)
+sig.ibd<-ibd.by.loc[ibd.by.loc$P <= 0.05,]
 
 ####################****POPULATION STRUCTURE****#########################
 
@@ -308,9 +311,7 @@ dev.off()
 pcadapt.dat<-read.pcadapt("stacks/subset.ped", type="ped")
 x<-pcadapt("stacks/subset.pcadapt",K=20)
 plot(x,option="screeplot")
-ped<-read.table("stacks/subset.ped", 
-                stringsAsFactors=F, colClasses="character")
-ped.pops<-substr(ped[,2],1,3)
+ped.pops<-substr(sub.ped[,2],1,3)
 plot(x,option="scores",pop=as.factor(as.character(ped.pops)))
 plot(x,option="manhattan")
 #useq qvalue to identify outliers
@@ -321,9 +322,12 @@ qval <- qvalue(x$pvalues)$qvalues
 alpha <- 0.05
 outliers <- which(qval<alpha)
 snp_pc<-get.pc(x,outliers)
-
+pcadapt.out.snps<-sub.map[outliers,2]
 x_com<-pcadapt(pcadapt.dat,K=20,method="communality")
-write.table(outliers,"pcadapt.outliers.txt",quote=F,col.names=F,row.names=F)
+write.table(pcadapt.out.snps,"pcadapt.outliers.txt",quote=F,col.names=F,row.names=F)
+
+#are any of these in the IBD?
+ibd.out<-sig.ibd[rownames(sig.ibd) %in% pcadapt.out.snps,]
 
 ###################****POPULATION DIFFERENTIATION****######################
 
