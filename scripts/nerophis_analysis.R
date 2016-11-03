@@ -588,6 +588,127 @@ image(matrices[[10]])
 
 #####Analyze Bayenv2 Output
 
+#####GET OUTPUT
+setwd("bayenv2/new_bayenv/pruned_snps")
+bf.files<-list.files(pattern="bf")
+xtx.files<-list.files(pattern="xtx")
+
+bf.dat<-NULL
+for(i in 1:length(bf.files)){
+	bf<-read.table(bf.files[i])
+	bf.dat<-rbind(bf.dat,bf)
+}
+colnames(bf.dat)<-c("locus", "Temp_BF", "Temp_rho", "Temp_rs", 
+	"Salinity_BF", "Salinity_rho", "Salinity_rs", "coll.temp_BF", 
+	"coll.temp_rho", "coll.temp_rs", "coll.sal_BF", "coll.sal_rho", 
+	"coll.sal_rs", "seagrass_BF", "seagrass_rho","seagrass_rs")
+bf.dat$locus<-sub("./pruned_snps/(\\d+.*)","\\1",bf.dat$locus)
+xtx<-NULL
+for(i in 1:length(xtx.files)){
+	x<-read.table(xtx.files[i])
+	xtx<-rbind(xtx,x)
+}
+colnames(xtx)<-c("locus","XtX")
+xtx$locus<-sub("./pruned_snps/(\\d+.*)","\\1",xtx$locus)
+
+setwd("../")
+write.table(bf.dat,"BF_summary.pruned_snps.txt",sep='\t',quote=F,row.names=F)
+write.table(xtx,"XtX_summary.pruned_snps.txt",sep='\t',quote=F,row.names=F)
+
+setwd("/new_bayenv/temp_var")
+bf.files<-list.files(pattern="bf")
+bf.tempvar<-NULL
+for(i in 1:length(bf.files)){
+	bf<-read.table(bf.files[i])
+	bf.tempvar<-rbind(bf.tempvar,bf)
+}
+colnames(bf.tempvar)<-c("SNP","BFtempvar","rtempvar","rStempvar")
+bf.tempvar$SNP<-sub("./temp_var/(\\d+.*)","\\1",bf.tempvar$SNP)
+write.table(bf.tempvar,"../tempvar_bf.txt",quote=F)
+setwd("../../")
+
+bf.dat<-merge(bf.dat,bf.tempvar,by.x="locus",by.y="SNP")
+#####BAYENV: ENV
+bf.scaff<-merge(sub.map, bf.dat, by.x="V2", by.y="locus")
+colnames(bf.scaff)[1:4]<-c("locus","scaffold","dist","BP")
+#focus on Bayes Factors, because of Lotterhos & Whitlock (2015)
+bf<-bf.scaff[,c(1,2,4,5,8,11,14,17,20)]
+bf.co<-apply(bf[,4:9],2,quantile,0.95)
+temp.bf.sig<-bf[bf$Temp_BF>bf.co["Temp_BF"],c(1,2,3,4)]
+sal.bf.sig<-bf[bf$Salinity_BF>bf.co["Salinity_BF"],c(1,2,3,5)]
+ctemp.bf.sig<-bf[bf$coll.temp_BF>bf.co["coll.temp_BF"],c(1,2,3,6)]
+csal.bf.sig<-bf[bf$coll.sal_BF>bf.co["coll.sal_BF"],c(1,2,3,7)]
+grass.bf.sig<-bf[bf$seagrass_BF>bf.co["seagrass_BF"],c(1,2,3,8)]
+tvar.bf.sig<-bf[bf$BFtempvar>bf.co["BFtempvar"],c(1,2,3,9)]
+
+dim(tvar.bf.sig[tvar.bf.sig$locus %in% temp.bf.sig$locus & 
+	tvar.bf.sig$locus %in% ctemp.bf.sig,])
+dim(sal.bf.sig[sal.bf.sig$locus %in% csal.bf.sig$locus,])
+dim(grass.bf.sig[grass.bf.sig$locus %in% temp.bf.sig$locus &
+	grass.bf.sig$locus %in% sal.bf.sig$locus,])
+dim(grass.bf.sig[grass.bf.sig$locus %in% ctemp.bf.sig$locus &
+	grass.bf.sig$locus %in% csal.bf.sig$locus,])
+out.venn<-venn( list("MeanSalinity"=sal.bf.sig$locus,
+	"MeanTemp"=temp.bf.sig$locus,"Seagrass"=grass.bf.sig$locus))
+
+temp.bf.sig$start<-temp.bf.sig$BP-2500
+temp.bf.sig$end<-temp.bf.sig$BP+2500
+sal.bf.sig$start<-sal.bf.sig$BP-2500
+sal.bf.sig$end<-sal.bf.sig$BP+2500
+ctemp.bf.sig$start<-ctemp.bf.sig$BP-2500
+ctemp.bf.sig$end<-ctemp.bf.sig$BP+2500
+csal.bf.sig$start<-csal.bf.sig$BP-2500
+csal.bf.sig$end<-csal.bf.sig$BP+2500
+grass.bf.sig$start<-grass.bf.sig$BP-2500
+grass.bf.sig$end<-grass.bf.sig$BP+2500
+tvar.bf.sig$start<-tvar.bf.sig$BP-2500
+tvar.bf.sig$end<-tvar.bf.sig$BP+2500
+chroms<-c(as.character(temp.bf.sig$scaffold),as.character(sal.bf.sig$scaffold),
+	as.character(ctemp.bf.sig$scaffold),as.character(csal.bf.sig$scaffold),
+	as.character(grass.bf.sig$scaffold),as.character(tvar.bf.sig$scaffold))
+chroms<-chroms[!duplicated(chroms)]
+write.table(chroms,
+	"bayenv2/new_bayenv/outliers/all_chroms.txt",col.names=F,row.names=F,
+	quote=F,eol='\n',sep='\t')
+write.table(csal.bf.sig[,c("scaffold","start","end")],
+	"bayenv2/new_bayenv/outliers/csal.txt",col.names=F,row.names=F,
+	quote=F,eol='\n',sep='\t')
+write.table(sal.bf.sig[,c("scaffold","start","end")],
+	"bayenv2/new_bayenv/outliers/sal.txt",col.names=F,row.names=F,
+	quote=F,eol='\n',sep='\t')
+write.table(grass.bf.sig[,c("scaffold","start","end")],
+	"bayenv2/new_bayenv/outliers/grass.txt",col.names=F,row.names=F,
+	quote=F,eol='\n',sep='\t')
+write.table(temp.bf.sig[,c("scaffold","start","end")],
+	"bayenv2/new_bayenv/outliers/temp.txt",col.names=F,row.names=F,
+	quote=F,eol='\n',sep='\t')
+write.table(ctemp.bf.sig[,c("scaffold","start","end")],
+	"bayenv2/new_bayenv/outliers/ctemp.txt",col.names=F,row.names=F,
+	quote=F,eol='\n',sep='\t')
+write.table(tvar.bf.sig[,c("scaffold","start","end")],
+	"bayenv2/new_bayenv/outliers/tvar.txt",col.names=F,row.names=F,
+	quote=F,eol='\n',sep='\t')
+
+tmp.sig<-tvar.bf.sig[tvar.bf.sig$locus %in% temp.bf.sig$locus,]#4
+write.table(tmp.sig[,1:3],"shared_temp_outliers.txt",sep='\t',quote=F,
+	row.names=F)
+tmp.region<-data.frame(tmp.sig$scaffold,tmp.sig$BP-2500,tmp.sig$BP+2500)
+tmp.region[,2][tmp.region[,2]<0]<-0
+write.table(tmp.region,
+	"bayenv2/new_bayenv/outliers/extract_shared_tmp_region.sh",
+	row.names=F,col.names=F,quote=F,sep='\t')
+#non-outliers: col = black, pch=19
+#Temp Variance BF outliers: col=blue, pch=19 or 1
+#Temp BF outliers: col=purple, pch=2
+
+neutral.col<-"black"
+bfv.out.col<-"mediumvioletred"
+bfm.out.col<-"orangered"
+shared.out.col<-"red"
+neutral.pch<-19
+bf.scaff$Temp_BF<-log(bf.scaff$Temp_BF)
+bf.scaff$BFtempvar<-log(bf.scaff$BFtempvar)
+
 
 
 

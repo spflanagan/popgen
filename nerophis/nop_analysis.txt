@@ -22,11 +22,21 @@ populations -b 3 -P ./stacks/ -M ./nop_map.txt -r 0.75 -a 0.05 -p 6 -t 8 --vcf -
 11. calculate_global_fst
 
 #######################################LAB BOOK#############################################
+#####Thursday, 3 November 2016
+Bayenv seems to not have worked because matrix.5.out is the actual output not a representative matrix.
+I copied the last matrix from matrix.5.out into its own file and am re-running run_bayenv_general.sh
+This seems to be working--but I need to delete old .freqs files. NOW we're on the right track.
+
 #####Wednesday, 2 November 2016
 Made a map in R.
 Also ran isolation by distance.
 Need to analyze bayenv output, see if any of my outliers are similar, and see if they match anything in scovelli.
 What is the overall pattern I'm seeing here??
+
+So the bayenv output doesn't look right. 
+Running 
+~/Programs/bayenv_2/calc_bf.sh nop.all.snpsfile env_data_bayenv_std.txt matrix.5.out 5 100000 4
+to do the environmental correlations.
 
 #####Tuesday, 1 November 2016
 OK, I fixed it--for some reason it hadn't been re-written? IDK but now it works and I have bayenv.frq.strat
