@@ -713,6 +713,13 @@ neutral.pch<-19
 bf.scaff$Temp_BF<-log(bf.scaff$Temp_BF)
 bf.scaff$BFtempvar<-log(bf.scaff$BFtempvar)
 
-
-
-
+#######################COMPARE TO SCOVELLI##############################
+tags<-read.table("stacks/batch_3.catalog.tags.tsv",sep='\t',comment.char="#")
+colnames(tags)<-c("SqlID","SampleID","LocusID","Chrom","BP","Strand",
+                  "SeqType","StackComponent","SeqID","Seq","Deleveraged","Blacklisted",
+                  "Lumberjackstack","LogLike")
+tags<-tags[tags$SeqType=="consensus",]
+tags$ID<-paste(">",tags$LocusID,sep="")
+sub.tags<-tags[tags$LocusID %in% as.numeric(gsub("(\\d+)_\\d+","\\1",sub.map[,2])),c("ID","Seq")]
+write.table(sub.tags,"stacks/tags.fasta",quote=F,sep='\n',col.names=F,row.names=F)
+#now we can blast/map them.
