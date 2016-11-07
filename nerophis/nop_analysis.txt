@@ -22,6 +22,14 @@ populations -b 3 -P ./stacks/ -M ./nop_map.txt -r 0.75 -a 0.05 -p 6 -t 8 --vcf -
 11. calculate_global_fst
 
 #######################################LAB BOOK#############################################
+#####Monday, 7 November 2016
+Bayenv finished running and I'm working on the analyses...trying  
+blastx -db nr -query bf_tags.fasta -remote -out bf_tags.blastx -outfmt 7
+to annotate outliers
+
+Also blasted the tags to the scovelli genome. 
+
+
 #####Thursday, 3 November 2016
 Bayenv seems to not have worked because matrix.5.out is the actual output not a representative matrix.
 I copied the last matrix from matrix.5.out into its own file and am re-running run_bayenv_general.sh
