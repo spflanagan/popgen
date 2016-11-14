@@ -653,6 +653,10 @@ shared.out.col<-"red"
 neutral.pch<-19
 bf.scaff$Temp_BF<-log(bf.scaff$Temp_BF)
 bf.scaff$BFtempvar<-log(bf.scaff$BFtempvar)
+bf.blastx<-read.table("bf_tags.blastx",sep='\t')
+colnames(bf.blastx)<-c("qseqid","sseqid","stitle","sscinames","sblastnames",
+	"sstart","send","qstart","qend",
+	"score","length","pident","evalue")
 
 #######################COMPARE TO SCOVELLI##############################
 tags<-read.table("stacks/batch_3.catalog.tags.tsv",sep='\t',comment.char="#")
@@ -665,3 +669,5 @@ sub.tags<-tags[tags$LocusID %in% as.numeric(gsub("(\\d+)_\\d+","\\1",sub.map[,2]
 write.table(sub.tags,"stacks/tags.fasta",quote=F,sep='\n',col.names=F,row.names=F)
 #now we can blast/map them.
 tags.ssc<-read.table("tags.blastn")
+colnames(tags.ssc)<-c("qseqid","sseqid","sstart","send","qstart","qend",
+	"score","length","pident","evalue")
