@@ -22,6 +22,20 @@ populations -b 3 -P ./stacks/ -M ./nop_map.txt -r 0.75 -a 0.05 -p 6 -t 8 --vcf -
 11. calculate_global_fst
 
 #######################################LAB BOOK#############################################
+#####Tuesday, 22 November 2016
+How to analyze the Bayenv results? Because i used a quantile, they all have the same number of outliers
+Is there a chi-squared test I could use?
+How about blast results?
+->Only five of the BF outliers had blastx matches
+->736 of the nerophis tags match the scovelli tags. 
+	Each one matches multiple locations, but only 495 total scovelli locations are matched.
+
+How can I learn more about the salinity-associated things?
+->The five tags that blasted to genes were outliers in both salinity and temperature associations.
+->19 salinity associated tags were also in ssc.
+->15 temp associated tags were also in ssc.
+	
+
 #####Monday, 7 November 2016
 Bayenv finished running and I'm working on the analyses...trying  
 blastx -db nr -query bf_tags.fasta -remote -out bf_tags.blastx -outfmt 7

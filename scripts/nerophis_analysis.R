@@ -1,5 +1,5 @@
 #Author: Sarah P. Flanagan
-#Last updated: 8 May 2016
+#Last updated: 22 Nov 2016
 #Date: 8 May 2016
 #Purpose: Analyze Nerophis ophidion Population genetics data 
 
@@ -30,6 +30,11 @@ geo.dist<-as.matrix(read.delim("nerophis_distances_nosew.txt",
 	header=T,row.names=1,sep='\t'))
 sub.ped<-read.table("stacks/subset.ped")
 sub.map<-read.table("stacks/subset.map")
+vcf<-read.delim("stacks/batch_3.vcf",comment.char="#",sep='\t',header=F)
+	header.start<-grep("#CHROM",scan("stacks/batch_3.vcf",what="character"))
+	header<-scan("stacks/batch_3.vcf",what="character")[header.start:
+	(header.start+ncol(vcf)-1)]
+	colnames(vcf)<-header
 
 #############################################################################
 #######################PLOT THE POINTS ON A MAP##############################
@@ -625,9 +630,9 @@ colnames(bf.scaff)[1:4]<-c("locus","scaffold","dist","BP")
 #focus on Bayes Factors, because of Lotterhos & Whitlock (2015)
 bf<-bf.scaff[,c(1,4,5,8,11,14)]
 bf.co<-apply(bf[,3:6],2,quantile,0.95)
-temp.bf.sig<-bf[bf$Temp_BF>bf.co["Temp_BF"],c(1,2,3)]
-sal.bf.sig<-bf[bf$Salinity_BF>bf.co["Salinity_BF"],c(1,2,4)]
-depth.bf.sig<-bf[bf$Depth_BF>bf.co["Depth_BF"],c(1,2,5)]
+temp.bf.sig<-bf[bf$Temp_BF>bf.co["Temp_BF"],c(1,2,4)]
+sal.bf.sig<-bf[bf$Salinity_BF>bf.co["Salinity_BF"],c(1,2,5)]
+depth.bf.sig<-bf[bf$Depth_BF>bf.co["Depth_BF"],c(1,2,3)]
 tvar.bf.sig<-bf[bf$TempVar_BF>bf.co["TempVar_BF"],c(1,2,6)]
 
 out.venn<-venn( list("MeanSalinity"=sal.bf.sig$locus, #gplots
@@ -671,3 +676,26 @@ write.table(sub.tags,"stacks/tags.fasta",quote=F,sep='\n',col.names=F,row.names=
 tags.ssc<-read.table("tags.blastn")
 colnames(tags.ssc)<-c("qseqid","sseqid","sstart","send","qstart","qend",
 	"score","length","pident","evalue")
+
+#########################VCF TO BAYESCAN###########################
+sub.map$ID<-gsub("(\\d+)_\\d+","\\1",sub.map$V2)
+sub.vcf<-vcf[vcf$ID %in% sub.map$ID,]
+sub.gt<-apply(sub.vcf[,10:ncol(sub.vcf)],c(1,2),gsub,
+	pattern="(.*/.*):.*:.*:.*",replacement="\\1")
+sub.gt[sub.gt=="./."]<-""
+sub.gt[sub.gt=="0/0"]<-0
+sub.gt[sub.gt=="0/1"]<-1
+sub.gt[sub.gt=="1/0"]<-1
+sub.gt[sub.gt=="1/1"]<-2
+sub.gt<-t(sub.gt)
+bayescan<-as.matrix(cbind(as.numeric(as.factor(rownames(sub.gt))),
+	as.numeric(as.factor(gsub("(\\w{3}).*","\\1",rownames(sub.gt)))),sub.gt))
+bayescan<-apply(bayescan,c(1,2),as.numeric)
+colnames(bayescan)[1:2]<-c("ID","Pop")
+write.table(bayescan,"bayescan.txt",col.names=F,row.names=F,quote=F)
+bayescan.na<-apply(bayescan,2,function(x){ 
+	y<-length(x[is.na(x)])
+	return(y) })
+bs.sub<-bayescan[,names(bayescan.na[bayescan.na<100])]
+write.table(bs.sub,"baysecan_sub.txt",col.names=F,row.names=F, quote=F,sep='\t')
+
