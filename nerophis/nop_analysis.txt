@@ -34,7 +34,9 @@ How can I learn more about the salinity-associated things?
 ->The five tags that blasted to genes were outliers in both salinity and temperature associations.
 ->19 salinity associated tags were also in ssc.
 ->15 temp associated tags were also in ssc.
-	
+
+used PGDSpider 2.1.0.3 to convert subset.ped to subset.bayescan
+but it doesn't seem to have worked right, so I"ll do it myself.	
 
 #####Monday, 7 November 2016
 Bayenv finished running and I'm working on the analyses...trying  
