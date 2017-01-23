@@ -12,7 +12,7 @@ library(scales)
 library(gdata)
 
 setwd("B:/ubuntushare/popgen/nerophis/")
-source("../../SCA/scripts/plotting_functions.R")
+source("../../gwscaR/R/gwscaR.R")
 
 pop.list<-c("SEW","LEM","GEL","STR","GTL","FIN")
 pop.list<-c("LEM","GEL","STR","GTL","FIN")
@@ -30,11 +30,7 @@ geo.dist<-as.matrix(read.delim("nerophis_distances_nosew.txt",
 	header=T,row.names=1,sep='\t'))
 sub.ped<-read.table("stacks/subset.ped")
 sub.map<-read.table("stacks/subset.map")
-vcf<-read.delim("stacks/batch_3.vcf",comment.char="#",sep='\t',header=F)
-	header.start<-grep("#CHROM",scan("stacks/batch_3.vcf",what="character"))
-	header<-scan("stacks/batch_3.vcf",what="character")[header.start:
-	(header.start+ncol(vcf)-1)]
-	colnames(vcf)<-header
+vcf<-parse.vcf("stacks/batch_3.vcf")
 
 #############################################################################
 #######################PLOT THE POINTS ON A MAP##############################
@@ -77,57 +73,9 @@ dev.off()
 
 #read in the subsetted fst summary from running populations with whitelist
 #ibd.all<-mantel.rtest(as.dist(t(geo.dist)),as.dist(t(pwise.fst.all)))
-ibd.sub<-mantel.rtest(as.dist(t(geo.dist)),as.dist(t(pwise.fst.sub)))
+ibd.sub<-mantel.rtest(as.dist(t(geo.dist)),as.dist(t(pwise.fst.sub)),nrepet=999)
 
 ######BY LOCUS#############
-pairwise.fst<-function(ped,allele1,allele2,pop.order){
-  #V1 of ped should be pop index
-  ped.split<-split(ped[,c(allele1,allele2)], factor(ped[,1]))
-  dat.var<-as.data.frame(setNames(
-    replicate(length(pop.order),numeric(0), simplify = F), pop.order))
-  for(i in 1:(length(pop.order)-1)){
-    for(j in (i+1):length(pop.order)){
-      pop1<-factor(ped.split[[pop.order[i]]][ped.split[[pop.order[i]]]!="0"])
-      pop2<-factor(ped.split[[pop.order[j]]][ped.split[[pop.order[j]]]!="0"])
-      freq1<-summary(pop1)/sum(summary(pop1))	
-      freq2<-summary(pop2)/sum(summary(pop2))	
-      freqall<-summary(as.factor(c(pop1,pop2)))/
-        sum(summary(as.factor(c(pop1,pop2))))
-      if(length(freq1)>1){ hs1<-2*freq1[1]*freq1[2] 
-      } else {
-        hs1<-0
-      }
-      if(length(freq2)>1){ hs2<-2*freq2[1]*freq2[2] 
-      } else {
-        hs2<-0
-      }
-      if(length(freqall)>1){
-        hs<-mean(c(hs1,hs2))
-        ht<-2*freqall[1]*freqall[2]
-        fst<-(ht-hs)/ht
-      }
-      if(length(freqall)<=1){ fst<-1 }
-      dat.var[pop.order[i],pop.order[j]]<-fst
-    }
-  }
-  dat.var<-rbind(dat.var,rep(NA, ncol(dat.var)))
-  rownames(dat.var)<-colnames(dat.var)
-  return(as.matrix(dat.var))
-}
-
-fst.ibd.byloc<-function(ped.file,dist.mat,pop.order){
-  results.mantel<-data.frame()
-  for(i in seq(7,ncol(ped.file),2)){
-    res<-mantel.rtest(
-      as.dist(t(pairwise.fst(ped.file,i,i+1,pop.order))),
-      as.dist(t(dist.mat)), nrepet=9999)
-    results.mantel<-rbind(results.mantel,cbind(res$obs,res$pvalue))
-  }
-  results.mantel<-as.data.frame(results.mantel)
-  colnames(results.mantel)<-c("Obs","P")
-  return(results.mantel)
-}
-
 sub.ped$V1<-gsub("(\\w{3})\\w+\\d+","\\1",sub.ped$V2)
 sub.ped$V1[sub.ped$V1=="LEM"]<-"DKW"
 sub.ped$V1[sub.ped$V1=="GEL"]<-"DKE"
@@ -138,6 +86,7 @@ ibd.by.loc<-fst.ibd.byloc(sub.ped,geo.dist,pop.labels)
 #ignore warnings?  In is.euclid(m1) : Zero distance(s)
 rownames(ibd.by.loc)<-sub.map$V2
 write.table(ibd.by.loc, "IBDperLoc.txt",col.names=T,row.names=T,sep='\t',quote=F)
+ibd.by.loc<-read.table("IBDperLoc.txt",header=T,row.names=1,sep='\t')
 sig.ibd<-ibd.by.loc[ibd.by.loc$P <= 0.05,]
 
 ####################****POPULATION STRUCTURE****#########################
