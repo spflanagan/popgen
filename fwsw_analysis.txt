@@ -22,6 +22,11 @@ DATE STARTED: 5 June 2016
 11. calculate_global_fst
 
 ###############################################################################################
+#####Tuesday, 7 February 2017
+Returning to these analyses.
+Structure clearly shows that FLLG, TXFW, and ALFW/LAFW have different genetic histories.
+It returns either K=2 (Gulf vs Atlantic) or K=6 (gradient) as the best fits
+
 #####Sunday, 2 October 2016
 Starting to run it in structure. Running it once each with K=1 through K=16, then I'll narrow down the K range and run it multiple times.
 Using admixture model w/ 10000 burnins and 10000 MCMCs, allele freqs can be correlated.
