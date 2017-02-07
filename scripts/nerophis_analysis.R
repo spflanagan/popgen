@@ -143,22 +143,23 @@ mtext(paste("PC2: ", round(pca1$eig[2]/sum(pca1$eig)*100, 2), "%", sep=""),
 	2, line = 2)
 dev.off()
 
-jpeg("subset.adegenet.pca1.3.jpeg",res=300,height=7,width=7,units="in")
+jpeg("subset.adegenet.pca2.3.jpeg",res=300,height=7,width=7,units="in")
 plot(pca1$scores[,2], pca1$scores[,3], pch=16, cex=2,
 	col=alpha(colors, 0.5), ylab="", xlab="")
 legend("topleft", pop.list, pch=19, pt.cex=2,
 	col=alpha(rainbow(5), 0.5), ncol=3)
-mtext(paste("PC1: ", round(pca1$eig[1]/sum(pca1$eig)*100, 2), "%", sep=""), 
+mtext(paste("PC2: ", round(pca1$eig[2]/sum(pca1$eig)*100, 2), "%", sep=""), 
 	1, line = 2)
 mtext(paste("PC3: ", round(pca1$eig[3]/sum(pca1$eig)*100, 2), "%", sep=""), 
 	2, line = 2)
 dev.off()
 
+
 #discriminant analysis of principal components (DAPC)
 dat.clust<-find.clusters(dat.plink, parallel=FALSE, n.pca=20, n.clust=NULL,
-	choose.n.clust=FALSE, max.n.clust=6)#
+	choose.n.clust=FALSE, max.n.clust=5)#
 dapc1<-dapc(dat.plink, dat.clust$grp, n.pca=20,n.da=3, parallel=F)
-png("E:/Docs/PopGen/adegenet.dapc.png",height=7,width=7,units="in",res=300)
+png("B:/Docs/PopGen/adegenet.dapc.png",height=7,width=7,units="in",res=300)
 scatter(dapc1, scree.da=FALSE, bg="white", posi.pca="topleft", legend=TRUE)
 dev.off()
 compoplot(dapc1)

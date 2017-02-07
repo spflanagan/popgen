@@ -116,7 +116,7 @@ swsw.tf<-read.delim("stacks/batch_2.fst_FLCC-TXCB.tsv")
 swsw.ta<-read.delim("stacks/batch_2.fst_ALST-TXCB.tsv")
 swsw.af<-read.delim("stacks/batch_2.fst_ALST-FLCC.tsv")
 
-png("FW-SW_Fsts.png"
+png("FW-SW_Fsts.png")
 par(mfrow=c(4,1),oma=c(0,0,0,0),mar=c(1,1,1,1))
 fs.t<-plotting.fsts.scaffs(fwsw.tx,"Fst",pt.lty=1,axis.size=0.75)
 legend("top",c("TX FW-SW"),bty='n')
@@ -324,4 +324,40 @@ plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
 
 legend(x=-0.5,y=0, pop.list, pch=c(15,15,17,15,17,15,17,rep(15,8),17), 
 	pt.cex=1.5,	col=alpha(rainbow(16), 0.5), ncol=8,bty='n')
+dev.off()
+
+###### STRUCTURE #####
+
+setwd("../../")
+xcol<-c(rep("black",2),"#2166ac","black","#2166ac","black","#2166ac",
+        rep("black",8),"#2166ac")
+all.colors<-c('#762a83','#af8dc3','#e7d4e8','#d9f0d3','#7fbf7b','#1b7837')
+
+structure.k2<-read.table(
+  "structure//fwsw//admix//Results//admix_run_2_f_clusters.txt",
+  sep='\t', header=F)
+structure.k2$V1<-sub('sample_([A-Z]{4})','\\1', structure.k2$V1)
+tapply(structure.k2$V2,structure.k2$V1,max) #V2 has TX group
+
+structure.k6<-read.table(
+  "structure//fwsw//admix//Results//admix_run_6_f_clusters.txt",
+  sep='\t', header=F)
+structure.k6$V1<-sub('sample_([A-Z]{4})','\\1', structure.k6$V1)
+tapply(structure.k6$V2,structure.k6$V1,max) #V2 has FLAt group
+tapply(structure.k6$V3,structure.k6$V1,max) #V3 has TX group
+tapply(structure.k6$V4,structure.k6$V1,max) #V4 has AL group
+tapply(structure.k6$V5,structure.k6$V1,max) #V5 has FL Gulf group
+tapply(structure.k6$V6,structure.k6$V1,max) #V6 has north Gulf group
+tapply(structure.k6$V7,structure.k6$V1,max) #V7 has FL atlantic group
+str6<-data.frame(structure.k6$V1,structure.k6$V3,structure.k6$V4,structure.k6$V2,
+                 structure.k6$V5,structure.k6$V7,structure.k6$V6)
+
+png("StructureK2K6.png",width=10,height=7.5,units="in",res=300)
+par(mfrow=c(2,length(pop.list)),oma=c(1,3.5,1,1),mar=c(1,0,0,0))
+plotting.structure(structure.k2,2,pop.list, make.file=FALSE, xlabcol = xcol,plot.new=F,
+                   colors=all.colors[c(1,6)],xlabel=F,
+                   ylabel=expression(atop(italic(K)==2,Delta~italic(K)==358.9)))
+plotting.structure(str6,2,pop.list, make.file=FALSE, plot.new=F,
+                   colors=all.colors,xlabel=T,xlabcol = xcol,
+                   ylabel=expression(atop(italic(K)==6,Delta~italic(K)==326.1)))
 dev.off()
