@@ -92,7 +92,7 @@ sig.ibd<-ibd.by.loc[ibd.by.loc$P <= 0.05,]
 ####################****POPULATION STRUCTURE****#########################
 
 ################################ADEGENET################################
-dat.plink<-read.PLINK("stacks/subset.raw",parallel=FALSE)
+dat.plink<-read.PLINK("stacks/stacks_m10_n2/subset.raw",parallel=FALSE)
 #look at alleles
 png("Missingness_noSEW.png",height=7, width=7,units="in",res=300)
 glPlot(dat.plink, posi="topleft")

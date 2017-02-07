@@ -22,6 +22,23 @@ populations -b 3 -P ./stacks/ -M ./nop_map.txt -r 0.75 -a 0.05 -p 6 -t 8 --vcf -
 11. calculate_global_fst
 
 #######################################LAB BOOK#############################################
+#####Friday, 3 February 2017
+I'm running stacks with different parameters to see if that changes the results at all.
+run_denovo_map_nop_m10_n2.sh
+populations -b 3 -P ./stacks/stacks_m10_n2/ -M ./nop_map.txt -r 0.5 -a 0.05 -p 6 -t 8 --vcf --plink --structure
+Only contained 36 snps...
+Re-running populations without SEW
+../programs/prune_snps/prune_snps -p ./stacks/stacks_m10_n2/batch_3.plink.ped -m ./stacks/stacks_m10_n2/batch_3.plink.map -o ./stacks/stacks_m10_n2/pruned_m10
+Now only 43 SNPs!
+
+OK, so this doesn't seem like it's going to work. 2380 if i don't use -r with populations
+
+plink --file pruned_m10 --hwe 0.001 --noweb --allow-no-sex --write-snplist
+	plink --file pruned_m10 --extract plink.snplist --recode --recodeA --recode-structure --out subset --noweb --allow-no-sex
+	 plink --file pruned_m10 --extract plink.snplist --recodeA --out subset --noweb --allow-no-sex
+2091 remaining
+	 
+
 #####Tuesday, 22 November 2016
 How to analyze the Bayenv results? Because i used a quantile, they all have the same number of outliers
 Is there a chi-squared test I could use?
