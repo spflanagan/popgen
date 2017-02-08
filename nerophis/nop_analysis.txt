@@ -22,6 +22,9 @@ populations -b 3 -P ./stacks/ -M ./nop_map.txt -r 0.75 -a 0.05 -p 6 -t 8 --vcf -
 11. calculate_global_fst
 
 #######################################LAB BOOK#############################################
+#####Tuesday, 7 February 2017
+Installed ddocent, and am zipping and moving the nerophis fq files to a ddocent folder. This seems to have possibly frozen ubuntu but also worked.
+
 #####Friday, 3 February 2017
 I'm running stacks with different parameters to see if that changes the results at all.
 run_denovo_map_nop_m10_n2.sh
