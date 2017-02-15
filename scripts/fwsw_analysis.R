@@ -15,11 +15,14 @@ library(scales)
 
 
 setwd("E:/ubuntushare/popgen/fwsw_results/")
-source("../scripts/popgen_functions.R")
+#source("../scripts/popgen_functions.R")
+source("~/Projects/gwscaR/R/gwscaR.R")
 source("../phenotype_functions.R")
 
 pop.list<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
 	"FLFD","FLSI","FLAB","FLPB","FLHB","FLCC","FLLG")
+pop.labs<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
+            "FLFD","FLSI","FLAB","FLPB","FLHB","FLCC","FLFW")
 fw.list<-c("TXFW","LAFW","ALFW","FLLG")
 sw.list<-c("TXSP","TXCC","TXCB","ALST","FLSG","FLKB",
 	"FLFD","FLSI","FLAB","FLPB","FLHB","FLCC")
@@ -27,7 +30,9 @@ lgs<-c("LG1","LG2","LG3","LG4","LG5","LG6","LG7","LG8","LG9","LG10","LG11",
 	"LG12","LG13","LG14","LG15","LG16","LG17","LG18","LG19","LG20","LG21",
 	"LG22")
 lgn<-seq(1,22)
-
+all.colors<-c(rep("black",2),"#2166ac","black","#2166ac","black","#2166ac",
+        rep("black",8),"#2166ac")
+grp.colors<-c('#762a83','#af8dc3','#e7d4e8','#d9f0d3','#7fbf7b','#1b7837')
 #############################################################################
 #######################**********FILES*********##############################
 #############################################################################
@@ -51,7 +56,7 @@ map("worldHires", "usa",xlim=c(-100,-76), ylim=c(24,32),
 map("worldHires", "mexico",xlim=c(-100,-76), ylim=c(24,32), 
 	col="gray95", fill=TRUE, add=TRUE)
 points(mar.coor$lon, mar.coor$lat,  col="black", cex=1.2, pch=19)
-points(-1*fw.coor$lon, fw.coor$lat,  col="forest green", cex=1.5, pch=18)
+points(-1*fw.coor$lon, fw.coor$lat,  col="#2166ac", cex=1.5, pch=18)
 abline(h=c(25,30,35),lty=3)
 abline(v=c(-80,-85,-90,-95,-100),lty=3)
 text(x=c(-99.5,-99.5),y=c(25,30),c("25N","30N"))
@@ -62,11 +67,11 @@ text(x=-91,y=31,"USA")
 text(x=-78,y=29.5,"Atlantic Ocean")
 text(x=-96.5,y=26,"TXSP",font=2)
 text(x=-96.9,y=27.2,"TXCC",font=2)
-text(x=-96,y=28.3,"TXFW",font=2,col="forest green")
+text(x=-96,y=28.3,"TXFW",font=2,col="#2166ac")
 text(x=-94.7,y=29,"TXCB",font=2)
-text(x=-90.2,y=30.3,"LAFW",font=2,col="forest green")
+text(x=-90.2,y=30.3,"LAFW",font=2,col="#2166ac")
 text(x=-88,y=30,"ALST",font=2)
-text(x=-87,y=30.75,"ALFW",font=2,col="forest green")
+text(x=-87,y=30.75,"ALFW",font=2,col="#2166ac")
 text(x=-85,y=29.4,"FLSG",font=2)
 text(x=-83.5,y=29.2,"FLKB",font=2)
 text(x=-83.2,y=27.6,"FLFD",font=2)
@@ -75,7 +80,7 @@ text(x=-80,y=24.8,"FLAB",font=2)
 text(x=-79.5,y=26.8,"FLPB",font=2)
 text(x=-79.7,y=27.2,"FLHB",font=2)
 text(x=-80.2,y=28.2,"FLCC",font=2)
-text(x=-80.9,y=29.3,"FLLG",font=2,col="forest green")
+text(x=-80.9,y=29.3,"FLFW",font=2,col="#2166ac")
 dev.off()
 
 #############################################################################
@@ -100,21 +105,26 @@ rownames(ibd.by.loc)<-sub.map$V2
 #################################OUTLIERS####################################
 #############################################################################
 #******************************STACKS*********************************#
+#Compare neighboring pops.
 fwsw.tx<-read.delim("stacks/batch_2.fst_TXCB-TXFW.tsv")
 fwsw.la<-read.delim("stacks/batch_2.fst_ALST-LAFW.tsv")
 fwsw.al<-read.delim("stacks/batch_2.fst_ALFW-ALST.tsv")
 fwsw.fl<-read.delim("stacks/batch_2.fst_FLCC-FLLG.tsv")
 
-fwfw.tf<-read.delim("stacks/batch_2.fst_FLLG-TXFW.tsv")
-fwfw.ta<-read.delim("stacks/batch_2.fst_ALFW-TXFW.tsv")
-fwfw.tl<-read.delim("stacks/batch_2.fst_LAFW-TXFW.tsv")
-fwfw.la<-read.delim("stacks/batch_2.fst_ALFW-LAFW.tsv")
-fwfw.lf<-read.delim("stacks/batch_2.fst_FLLG-LAFW.tsv")
-fwfw.af<-read.delim("stacks/batch_2.fst_ALFW-FLLG.tsv")
-
-swsw.tf<-read.delim("stacks/batch_2.fst_FLCC-TXCB.tsv")
-swsw.ta<-read.delim("stacks/batch_2.fst_ALST-TXCB.tsv")
-swsw.af<-read.delim("stacks/batch_2.fst_ALST-FLCC.tsv")
+swsw.tx<-read.delim("stacks/batch_2.fst_TXCB-TXCC.tsv")
+swsw.al<-read.delim("stacks/batch_2.fst_ALST-FLSG.tsv")
+swsw.fl<-read.delim("stacks/batch_2.fst_FLCC-FLHB.tsv")
+  
+# fwfw.tf<-read.delim("stacks/batch_2.fst_FLLG-TXFW.tsv")
+# fwfw.ta<-read.delim("stacks/batch_2.fst_ALFW-TXFW.tsv")
+# fwfw.tl<-read.delim("stacks/batch_2.fst_LAFW-TXFW.tsv")
+# fwfw.la<-read.delim("stacks/batch_2.fst_ALFW-LAFW.tsv")
+# fwfw.lf<-read.delim("stacks/batch_2.fst_FLLG-LAFW.tsv")
+# fwfw.af<-read.delim("stacks/batch_2.fst_ALFW-FLLG.tsv")
+# 
+# swsw.tf<-read.delim("stacks/batch_2.fst_FLCC-TXCB.tsv")
+# swsw.ta<-read.delim("stacks/batch_2.fst_ALST-TXCB.tsv")
+# swsw.af<-read.delim("stacks/batch_2.fst_ALST-FLCC.tsv")
 
 png("FW-SW_Fsts.png")
 par(mfrow=c(4,1),oma=c(0,0,0,0),mar=c(1,1,1,1))
@@ -196,83 +206,94 @@ ind.names<-dimnames(pca1$scores)[[1]]
 
 pop<-substr(ind.names, 8,11)
 colors<-pop
-colors[colors=="TXSP"]<-rainbow(16)[1]
-colors[colors=="TXCC"]<-rainbow(16)[2]
-colors[colors=="TXFW"]<-rainbow(16)[3]
-colors[colors=="TXCB"]<-rainbow(16)[4]
-colors[colors=="LAFW"]<-rainbow(16)[5]
-colors[colors=="ALST"]<-rainbow(16)[6]
-colors[colors=="ALFW"]<-rainbow(16)[7]
-colors[colors=="FLSG"]<-rainbow(16)[8]
-colors[colors=="FLKB"]<-rainbow(16)[9]
-colors[colors=="FLFD"]<-rainbow(16)[10]
-colors[colors=="FLSI"]<-rainbow(16)[11]
-colors[colors=="FLAB"]<-rainbow(16)[12]
-colors[colors=="FLPB"]<-rainbow(16)[13]
-colors[colors=="FLHB"]<-rainbow(16)[14]
-colors[colors=="FLCC"]<-rainbow(16)[15]
-colors[colors=="FLLG"]<-rainbow(16)[16]
-
-jpeg("subset.adegenet.pca1.2.jpeg",res=300,height=7,width=7,units="in")
-plot(pca1$scores[,1], pca1$scores[,2], pch=16, cex=2,lwd=1.3,
-	col=alpha(colors, 0.5), ylab="", xlab="")
-legend("bottomright", pop.list, pch=19, pt.cex=2,
-	col=alpha(rainbow(16), 0.5), ncol=4)
-mtext(paste("PC1: ", round(pca1$eig[1]/sum(pca1$eig)*100, 2), "%", sep=""), 
-	1, line = 2)
-mtext(paste("PC2: ", round(pca1$eig[2]/sum(pca1$eig)*100, 2), "%", sep=""), 
-	2, line = 2)
-dev.off()
-
-jpeg("subset.adegenet.pca1.3.jpeg",res=300,height=7,width=7,units="in")
-plot(pca1$scores[,1], pca1$scores[,3], pch=16, cex=2,
-	col=alpha(colors, 0.5), ylab="", xlab="")
-legend("bottomleft", pop.list, pch=19, pt.cex=2,
-	col=alpha(rainbow(16), 0.5), ncol=4)
-mtext(paste("PC1: ", round(pca1$eig[1]/sum(pca1$eig)*100, 2), "%", sep=""), 
-	1, line = 2)
-mtext(paste("PC3: ", round(pca1$eig[3]/sum(pca1$eig)*100, 2), "%", sep=""), 
-	2, line = 2)
-dev.off()
+colors[colors %in% sw.list]<-"black"
+colors[colors %in% fw.list]<-"#2166ac"
+pop.pch<-pop
+pop.pch[pop.pch=="TXSP"]<-"0"
+pop.pch[pop.pch=="TXCC"]<-"1"
+pop.pch[pop.pch=="TXFW"]<-"3"
+pop.pch[pop.pch=="TXCB"]<-"5"
+pop.pch[pop.pch=="LAFW"]<-"4"
+pop.pch[pop.pch=="ALST"]<-"16"
+pop.pch[pop.pch=="ALFW"]<-"8"
+pop.pch[pop.pch=="FLSG"]<-"17"
+pop.pch[pop.pch=="FLKB"]<-"18"
+pop.pch[pop.pch=="FLFD"]<-"19"
+pop.pch[pop.pch=="FLSI"]<-"21"
+pop.pch[pop.pch=="FLAB"]<-"22"
+pop.pch[pop.pch=="FLPB"]<-"23"
+pop.pch[pop.pch=="FLHB"]<-"24"
+pop.pch[pop.pch=="FLCC"]<-"25"
+pop.pch[pop.pch=="FLLG"]<-"13"
+#pop plot info
+ppi<-data.frame(Pop=pop.labs,cols = all.colors,pch=c(0,1,3,5,4,15,8,17,18,19,21,22,23,24,25,13))
 
 #discriminant analysis of principal components (DAPC)
 dat.clust<-find.clusters(dat.plink, parallel=FALSE, n.pca=20, n.clust=NULL,
 	choose.n.clust=FALSE, max.n.clust=16)
-dapc1<-dapc(dat.plink, dat.clust$grp, n.pca=20,n.da=15, parallel=F)
-png("adegenet.dapc.png",height=7,width=7,units="in",res=300)
-scatter(dapc1, scree.da=FALSE, bg="white", posi.pca="topleft", legend=TRUE)
-dev.off()
+dapc1<-dapc(dat.plink, dat.clust$grp, n.pca=20, parallel=F) #kept 12 clusters
+#png("adegenet.dapc.png",height=7,width=7,units="in",res=300)
+scatter(dapc1, scree.da=FALSE, bg="white", posi.pca="topleft", legend=TRUE,cell=0)
+#dev.off()
 compoplot(dapc1)
 
-dapc6<-dapc(dat.plink, dat.clust$grp, n.pca=6,n.da=6, parallel=F)
+da<-data.frame(Individual=rownames(dapc1$ind.coord),Pop=substr(rownames(dapc1$ind.coord),8,11),
+               LD1=dapc1$ind.coord[,1],LD2=dapc1$ind.coord[,2],
+               LD3=dapc1$ind.coord[,3],LD4=dapc1$ind.coord[,4],
+               Group=dapc1$grp, GrpName=names(dapc1$grp),
+               stringsAsFactors = F) #include grpname to check
+da$Pop[da$Pop == "FLLG"]<-"FLFW"
+da$colors<-da$Pop
+for(i in 1:nrow(da)){
+  da[i,"colors"]<-as.character(ppi[ppi$Pop %in% da[i,"Pop"],"cols"])
+}
+da$pch<-da$Pop
+for(i in 1:nrow(da)){
+  da[i,"pch"]<-as.numeric(ppi[ppi$Pop %in% da[i,"Pop"],"pch"])
+}
 
+jpeg("subset.adegenet.dapc.jpeg",res=300,height=7,width=7,units="in")
+par(mfrow=c(2,2),oma=c(2,2,2,2),mar=c(2,2,2,2))
+plot(pca1$scores[,1], pca1$scores[,2], pch=as.numeric(pop.pch), cex=2,lwd=1.3,
+     col=alpha(colors, 0.5),bg=alpha(colors,0.25), ylab="", xlab="")
+mtext(paste("PC1: ", round(pca1$eig[1]/sum(pca1$eig)*100, 2), "%", sep=""), 
+      1, line = 2,cex=0.75)
+mtext(paste("PC2: ", round(pca1$eig[2]/sum(pca1$eig)*100, 2), "%", sep=""), 
+      2, line = 2,cex=0.75)
+text(x=8,y=-1,"Atlantic",col=grp.colors[6])
+text(x=-5,y=2,"Florida",col="black")
+text(x=-5,y=2,"Florida",col=grp.colors[4])
+text(x=-5,y=-6,"Texas",col=grp.colors[1])
 
-#output k=3 clusters
-adegenet.groups<-as.data.frame(cbind(names(dat.clust$grp), dat.clust$grp))
-adegenet.groups[,1]<-sub('sample_(\\w{4}\\w+).*[_.].*','\\1', adegenet.groups[,1])
-adegenet.groups[,1]<-sub('([[:alpha:]]{5,7})([[:digit:]]{1})$', '\\10\\2', 
-	adegenet.groups[,1])
-#get the discriminant analysis loadings
-adegenet.da<-merge(adegenet.groups,dapc1$ind.coord,by=0)
-adegenet.da$pop<-substr(adegenet.da$V1, 1,4)
-adegenet.da$pop[adegenet.da$pop=="TXSP"]<-rainbow(16)[1]
-adegenet.da$pop[adegenet.da$pop=="TXCC"]<-rainbow(16)[2]
-adegenet.da$pop[adegenet.da$pop=="TXFW"]<-rainbow(16)[3]
-adegenet.da$pop[adegenet.da$pop=="TXCB"]<-rainbow(16)[4]
-adegenet.da$pop[adegenet.da$pop=="LAFW"]<-rainbow(16)[5]
-adegenet.da$pop[adegenet.da$pop=="ALST"]<-rainbow(16)[6]
-adegenet.da$pop[adegenet.da$pop=="ALFW"]<-rainbow(16)[7]
-adegenet.da$pop[adegenet.da$pop=="FLSG"]<-rainbow(16)[8]
-adegenet.da$pop[adegenet.da$pop=="FLKB"]<-rainbow(16)[9]
-adegenet.da$pop[adegenet.da$pop=="FLFD"]<-rainbow(16)[10]
-adegenet.da$pop[adegenet.da$pop=="FLSI"]<-rainbow(16)[11]
-adegenet.da$pop[adegenet.da$pop=="FLAB"]<-rainbow(16)[12]
-adegenet.da$pop[adegenet.da$pop=="FLPB"]<-rainbow(16)[13]
-adegenet.da$pop[adegenet.da$pop=="FLHB"]<-rainbow(16)[14]
-adegenet.da$pop[adegenet.da$pop=="FLCC"]<-rainbow(16)[15]
-adegenet.da$pop[adegenet.da$pop=="FLLG"]<-rainbow(16)[16]
-adegenet.da$V2<-as.numeric(adegenet.da$V2)
+plot(pca1$scores[,3], pca1$scores[,4], pch=as.numeric(pop.pch), cex=2,lwd=1.3,
+     col=alpha(colors, 0.5),bg=alpha(colors,0.25), ylab="", xlab="")
+mtext(paste("PC3: ", round(pca1$eig[3]/sum(pca1$eig)*100, 2), "%", sep=""), 
+      1, line = 2,cex=0.75)
+mtext(paste("PC4: ", round(pca1$eig[4]/sum(pca1$eig)*100, 2), "%", sep=""), 
+      2, line = 2,cex=0.75)
 
+plot(da$LD1,da$LD2,col=alpha(da$colors,0.5),pch=as.numeric(da$pch),cex=2,lwd=1.3,
+     bg=alpha(colors,0.25),xlab="",ylab="")
+mtext(paste("Discriminant Axis 1 (", round(dapc1$eig[1]/sum(dapc1$eig)*100, 2), "%)", sep=""),
+      1, line = 2,cex=0.75)
+mtext(paste("Discriminant Axis 2 (", round(dapc1$eig[2]/sum(dapc1$eig)*100, 2), "%)", sep=""),
+      2, line = 2,cex=0.75)
+points(dapc1$grp.coord[,1],dapc1$grp.coord[,2],cex=5,col="purple")
+
+plot(da$LD3,da$LD4,col=alpha(da$colors,0.5),pch=as.numeric(da$pch),cex=2,lwd=1.3,
+     bg=alpha(colors,0.25),xlab="",ylab="")
+mtext(paste("Discriminant Axis 3 (", round(dapc1$eig[3]/sum(dapc1$eig)*100, 2), "%)", sep=""),
+      1, line = 2,cex=0.75)
+mtext(paste("Discriminant Axis 4 (", round(dapc1$eig[4]/sum(dapc1$eig)*100, 2), "%)", sep=""),
+      2, line = 2,cex=0.75)
+points(dapc1$grp.coord[,3],dapc1$grp.coord[,4],cex=5,col="purple")
+
+par(fig = c(0, 1, 0, 1), oma=c(2,1,0,1), mar = c(0, 0, 0, 0), new = TRUE,
+    cex=1)
+plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
+legend("top", legend=ppi$Pop, pch=as.numeric(ppi$pch), pt.cex=1.5,cex=0.85,
+       col=alpha(ppi$cols, 0.5),pt.bg=alpha(ppi$cols,0.25), ncol=8,bty='n')
+dev.off()
 
 #*******************************PCADAPT***********************************#
 library(pcadapt)
@@ -289,49 +310,61 @@ plot(x,option="scores",i=5,j=6,pop=pops)
 plot(x,option="scores",i=7,j=8,pop=pops)#should show no patterns
 
 
+
 pa<-pcadapt("stacks/subset.pcadapt",K=6)
-shapes<-grp
-shapes[shapes=="freshwater"]<-as.numeric(as.character(17))
-shapes[shapes=="saltwater"]<-as.numeric(as.character(15))
+pap<-data.frame(Pop=pops,cols=pops,pch=pops,grp=grp,stringsAsFactors = F)
+pap$Pop[pap$Pop == "FLLG"]<-"FLFW"
+for(i in 1:nrow(pap)){
+  pap[i,"cols"]<-as.character(ppi[ppi$Pop %in% pap[i,"Pop"],"cols"])
+}
+for(i in 1:nrow(pap)){
+  pap[i,"pch"]<-as.numeric(ppi[ppi$Pop %in% pap[i,"Pop"],"pch"])
+}
 pa.props<-round((pa$singular.values/sum(pa$singular.values))*100,2)
-png("pcadapt.pc1-6.png",height=8,width=10.5,units="in",res=300)
-par(mfrow=c(2,3),oma=c(2,2,2,2))
-plot(pa$scores[,1],pa$scores[,2],col=alpha(colors,0.5),pch=as.numeric(shapes),
-	cex=1.5,xlab=paste("PC1 (",pa.props[1],"%)",sep=""),
-	ylab=paste("PC2 (",pa.props[2],"%)",sep=""))
-plot(pa$scores[,3],pa$scores[,4],col=alpha(colors,0.5),pch=as.numeric(shapes),
-	cex=1.5,xlab=paste("PC3 (",pa.props[3],"%)",sep=""),
-	ylab=paste("PC4 (",pa.props[4],"%)",sep=""))
-plot(pa$scores[,5],pa$scores[,6],col=alpha(colors,0.5),pch=as.numeric(shapes),
-	cex=1.5,xlab=paste("PC5 (",pa.props[5],"%)",sep=""),
-	ylab=paste("PC6 (",pa.props[6],"%)",sep=""))
+png("pcadapt.pc1-6.2017.png",height=8,width=10.5,units="in",res=300)
+par(mfrow=c(2,3),oma=c(2,2,2,2),mar=c(2,2,2,2))
+plot(pa$scores[,1],pa$scores[,2],col=alpha(pap$cols,0.5),bg=alpha(pap$cols,0.75),
+     pch=as.numeric(pap$pch),	cex=1.5)
+mtext(paste("PC1 (",pa.props[1],"%)",sep=""),1,line = 2,cex=0.75)
+mtext(paste("PC2 (",pa.props[2],"%)",sep=""),2,line = 2,cex=0.75)
+plot(pa$scores[,3],pa$scores[,4],col=alpha(pap$cols,0.5),bg=alpha(pap$cols,0.75),pch=as.numeric(pap$pch),
+	cex=1.5)
+mtext(paste("PC3 (",pa.props[3],"%)",sep=""),1,line = 2,cex=0.75)
+mtext(paste("PC4 (",pa.props[4],"%)",sep=""),2,line = 2,cex=0.75)
+plot(pa$scores[,5],pa$scores[,6],col=alpha(pap$cols,0.5),bg=alpha(pap$cols,0.75),pch=as.numeric(pap$pch),
+	cex=1.5)
+mtext(paste("PC5 (",pa.props[5],"%)",sep=""),1,line = 2,cex=0.75)
+mtext(paste("PC6 (",pa.props[6],"%)",sep=""),2,line = 2,cex=0.75)
 plot(pa$scores[grp=="freshwater",1],pa$scores[grp=="freshwater",2],
-	col=alpha(colors[grp=="freshwater"],0.5),pch=17,
-	cex=1.5,xlab=paste("PC1 (",pa.props[1],"%)",sep=""),
-	ylab=paste("PC2 (",pa.props[2],"%)",sep=""))
+     col=alpha(pap$cols[pap$grp=="freshwater"],0.5),
+     bg=alpha(pap$cols[pap$grp=="freshwater"],0.75),pch=as.numeric(pap$pch[pap$grp=="freshwater"]),
+	cex=1.5)
+mtext(paste("PC1 (",pa.props[1],"%)",sep=""),1,line = 2,cex=0.75)
+mtext(paste("PC2 (",pa.props[2],"%)",sep=""),2,line = 2,cex=0.75)
 plot(pa$scores[grp=="freshwater",3],pa$scores[grp=="freshwater",4],
-	col=alpha(colors[grp=="freshwater"],0.5),pch=17,
-	cex=1.5,xlab=paste("PC3 (",pa.props[3],"%)",sep=""),
-	ylab=paste("PC4 (",pa.props[4],"%)",sep=""))
+     col=alpha(pap$cols[pap$grp=="freshwater"],0.5),
+     bg=alpha(pap$cols[pap$grp=="freshwater"],0.75),pch=as.numeric(pap$pch[pap$grp=="freshwater"]),
+	cex=1.5)
+mtext(paste("PC3 (",pa.props[3],"%)",sep=""),1,line = 2,cex=0.75)
+mtext(paste("PC4 (",pa.props[4],"%)",sep=""),2,line = 2,cex=0.75)
 plot(pa$scores[grp=="freshwater",5],pa$scores[grp=="freshwater",6],
-	col=alpha(colors[grp=="freshwater"],0.5),pch=17,
-	cex=1.5,xlab=paste("PC5 (",pa.props[5],"%)",sep=""),
-	ylab=paste("PC6 (",pa.props[2],"%)",sep=""))
+     col=alpha(pap$cols[pap$grp=="freshwater"],0.5),
+     bg=alpha(pap$cols[pap$grp=="freshwater"],0.75),pch=as.numeric(pap$pch[pap$grp=="freshwater"]),
+	cex=1.5)
+mtext(paste("PC5 (",pa.props[5],"%)",sep=""),1,line = 2,cex=0.75)
+mtext(paste("PC6 (",pa.props[2],"%)",sep=""),2,line = 2,cex=0.75)
 
 par(fig = c(0, 1, 0, 1), oma=c(2,1,0,1), mar = c(0, 0, 0, 0), new = TRUE,
 	cex=1)
 plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
 
-legend(x=-0.5,y=0, pop.list, pch=c(15,15,17,15,17,15,17,rep(15,8),17), 
-	pt.cex=1.5,	col=alpha(rainbow(16), 0.5), ncol=8,bty='n')
+legend("top", legend=ppi$Pop, pch=as.numeric(ppi$pch), pt.cex=1.5,cex=0.85,
+       col=alpha(ppi$cols, 0.5),pt.bg=alpha(ppi$cols,0.25), ncol=8,bty='n')
 dev.off()
 
 ###### STRUCTURE #####
 
 setwd("../../")
-xcol<-c(rep("black",2),"#2166ac","black","#2166ac","black","#2166ac",
-        rep("black",8),"#2166ac")
-all.colors<-c('#762a83','#af8dc3','#e7d4e8','#d9f0d3','#7fbf7b','#1b7837')
 
 structure.k2<-read.table(
   "structure//fwsw//admix//Results//admix_run_2_f_clusters.txt",
@@ -355,9 +388,9 @@ str6<-data.frame(structure.k6$V1,structure.k6$V3,structure.k6$V4,structure.k6$V2
 png("StructureK2K6.png",width=10,height=7.5,units="in",res=300)
 par(mfrow=c(2,length(pop.list)),oma=c(1,3.5,1,1),mar=c(1,0,0,0))
 plotting.structure(structure.k2,2,pop.list, make.file=FALSE, xlabcol = xcol,plot.new=F,
-                   colors=all.colors[c(1,6)],xlabel=F,
+                   colors=grp.colors[c(1,6)],xlabel=F,
                    ylabel=expression(atop(italic(K)==2,Delta~italic(K)==358.9)))
 plotting.structure(str6,2,pop.list, make.file=FALSE, plot.new=F,
-                   colors=all.colors,xlabel=T,xlabcol = xcol,
+                   colors=grp.colors,xlabel=T,xlabcol = xcol,
                    ylabel=expression(atop(italic(K)==6,Delta~italic(K)==326.1)))
 dev.off()
