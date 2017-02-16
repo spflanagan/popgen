@@ -286,7 +286,7 @@ for(i in 1:nrow(da)){
   da[i,"pch"]<-as.numeric(ppi[ppi$Pop %in% da[i,"Pop"],"pch"])
 }
 
-jpeg("subset.adegenet.dapc.jpeg",res=300,height=7,width=7,units="in")
+jpeg("subset.adegenet.dapc.jpeg",res=300,height=10.5/3,width=10.5,units="in")
 par(mfrow=c(1,3),oma=c(2,2,2,2),mar=c(2,2,2,2))
 # plot(pca1$scores[,1], pca1$scores[,2], pch=as.numeric(pop.pch), cex=2,lwd=1.3,
 #      col=alpha(colors, 0.5),bg=alpha(colors,0.25), ylab="", xlab="")
@@ -308,7 +308,7 @@ par(mfrow=c(1,3),oma=c(2,2,2,2),mar=c(2,2,2,2))
 
 plot(da$LD1,da$LD2,col=alpha(da$colors,0.5),pch=as.numeric(da$pch),cex=2,lwd=1.3,
      bg=alpha(colors,0.25),xlab="",ylab="",xlim=c(-20,10),ylim=c(-10,25))
-par(lwd=4)
+par(lwd=3,bty='n')
 s.class(dapc1$ind.coord,fac=factor(da$Group), clabel=0,cstar=0,cellipse=2.5,
         addaxes = F,pch="",grid=F,axesel=F,add.plot = T,col=grp.colors[c(3,5,6,4,2,1)],xlim=c(-20,10),ylim=c(-10,25))
 mtext(paste("Discriminant Axis 1 (", round(dapc1$eig[1]/sum(dapc1$eig)*100, 2), "%)", sep=""),
@@ -319,7 +319,7 @@ mtext(paste("Discriminant Axis 2 (", round(dapc1$eig[2]/sum(dapc1$eig)*100, 2), 
 
 plot(da$LD3,da$LD4,col=alpha(da$colors,0.5),pch=as.numeric(da$pch),cex=2,lwd=1.3,
      bg=alpha(colors,0.25),xlab="",ylab="",xlim=c(-10,10),ylim=c(-5,15))
-par(lwd=4)
+par(lwd=3,bty='n')
 s.class(dapc1$ind.coord[,3:4],fac=factor(da$Group), clabel=0,cstar=0,cellipse=2.5,
         addaxes = F,pch="",grid=F,axesel=F,add.plot = T,col=grp.colors[c(3,5,6,4,2,1)],xlim=c(-10,10),ylim=c(-5,15))
 mtext(paste("Discriminant Axis 3 (", round(dapc1$eig[3]/sum(dapc1$eig)*100, 2), "%)", sep=""),
@@ -329,17 +329,13 @@ mtext(paste("Discriminant Axis 4 (", round(dapc1$eig[4]/sum(dapc1$eig)*100, 2), 
 
 plot(da$LD4,da$LD5,col=alpha(da$colors,0.5),pch=as.numeric(da$pch),cex=2,lwd=1.3,
      bg=alpha(colors,0.25),xlab="",ylab="",xlim=c(-5,15),ylim=c(-10,5))
-par(lwd=4)
-trellis.par.set("strip.border$lwd",0)
-trellis.par.set("strip.shingle$alpha",0)
+par(lwd=3,bty='n')
 s.class(dapc1$ind.coord[,4:5],fac=factor(da$Group), clabel=0,cstar=0,cellipse=2.5,
         addaxes = F,pch="",grid=F,axesel=F,add.plot = T,col=grp.colors[c(3,5,6,4,2,1)],xlim=c(-5,15),ylim=c(-10,5))
-box("outer",col="white",lwd=10)
 mtext(paste("Discriminant Axis 4 (", round(dapc1$eig[4]/sum(dapc1$eig)*100, 2), "%)", sep=""),
       1, line = 2,cex=0.75)
 mtext(paste("Discriminant Axis 5 (", round(dapc1$eig[5]/sum(dapc1$eig)*100, 2), "%)", sep=""),
       2, line = 2,cex=0.75)
-
 
 par(fig = c(0, 1, 0, 1), oma=c(2,1,0,1), mar = c(0, 0, 0, 0), new = TRUE,
     cex=1,lwd=1.3)
@@ -417,7 +413,7 @@ dev.off()
 
 ###### STRUCTURE #####
 
-setwd("../../")
+#setwd("../../")
 
 structure.k2<-read.table(
   "structure//fwsw//admix//Results//admix_run_2_f_clusters.txt",
@@ -447,3 +443,89 @@ plotting.structure(str6,2,pop.list, make.file=FALSE, plot.new=F,
                    colors=grp.colors,xlabel=T,xlabcol = xcol,
                    ylabel=expression(atop(italic(K)==6,Delta~italic(K)==326.1)))
 dev.off()
+
+##### COMBINED GRAPH ####
+npop<-length(pop.list)
+pseq<-1:npop
+m<-matrix(c(1:32,rep(33,5),rep(34,5),rep(35,5),0,
+            rep(36,5),rep(37,5),rep(38,5),0),
+          nrow=4,ncol=npop,byrow = T)
+jpeg("pop_structure_comb.jpeg",res=300,height=10.5/3,width=10.5,units="in")
+layout(mat=m)
+#STRUCTURE
+par(oma=c(1,3.5,1,1),mar=c(1,0,0,0))
+plotting.structure(structure.k2,2,pop.list, make.file=FALSE, xlabcol = all.colors,plot.new=F,
+                   colors=grp.colors[c(1,6)],xlabel=F,
+                   ylabel=expression(atop(italic(K)==2,Delta~italic(K)==358.9)))
+plotting.structure(str6,2,pop.list, make.file=FALSE, plot.new=F,
+                   colors=grp.colors,xlabel=T,xlabcol = all.colors,
+                   ylabel=expression(atop(italic(K)==6,Delta~italic(K)==326.1)))
+#PCADAPT
+par(oma=c(2,2,2,2),mar=c(2,2,2,2))
+plot(pa$scores[,1],pa$scores[,2],col=alpha(pap$cols,0.5),bg=alpha(pap$cols,0.75),
+     pch=as.numeric(pap$pch),	cex=1.5)
+points(pa$scores[grp=="freshwater",1],pa$scores[grp=="freshwater",2],
+       col=alpha(pap$cols[pap$grp=="freshwater"],0.5),
+       bg=alpha(pap$cols[pap$grp=="freshwater"],0.75),pch=as.numeric(pap$pch[pap$grp=="freshwater"]),
+       cex=1.5) #to highlight the fw pops
+mtext(paste("PC1 (",pa.props[1],"%)",sep=""),1,line = 2,cex=0.75)
+mtext(paste("PC2 (",pa.props[2],"%)",sep=""),2,line = 2,cex=0.75)
+
+plot(pa$scores[,3],pa$scores[,4],col=alpha(pap$cols,0.5),bg=alpha(pap$cols,0.75),pch=as.numeric(pap$pch),
+     cex=1.5)
+points(pa$scores[grp=="freshwater",3],pa$scores[grp=="freshwater",4],
+     col=alpha(pap$cols[pap$grp=="freshwater"],0.5),
+     bg=alpha(pap$cols[pap$grp=="freshwater"],0.75),pch=as.numeric(pap$pch[pap$grp=="freshwater"]),
+     cex=1.5)
+mtext(paste("PC3 (",pa.props[3],"%)",sep=""),1,line = 2,cex=0.75)
+mtext(paste("PC4 (",pa.props[4],"%)",sep=""),2,line = 2,cex=0.75)
+
+plot(pa$scores[,5],pa$scores[,6],col=alpha(pap$cols,0.5),bg=alpha(pap$cols,0.75),pch=as.numeric(pap$pch),
+     cex=1.5)
+points(pa$scores[grp=="freshwater",5],pa$scores[grp=="freshwater",6],
+       col=alpha(pap$cols[pap$grp=="freshwater"],0.5),
+       bg=alpha(pap$cols[pap$grp=="freshwater"],0.75),pch=as.numeric(pap$pch[pap$grp=="freshwater"]),
+       cex=1.5)
+mtext(paste("PC5 (",pa.props[5],"%)",sep=""),1,line = 2,cex=0.75)
+mtext(paste("PC6 (",pa.props[6],"%)",sep=""),2,line = 2,cex=0.75)
+
+# ADEGENET
+par(oma=c(2,2,2,2),mar=c(2,2,2,2))
+plot(da$LD1,da$LD2,col=alpha(da$colors,0.5),pch=as.numeric(da$pch),cex=2,lwd=1.3,
+     bg=alpha(colors,0.25),xlab="",ylab="",xlim=c(-20,10),ylim=c(-10,25))
+par(lwd=3,bty='n')
+s.class(dapc1$ind.coord,fac=factor(da$Group), clabel=0,cstar=0,cellipse=2.5,
+        addaxes = F,pch="",grid=F,axesel=F,add.plot = T,col=grp.colors[c(3,5,6,4,2,1)],xlim=c(-20,10),ylim=c(-10,25))
+mtext(paste("Discriminant Axis 1 (", round(dapc1$eig[1]/sum(dapc1$eig)*100, 2), "%)", sep=""),
+      1, line = 2,cex=0.75)
+mtext(paste("Discriminant Axis 2 (", round(dapc1$eig[2]/sum(dapc1$eig)*100, 2), "%)", sep=""),
+      2, line = 2,cex=0.75)
+
+
+plot(da$LD3,da$LD4,col=alpha(da$colors,0.5),pch=as.numeric(da$pch),cex=2,lwd=1.3,
+     bg=alpha(colors,0.25),xlab="",ylab="",xlim=c(-10,10),ylim=c(-5,15))
+par(lwd=3,bty='n')
+s.class(dapc1$ind.coord[,3:4],fac=factor(da$Group), clabel=0,cstar=0,cellipse=2.5,
+        addaxes = F,pch="",grid=F,axesel=F,add.plot = T,col=grp.colors[c(3,5,6,4,2,1)],xlim=c(-10,10),ylim=c(-5,15))
+mtext(paste("Discriminant Axis 3 (", round(dapc1$eig[3]/sum(dapc1$eig)*100, 2), "%)", sep=""),
+      1, line = 2,cex=0.75)
+mtext(paste("Discriminant Axis 4 (", round(dapc1$eig[4]/sum(dapc1$eig)*100, 2), "%)", sep=""),
+      2, line = 2,cex=0.75)
+
+plot(da$LD4,da$LD5,col=alpha(da$colors,0.5),pch=as.numeric(da$pch),cex=2,lwd=1.3,
+     bg=alpha(colors,0.25),xlab="",ylab="",xlim=c(-5,15),ylim=c(-10,5))
+par(lwd=3,bty='n')
+s.class(dapc1$ind.coord[,4:5],fac=factor(da$Group), clabel=0,cstar=0,cellipse=2.5,
+        addaxes = F,pch="",grid=F,axesel=F,add.plot = T,col=grp.colors[c(3,5,6,4,2,1)],xlim=c(-5,15),ylim=c(-10,5))
+mtext(paste("Discriminant Axis 4 (", round(dapc1$eig[4]/sum(dapc1$eig)*100, 2), "%)", sep=""),
+      1, line = 2,cex=0.75)
+mtext(paste("Discriminant Axis 5 (", round(dapc1$eig[5]/sum(dapc1$eig)*100, 2), "%)", sep=""),
+      2, line = 2,cex=0.75)
+
+par(fig = c(0, 1, 0, 1), oma=c(2,1,0,1), mar = c(0, 0, 0, 0), new = TRUE,
+    cex=1,lwd=1.3)
+plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
+legend(x=(1/16),y=0.1, legend=ppi$Pop, pch=as.numeric(ppi$pch), pt.cex=1.5,cex=0.85,
+       col=alpha(ppi$cols, 0.5),pt.bg=alpha(ppi$cols,0.25), ncol=8,bty='n')
+dev.off()
+
