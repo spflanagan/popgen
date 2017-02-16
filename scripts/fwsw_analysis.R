@@ -236,8 +236,12 @@ points(glNA(dat.plink), rep(0, nLoc(dat.plink)), pch="|", col="blue")
 #PCA!
 pca1<-glPca(dat.plink, parallel=FALSE,nf=10)
 
-ind.names<-dimnames(pca1$scores)[[1]]
+#discriminant analysis of principal components (DAPC)
+dat.clust<-find.clusters(dat.plink, max.n.clust=16) #retain 400 PCs and 6 clusters
+                         #parallel=FALSE, n.pca=20, n.clust=NULL,	choose.n.clust=FALSE
+dapc1<-dapc(dat.plink, dat.clust$grp, parallel=F) #kept 12 clusters
 
+ind.names<-rownames(dapc1$ind.coord)
 pop<-substr(ind.names, 8,11)
 colors<-pop
 colors[colors %in% sw.list]<-"black"
@@ -262,10 +266,6 @@ pop.pch[pop.pch=="FLLG"]<-"13"
 #pop plot info
 ppi<-data.frame(Pop=pop.labs,cols = all.colors,pch=c(0,1,3,5,4,15,8,17,18,19,21,22,23,24,25,13))
 
-#discriminant analysis of principal components (DAPC)
-dat.clust<-find.clusters(dat.plink, parallel=FALSE, n.pca=20, n.clust=NULL,
-	choose.n.clust=FALSE, max.n.clust=16)
-dapc1<-dapc(dat.plink, dat.clust$grp, parallel=F) #kept 12 clusters
 #png("adegenet.dapc.png",height=7,width=7,units="in",res=300)
 scatter(dapc1, scree.da=FALSE, bg="white", posi.pca="topleft", legend=TRUE,cell=0)
 #dev.off()
@@ -273,7 +273,7 @@ compoplot(dapc1)
 
 da<-data.frame(Individual=rownames(dapc1$ind.coord),Pop=substr(rownames(dapc1$ind.coord),8,11),
                LD1=dapc1$ind.coord[,1],LD2=dapc1$ind.coord[,2],
-               LD3=dapc1$ind.coord[,3],LD4=dapc1$ind.coord[,4],
+               LD3=dapc1$ind.coord[,3],LD4=dapc1$ind.coord[,4],LD5=dapc1$ind.coord[,5],
                Group=dapc1$grp, GrpName=names(dapc1$grp),
                stringsAsFactors = F) #include grpname to check
 da$Pop[da$Pop == "FLLG"]<-"FLFW"
@@ -287,43 +287,62 @@ for(i in 1:nrow(da)){
 }
 
 jpeg("subset.adegenet.dapc.jpeg",res=300,height=7,width=7,units="in")
-par(mfrow=c(2,2),oma=c(2,2,2,2),mar=c(2,2,2,2))
-plot(pca1$scores[,1], pca1$scores[,2], pch=as.numeric(pop.pch), cex=2,lwd=1.3,
-     col=alpha(colors, 0.5),bg=alpha(colors,0.25), ylab="", xlab="")
-mtext(paste("PC1: ", round(pca1$eig[1]/sum(pca1$eig)*100, 2), "%", sep=""), 
-      1, line = 2,cex=0.75)
-mtext(paste("PC2: ", round(pca1$eig[2]/sum(pca1$eig)*100, 2), "%", sep=""), 
-      2, line = 2,cex=0.75)
-text(x=8,y=-1,"Atlantic",col=grp.colors[6])
-text(x=-5,y=2,"Florida",col="black")
-text(x=-5,y=2,"Florida",col=grp.colors[4])
-text(x=-5,y=-6,"Texas",col=grp.colors[1])
-
-plot(pca1$scores[,3], pca1$scores[,4], pch=as.numeric(pop.pch), cex=2,lwd=1.3,
-     col=alpha(colors, 0.5),bg=alpha(colors,0.25), ylab="", xlab="")
-mtext(paste("PC3: ", round(pca1$eig[3]/sum(pca1$eig)*100, 2), "%", sep=""), 
-      1, line = 2,cex=0.75)
-mtext(paste("PC4: ", round(pca1$eig[4]/sum(pca1$eig)*100, 2), "%", sep=""), 
-      2, line = 2,cex=0.75)
+par(mfrow=c(1,3),oma=c(2,2,2,2),mar=c(2,2,2,2))
+# plot(pca1$scores[,1], pca1$scores[,2], pch=as.numeric(pop.pch), cex=2,lwd=1.3,
+#      col=alpha(colors, 0.5),bg=alpha(colors,0.25), ylab="", xlab="")
+# mtext(paste("PC1: ", round(pca1$eig[1]/sum(pca1$eig)*100, 2), "%", sep=""), 
+#       1, line = 2,cex=0.75)
+# mtext(paste("PC2: ", round(pca1$eig[2]/sum(pca1$eig)*100, 2), "%", sep=""), 
+#       2, line = 2,cex=0.75)
+# text(x=8,y=-1,"Atlantic",col=grp.colors[6])
+# text(x=-5,y=2,"Florida",col="black")
+# text(x=-5,y=2,"Florida",col=grp.colors[4])
+# text(x=-5,y=-6,"Texas",col=grp.colors[1])
+# 
+# plot(pca1$scores[,3], pca1$scores[,4], pch=as.numeric(pop.pch), cex=2,lwd=1.3,
+#      col=alpha(colors, 0.5),bg=alpha(colors,0.25), ylab="", xlab="")
+# mtext(paste("PC3: ", round(pca1$eig[3]/sum(pca1$eig)*100, 2), "%", sep=""), 
+#       1, line = 2,cex=0.75)
+# mtext(paste("PC4: ", round(pca1$eig[4]/sum(pca1$eig)*100, 2), "%", sep=""), 
+#       2, line = 2,cex=0.75)
 
 plot(da$LD1,da$LD2,col=alpha(da$colors,0.5),pch=as.numeric(da$pch),cex=2,lwd=1.3,
-     bg=alpha(colors,0.25),xlab="",ylab="")
+     bg=alpha(colors,0.25),xlab="",ylab="",xlim=c(-20,10),ylim=c(-10,25))
+par(lwd=4)
+s.class(dapc1$ind.coord,fac=factor(da$Group), clabel=0,cstar=0,cellipse=2.5,
+        addaxes = F,pch="",grid=F,axesel=F,add.plot = T,col=grp.colors[c(3,5,6,4,2,1)],xlim=c(-20,10),ylim=c(-10,25))
 mtext(paste("Discriminant Axis 1 (", round(dapc1$eig[1]/sum(dapc1$eig)*100, 2), "%)", sep=""),
       1, line = 2,cex=0.75)
 mtext(paste("Discriminant Axis 2 (", round(dapc1$eig[2]/sum(dapc1$eig)*100, 2), "%)", sep=""),
       2, line = 2,cex=0.75)
-points(dapc1$grp.coord[,1],dapc1$grp.coord[,2],cex=5,col="purple")
+
 
 plot(da$LD3,da$LD4,col=alpha(da$colors,0.5),pch=as.numeric(da$pch),cex=2,lwd=1.3,
-     bg=alpha(colors,0.25),xlab="",ylab="")
+     bg=alpha(colors,0.25),xlab="",ylab="",xlim=c(-10,10),ylim=c(-5,15))
+par(lwd=4)
+s.class(dapc1$ind.coord[,3:4],fac=factor(da$Group), clabel=0,cstar=0,cellipse=2.5,
+        addaxes = F,pch="",grid=F,axesel=F,add.plot = T,col=grp.colors[c(3,5,6,4,2,1)],xlim=c(-10,10),ylim=c(-5,15))
 mtext(paste("Discriminant Axis 3 (", round(dapc1$eig[3]/sum(dapc1$eig)*100, 2), "%)", sep=""),
       1, line = 2,cex=0.75)
 mtext(paste("Discriminant Axis 4 (", round(dapc1$eig[4]/sum(dapc1$eig)*100, 2), "%)", sep=""),
       2, line = 2,cex=0.75)
-points(dapc1$grp.coord[,3],dapc1$grp.coord[,4],cex=5,col="purple")
+
+plot(da$LD4,da$LD5,col=alpha(da$colors,0.5),pch=as.numeric(da$pch),cex=2,lwd=1.3,
+     bg=alpha(colors,0.25),xlab="",ylab="",xlim=c(-5,15),ylim=c(-10,5))
+par(lwd=4)
+trellis.par.set("strip.border$lwd",0)
+trellis.par.set("strip.shingle$alpha",0)
+s.class(dapc1$ind.coord[,4:5],fac=factor(da$Group), clabel=0,cstar=0,cellipse=2.5,
+        addaxes = F,pch="",grid=F,axesel=F,add.plot = T,col=grp.colors[c(3,5,6,4,2,1)],xlim=c(-5,15),ylim=c(-10,5))
+box("outer",col="white",lwd=10)
+mtext(paste("Discriminant Axis 4 (", round(dapc1$eig[4]/sum(dapc1$eig)*100, 2), "%)", sep=""),
+      1, line = 2,cex=0.75)
+mtext(paste("Discriminant Axis 5 (", round(dapc1$eig[5]/sum(dapc1$eig)*100, 2), "%)", sep=""),
+      2, line = 2,cex=0.75)
+
 
 par(fig = c(0, 1, 0, 1), oma=c(2,1,0,1), mar = c(0, 0, 0, 0), new = TRUE,
-    cex=1)
+    cex=1,lwd=1.3)
 plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
 legend("top", legend=ppi$Pop, pch=as.numeric(ppi$pch), pt.cex=1.5,cex=0.85,
        col=alpha(ppi$cols, 0.5),pt.bg=alpha(ppi$cols,0.25), ncol=8,bty='n')
