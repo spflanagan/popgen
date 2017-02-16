@@ -450,7 +450,7 @@ pseq<-1:npop
 m<-matrix(c(1:32,rep(33,5),rep(34,5),rep(35,5),0,
             rep(36,5),rep(37,5),rep(38,5),0),
           nrow=4,ncol=npop,byrow = T)
-jpeg("pop_structure_comb.jpeg",res=300,height=10.5/3,width=10.5,units="in")
+jpeg("pop_structure_comb.jpeg",res=300,height=10.5,width=10.5,units="in")
 layout(mat=m)
 #STRUCTURE
 par(oma=c(1,3.5,1,1),mar=c(1,0,0,0))
@@ -526,6 +526,6 @@ par(fig = c(0, 1, 0, 1), oma=c(2,1,0,1), mar = c(0, 0, 0, 0), new = TRUE,
     cex=1,lwd=1.3)
 plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
 legend(x=(1/16),y=0.1, legend=ppi$Pop, pch=as.numeric(ppi$pch), pt.cex=1.5,cex=0.85,
-       col=alpha(ppi$cols, 0.5),pt.bg=alpha(ppi$cols,0.25), ncol=8,bty='n')
+       col=alpha(ppi$cols, 0.5),pt.bg=alpha(ppi$cols,0.25), ncol=2,bty='n')
 dev.off()
 
