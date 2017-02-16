@@ -231,7 +231,7 @@ ppi<-data.frame(Pop=pop.labs,cols = all.colors,pch=c(0,1,3,5,4,15,8,17,18,19,21,
 #discriminant analysis of principal components (DAPC)
 dat.clust<-find.clusters(dat.plink, parallel=FALSE, n.pca=20, n.clust=NULL,
 	choose.n.clust=FALSE, max.n.clust=16)
-dapc1<-dapc(dat.plink, dat.clust$grp, n.pca=20, parallel=F) #kept 12 clusters
+dapc1<-dapc(dat.plink, dat.clust$grp, parallel=F) #kept 12 clusters
 #png("adegenet.dapc.png",height=7,width=7,units="in",res=300)
 scatter(dapc1, scree.da=FALSE, bg="white", posi.pca="topleft", legend=TRUE,cell=0)
 #dev.off()
