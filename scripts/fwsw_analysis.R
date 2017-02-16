@@ -16,7 +16,7 @@ library(scales)
 
 setwd("E:/ubuntushare/popgen/fwsw_results/")
 #source("../scripts/popgen_functions.R")
-source("~/Projects/gwscaR/R/gwscaR.R")
+source("../../gwscaR/R/gwscaR.R")
 source("../phenotype_functions.R")
 
 pop.list<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
@@ -36,8 +36,8 @@ grp.colors<-c('#762a83','#af8dc3','#e7d4e8','#d9f0d3','#7fbf7b','#1b7837')
 #############################################################################
 #######################**********FILES*********##############################
 #############################################################################
-mar.coor<-read.csv("F://Docs//PopGen//marine_coordinates_revised.csv", header=T)
-fw.coor<-read.csv("F://Docs//PopGen//fw_coordinates.csv", header=T)
+mar.coor<-read.csv("../sw_results/marine_coordinates_revised.csv", header=T)
+fw.coor<-read.csv("fw_coordinates.csv", header=T)
 dist<-read.table("fwsw_geographical_distances.txt",header=T,row.names=1,
 	sep='\t')
 pwise.fst.all<-read.table("stacks/populations/fwsw_fst_summary.txt",header=T,row.names=1,sep='\t')
@@ -45,6 +45,7 @@ pwise.fst.all<-read.table("stacks/populations/fwsw_fst_summary.txt",header=T,row
 	rownames(pwise.fst.all)<-colnames(pwise.fst.all)
 pwise.fst.sub<-read.table("stacks/fwsw_fst_summary_subset.txt",header=T,row.names=1,sep='\t')
 ped.sub<-read.table("stacks/subset.ped",header=F)	
+map.sub<-read.table("stacks/subset.map",header = F)
 #############################################################################
 #######################PLOT THE POINTS ON A MAP##############################
 #############################################################################
@@ -126,54 +127,87 @@ swsw.fl<-read.delim("stacks/batch_2.fst_FLCC-FLHB.tsv")
 # swsw.ta<-read.delim("stacks/batch_2.fst_ALST-TXCB.tsv")
 # swsw.af<-read.delim("stacks/batch_2.fst_ALST-FLCC.tsv")
 
+scaffs<-levels(as.factor(c(as.character(swsw.tx[,"Chr"]),
+                           as.character(fwsw.tx[,"Chr"]))))
 png("FW-SW_Fsts.png")
-par(mfrow=c(4,1),oma=c(0,0,0,0),mar=c(1,1,1,1))
-fs.t<-plotting.fsts.scaffs(fwsw.tx,"Fst",pt.lty=1,axis.size=0.75)
-legend("top",c("TX FW-SW"),bty='n')
+par(mfrow=c(4,2),oma=c(0,0,0,0),mar=c(1,1,1,1))
+ss.t<-fst.plot(swsw.tx,fst.name="Corrected.AMOVA.Fst",
+               axis.size=1,chrom.name="Chr",pt.col="black",
+               bp.name="BP",y.lim=c(0,1),
+               groups=as.factor(scaffs[scaffs %in% 
+                  levels(factor(swsw.tx$Chr))]))
+mtext("Texas",2)
+fs.t<-fst.plot(fwsw.tx,fst.name="Corrected.AMOVA.Fst",
+               axis.size=1,chrom.name="Chr",pt.col="#2166ac",
+               bp.name="BP",y.lim=c(0,1),
+               groups=as.factor(scaffs[scaffs %in% 
+                                         levels(factor(fwsw.tx$Chr))]))
+
+#LA
+ss.l<-fst.plot(swsw.al,fst.name="Corrected.AMOVA.Fst",
+               axis.size=1,chrom.name="Chr",pt.col="black",
+               bp.name="BP",y.lim=c(0,1),
+               groups=as.factor(scaffs[scaffs %in% 
+                                         levels(factor(swsw.al$Chr))]))
+mtext("Louisiana",2)
+fs.l<-fst.plot(fwsw.la,fst.name="Corrected.AMOVA.Fst",
+               axis.size=1,chrom.name="Chr",pt.col="#2166ac",
+               bp.name="BP",y.lim=c(0,1),
+               groups=as.factor(scaffs[scaffs %in% 
+                                         levels(factor(fwsw.la$Chr))]))
+#AL
+ss.a<-fst.plot(swsw.al,fst.name="Corrected.AMOVA.Fst",
+               axis.size=1,chrom.name="Chr",pt.col="black",
+               bp.name="BP",y.lim=c(0,1),
+               groups=as.factor(scaffs[scaffs %in% 
+                                         levels(factor(swsw.al$Chr))]))
+mtext("Alabama",2)
+fs.a<-fst.plot(fwsw.al,fst.name="Corrected.AMOVA.Fst",
+               axis.size=1,chrom.name="Chr",pt.col="#2166ac",
+               bp.name="BP",y.lim=c(0,1),
+               groups=as.factor(scaffs[scaffs %in% 
+                                         levels(factor(fwsw.al$Chr))]))
+
+#FL
+ss.f<-fst.plot(swsw.fl,fst.name="Corrected.AMOVA.Fst",
+               axis.size=1,chrom.name="Chr",pt.col="black",
+               bp.name="BP",y.lim=c(0,1),
+               groups=as.factor(scaffs[scaffs %in% 
+                                         levels(factor(swsw.fl$Chr))]))
 last<-0
 for(i in 1:length(lgs)){
-	text(x=mean(fs.t[fs.t$Chr ==lgs[i],"BP"]),y=-0.13,
-		labels=lgn[i], adj=1, xpd=TRUE,srt=90,cex=0.75)
-	last<-max(fs.t[fs.t$Chr ==lgs[i],"BP"])
+  text(x=mean(ss.f[ss.f$Chr ==lgs[i],"BP"]),y=-0.13,
+       labels=lgn[i], adj=1, xpd=TRUE,srt=90,cex=0.75)
+  last<-max(ss.f[ss.f$Chr ==lgs[i],"BP"])
 }
-fs.l<-plotting.fsts.scaffs(fwsw.la,"Fst",pt.lty=1,axis.size=0.75)
-legend("top",c("LA FW-SW"),bty='n')
+mtext("Florida",2)
+fs.f<-fst.plot(fwsw.fl,fst.name="Corrected.AMOVA.Fst",
+               axis.size=1,chrom.name="Chr",pt.col="#2166ac",
+               bp.name="BP",y.lim=c(0,1),
+               groups=as.factor(scaffs[scaffs %in% 
+                                         levels(factor(fwsw.fl$Chr))]))
+
 last<-0
 for(i in 1:length(lgs)){
-	text(x=mean(fs.l[fs.l$Chr ==lgs[i],"BP"]),y=-0.03,
-		labels=lgn[i], adj=1, xpd=TRUE,srt=90,cex=0.75)
-	last<-max(fs.l[fs.l$Chr ==lgs[i],"BP"])
+  text(x=mean(fs.f[fs.f$Chr ==lgs[i],"BP"]),y=-0.13,
+       labels=lgn[i], adj=1, xpd=TRUE,srt=90,cex=0.75)
+  last<-max(fs.f[fs.f$Chr ==lgs[i],"BP"])
 }
-fs.a<-plotting.fsts.scaffs(fwsw.al,"Fst",pt.lty=1,axis.size=0.75)
-legend("top",c("AL FW-SW"),bty='n')
-last<-0
-for(i in 1:length(lgs)){
-	text(x=mean(fs.a[fs.a$Chr ==lgs[i],"BP"]),y=-0.03,
-		labels=lgn[i], adj=1, xpd=TRUE,srt=90,cex=0.75)
-	last<-max(fs.t[fs.a$Chr ==lgs[i],"BP"])
-}
-fs.f<-plotting.fsts.scaffs(fwsw.fl,"Fst",pt.lty=1,axis.size=0.75)
-legend("top",c("FL FW-SW"),bty='n')
-last<-0
-for(i in 1:length(lgs)){
-	text(x=mean(fs.f[fs.f$Chr ==lgs[i],"BP"]),y=-0.13,
-		labels=lgn[i], adj=1, xpd=TRUE,srt=90,cex=0.75)
-	last<-max(fs.f[fs.f$Chr ==lgs[i],"BP"])
-}
+
 dev.off()
-
-par(mfrow=c(6,1),oma=c(0,0,0,0),mar=c(1,1,1,1))
-ff.tf<-plotting.fsts.scaffs(fwfw.tf,"Fst",pt.lty=1)
-ff.ta<-plotting.fsts.scaffs(fwfw.ta,"Fst",pt.lty=1)
-ff.tl<-plotting.fsts.scaffs(fwfw.tl,"Fst",pt.lty=1)
-ff.la<-plotting.fsts.scaffs(fwfw.la,"Fst",pt.lty=1)
-ff.lf<-plotting.fsts.scaffs(fwfw.lf,"Fst",pt.lty=1)
-ff.af<-plotting.fsts.scaffs(fwfw.af,"Fst",pt.lty=1)
-
-par(mfrow=c(3,1),oma=c(0,0,0,0),mar=c(1,1,1,1))
-ss.tf<-plotting.fsts.scaffs(swsw.tf,"Fst",pt.lty=1)
-ss.ta<-plotting.fsts.scaffs(swsw.ta,"Fst",pt.lty=1)
-ss.af<-plotting.fsts.scaffs(swsw.af,"Fst",pt.lty=1)
+# 
+# par(mfrow=c(6,1),oma=c(0,0,0,0),mar=c(1,1,1,1))
+# ff.tf<-plotting.fsts.scaffs(fwfw.tf,"Fst",pt.lty=1)
+# ff.ta<-plotting.fsts.scaffs(fwfw.ta,"Fst",pt.lty=1)
+# ff.tl<-plotting.fsts.scaffs(fwfw.tl,"Fst",pt.lty=1)
+# ff.la<-plotting.fsts.scaffs(fwfw.la,"Fst",pt.lty=1)
+# ff.lf<-plotting.fsts.scaffs(fwfw.lf,"Fst",pt.lty=1)
+# ff.af<-plotting.fsts.scaffs(fwfw.af,"Fst",pt.lty=1)
+# 
+# par(mfrow=c(3,1),oma=c(0,0,0,0),mar=c(1,1,1,1))
+# ss.tf<-plotting.fsts.scaffs(swsw.tf,"Fst",pt.lty=1)
+# ss.ta<-plotting.fsts.scaffs(swsw.ta,"Fst",pt.lty=1)
+# ss.af<-plotting.fsts.scaffs(swsw.af,"Fst",pt.lty=1)
 
 
 #############################################################################
