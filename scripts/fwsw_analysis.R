@@ -14,7 +14,7 @@ library(adegenet)
 library(scales)
 
 
-setwd("E:/ubuntushare/popgen/fwsw_results/")
+setwd("B:/ubuntushare/popgen/fwsw_results/")
 #source("../scripts/popgen_functions.R")
 source("../../gwscaR/R/gwscaR.R")
 source("../phenotype_functions.R")
@@ -115,7 +115,30 @@ fwsw.fl<-read.delim("stacks/batch_2.fst_FLCC-FLLG.tsv")
 swsw.tx<-read.delim("stacks/batch_2.fst_TXCB-TXCC.tsv")
 swsw.al<-read.delim("stacks/batch_2.fst_ALST-FLSG.tsv")
 swsw.fl<-read.delim("stacks/batch_2.fst_FLCC-FLHB.tsv")
-  
+
+vcf<-parse.vcf("stacks/populations/batch_2.vcf")
+vcf$SNP<-paste(vcf$`#CHROM`,vcf$POS,sep=".")
+loci.info<-c(colnames(vcf[1:9]),"SNP")
+txcb<-grep("TXCB",colnames(vcf),value = T)
+txfw<-grep("TXFW",colnames(vcf),value = T)
+alst<-grep("ALST",colnames(vcf),value = T)
+alfw<-grep("ALFW",colnames(vcf),value = T)
+lafw<-grep("LAFW",colnames(vcf),value = T)
+flcc<-grep("FLCC",colnames(vcf),value = T)
+fllg<-grep("FLLG",colnames(vcf),value = T)
+txcc<-grep("TXCC",colnames(vcf),value = T)
+flsg<-grep("FLsg",colnames(vcf),value = T)
+flhb<-grep("FLHB",colnames(vcf),value = T)
+
+tfs<-gwsca(vcf=vcf,locus.info=loci.info,group1=txcb,group2=txfw)
+lfs<-gwsca(vcf=vcf,locus.info=loci.info,group1=alst,group2=lafw)
+afs<-gwsca(vcf=vcf,locus.info=loci.info,group1=alst,group2=alfw)
+ffs<-gwsca(vcf=vcf,locus.info=loci.info,group1=flcc,group2=fllg)
+
+tss<-gwsca(vcf=vcf,locus.info=loci.info,group1=txcb,group2=txcc)
+ass<-gwsca(vcf=vcf,locus.info=loci.info,group1=alst,group2=flsg)
+fss<-gwsca(vcf=vcf,locus.info=loci.info,group1=flcc,group2=flhb)
+
 # fwfw.tf<-read.delim("stacks/batch_2.fst_FLLG-TXFW.tsv")
 # fwfw.ta<-read.delim("stacks/batch_2.fst_ALFW-TXFW.tsv")
 # fwfw.tl<-read.delim("stacks/batch_2.fst_LAFW-TXFW.tsv")
@@ -128,72 +151,80 @@ swsw.fl<-read.delim("stacks/batch_2.fst_FLCC-FLHB.tsv")
 # swsw.af<-read.delim("stacks/batch_2.fst_ALST-FLCC.tsv")
 
 scaffs<-levels(as.factor(c(as.character(swsw.tx[,"Chr"]),
-                           as.character(fwsw.tx[,"Chr"]))))
+                           as.character(fwsw.tx[,"Chr"]),
+                           as.character(swsw.al[,"Chr"]),
+                           as.character(fwsw.al[,"Chr"]),
+                           as.character(fwsw.la[,"Chr"]),
+                           as.character(swsw.fl[,"Chr"]),
+                           as.character(fwsw.fl[,"Chr"]))))
+scaffs[1:22]<-lgs
 png("FW-SW_Fsts.png")
-par(mfrow=c(4,2),oma=c(0,0,0,0),mar=c(1,1,1,1))
+par(mfrow=c(4,2),oma=c(3,3,1,0),mar=c(1,0.5,1,0))
 ss.t<-fst.plot(swsw.tx,fst.name="Corrected.AMOVA.Fst",
-               axis.size=1,chrom.name="Chr",pt.col="black",
-               bp.name="BP",y.lim=c(0,1),
+               axis.size=1.25,chrom.name="Chr",pt.col="black",
+               bp.name="BP",y.lim=c(0,1),pt.cex=1.25,
                groups=as.factor(scaffs[scaffs %in% 
                   levels(factor(swsw.tx$Chr))]))
-mtext("Texas",2)
+mtext("Texas",2,line=1.4)
+mtext("Saltwater",3)
 fs.t<-fst.plot(fwsw.tx,fst.name="Corrected.AMOVA.Fst",
-               axis.size=1,chrom.name="Chr",pt.col="#2166ac",
-               bp.name="BP",y.lim=c(0,1),
+               axis.size=1.25,chrom.name="Chr",pt.col="#2166ac",
+               bp.name="BP",y.lim=c(0,1),pt.cex=1.25,
                groups=as.factor(scaffs[scaffs %in% 
                                          levels(factor(fwsw.tx$Chr))]))
+mtext("Freshwater",3)
 
 #LA
 ss.l<-fst.plot(swsw.al,fst.name="Corrected.AMOVA.Fst",
-               axis.size=1,chrom.name="Chr",pt.col="black",
-               bp.name="BP",y.lim=c(0,1),
+               axis.size=1.25,chrom.name="Chr",pt.col="black",
+               bp.name="BP",y.lim=c(0,1),pt.cex=1.25,
                groups=as.factor(scaffs[scaffs %in% 
                                          levels(factor(swsw.al$Chr))]))
-mtext("Louisiana",2)
+mtext("Louisiana",2,line=1.4)
 fs.l<-fst.plot(fwsw.la,fst.name="Corrected.AMOVA.Fst",
-               axis.size=1,chrom.name="Chr",pt.col="#2166ac",
-               bp.name="BP",y.lim=c(0,1),
+               axis.size=1.25,chrom.name="Chr",pt.col="#2166ac",
+               bp.name="BP",y.lim=c(0,1),pt.cex=1.25,
                groups=as.factor(scaffs[scaffs %in% 
                                          levels(factor(fwsw.la$Chr))]))
 #AL
 ss.a<-fst.plot(swsw.al,fst.name="Corrected.AMOVA.Fst",
-               axis.size=1,chrom.name="Chr",pt.col="black",
-               bp.name="BP",y.lim=c(0,1),
+               axis.size=1.25,chrom.name="Chr",pt.col="black",
+               bp.name="BP",y.lim=c(0,1),pt.cex=1.25,
                groups=as.factor(scaffs[scaffs %in% 
                                          levels(factor(swsw.al$Chr))]))
-mtext("Alabama",2)
+mtext("Alabama",2,line=1.4)
 fs.a<-fst.plot(fwsw.al,fst.name="Corrected.AMOVA.Fst",
-               axis.size=1,chrom.name="Chr",pt.col="#2166ac",
-               bp.name="BP",y.lim=c(0,1),
+               axis.size=1.25,chrom.name="Chr",pt.col="#2166ac",
+               bp.name="BP",y.lim=c(0,1),pt.cex =1.25,
                groups=as.factor(scaffs[scaffs %in% 
                                          levels(factor(fwsw.al$Chr))]))
 
 #FL
 ss.f<-fst.plot(swsw.fl,fst.name="Corrected.AMOVA.Fst",
-               axis.size=1,chrom.name="Chr",pt.col="black",
-               bp.name="BP",y.lim=c(0,1),
+               axis.size=1.25,chrom.name="Chr",pt.col="black",
+               bp.name="BP",y.lim=c(0,1),pt.cex=1.25,
                groups=as.factor(scaffs[scaffs %in% 
                                          levels(factor(swsw.fl$Chr))]))
 last<-0
 for(i in 1:length(lgs)){
-  text(x=mean(ss.f[ss.f$Chr ==lgs[i],"BP"]),y=-0.13,
-       labels=lgn[i], adj=1, xpd=TRUE,srt=90,cex=0.75)
+  text(x=mean(ss.f[ss.f$Chr ==lgs[i],"BP"]),y=-0.03,
+       labels=lgs[i], adj=1, xpd=TRUE,srt=90,cex=1.25)
   last<-max(ss.f[ss.f$Chr ==lgs[i],"BP"])
 }
-mtext("Florida",2)
+mtext("Florida",2,line=1.4)
 fs.f<-fst.plot(fwsw.fl,fst.name="Corrected.AMOVA.Fst",
-               axis.size=1,chrom.name="Chr",pt.col="#2166ac",
-               bp.name="BP",y.lim=c(0,1),
+               axis.size=1.25,chrom.name="Chr",pt.col="#2166ac",
+               bp.name="BP",y.lim=c(0,1),pt.cex=1.25,
                groups=as.factor(scaffs[scaffs %in% 
                                          levels(factor(fwsw.fl$Chr))]))
 
 last<-0
 for(i in 1:length(lgs)){
-  text(x=mean(fs.f[fs.f$Chr ==lgs[i],"BP"]),y=-0.13,
-       labels=lgn[i], adj=1, xpd=TRUE,srt=90,cex=0.75)
+  text(x=mean(fs.f[fs.f$Chr ==lgs[i],"BP"]),y=-0.03,
+       labels=lgs[i], adj=1, xpd=TRUE,srt=90,cex=1.25)
   last<-max(fs.f[fs.f$Chr ==lgs[i],"BP"])
 }
-
+mtext(expression(italic(F)[ST]),2,outer=T,line=1.5)
 dev.off()
 # 
 # par(mfrow=c(6,1),oma=c(0,0,0,0),mar=c(1,1,1,1))
