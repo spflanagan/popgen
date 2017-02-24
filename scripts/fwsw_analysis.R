@@ -45,7 +45,10 @@ pwise.fst.all<-read.table("stacks/populations/fwsw_fst_summary.txt",header=T,row
 	rownames(pwise.fst.all)<-colnames(pwise.fst.all)
 pwise.fst.sub<-read.table("stacks/fwsw_fst_summary_subset.txt",header=T,row.names=1,sep='\t')
 ped.sub<-read.table("stacks/subset.ped",header=F)	
-map.sub<-read.table("stacks/subset.map",header = F)
+ped.sub$V1<-gsub("sample_(\\w{4})\\w+.*","\\1",ped.sub$V2)
+map.sub<-read.table("stacks/subset.map",header = F,stringsAsFactors = F)
+map.sub$Locus<-paste(gsub("(\\d+)_\\d+","\\1",map.sub$V2),map.sub$V4,sep=".")
+colnames(ped.sub)<-c("Pop","IID","","","","Phenotype","","",map.sub$Locus)
 #############################################################################
 #######################PLOT THE POINTS ON A MAP##############################
 #############################################################################
@@ -107,7 +110,7 @@ rownames(ibd.by.loc)<-sub.map$V2
 #############################################################################
 #******************************STACKS*********************************#
 #Compare neighboring pops.
-fwsw.tx<-read.delim("stacks/batch_2.fst_TXCB-TXFW.tsv")
+fwsw.tx<-read.delim("stacks/batch_2.fst_TXCC-TXFW.tsv")
 fwsw.la<-read.delim("stacks/batch_2.fst_ALST-LAFW.tsv")
 fwsw.al<-read.delim("stacks/batch_2.fst_ALFW-ALST.tsv")
 fwsw.fl<-read.delim("stacks/batch_2.fst_FLCC-FLLG.tsv")
@@ -115,6 +118,17 @@ fwsw.fl<-read.delim("stacks/batch_2.fst_FLCC-FLLG.tsv")
 swsw.tx<-read.delim("stacks/batch_2.fst_TXCB-TXCC.tsv")
 swsw.al<-read.delim("stacks/batch_2.fst_ALST-FLSG.tsv")
 swsw.fl<-read.delim("stacks/batch_2.fst_FLCC-FLHB.tsv")
+
+tx.sig<-fwsw.tx[fwsw.tx$Fisher.s.P<0.01,"Locus.ID"]
+la.sig<-fwsw.la[fwsw.la$Fisher.s.P<0.01,"Locus.ID"]
+al.sig<-fwsw.al[fwsw.al$Fisher.s.P<0.01,"Locus.ID"]
+fl.sig<-fwsw.fl[fwsw.fl$Fisher.s.P<0.01,"Locus.ID"]
+length(tx.sig[(tx.sig %in% c(la.sig,al.sig,fl.sig))])
+length(la.sig[(la.sig %in% c(tx.sig,al.sig,fl.sig))])
+length(al.sig[(al.sig %in% c(la.sig,tx.sig,fl.sig))])
+length(fl.sig[(fl.sig %in% c(la.sig,al.sig,tx.sig))])
+###
+
 
 vcf<-parse.vcf("stacks/populations/batch_2.vcf")
 vcf$SNP<-paste(vcf$`#CHROM`,vcf$POS,sep=".")
@@ -127,7 +141,7 @@ lafw<-grep("LAFW",colnames(vcf),value = T)
 flcc<-grep("FLCC",colnames(vcf),value = T)
 fllg<-grep("FLLG",colnames(vcf),value = T)
 txcc<-grep("TXCC",colnames(vcf),value = T)
-flsg<-grep("FLsg",colnames(vcf),value = T)
+flsg<-grep("FLSG",colnames(vcf),value = T)
 flhb<-grep("FLHB",colnames(vcf),value = T)
 
 tfs<-gwsca(vcf=vcf,locus.info=loci.info,group1=txcb,group2=txfw)
@@ -139,6 +153,32 @@ tss<-gwsca(vcf=vcf,locus.info=loci.info,group1=txcb,group2=txcc)
 ass<-gwsca(vcf=vcf,locus.info=loci.info,group1=alst,group2=flsg)
 fss<-gwsca(vcf=vcf,locus.info=loci.info,group1=flcc,group2=flhb)
 
+#With ped file
+txcb<-grep("TXCB",ped.sub$V2,value = T)
+txfw<-grep("TXFW",ped.sub$V2,value = T)
+alst<-grep("ALST",ped.sub$V2,value = T)
+alfw<-grep("ALFW",ped.sub$V2,value = T)
+lafw<-grep("LAFW",ped.sub$V2,value = T)
+flcc<-grep("FLCC",ped.sub$V2,value = T)
+fllg<-grep("FLLG",ped.sub$V2,value = T)
+txcc<-grep("TXCC",ped.sub$V2,value = T)
+flsg<-grep("FLSG",ped.sub$V2,value = T)
+flhb<-grep("FLHB",ped.sub$V2,value = T)
+
+tfs.fst<-fst.one.plink(ped.sub,txcc,txfw)
+  tfs.fst<-fst.sig(tfs.fst)
+lfs.fst<-fst.one.plink(ped.sub,alst,lafw)
+  lfs.fst<-fst.sig(lfs.fst)
+afs.fst<-fst.one.plink(ped.sub,alst,alfw)
+afs.fst<-fst.sig(afs.fst)
+ffs.fst<-fst.one.plink(ped.sub,flcc,fllg)
+  ffs.fst<-fst.sig(ffs.fst)
+tss.fst<-fst.one.plink(ped.sub,txcc,txcb)
+tss.fst<-fst.sig(tss.fst)
+ass.fst<-fst.one.plink(ped.sub,alst,flsg)
+ass.fst<-fst.sig(ass.fst)
+fss.fst<-fst.one.plink(ped.sub,flcc,flhb)
+fss.fst<-fst.sig(fss.fst)
 # fwfw.tf<-read.delim("stacks/batch_2.fst_FLLG-TXFW.tsv")
 # fwfw.ta<-read.delim("stacks/batch_2.fst_ALFW-TXFW.tsv")
 # fwfw.tl<-read.delim("stacks/batch_2.fst_LAFW-TXFW.tsv")
@@ -158,53 +198,48 @@ scaffs<-levels(as.factor(c(as.character(swsw.tx[,"Chr"]),
                            as.character(swsw.fl[,"Chr"]),
                            as.character(fwsw.fl[,"Chr"]))))
 scaffs[1:22]<-lgs
+scaff.starts<-tapply(vcf$POS,vcf$`#CHROM`,max)
+scaff.starts<-data.frame(rbind(cbind(names(scaff.starts),scaff.starts)),stringsAsFactors = F)
 png("FW-SW_Fsts.png")
 par(mfrow=c(4,2),oma=c(3,3,1,0),mar=c(1,0.5,1,0))
 ss.t<-fst.plot(swsw.tx,fst.name="Corrected.AMOVA.Fst",
                axis.size=1.25,chrom.name="Chr",pt.col="black",
                bp.name="BP",y.lim=c(0,1),pt.cex=1.25,
-               groups=as.factor(scaffs[scaffs %in% 
-                  levels(factor(swsw.tx$Chr))]))
+               groups=scaffs,group.boundaries = scaff.starts)
 mtext("Texas",2,line=1.4)
 mtext("Saltwater",3)
 fs.t<-fst.plot(fwsw.tx,fst.name="Corrected.AMOVA.Fst",
                axis.size=1.25,chrom.name="Chr",pt.col="#2166ac",
                bp.name="BP",y.lim=c(0,1),pt.cex=1.25,
-               groups=as.factor(scaffs[scaffs %in% 
-                                         levels(factor(fwsw.tx$Chr))]))
+               groups=scaffs,group.boundaries = scaff.starts)
 mtext("Freshwater",3)
 
 #LA
 ss.l<-fst.plot(swsw.al,fst.name="Corrected.AMOVA.Fst",
                axis.size=1.25,chrom.name="Chr",pt.col="black",
                bp.name="BP",y.lim=c(0,1),pt.cex=1.25,
-               groups=as.factor(scaffs[scaffs %in% 
-                                         levels(factor(swsw.al$Chr))]))
+               groups=scaffs,group.boundaries = scaff.starts)
 mtext("Louisiana",2,line=1.4)
 fs.l<-fst.plot(fwsw.la,fst.name="Corrected.AMOVA.Fst",
                axis.size=1.25,chrom.name="Chr",pt.col="#2166ac",
                bp.name="BP",y.lim=c(0,1),pt.cex=1.25,
-               groups=as.factor(scaffs[scaffs %in% 
-                                         levels(factor(fwsw.la$Chr))]))
+               groups=scaffs,group.boundaries = scaff.starts)
 #AL
 ss.a<-fst.plot(swsw.al,fst.name="Corrected.AMOVA.Fst",
                axis.size=1.25,chrom.name="Chr",pt.col="black",
                bp.name="BP",y.lim=c(0,1),pt.cex=1.25,
-               groups=as.factor(scaffs[scaffs %in% 
-                                         levels(factor(swsw.al$Chr))]))
+               groups=scaffs,group.boundaries = scaff.starts)
 mtext("Alabama",2,line=1.4)
 fs.a<-fst.plot(fwsw.al,fst.name="Corrected.AMOVA.Fst",
                axis.size=1.25,chrom.name="Chr",pt.col="#2166ac",
                bp.name="BP",y.lim=c(0,1),pt.cex =1.25,
-               groups=as.factor(scaffs[scaffs %in% 
-                                         levels(factor(fwsw.al$Chr))]))
+               groups=scaffs,group.boundaries = scaff.starts)
 
 #FL
 ss.f<-fst.plot(swsw.fl,fst.name="Corrected.AMOVA.Fst",
                axis.size=1.25,chrom.name="Chr",pt.col="black",
                bp.name="BP",y.lim=c(0,1),pt.cex=1.25,
-               groups=as.factor(scaffs[scaffs %in% 
-                                         levels(factor(swsw.fl$Chr))]))
+               groups=scaffs,group.boundaries = scaff.starts)
 last<-0
 for(i in 1:length(lgs)){
   text(x=mean(ss.f[ss.f$Chr ==lgs[i],"BP"]),y=-0.03,
@@ -215,8 +250,7 @@ mtext("Florida",2,line=1.4)
 fs.f<-fst.plot(fwsw.fl,fst.name="Corrected.AMOVA.Fst",
                axis.size=1.25,chrom.name="Chr",pt.col="#2166ac",
                bp.name="BP",y.lim=c(0,1),pt.cex=1.25,
-               groups=as.factor(scaffs[scaffs %in% 
-                                         levels(factor(fwsw.fl$Chr))]))
+               groups=scaffs,group.boundaries = scaff.starts)
 
 last<-0
 for(i in 1:length(lgs)){
@@ -463,7 +497,8 @@ tapply(structure.k6$V5,structure.k6$V1,max) #V5 has FL Gulf group
 tapply(structure.k6$V6,structure.k6$V1,max) #V6 has north Gulf group
 tapply(structure.k6$V7,structure.k6$V1,max) #V7 has FL atlantic group
 str6<-data.frame(structure.k6$V1,structure.k6$V3,structure.k6$V4,structure.k6$V2,
-                 structure.k6$V5,structure.k6$V7,structure.k6$V6)
+                 structure.k6$V5,structure.k6$V7,structure.k6$V6,stringsAsFactors = F)
+str6$structure.k6.V1[str6$structure.k6.V1 == "FLLG"]<-"FLFW"
 
 png("StructureK2K6.png",width=10,height=7.5,units="in",res=300)
 par(mfrow=c(2,length(pop.list)),oma=c(1,3.5,1,1),mar=c(1,0,0,0))
@@ -478,21 +513,22 @@ dev.off()
 ##### COMBINED GRAPH ####
 npop<-length(pop.list)
 pseq<-1:npop
-m<-matrix(c(1:32,rep(33,5),rep(34,5),rep(35,5),0,
-            rep(36,5),rep(37,5),rep(38,5),0),
+m<-matrix(c(1:32,rep(33,4),rep(34,4),rep(35,4),rep(0,4),
+            rep(36,4),rep(37,4),rep(38,4),rep(0,4)),
           nrow=4,ncol=npop,byrow = T)
-jpeg("pop_structure_comb.jpeg",res=300,height=10.5,width=10.5,units="in")
+pdf("pop_structure_comb.pdf",height=8,width=8)
+jpeg("pop_structure_comb.jpeg",res=300,height=8,width=8,units="in")
 layout(mat=m)
 #STRUCTURE
 par(oma=c(1,3.5,1,1),mar=c(1,0,0,0))
 plotting.structure(structure.k2,2,pop.list, make.file=FALSE, xlabcol = all.colors,plot.new=F,
                    colors=grp.colors[c(1,6)],xlabel=F,
                    ylabel=expression(atop(italic(K)==2,Delta~italic(K)==358.9)))
-plotting.structure(str6,2,pop.list, make.file=FALSE, plot.new=F,
+plotting.structure(str6,2,pop.labs, make.file=FALSE, plot.new=F,
                    colors=grp.colors,xlabel=T,xlabcol = all.colors,
                    ylabel=expression(atop(italic(K)==6,Delta~italic(K)==326.1)))
 #PCADAPT
-par(oma=c(2,2,2,2),mar=c(2,2,2,2))
+par(mar=c(2,2,2,2))
 plot(pa$scores[,1],pa$scores[,2],col=alpha(pap$cols,0.5),bg=alpha(pap$cols,0.75),
      pch=as.numeric(pap$pch),	cex=1.5)
 points(pa$scores[grp=="freshwater",1],pa$scores[grp=="freshwater",2],
@@ -521,15 +557,15 @@ mtext(paste("PC5 (",pa.props[5],"%)",sep=""),1,line = 2,cex=0.75)
 mtext(paste("PC6 (",pa.props[6],"%)",sep=""),2,line = 2,cex=0.75)
 
 # ADEGENET
-par(oma=c(2,2,2,2),mar=c(2,2,2,2))
+par(mar=c(2,2,2,2))
 plot(da$LD1,da$LD2,col=alpha(da$colors,0.5),pch=as.numeric(da$pch),cex=2,lwd=1.3,
      bg=alpha(colors,0.25),xlab="",ylab="",xlim=c(-20,10),ylim=c(-10,25))
 par(lwd=3,bty='n')
 s.class(dapc1$ind.coord,fac=factor(da$Group), clabel=0,cstar=0,cellipse=2.5,
         addaxes = F,pch="",grid=F,axesel=F,add.plot = T,col=grp.colors[c(3,5,6,4,2,1)],xlim=c(-20,10),ylim=c(-10,25))
-mtext(paste("Discriminant Axis 1 (", round(dapc1$eig[1]/sum(dapc1$eig)*100, 2), "%)", sep=""),
+mtext(paste("DAPC 1 (", round(dapc1$eig[1]/sum(dapc1$eig)*100, 2), "%)", sep=""),
       1, line = 2,cex=0.75)
-mtext(paste("Discriminant Axis 2 (", round(dapc1$eig[2]/sum(dapc1$eig)*100, 2), "%)", sep=""),
+mtext(paste("DAPC 2 (", round(dapc1$eig[2]/sum(dapc1$eig)*100, 2), "%)", sep=""),
       2, line = 2,cex=0.75)
 
 
@@ -538,9 +574,9 @@ plot(da$LD3,da$LD4,col=alpha(da$colors,0.5),pch=as.numeric(da$pch),cex=2,lwd=1.3
 par(lwd=3,bty='n')
 s.class(dapc1$ind.coord[,3:4],fac=factor(da$Group), clabel=0,cstar=0,cellipse=2.5,
         addaxes = F,pch="",grid=F,axesel=F,add.plot = T,col=grp.colors[c(3,5,6,4,2,1)],xlim=c(-10,10),ylim=c(-5,15))
-mtext(paste("Discriminant Axis 3 (", round(dapc1$eig[3]/sum(dapc1$eig)*100, 2), "%)", sep=""),
+mtext(paste("DAPC 3 (", round(dapc1$eig[3]/sum(dapc1$eig)*100, 2), "%)", sep=""),
       1, line = 2,cex=0.75)
-mtext(paste("Discriminant Axis 4 (", round(dapc1$eig[4]/sum(dapc1$eig)*100, 2), "%)", sep=""),
+mtext(paste("DAPC 4 (", round(dapc1$eig[4]/sum(dapc1$eig)*100, 2), "%)", sep=""),
       2, line = 2,cex=0.75)
 
 plot(da$LD4,da$LD5,col=alpha(da$colors,0.5),pch=as.numeric(da$pch),cex=2,lwd=1.3,
@@ -548,15 +584,15 @@ plot(da$LD4,da$LD5,col=alpha(da$colors,0.5),pch=as.numeric(da$pch),cex=2,lwd=1.3
 par(lwd=3,bty='n')
 s.class(dapc1$ind.coord[,4:5],fac=factor(da$Group), clabel=0,cstar=0,cellipse=2.5,
         addaxes = F,pch="",grid=F,axesel=F,add.plot = T,col=grp.colors[c(3,5,6,4,2,1)],xlim=c(-5,15),ylim=c(-10,5))
-mtext(paste("Discriminant Axis 4 (", round(dapc1$eig[4]/sum(dapc1$eig)*100, 2), "%)", sep=""),
+mtext(paste("DAPC 4 (", round(dapc1$eig[4]/sum(dapc1$eig)*100, 2), "%)", sep=""),
       1, line = 2,cex=0.75)
-mtext(paste("Discriminant Axis 5 (", round(dapc1$eig[5]/sum(dapc1$eig)*100, 2), "%)", sep=""),
+mtext(paste("DAPC 5 (", round(dapc1$eig[5]/sum(dapc1$eig)*100, 2), "%)", sep=""),
       2, line = 2,cex=0.75)
 
 par(fig = c(0, 1, 0, 1), oma=c(2,1,0,1), mar = c(0, 0, 0, 0), new = TRUE,
     cex=1,lwd=1.3)
 plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
-legend(x=(1/16),y=0.1, legend=ppi$Pop, pch=as.numeric(ppi$pch), pt.cex=1.5,cex=0.85,
+legend(x=0.6,y=-0.1, legend=ppi$Pop, pch=as.numeric(ppi$pch), pt.cex=1.5,cex=0.85,
        col=alpha(ppi$cols, 0.5),pt.bg=alpha(ppi$cols,0.25), ncol=2,bty='n')
 dev.off()
 
