@@ -22,6 +22,20 @@ DATE STARTED: 5 June 2016
 11. calculate_global_fst
 
 ###############################################################################################
+#####Tuesday, 21 February 2017
+I'd been using the wrong populations map, which is why it didn't work
+->doing this to get a new vcf file, cuz the ones I have aren't any good.
+**Hopefully this is ok re: previously done analyses.
+
+meanwhile, what's going on with bayenv?
+->the clusters hadn't been created properly. need to re-run the plink code and reformat using R then try again.
+
+#####Monday, 20 February 2017
+To run bayenv:
+	plink --ped bayenv.plink.ped --map ../stacks/populations/subset.map \
+	--out bayenv --noweb --allow-no-sex --recode \
+	--freq --within ../stacks/plink.clust.txt 
+OK, something weird is happening - bayenv isn't running right, and populations is asking for zipped files. Unsure how to fix this.
 #####Tuesday, 7 February 2017
 Returning to these analyses.
 Structure clearly shows that FLLG, TXFW, and ALFW/LAFW have different genetic histories.

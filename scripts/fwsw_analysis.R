@@ -12,12 +12,12 @@ library(vegan)
 library(boot)
 library(adegenet)
 library(scales)
-
+library(gdata)
 
 setwd("B:/ubuntushare/popgen/fwsw_results/")
 #source("../scripts/popgen_functions.R")
 source("../../gwscaR/R/gwscaR.R")
-source("../phenotype_functions.R")
+source("../scripts/phenotype_functions.R")
 
 pop.list<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
 	"FLFD","FLSI","FLAB","FLPB","FLHB","FLCC","FLLG")
@@ -559,4 +559,51 @@ plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
 legend(x=(1/16),y=0.1, legend=ppi$Pop, pch=as.numeric(ppi$pch), pt.cex=1.5,cex=0.85,
        col=alpha(ppi$cols, 0.5),pt.bg=alpha(ppi$cols,0.25), ncol=2,bty='n')
 dev.off()
+
+
+###########################################################################
+##############################BAYENV######################################
+##########################################################################
+ped.pops<-gsub("(sample_)(\\w{4})(\\w+)","\\2",ped.sub[,2])
+ped.sex<-sub('(sample_\\w{4})(\\w)(\\w+)','\\2', ped.sub[,2])
+ped.sex[ped.sex=="F"]<-2
+ped.sex[ped.sex=="D"]<-2
+ped.sex[ped.sex=="M"]<-1
+ped.sex[ped.sex=="P"]<-1
+ped.sex[ped.sex=="N"]<-1
+ped.sex[ped.sex=="I"]<-0
+ped.sex[ped.sex=="J"]<-0
+ped.sub[,1]<-ped.pops
+ped.sub[,5]<-ped.sex
+write.table(ped.sub,"bayenv/bayenv.plink.ped", 
+            row.names=F, col.names=F, quote=F, sep=" ",eol="\n")
+
+clust.plink<-data.frame(FamID=ped.pops, IndID=ped.sub[,2],Pop=ped.pops)
+write.table(clust.plink, 
+            "stacks/plink.clust.txt",
+            col.names=F, row.names=F, quote=F, sep="\t", eol="\n")
+#Then plink --ped bayenv.plink.ped --map subset.map \
+#--extract plink.snplist --out bayenv --noweb --allow-no-sex --recode \
+#--freq --within plink.clust.txt 
+
+#####CONVERT PLINK TO BAYENV2
+freq<-read.table("bayenv/bayenv.frq.strat", 
+                 header=T, stringsAsFactors=F)
+#want to get $MAC for every snp at every pop 
+#and NCHROBS-MAC for every stnp at every pop
+freq<-cbind(freq,freq$NCHROBS-freq$MAC)
+colnames(freq)[ncol(freq)]<-"NAC"
+pop.order<-levels(as.factor(freq$CLST))
+snp.names<-split(freq$SNP,freq$CLST)[[1]]
+
+mac.by.pop<-as.data.frame(split(freq$MAC,freq$CLST))
+rownames(mac.by.pop)<-snp.names
+nac.by.pop<-as.data.frame(split(freq$NAC,freq$CLST))
+rownames(nac.by.pop)<-snp.names
+snpsfile<-interleave(mac.by.pop,nac.by.pop)
+
+write.table(snpsfile, "bayenv/fwsw.snpsfile", 
+            col.names=F,row.names=F,quote=F,sep="\t",eol="\n") #bayenv SNPSFILE
+
+#NOW RUN MATRIX ESTIMATION: run_bayenv2_matrix_general.sh
 
