@@ -49,7 +49,7 @@ ped.sub$V1<-gsub("sample_(\\w{4})\\w+.*","\\1",ped.sub$V2)
 map.sub<-read.table("stacks/subset.map",header = F,stringsAsFactors = F)
 map.sub$Locus<-paste(gsub("(\\d+)_\\d+","\\1",map.sub$V2),map.sub$V4,sep=".")
 colnames(ped.sub)<-c("Pop","IID","","","","Phenotype","","",map.sub$Locus)
-vcf<-parse.vcf("stacks/populations/batch_2.vcf")
+vcf<-parse.vcf("stacks/fw-sw_populations/batch_2.vcf")
 vcf$SNP<-paste(vcf$`#CHROM`,vcf$POS,sep=".")
 scaffs<-levels(as.factor(vcf[,1]))
 scaffs[1:22]<-lgs
@@ -122,10 +122,6 @@ fwsw.la<-read.delim("stacks/batch_2.fst_ALST-LAFW.tsv")
 fwsw.al<-read.delim("stacks/batch_2.fst_ALFW-ALST.tsv")
 fwsw.fl<-read.delim("stacks/batch_2.fst_FLCC-FLLG.tsv")
 
-swsw.tx<-read.delim("stacks/batch_2.fst_TXCB-TXCC.tsv")
-swsw.al<-read.delim("stacks/batch_2.fst_ALST-FLSG.tsv")
-swsw.fl<-read.delim("stacks/batch_2.fst_FLCC-FLHB.tsv")
-
 tx.sig<-fwsw.tx[fwsw.tx$Fisher.s.P<0.01,"Locus.ID"]
 la.sig<-fwsw.la[fwsw.la$Fisher.s.P<0.01,"Locus.ID"]
 al.sig<-fwsw.al[fwsw.al$Fisher.s.P<0.01,"Locus.ID"]
@@ -133,15 +129,64 @@ fl.sig<-fwsw.fl[fwsw.fl$Fisher.s.P<0.01,"Locus.ID"]
 length(tx.sig[(tx.sig %in% c(la.sig,al.sig,fl.sig))])
 length(la.sig[(la.sig %in% c(tx.sig,al.sig,fl.sig))])
 length(al.sig[(al.sig %in% c(la.sig,tx.sig,fl.sig))])
-all.shared<-fl.sig[(fl.sig %in% c(la.sig,al.sig,tx.sig))]
+all.shared<-fl.sig[fl.sig %in% la.sig & fl.sig %in% al.sig & fl.sig %in% tx.sig]
+fw.shared.chr<-fwsw.tx[fwsw.tx$Locus.ID %in% all.shared,c("Locus.ID","Chr","BP","Column")]
+tapply(fw.shared.chr$Locus.ID,factor(fw.shared.chr$Chr),function(x){ length(unique(x)) })
+#are they using the same SNPs or different SNPs?
 
-#get the ones that are above fst=0.25 in all of them
-shared.fsts<-data.frame(Locus=all.shared,TX=fwsw.tx[fwsw.tx$Fisher.s.P<0.01,"Corrected.AMOVA.Fst"],
-                        LA=fwsw.la[fwsw.la$Fisher.s.P<0.01,"Corrected.AMOVA.Fst"],
-                        AL=fwsw.al[fwsw.al$Fisher.s.P<0.01,"Corrected.AMOVA.Fst"],
-                        FL=fwsw.fl[fwsw.fl$Fisher.s.P<0.01,"Corrected.AMOVA.Fst"])
 
-par(mfrow=c(4,1),mar=c(0.5,2,0.5,0.5),oma=c(2,2,2,2))
+##compare to scovelli genome..
+gff<-read.delim("../../scovelli_genome/ssc_122016_chromlevel.gff",header=F)
+colnames(gff)<-c("seqname","source","feature","start","end","score","strand","frame","attribute")
+
+#agp<-read.table("../../scovelli_genome/ssc_122016_chromlevel.agp")
+#colnames(agp)<-c("object","object_beg","object_end","part_number","component_type","component_id","component_beg","orientation")
+
+fw.sig.reg<-do.call(rbind,apply(fw.shared.chr,1,function(sig){
+  this.gff<-gff[as.character(gff$seqname) %in% as.character(unlist(sig["Chr"])),]
+  this.reg<-this.gff[this.gff$start <= as.numeric(sig["BP"]) & this.gff$end >= as.numeric(sig["BP"]),]
+  if(nrow(this.reg) == 0){
+    if(as.numeric(sig["BP"])>max(as.numeric(this.gff$end))){
+      new<-data.frame(Locus=sig["Locus.ID"],Chr=sig["Chr"],BP=sig["BP"],SNPCol=sig["Column"],
+                      region="beyond.last.contig")
+    }else{
+      new<-data.frame(Locus=sig["Locus.ID"],Chr=sig["Chr"],BP=sig["BP"],SNPCol=sig["Column"],
+                      region=NA)
+    }
+  }else{
+    new<-data.frame(Locus=sig["Locus.ID"],Chr=sig["Chr"],BP=sig["BP"],SNPCol=sig["Column"],
+                    region=paste(this.reg$feature,sep=",",collapse = ","))
+  }
+  return(as.data.frame(new))
+}))
+
+#graph without highlighted regions
+png("stacks_fsts_fwsw.png",height=8,width=7.5,units="in",res=300)
+par(mfrow=c(4,1),mar=c(0.85,2,0,0.5),oma=c(1,1,1,0.5))
+fwswt.fst<-fst.plot(fwsw.tx,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
+                    groups = scaffs,group.boundaries = scaff.starts,pt.col = grp.colors[1],pt.cex=0,axis.size = 1)
+points(fwswt.fst$BP,fwswt.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[1])
+fwswl.fst<-fst.plot(fwsw.la,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
+                    groups = scaffs,group.boundaries = scaff.starts,pt.col=grp.colors[3],pt.cex=0,axis.size=1)
+points(fwswl.fst$BP,fwswl.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[3])
+fwswa.fst<-fst.plot(fwsw.al,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
+                    groups = scaffs,group.boundaries = scaff.starts,pt.col=grp.colors[4],pt.cex=0,axis.size = 1)
+points(fwswa.fst$BP,fwswa.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[4])
+fwswf.fst<-fst.plot(fwsw.fl,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
+                    groups = scaffs,group.boundaries = scaff.starts,pt.col=grp.colors[6],pt.cex=0,axis.size=1)
+points(fwswf.fst$BP,fwswf.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[6])
+mtext(expression(italic(F)[ST]),2,outer=T,line=-1,cex=0.75)
+last<-0
+for(i in 1:length(lgs)){
+  text(x=mean(fwswf.fst[fwswf.fst$Chr ==lgs[i],"BP"]),y=-0.05,
+       labels=lgn[i], adj=1, xpd=TRUE)
+  last<-max(fwswf.fst[fwswf.fst$Chr ==lgs[i],"BP"])
+}
+dev.off()
+
+#plot with the outlier regions
+png("stacks_fsts_fwsw_withSig.png",height=8,width=7.5,units="in",res=300)
+par(mfrow=c(4,1),mar=c(0.85,2,0,0.5),oma=c(1,1,1,0.5))
 fwswt.fst<-fst.plot(fwsw.tx,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
                     groups = scaffs,group.boundaries = scaff.starts,pt.col = grp.colors[1],pt.cex=0,axis.size = 1)
 points(fwswt.fst$BP,fwswt.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[1])
@@ -162,8 +207,29 @@ fwswf.fst<-fst.plot(fwsw.fl,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chr
 points(fwswf.fst$BP,fwswf.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[6])
 points(fwswf.fst$BP[fwswf.fst$Locus.ID %in% all.shared],fwswf.fst$Corrected.AMOVA.Fst[fwswf.fst$Locus.ID %in% all.shared],
        pch=0,col="red",cex=1.3)
+mtext(expression(italic(F)[ST]),2,outer=T,line=-1,cex=0.75)
+last<-0
+for(i in 1:length(lgs)){
+  text(x=mean(fwswf.fst[fwswf.fst$Chr ==lgs[i],"BP"]),y=-0.05,
+       labels=lgn[i], adj=1, xpd=TRUE)
+  last<-max(fwswf.fst[fwswf.fst$Chr ==lgs[i],"BP"])
+}
+dev.off()
 
+##For comparison, neighboring sw pops
+swsw.tx<-read.delim("stacks/batch_2.fst_TXCB-TXCC.tsv")
+swsw.al<-read.delim("stacks/batch_2.fst_ALST-FLSG.tsv")
+swsw.fl<-read.delim("stacks/batch_2.fst_FLCC-FLHB.tsv")
 
+tx.sw.sig<-swsw.tx[swsw.tx$Fisher.s.P<0.01,"Locus.ID"]
+al.sw.sig<-swsw.al[swsw.al$Fisher.s.P<0.01,"Locus.ID"]
+fl.sw.sig<-swsw.fl[swsw.fl$Fisher.s.P<0.01,"Locus.ID"]
+length(tx.sw.sig[(tx.sw.sig %in% c(al.sw.sig,fl.sw.sig))])
+length(al.sw.sig[(al.sw.sig %in% c(tx.sw.sig,fl.sw.sig))])
+length(fl.sw.sig[(fl.sw.sig %in% c(tx.sw.sig,al.sw.sig))])
+sw.shared<-fl.sw.sig[fl.sw.sig %in% al.sw.sig & fl.sw.sig %in% tx.sw.sig]
+fw.shared.chr<-fwsw.tx[fwsw.tx$Locus.ID %in% all.shared,c("Locus.ID","Chr","BP","Column")]
+tapply(fw.shared.chr$Locus.ID,factor(fw.shared.chr$Chr),function(x){ length(unique(x)) })
 
 swswt.fst<-fst.plot(swsw.tx,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
                     groups = scaffs,group.boundaries = scaff.starts)
@@ -172,7 +238,25 @@ swswa.fst<-fst.plot(swsw.al,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chr
 swswf.fst<-fst.plot(swsw.fl,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
                     groups = scaffs,group.boundaries = scaff.starts)
 
-
+png("stacks_fsts_swsw.png",height=6,width=7.5,units="in",res=300)
+par(mfrow=c(3,1),mar=c(0.85,2,0,0.5),oma=c(1,1,1,0.5))
+swswt.fst<-fst.plot(swsw.tx,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
+                    groups = scaffs,group.boundaries = scaff.starts,pt.col = grp.colors[1],pt.cex=0,axis.size = 1)
+points(swswt.fst$BP,swswt.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[1])
+swswa.fst<-fst.plot(swsw.al,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", y.lim=c(0,1),
+                    groups = scaffs,group.boundaries = scaff.starts,pt.col=grp.colors[3],pt.cex=0,axis.size = 1)
+points(swswa.fst$BP,swswa.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[3])
+swswf.fst<-fst.plot(swsw.fl,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
+                    groups = scaffs,group.boundaries = scaff.starts,pt.col=grp.colors[6],pt.cex=0,axis.size=1)
+points(swswf.fst$BP,swswf.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[6])
+mtext(expression(italic(F)[ST]),2,outer=T,line=-1,cex=0.75)
+last<-0
+for(i in 1:length(lgs)){
+  text(x=mean(swswf.fst[swswf.fst$Chr ==lgs[i],"BP"]),y=-0.015,
+       labels=lgn[i], adj=1, xpd=TRUE)
+  last<-max(swswf.fst[swswf.fst$Chr ==lgs[i],"BP"])
+}
+dev.off()
 
 
 
