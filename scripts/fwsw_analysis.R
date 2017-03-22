@@ -49,6 +49,13 @@ ped.sub$V1<-gsub("sample_(\\w{4})\\w+.*","\\1",ped.sub$V2)
 map.sub<-read.table("stacks/subset.map",header = F,stringsAsFactors = F)
 map.sub$Locus<-paste(gsub("(\\d+)_\\d+","\\1",map.sub$V2),map.sub$V4,sep=".")
 colnames(ped.sub)<-c("Pop","IID","","","","Phenotype","","",map.sub$Locus)
+vcf<-parse.vcf("stacks/populations/batch_2.vcf")
+vcf$SNP<-paste(vcf$`#CHROM`,vcf$POS,sep=".")
+scaffs<-levels(as.factor(vcf[,1]))
+scaffs[1:22]<-lgs
+scaff.starts<-tapply(vcf$POS,vcf$`#CHROM`,max)
+scaff.starts<-data.frame(rbind(cbind(names(scaff.starts),scaff.starts)),stringsAsFactors = F)
+
 #############################################################################
 #######################PLOT THE POINTS ON A MAP##############################
 #############################################################################
@@ -126,12 +133,54 @@ fl.sig<-fwsw.fl[fwsw.fl$Fisher.s.P<0.01,"Locus.ID"]
 length(tx.sig[(tx.sig %in% c(la.sig,al.sig,fl.sig))])
 length(la.sig[(la.sig %in% c(tx.sig,al.sig,fl.sig))])
 length(al.sig[(al.sig %in% c(la.sig,tx.sig,fl.sig))])
-length(fl.sig[(fl.sig %in% c(la.sig,al.sig,tx.sig))])
+all.shared<-fl.sig[(fl.sig %in% c(la.sig,al.sig,tx.sig))]
+
+#get the ones that are above fst=0.25 in all of them
+shared.fsts<-data.frame(Locus=all.shared,TX=fwsw.tx[fwsw.tx$Fisher.s.P<0.01,"Corrected.AMOVA.Fst"],
+                        LA=fwsw.la[fwsw.la$Fisher.s.P<0.01,"Corrected.AMOVA.Fst"],
+                        AL=fwsw.al[fwsw.al$Fisher.s.P<0.01,"Corrected.AMOVA.Fst"],
+                        FL=fwsw.fl[fwsw.fl$Fisher.s.P<0.01,"Corrected.AMOVA.Fst"])
+
+par(mfrow=c(4,1),mar=c(0.5,2,0.5,0.5),oma=c(2,2,2,2))
+fwswt.fst<-fst.plot(fwsw.tx,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
+                    groups = scaffs,group.boundaries = scaff.starts,pt.col = grp.colors[1],pt.cex=0,axis.size = 1)
+points(fwswt.fst$BP,fwswt.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[1])
+points(fwswt.fst$BP[fwswt.fst$Locus.ID %in% all.shared],fwswt.fst$Corrected.AMOVA.Fst[fwswt.fst$Locus.ID %in% all.shared],
+       pch=0,col="red",cex=1.3)
+fwswl.fst<-fst.plot(fwsw.la,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
+                    groups = scaffs,group.boundaries = scaff.starts,pt.col=grp.colors[3],pt.cex=0,axis.size=1)
+points(fwswl.fst$BP,fwswl.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[3])
+points(fwswl.fst$BP[fwswl.fst$Locus.ID %in% all.shared],fwswl.fst$Corrected.AMOVA.Fst[fwswl.fst$Locus.ID %in% all.shared],
+       pch=0,col="red",cex=1.3)
+fwswa.fst<-fst.plot(fwsw.al,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
+                    groups = scaffs,group.boundaries = scaff.starts,pt.col=grp.colors[4],pt.cex=0,axis.size = 1)
+points(fwswa.fst$BP,fwswa.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[4])
+points(fwswa.fst$BP[fwswa.fst$Locus.ID %in% all.shared],fwswa.fst$Corrected.AMOVA.Fst[fwswa.fst$Locus.ID %in% all.shared],
+       pch=0,col="red",cex=1.3)
+fwswf.fst<-fst.plot(fwsw.fl,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
+                    groups = scaffs,group.boundaries = scaff.starts,pt.col=grp.colors[6],pt.cex=0,axis.size=1)
+points(fwswf.fst$BP,fwswf.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[6])
+points(fwswf.fst$BP[fwswf.fst$Locus.ID %in% all.shared],fwswf.fst$Corrected.AMOVA.Fst[fwswf.fst$Locus.ID %in% all.shared],
+       pch=0,col="red",cex=1.3)
+
+
+
+swswt.fst<-fst.plot(swsw.tx,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
+                    groups = scaffs,group.boundaries = scaff.starts)
+swswa.fst<-fst.plot(swsw.al,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
+                    groups = scaffs,group.boundaries = scaff.starts)
+swswf.fst<-fst.plot(swsw.fl,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
+                    groups = scaffs,group.boundaries = scaff.starts)
+
+
+
+
+
+
 ###
 
 
-vcf<-parse.vcf("stacks/populations/batch_2.vcf")
-vcf$SNP<-paste(vcf$`#CHROM`,vcf$POS,sep=".")
+
 loci.info<-c(colnames(vcf[1:9]),"SNP")
 txcb<-grep("TXCB",colnames(vcf),value = T)
 txfw<-grep("TXFW",colnames(vcf),value = T)
