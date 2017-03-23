@@ -133,7 +133,19 @@ all.shared<-fl.sig[fl.sig %in% la.sig & fl.sig %in% al.sig & fl.sig %in% tx.sig]
 fw.shared.chr<-fwsw.tx[fwsw.tx$Locus.ID %in% all.shared,c("Locus.ID","Chr","BP","Column")]
 tapply(fw.shared.chr$Locus.ID,factor(fw.shared.chr$Chr),function(x){ length(unique(x)) })
 #are they using the same SNPs or different SNPs?
-
+snps<-data.frame(nrow=nrow(fw.shared.chr),ncol=4)
+for(i in 1:nrow(fw.shared.chr)){
+  tx.bp<-fwsw.tx[fwsw.tx$Fisher.s.P<0.01 & fwsw.tx$Locus.ID == fw.shared.chr[i,"Locus.ID"],"BP"]
+  la.bp<-fwsw.la[fwsw.la$Fisher.s.P<0.01 & fwsw.la$Locus.ID == fw.shared.chr[i,"Locus.ID"],"BP"]
+  al.bp<-fwsw.al[fwsw.al$Fisher.s.P<0.01 & fwsw.al$Locus.ID == fw.shared.chr[i,"Locus.ID"],"BP"]
+  fl.bp<-fwsw.fl[fwsw.fl$Fisher.s.P<0.01 & fwsw.fl$Locus.ID == fw.shared.chr[i,"Locus.ID"],"BP"]
+  snps[i,1]<-paste(tx.bp,sep=",",collapse = ",")
+  snps[i,2]<-paste(la.bp,sep=",",collapse = ",")
+  snps[i,3]<-paste(al.bp,sep=",",collapse = ",")
+  snps[i,4]<-paste(fl.bp,sep=",",collapse = ",")
+}
+colnames(snps)<-c("TX","LA","AL","FL")
+snps<-data.frame(cbind(fw.shared.chr,snps))
 
 ##compare to scovelli genome..
 gff<-read.delim("../../scovelli_genome/ssc_122016_chromlevel.gff",header=F)
