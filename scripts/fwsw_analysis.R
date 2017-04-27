@@ -788,3 +788,20 @@ write.table(snpsfile, "bayenv/fwsw.snpsfile",
 
 #NOW RUN MATRIX ESTIMATION: run_bayenv2_matrix_general.sh
 
+###################BAYESCAN########################
+#make the pops file
+vcf<-parse.vcf("batch_2.vcf")
+inds<-colnames(vcf[10:ncol(vcf)])
+pops<-gsub("sample_(\\w{4})\\w+","\\1",inds)
+pops.info<-cbind(inds,pops)
+write.table(pops.info,"fwsw_pops_info_bayescan.txt",quote=F,row.names=F,col.names=F,sep='\t')
+setwd("../bayescan")
+bs.fst<-read.table("bayescan_fwsw_fst.txt")
+plot_bayescan("bayescan_fwsw_fst.txt")
+#plot the fsts
+bs.fst<-data.frame(cbind(vcf[,1:2],bs.fst))
+bs.fst.plot<-fst.plot(bs.fst,fst.name="fst",chrom.name="X.CHROM",bp.name="POS",axis.size=1)#weird fst peak around 0.2
+points(bs.fst.plot$POS[bs.fst.plot$qval<0.05],bs.fst.plot$fst[bs.fst.plot$qval<0.05],pch=19,col="cornflowerblue",cex=0.5)
+
+
+bs.sel<-read.table("bayescan_fwsw.sel")
