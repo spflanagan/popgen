@@ -805,3 +805,8 @@ points(bs.fst.plot$POS[bs.fst.plot$qval<0.05],bs.fst.plot$fst[bs.fst.plot$qval<0
 
 
 bs.sel<-read.table("bayescan_fwsw.sel")
+
+#compare to stacks fsts
+fst.shared<-paste(fw.shared.chr$Chr,(fw.shared.chr$BP+1),sep=".")
+bs.fst.snp<-paste(bs.fst$X.CHROM[bs.fst$qval < 0.05],bs.fst$POS[bs.fst$qval < 0.05],sep=".")
+length(bs.fst.snp[bs.fst.snp %in% fst.shared])
