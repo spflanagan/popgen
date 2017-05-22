@@ -133,7 +133,19 @@ all.shared<-fl.sig[fl.sig %in% la.sig & fl.sig %in% al.sig & fl.sig %in% tx.sig]
 fw.shared.chr<-fwsw.tx[fwsw.tx$Locus.ID %in% all.shared,c("Locus.ID","Chr","BP","Column")]
 tapply(fw.shared.chr$Locus.ID,factor(fw.shared.chr$Chr),function(x){ length(unique(x)) })
 #are they using the same SNPs or different SNPs?
-
+snps<-data.frame(nrow=nrow(fw.shared.chr),ncol=4)
+for(i in 1:nrow(fw.shared.chr)){
+  tx.bp<-fwsw.tx[fwsw.tx$Fisher.s.P<0.01 & fwsw.tx$Locus.ID == fw.shared.chr[i,"Locus.ID"],"BP"]
+  la.bp<-fwsw.la[fwsw.la$Fisher.s.P<0.01 & fwsw.la$Locus.ID == fw.shared.chr[i,"Locus.ID"],"BP"]
+  al.bp<-fwsw.al[fwsw.al$Fisher.s.P<0.01 & fwsw.al$Locus.ID == fw.shared.chr[i,"Locus.ID"],"BP"]
+  fl.bp<-fwsw.fl[fwsw.fl$Fisher.s.P<0.01 & fwsw.fl$Locus.ID == fw.shared.chr[i,"Locus.ID"],"BP"]
+  snps[i,1]<-paste(tx.bp,sep=",",collapse = ",")
+  snps[i,2]<-paste(la.bp,sep=",",collapse = ",")
+  snps[i,3]<-paste(al.bp,sep=",",collapse = ",")
+  snps[i,4]<-paste(fl.bp,sep=",",collapse = ",")
+}
+colnames(snps)<-c("TX","LA","AL","FL")
+snps<-data.frame(cbind(fw.shared.chr,snps))
 
 ##compare to scovelli genome..
 gff<-read.delim("../../scovelli_genome/ssc_122016_chromlevel.gff",header=F)
@@ -817,6 +829,7 @@ colnames(freq)[ncol(freq)]<-"NAC"
 pop.order<-levels(as.factor(freq$CLST))
 snp.names<-split(freq$SNP,freq$CLST)[[1]]
 
+<<<<<<< HEAD
 mac.by.pop<-as.data.frame(split(freq$MAC,freq$CLST))
 rownames(mac.by.pop)<-snp.names
 
@@ -858,3 +871,27 @@ mantel.rtest(as.dist(t(dist)),as.dist(env.dist),999)
 
 #####GET OUTPUT
 bayenv.all<-read.table("bayenv/all.fwsw")
+=======
+###################BAYESCAN########################
+#make the pops file
+vcf<-parse.vcf("batch_2.vcf")
+inds<-colnames(vcf[10:ncol(vcf)])
+pops<-gsub("sample_(\\w{4})\\w+","\\1",inds)
+pops.info<-cbind(inds,pops)
+write.table(pops.info,"fwsw_pops_info_bayescan.txt",quote=F,row.names=F,col.names=F,sep='\t')
+setwd("../bayescan")
+bs.fst<-read.table("bayescan_fwsw_fst.txt")
+plot_bayescan("bayescan_fwsw_fst.txt")
+#plot the fsts
+bs.fst<-data.frame(cbind(vcf[,1:2],bs.fst))
+bs.fst.plot<-fst.plot(bs.fst,fst.name="fst",chrom.name="X.CHROM",bp.name="POS",axis.size=1)#weird fst peak around 0.2
+points(bs.fst.plot$POS[bs.fst.plot$qval<0.05],bs.fst.plot$fst[bs.fst.plot$qval<0.05],pch=19,col="cornflowerblue",cex=0.5)
+
+
+bs.sel<-read.table("bayescan_fwsw.sel")
+
+#compare to stacks fsts
+fst.shared<-paste(fw.shared.chr$Chr,(fw.shared.chr$BP+1),sep=".")
+bs.fst.snp<-paste(bs.fst$X.CHROM[bs.fst$qval < 0.05],bs.fst$POS[bs.fst$qval < 0.05],sep=".")
+length(bs.fst.snp[bs.fst.snp %in% fst.shared])
+>>>>>>> 7d864490f00f566f162dd8a2ca16082c02db6b61
