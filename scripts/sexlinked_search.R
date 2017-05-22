@@ -32,9 +32,7 @@ for(i in 1:length(sw.list)){
   fem<-cbind(vcf[,1:9],
              pop.vcf[,grep(paste("sample_",sw.list[i],"[FD]\\w+",sep=""),
                            colnames(pop.vcf))])
-  outliers<-gwsca(vcf = pop.vcf,locus.info = locus.info,
-                  group1 = colnames(mal),
-                  group2 = colnames(fem))
-  print(max(outliers$NumAlleles))
+  outliers<-apply(pop.vcf,1,fst.one.vcf,group1=colnames(mal),group2=colnames(fem))
+  outliers<-gwsca(pop.vcf,locus.info,colnames(mal),colnames(fem))
   #sexlinked<-c(sexlinked,outliers[,"POS"])
 }
