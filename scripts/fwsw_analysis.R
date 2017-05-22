@@ -749,14 +749,13 @@ write.table(ped.sub,"bayenv/bayenv.plink.ped",
 
 clust.plink<-data.frame(FamID=ped.pops, IndID=ped.sub[,2],Pop=ped.pops)
 write.table(clust.plink, 
-            "stacks/plink.clust.txt",
+            "bayenv/plink.clust.txt",
             col.names=F, row.names=F, quote=F, sep="\t", eol="\n")
-#Then plink --ped bayenv.plink.ped --map subset.map \
-#--extract plink.snplist --out bayenv --noweb --allow-no-sex --recode \
-#--freq --within plink.clust.txt 
+#Then plink --ped bayenv.plink.ped --map subset.map --extract plink.snplist --out bayenv --noweb --allow-no-sex --recode --freq --within plink.clust.txt 
+#9820 SNPs in 698 individuals
 
 #####CONVERT PLINK TO BAYENV2
-freq<-read.table("bayenv/bayenv.frq.strat", 
+freq<-read.table("stacks/bayenv.frq.strat", 
                  header=T, stringsAsFactors=F)
 #want to get $MAC for every snp at every pop 
 #and NCHROBS-MAC for every stnp at every pop
@@ -775,4 +774,87 @@ write.table(snpsfile, "bayenv/fwsw.snpsfile",
             col.names=F,row.names=F,quote=F,sep="\t",eol="\n") #bayenv SNPSFILE
 
 #NOW RUN MATRIX ESTIMATION: run_bayenv2_matrix_general.sh
+#../../scripts/run_bayenv2_matrix_general.sh fwsw.snpsfile 16
+#last run on 1 May 2017
 
+#####check Bayenv2 matrix--NOT YET DONE
+matrix.files<-list.files("bayenv/",pattern="matrix")
+matrices<-list()
+for(i in 1:length(matrix.files))
+{
+  matrices[[i]]<-as.matrix(read.table(paste("bayenv/",matrix.files[i],sep=""), skip=3597, header=F))
+  rownames(matrices[[i]])<-colnames(matrices[[i]])<-pop.order
+  #there are multiple matrices, one every 500 iterations..I'm taking the last one
+}
+image(matrices[[1]])
+image(matrices[[2]])
+image(matrices[[3]])
+image(matrices[[4]])
+image(matrices[[5]])
+image(matrices[[6]])
+image(matrices[[7]])
+image(matrices[[8]])
+image(matrices[[9]])
+image(matrices[[10]])
+#these are all essentially the same-use representative matrix
+
+#####SNPFILEs
+#for SNPFILE, need just one file per SNP apparently.
+#want to use all of the snps (not just the pruned set)...need to get map with those inds.
+all.snps.ped<-read.table("stacks/batch_2.plink.ped", header=F, stringsAsFactors=F)
+ped.pop<-sub('sample_(\\w{4}).*','\\1', all.snps.ped[,2])
+all.snps.clust<-cbind(ped.pop,all.snps.ped[,2],ped.pop)
+write.table(all.snps.clust, "stacks/all.clust.txt", sep="\t", eol="\n", quote=F,
+            row.names=F, col.names=F)
+#then need to run 
+#plink --file batch_2.plink --freq --within all.clust.txt --allow-no-sex --noweb --out all.bayenv.plink
+
+#read in frequency per pop
+all.snps.frq<-read.table("stacks/all.bayenv.plink.frq.strat", 
+                         header=T, stringsAsFactors=F)
+freq<-cbind(freq,freq$NCHROBS-freq$MAC)
+colnames(freq)[ncol(freq)]<-"NAC"
+pop.order<-levels(as.factor(freq$CLST))
+snp.names<-split(freq$SNP,freq$CLST)[[1]]
+
+mac.by.pop<-as.data.frame(split(freq$MAC,freq$CLST))
+rownames(mac.by.pop)<-snp.names
+
+write.table(mac.by.pop, "bayenv/all.fwsw", 
+            col.names=F,row.names=F,quote=F,sep="\t",eol="\n")
+
+#then run this:
+#./calc bfs.sh SNPSFILE ENVIRONFILE MATRIXFILE NUMPOPS NUMITER NUMENVIRON
+#$ ~/Programs/bayenv_2/calc_bf.sh fwsw.snpsfile env_data_std.txt representative_matrix.txt 16 100000 3
+
+#####ENVFILE
+env.raw<-read.csv("bayenv/env_data_raw.csv",row.names=1)
+#Each environmental variable should be standardized, 
+#i.e. subtract the mean and then divided through by the standard deviation 
+#of the variable across populations.
+std.by.mean<-function(x){
+  m<-mean(x)
+  s<-sd(x)
+  newx<-(x-m)/s
+  return(newx)
+}
+env.std<-t(apply(env.raw,1,std.by.mean))
+env.std<-env.std[,colnames(snpsfile)] #change the column order to match
+write.table(env.std,
+            "bayenv/env_data_std.txt",
+            sep='\t',quote=F,col.names=F,row.names=F,eol='\n')
+
+##Are they correlated with distance?
+colnames(env.raw)[colnames(env.dist) =="FLLG"]<-"FLFW"
+env.dist<-as.matrix(vegdist(t(env.raw)))
+env.dist<-env.dist[rownames(dist),colnames(dist)]
+mantel.rtest(as.dist(t(dist)),as.dist(env.dist),999)
+# Monte-Carlo test
+# Observation: 0.1329135 
+# Call: mantelnoneuclid(m1 = m1, m2 = m2, nrepet = nrepet)
+# Based on 999 replicates
+# Simulated p-value: 0.104
+
+
+#####GET OUTPUT
+bayenv.all<-read.table("bayenv/all.fwsw")
