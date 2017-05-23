@@ -48,8 +48,8 @@ sexlinked$SNP<-paste(sexlinked$Chrom,as.numeric(as.character(sexlinked$Pos)),sep
 
 data.frame(table(sexlinked$locus)) #LG7.8032058    2
 dups<-sexlinked[sexlinked$locus %in% sexlinked[duplicated(sexlinked$locus),"locus"],]
-dups<-dups[order(dups$SNP),]
-dupsnps<-dups$SNP
+dups<-dups[order(dups$locus),]
+dupsnps<-dups$locus
 
 numerous.dups<-data.frame(table(uppers[,2]))
 shared<-numerous.dups[numerous.dups[,2]>=12,]
@@ -59,9 +59,13 @@ for(i in 1:nrow(shared)){
   this.pop<-""
   for(ii in 1:length(sw.list)){
          if(length(fsts[[ii]][fsts[[ii]]$locus %in% shared[i,1],])>0){
-           pops[[i]]<-paste(this.pop,sw.list[i],sep="")
+           this.loc<-fsts[[ii]][fsts[[ii]]$locus %in% shared[i,1],]
+           if(nrow(this.loc[this.loc$Fst >= quantile(fsts[[ii]]$Fst,0.95),])>0){
+            this.pop<-paste(this.pop,sw.list[ii],sep=",")
+           }
          }
   }
+  pops[[i]]<-this.pop
 }
 
 par(mfrow=c(3,4),oma=c(2,2,2,2),mar=c(2,2,2,2))
@@ -69,12 +73,10 @@ par(mfrow=c(3,4),oma=c(2,2,2,2),mar=c(2,2,2,2))
 for(i in 1:length(sw.list)){
   fst<-fst.plot(fsts[[i]],bp.name="Pos")
   abline(h=quantile(fsts[[i]]$Fst,0.95),col="cornflowerblue")
-  fst$SNP<-paste(fst$Chrom,as.numeric(as.character(fst$Pos)),sep=".")
-  points(fst[fst$SNP %in% dupsnps,"plot.pos"],fst[fst$SNP %in% dupsnps,"Fst"],col="cornflowerblue")
-  points(fst[fst$SNP %in% uppers$SNP,"plot.pos"],fst[fst$SNP %in% uppers$SNP,"Fst"],col="violet",pch=19)
+  points(fst[fst$locus %in% dupsnps,"plot.pos"],fst[fst$locus %in% dupsnps,"Fst"],col="cornflowerblue")
+  points(fst[fst$locus %in% shared[,1],"plot.pos"],fst[fst$locus %in% shared[,1],"Fst"],col="violet",pch=19)
 }
 
 
-
-
-#so, now we don't have these things
+#none of them are outliers in all pops
+#and none are significant in all pops
