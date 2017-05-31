@@ -870,7 +870,7 @@ mantel.rtest(as.dist(t(dist)),as.dist(env.dist),999)
 
 
 #####GET OUTPUT
-bayenv.all<-read.table("bayenv/all.fwsw")
+bayenv.all<-read.table("bf_environ.env_data_std.txt")
 
 ###################BAYESCAN########################
 #make the pops file
