@@ -813,32 +813,50 @@ image(matrices[[10]])
 #####SNPFILEs
 #for SNPFILE, need just one file per SNP apparently.
 #want to use all of the snps (not just the pruned set)...need to get map with those inds.
+all.snps.map<-read.table("stacks/batch_2.plink.map",header=F,stringsAsFactors = F)
 all.snps.ped<-read.table("stacks/batch_2.plink.ped", header=F, stringsAsFactors=F)
 ped.pop<-sub('sample_(\\w{4}).*','\\1', all.snps.ped[,2])
+all.snps.ped[,1]<-ped.pop
+all.snps.ped[,5]<-ped.sex
+write.table(all.snps.ped,"stacks/fwsw_all.ped",col.names=F,row.names=F,quote=F,sep='\t',eol='\n')
 all.snps.clust<-cbind(ped.pop,all.snps.ped[,2],ped.pop)
 write.table(all.snps.clust, "stacks/all.clust.txt", sep="\t", eol="\n", quote=F,
             row.names=F, col.names=F)
 #then need to run 
-#plink --file batch_2.plink --freq --within all.clust.txt --allow-no-sex --noweb --out all.bayenv.plink
+#plink --map batch_2.plink.map --ped fwsw_all.ped --freq --within all.clust.txt --allow-no-sex --noweb --out all.bayenv.plink
+#57251 markers in 698 individuals
 
 #read in frequency per pop
 all.snps.frq<-read.table("stacks/all.bayenv.plink.frq.strat", 
                          header=T, stringsAsFactors=F)
-freq<-cbind(freq,freq$NCHROBS-freq$MAC)
+#want to get $MAC for every snp at every pop 
+#and NCHROBS-MAC for every stnp at every pop
+freq<-cbind(all.snps.frq,all.snps.frq$NCHROBS-all.snps.frq$MAC)
 colnames(freq)[ncol(freq)]<-"NAC"
 pop.order<-levels(as.factor(freq$CLST))
 snp.names<-split(freq$SNP,freq$CLST)[[1]]
-
-
 mac.by.pop<-as.data.frame(split(freq$MAC,freq$CLST))
-rownames(mac.by.pop)<-snp.names
+rownames(mac.by.pop)<-all.snps.map[,2]
+nac.by.pop<-as.data.frame(split(freq$NAC,freq$CLST))
+rownames(nac.by.pop)<-all.snps.map[,2]
+all.snpsfile<-interleave(mac.by.pop,nac.by.pop)
 
-write.table(mac.by.pop, "bayenv/all.fwsw", 
+write.table(all.snpsfile, "bayenv/all.fwsw", 
             col.names=F,row.names=F,quote=F,sep="\t",eol="\n")
 
 #then run this:
 #./calc bfs.sh SNPSFILE ENVIRONFILE MATRIXFILE NUMPOPS NUMITER NUMENVIRON
-#$ ~/Programs/bayenv_2/calc_bf.sh fwsw.snpsfile env_data_std.txt representative_matrix.txt 16 100000 3
+#$ ~/Programs/bayenv_2/calc_bf.sh all.fwsw env_data_std.txt representative_matrix.txt 16 100000 3
+
+## or try running it on your own
+for(i in 1:nrow(all.snpsfile)){
+  write.table(all.snpsfile[i:(i+1),],paste("bayenv/snpfiles/",rownames(all.snpsfile)[i],sep=""),
+              quote=F,col.names=F,row.names=F,sep='\t')
+}
+#THINGS ARENT WORKING RIGHT - yields segmentation fault. maybe because of eol?
+
+#~/Programs/bayenv_2/bayenv2 -i $f -e $ENVFILE -m $MATFILE -k $ITNUM -r $RANDOM -p $POPNUM -n $ENVNUM -t
+#~/Programs/bayenv_2/bayenv2 -i ./20645_26 -e ../env_data_std.txt -m ../representative_matrix.txt -k 100000 -r 416 -p 16 -n 3 -t
 
 #####ENVFILE
 env.raw<-read.csv("bayenv/env_data_raw.csv",row.names=1)
@@ -870,7 +888,43 @@ mantel.rtest(as.dist(t(dist)),as.dist(env.dist),999)
 
 
 #####GET OUTPUT
-bayenv.all<-read.table("bf_environ.env_data_std.txt")
+bayenv.all<-read.table("bayenv/bf_environ.env_data_std.txt")
+#why are there 2 rows per snp???
+colnames(bayenv.all)<-c("SNP",rownames(env.raw))
+bayenv.all$SNP<-rownames(snpsfile)
+bayenv.all$locus<-gsub("(\\d+)_\\d+","\\1",bayenv.all$SNP)
+map.all$locus<-gsub("(\\d+)_\\d+","\\1",map.all$V2)
+
+bf<-t(as.data.frame(do.call("cbind",apply(bayenv.all,1,function(x){
+  chrom<-map.all$V1[map.all$locus %in% x["locus"]]
+  pos<-map.all$V4[map.all$V2 %in% x["SNP"]]
+  if(length(unique(chrom))==1){
+    this.chrom<-unique(chrom)
+  } else{
+    this.chrom<-"BADCHROMNUM"
+  }
+  new<-data.frame(SNP=x["SNP"],temp=as.numeric(x["temp"]),
+                     salinity=as.numeric(x["salinity"]),
+                     seagrass=as.numeric(x["seagrass"]),
+                     Chrom=as.character(this.chrom),
+                     Pos=as.numeric(pos),stringsAsFactors=F)
+  return(new)
+})),stringsAsFactors=F))
+rownames(bf)<-NULL
+colnames(bf)<-c("SNP","temp","salinity","seagrass","locus","Chrom","Pos")
+bf<-as.data.frame(bf,stringsAsFactors = F)
+bf$logTemp<-log(as.numeric(bf$temp))
+bf$logSalt<-log(as.numeric(bf$salinity))
+bf$logSeag<-log(as.numeric(bf$seagrass))
+write.table(bf,"bayenv/fwsw_environ_corr.txt",
+            col.names=T,row.names=F,quote=F,sep='\t')
+
+bf.co<-apply(bayenv.all[,2:4],2,quantile,0.95) #get the cutoffs
+temp.sig<-bf[bf[,"temp"]>bf.co["temp"],]
+salt.sig<-bf[bf[,"salinity"]>bf.co["salinity"],]
+seag.sig<-bf[bf[,"seagrass"]>bf.co["seagrass"],]
+
+fst.plot(fst.dat = bf,fst.name = "logTemp",chrom.name = "Chrom")
 
 ###################BAYESCAN########################
 #make the pops file
