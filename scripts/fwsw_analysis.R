@@ -55,7 +55,7 @@ scaffs<-levels(as.factor(vcf[,1]))
 scaffs[1:22]<-lgs
 scaff.starts<-tapply(vcf$POS,vcf$`#CHROM`,max)
 scaff.starts<-data.frame(rbind(cbind(names(scaff.starts),scaff.starts)),stringsAsFactors = F)
-
+locus.info<-c(colnames(vcf[1:9]),"SNP")
 #############################################################################
 #######################PLOT THE POINTS ON A MAP##############################
 #############################################################################
@@ -115,7 +115,7 @@ rownames(ibd.by.loc)<-sub.map$V2
 #############################################################################
 #################################OUTLIERS####################################
 #############################################################################
-#******************************STACKS*********************************#
+###******************************STACKS*********************************####
 #Compare neighboring pops.
 fwsw.tx<-read.delim("stacks/batch_2.fst_TXCC-TXFW.tsv")
 fwsw.la<-read.delim("stacks/batch_2.fst_ALST-LAFW.tsv")
@@ -273,10 +273,7 @@ dev.off()
 
 
 
-###
-
-
-
+####### Using gwscaR code #####
 loci.info<-c(colnames(vcf[1:9]),"SNP")
 txcb<-grep("TXCB",colnames(vcf),value = T)
 txfw<-grep("TXFW",colnames(vcf),value = T)
@@ -419,6 +416,34 @@ dev.off()
 # ss.ta<-plotting.fsts.scaffs(swsw.ta,"Fst",pt.lty=1)
 # ss.af<-plotting.fsts.scaffs(swsw.af,"Fst",pt.lty=1)
 
+#### Delta-divergence ####
+#sw-fw
+swfw.mu<-data.frame(Chrom=vcf$`#CHROM`,Pos=vcf$POS,SNP=vcf$SNP,
+                    Sum.Fst=rep(0,nrow(vcf)),Count=rep(0,nrow(vcf)),
+                    Mean.Fst=rep(0,nrow(vcf)),stringsAsFactors=FALSE)
+for(i in 1:length(sw.list)){
+  for(j in 1:length(fw.list)){
+    fsts<-gwsca(vcf=vcf,locus.info=locus.info,
+          group1=colnames(vcf)[grep(sw.list[i],colnames(vcf))],
+          group2=colnames(vcf)[grep(fw.list[j],colnames(vcf))])
+    fsts$Fst[fsts$Fst==0]<-NA #replace ones that weren't calc'd with NA
+    fsts$SNP<-paste(fsts$Chrom,as.numeric(as.character(fsts$Pos)),sep=".")
+    new.mu<-do.call("rbind",apply(swfw.mu,1,function(x){
+      new.x<-data.frame(Chrom=x["Chrom"],Pos=x["Pos"],SNP=x["SNP"],
+                        Sum.Fst=as.numeric(x["Sum.Fst"]),Count=as.numeric(x["Count"]),
+                        Mean.Fst=as.numeric(x["Mean.Fst"]),stringsAsFactors=FALSE)
+      this.fst<-fsts[fsts$SNP %in% x["SNP"],]
+      if(nrow(this.fst)>0){
+      if(!is.na(this.fst["Fst"])){
+        new.x["Sum.Fst"]<-new.x["Sum.Fst"]+this.fst["Fst"]
+        new.x["Count"]<-new.x["Count"]+1
+      }}
+      return(new.x)
+    }))
+    swfw.mu<-new.mu
+  }
+}
+swfw.mu$Mean.Fst<-swfw.mu$Sum.Fst/swfw.mu$Count
 
 #############################################################################
 ##############################POP STRUCTURE##################################
