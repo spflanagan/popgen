@@ -1,3 +1,6 @@
+# Looking for sex-linked markers in S. scovelli
+## Using 12 marine populations
+setwd("B:/ubuntushare/popgen/fwsw_results")
 source("../../gwscaR/R/gwscaR.R")
 
 pop.list<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
@@ -46,6 +49,8 @@ for(i in 1:length(sw.list)){
 }
 sexlinked$SNP<-paste(sexlinked$Chrom,as.numeric(as.character(sexlinked$Pos)),sep=".")
 
+### Looking for shared ones
+
 data.frame(table(sexlinked$locus)) #LG7.8032058    2
 dups<-sexlinked[sexlinked$locus %in% sexlinked[duplicated(sexlinked$locus),"locus"],]
 dups<-dups[order(dups$locus),]
@@ -53,6 +58,10 @@ dupsnps<-dups$locus
 
 numerous.dups<-data.frame(table(uppers[,2]))
 shared<-numerous.dups[numerous.dups[,2]>=12,]
+
+max(data.frame(table(sexlinked$locus))[,2])
+max(data.frame(table(sexlinked$SNP))[,2])
+
 
 pops<-list()
 for(i in 1:nrow(shared)){
