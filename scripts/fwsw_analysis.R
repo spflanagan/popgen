@@ -428,6 +428,9 @@ deltad<-deltad[,c("SNP","Chrom.x","Pos.x","Mean.Fst.x","Mean.Fst.y")]
 colnames(deltad)<-c("SNP","Chrom","Pos","MeanSWFW.Fst","MeanFWFW.Fst")
 deltad$deltad<-deltad$MeanSWFW.Fst - deltad$MeanFWFW.Fst
 deltad<-deltad[!is.na(deltad$deltad),]#remove NAs
+#' Plot it
+png("delta-divergence.png",height=5,width=7,units="in",res=300)
+par(mar=c(1,1,1,1),oma=c(1,2,1,1))
 dd<-fst.plot(fst.dat = deltad,fst.name = "deltad",bp.name = "Pos",axis=1)
 mtext(expression(paste(delta,"-divergence")),2,line=1.5)
 smooth.out<-data.frame()
@@ -439,7 +442,10 @@ for(i in 1:length(lgs)){#scaffolds are too short
   this.out<-cbind(this.smooth$x[this.smooth$y>=0.2],this.smooth$y[this.smooth$y>=0.2])
   smooth.out<-rbind(smooth.out,this.out)
 }
-
+dev.off()
+colnames(smooth.out)<-c("plot.pos","smooth.deltad")
+smooth.out<-merge(smooth.out,dd,by="plot.pos")
+write.table(smooth.out,"smoothed.deltad.out.txt",col.names=T,row.names=F,quote=F,sep='\t')
 
 #' sliding window pi and rho - across all snps
 #' pi = 1-sum((ni choose 2)/(n choose i)); ni is number of alleles i in sample, n = sum(ni)
