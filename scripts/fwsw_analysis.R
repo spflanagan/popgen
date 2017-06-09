@@ -56,6 +56,7 @@ scaffs[1:22]<-lgs
 scaff.starts<-tapply(vcf$POS,vcf$`#CHROM`,max)
 scaff.starts<-data.frame(rbind(cbind(names(scaff.starts),scaff.starts)),stringsAsFactors = F)
 locus.info<-c(colnames(vcf[1:9]),"SNP")
+chosen.snps<-choose.one.snp(vcf)$SNP
 #############################################################################
 #######################PLOT THE POINTS ON A MAP##############################
 #############################################################################
@@ -417,33 +418,42 @@ dev.off()
 # ss.af<-plotting.fsts.scaffs(swsw.af,"Fst",pt.lty=1)
 
 #### Delta-divergence ####
+#' only use chosen SNPs
+vcf<-vcf[vcf$SNP %in% chosen.snps,]
 #sw-fw
-swfw.mu<-data.frame(Chrom=vcf$`#CHROM`,Pos=vcf$POS,SNP=vcf$SNP,
-                    Sum.Fst=rep(0,nrow(vcf)),Count=rep(0,nrow(vcf)),
-                    Mean.Fst=rep(0,nrow(vcf)),stringsAsFactors=FALSE)
-for(i in 1:length(sw.list)){
-  for(j in 1:length(fw.list)){
-    fsts<-gwsca(vcf=vcf,locus.info=locus.info,
-          group1=colnames(vcf)[grep(sw.list[i],colnames(vcf))],
-          group2=colnames(vcf)[grep(fw.list[j],colnames(vcf))])
-    fsts$Fst[fsts$Fst==0]<-NA #replace ones that weren't calc'd with NA
-    fsts$SNP<-paste(fsts$Chrom,as.numeric(as.character(fsts$Pos)),sep=".")
-    new.mu<-do.call("rbind",apply(swfw.mu,1,function(x){
-      new.x<-data.frame(Chrom=x["Chrom"],Pos=x["Pos"],SNP=x["SNP"],
-                        Sum.Fst=as.numeric(x["Sum.Fst"]),Count=as.numeric(x["Count"]),
-                        Mean.Fst=as.numeric(x["Mean.Fst"]),stringsAsFactors=FALSE)
-      this.fst<-fsts[fsts$SNP %in% x["SNP"],]
-      if(nrow(this.fst)>0){
-      if(!is.na(this.fst["Fst"])){
-        new.x["Sum.Fst"]<-new.x["Sum.Fst"]+this.fst["Fst"]
-        new.x["Count"]<-new.x["Count"]+1
-      }}
-      return(new.x)
-    }))
-    swfw.mu<-new.mu
-  }
+swfw.mu<-calc.mean.fst(vcf = vcf,pop.list1 = sw.list,pop.list2 = fw.list,maf.cutoff=0.01)
+fwfw.mu<-calc.mean.fst(vcf = vcf,pop.list1 = fw.list,pop.list2 = fw.list, maf.cutoff=0.01)
+deltad<-merge(swfw.mu,fwfw.mu,by="SNP")
+deltad<-deltad[,c("SNP","Chrom.x","Pos.x","Mean.Fst.x","Mean.Fst.y")]
+colnames(deltad)<-c("SNP","Chrom","Pos","MeanSWFW.Fst","MeanFWFW.Fst")
+deltad$deltad<-deltad$MeanSWFW.Fst - deltad$MeanFWFW.Fst
+deltad<-deltad[!is.na(deltad$deltad),]#remove NAs
+dd<-fst.plot(fst.dat = deltad,fst.name = "deltad",bp.name = "Pos",axis=1)
+mtext(expression(paste(delta,"-divergence")),2,line=1.5)
+smooth.out<-data.frame()
+for(i in 1:length(lgs)){#scaffolds are too short
+  this.chrom<-dd[dd$Chrom %in% lgs[i],]
+  #span<-nrow(this.chrom)/5000
+  this.smooth<-loess.smooth(this.chrom$plot.pos,this.chrom$deltad,span=0.1,degree=2) 
+  points(this.smooth$x,this.smooth$y,col="cornflowerblue",type="l",lwd=2)
+  this.out<-cbind(this.smooth$x[this.smooth$y>=0.2],this.smooth$y[this.smooth$y>=0.2])
+  smooth.out<-rbind(smooth.out,this.out)
 }
-swfw.mu$Mean.Fst<-swfw.mu$Sum.Fst/swfw.mu$Count
+
+
+#' sliding window pi and rho - across all snps
+#' pi = 1-sum((ni choose 2)/(n choose i)); ni is number of alleles i in sample, n = sum(ni)
+#' rho=1 if allele in pop j is only found in that pop and at least one ind was genotyped at that site in each pop; rho = 0 otherwise
+#' Jones et al. (2012) used 2500bp sliding windows with a step size 500bp<-more than just SNPs, but I'll just focus on SNPs
+#' Hohenlohe did a similar thing and weighted pi by all nt sites (not just SNPs) but rho by SNPs only
+#' Not sure how to make this work for me.
+
+#' to get trees and calc gsi (maybe):
+#' for each overlapping sliding window (of 33 SNPs, for example), 
+#' generate distance matrix (Fsts) using those SNPs
+#' ape::nj(as.dist(matrix), "unrooted")
+#' genealogicalSorting::gsi(tree, class, assignments, uncertainty)
+
 
 #############################################################################
 ##############################POP STRUCTURE##################################
