@@ -449,17 +449,113 @@ write.table(smooth.out,"smoothed.deltad.out.txt",col.names=T,row.names=F,quote=F
 
 #' sliding window pi and rho - across all snps
 #' pi = 1-sum((ni choose 2)/(n choose i)); ni is number of alleles i in sample, n = sum(ni)
-#' rho=1 if allele in pop j is only found in that pop and at least one ind was genotyped at that site in each pop; rho = 0 otherwise
 #' Jones et al. (2012) used 2500bp sliding windows with a step size 500bp<-more than just SNPs, but I'll just focus on SNPs
 #' Hohenlohe did a similar thing and weighted pi by all nt sites (not just SNPs) but rho by SNPs only
 #' Not sure how to make this work for me.
+#' 
+calc.pi<-function(vcf.row){
+  alleles<-vcf.alleles(vcf.row)
+  af.num<-table(alleles)
+  n<-sum(af.num)
+  pi<-1-sum(choose(af.num,2))/choose(n,2)
+  return(pi)
+}
+
+#' rho=1 if allele in pop j is only found in that pop and at least one ind was genotyped at that site 
+#' in each pop; rho = 0 otherwise
+calc.rho<-function(vcf.row,pop.list){
+  pop.alleles<-lapply(pop.list,function(pop){
+    pop.vcf<-cbind(vcf.row[1:9],vcf.row[grep(pop,colnames(vcf.row))])
+    alleles<-vcf.alleles(pop.vcf)
+    af.num<-table(alleles)
+    return(names(af.num))
+  })
+  rho<-0
+  pop.counts<-lapply(pop.alleles,length)
+  if(length(pop.counts[pop.counts==0])>0){
+    unique.counts<-table(unlist(pop.alleles[pop.counts==1]))
+    uni<-unique.counts[unique.counts==1]
+    if(length(uni)>1){
+    uni.matches<-grep(names(uni),pop.alleles)
+    if(length(uni.matches)==1){ #it should only match itself
+      rho<-1}
+  }}
+  return(rho)
+}
+
+
+sliding.avg<-function(dat,win.start,width){
+  if((win.start+width)>nrow(dat)){
+    win.end<-nrow(dat)
+  }else {
+    win.end<-(win.start+width)
+  }
+  win.dat<-dat[win.start:win.end,]
+  avg.dat<-data.frame(Avg.Pos=mean(dat[win.start:win.end,1]),
+                     Avg.Pi=mean(win.dat[,2]))
+  return(avg.dat)
+}
+
+sliding.window<-function(vcf,chr,stat="pi",width=250,pop.list=NULL){
+  avg.dat<-lapply(chr,function(chr){
+    chr.vcf<-vcf[vcf[,1] %in% chr,]
+    if(stat=="pi"){
+      dat<-data.frame(Pos=chr.vcf$POS,Pi=unlist(apply(chr.vcf,1,calc.pi))) }
+    if(stat=="rho"){
+      dat<-data.frame(Pos=chr.vcf$POS,Rho=unlist(apply(chr.vcf,1,calc.rho,pop.list=pop.list))) }
+    steps<-seq(1,nrow(chr.vcf),50)
+    if(stat=="pi"){
+      avg.stat<-do.call("rbind",lapply(steps,sliding.avg,dat=dat,width=width)) }
+    if(stat=="rho"){
+      avg.stat<-do.call("rbind",lapply(steps,sliding.avg,dat=dat,width=width)) }
+    avg.stat$Chr<-rep(chr,nrow(avg.stat))
+    head(avg.stat)
+    return(avg.stat)
+  })
+  return(avg.dat)
+}
+#pi
+avg.pi<-do.call("rbind",sliding.window(vcf,scaffs))
+avg.pi.adj<-fst.plot(avg.pi,scaffold.widths=scaff.starts,
+                     fst.name = "Avg.Pi",chrom.name = "Chr",bp.name = "Avg.Pos")
+all.pi<-data.frame(Chrom=vcf$`#CHROM`,Pos=vcf$POS,Pi=unlist(apply(vcf,1,calc.pi)))
+all.pi$SNP<-paste(all.pi$Chrom,as.numeric(as.character(all.pi$Pos)),sep=".")
+
+#rho
+avg.rho<-do.call("rbind",sliding.window(vcf,scaffs,stat = "rho",pop.list=pop.list))
+avg.rho.adj<-fst.plot(avg.rho,scaffold.widths=scaff.starts,
+                     fst.name = "Avg.Pi",chrom.name = "Chr",bp.name = "Avg.Pos")
+all.rho<-data.frame(Chrom=vcf$`#CHROM`,Pos=vcf$POS,Rho=unlist(apply(vcf,1,calc.rho,pop.list=pop.list)))
+all.rho$SNP<-paste(all.rho$Chrom,as.numeric(as.character(all.rho$Pos)),sep=".")
+
+#plot
+png("FWSWpi.png",height=5,width=7,units="in",res=300)
+par(oma=c(2,2,2,2),mar=c(2,2,2,2))
+pi.plot<-fst.plot(all.pi,scaffold.widths=scaff.starts,y.lim=c(0,0.5),axis.size = 0.5,
+                     fst.name = "Pi",chrom.name = "Chrom",bp.name = "Pos")
+points(x=avg.pi.adj$plot.pos,y=avg.pi.adj$Avg.Pi,col="cornflowerblue",type="l",lwd=2)
+dev.off()
 
 #' to get trees and calc gsi (maybe):
 #' for each overlapping sliding window (of 33 SNPs, for example), 
 #' generate distance matrix (Fsts) using those SNPs
 #' ape::nj(as.dist(matrix), "unrooted")
 #' genealogicalSorting::gsi(tree, class, assignments, uncertainty)
+#' http://molecularevolution.org/software/phylogenetics/gsi/download
 
+library(ape)
+get.dist<-function(vcf.row,pop.list){
+  fst.matrix<-matrix(nrow=length(pop.list),ncol=length(pop.list))
+  for(i in 1:(length(pop.list)-1)){
+    for(j in (i+1):length(pop.list)){
+      pop1<-colnames(vcf.row)[grep(pop.list[i],colnames(vcf.row))]
+      pop2<-colnames(vcf.row)[grep(pop.list[j],colnames(vcf.row))]
+      fst<-fst.one.vcf(vcf.row, pop1,pop2,maf=0,cov.thresh = 0)
+      fst.matrix[i,j]<-fst$Fst
+    }
+  }
+  fst.nj<-ape::njs(as.dist(t(fst.matrix)))#, "unrooted"
+}
 
 #############################################################################
 ##############################POP STRUCTURE##################################
