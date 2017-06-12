@@ -13,6 +13,7 @@ library(boot)
 library(adegenet)
 library(scales)
 library(gdata)
+library(ape)
 
 setwd("B:/ubuntushare/popgen/fwsw_results/")
 #source("../scripts/popgen_functions.R")
@@ -536,6 +537,24 @@ pi.plot<-fst.plot(all.pi,scaffold.widths=scaff.starts,y.lim=c(0,0.5),axis.size =
 points(x=avg.pi.adj$plot.pos,y=avg.pi.adj$Avg.Pi,col="cornflowerblue",type="l",lwd=2)
 dev.off()
 
+par(mfrow=c(2,1),mar=c(1,1,1,1),oma=c(1,2,1,1))
+dd<-fst.plot(fst.dat = deltad,fst.name = "deltad",bp.name = "Pos",axis=1,
+             y.lim=c(-0.5,1),scaffold.widths=scaff.starts)
+mtext(expression(paste(delta,"-divergence")),2,line=1.5)
+smooth.out<-data.frame()
+for(i in 1:length(lgs)){#scaffolds are too short
+  this.chrom<-dd[dd$Chrom %in% lgs[i],]
+  #span<-nrow(this.chrom)/5000
+  this.smooth<-loess.smooth(this.chrom$plot.pos,this.chrom$deltad,span=0.1,degree=2) 
+  points(this.smooth$x,this.smooth$y,col="cornflowerblue",type="l",lwd=2)
+  this.out<-cbind(this.smooth$x[this.smooth$y>=0.2],this.smooth$y[this.smooth$y>=0.2])
+  smooth.out<-rbind(smooth.out,this.out)
+}
+pi.plot<-fst.plot(all.pi,scaffold.widths=scaff.starts,y.lim=c(0,0.5),axis.size = 1,
+                  fst.name = "Pi",chrom.name = "Chrom",bp.name = "Pos")
+points(x=avg.pi.adj$plot.pos,y=avg.pi.adj$Avg.Pi,col="cornflowerblue",type="l",lwd=2)
+mtext(expression(pi),2,line=1.5)
+
 #' to get trees and calc gsi (maybe):
 #' for each overlapping sliding window (of 33 SNPs, for example), 
 #' generate distance matrix (Fsts) using those SNPs
@@ -544,6 +563,7 @@ dev.off()
 #' http://molecularevolution.org/software/phylogenetics/gsi/download
 
 library(ape)
+library(genealogicalSorting) #installed from source
 get.dist<-function(vcf.row,pop.list){
   fst.matrix<-matrix(nrow=length(pop.list),ncol=length(pop.list))
   for(i in 1:(length(pop.list)-1)){
@@ -554,8 +574,46 @@ get.dist<-function(vcf.row,pop.list){
       fst.matrix[i,j]<-fst$Fst
     }
   }
-  fst.nj<-ape::njs(as.dist(t(fst.matrix)))#, "unrooted"
+  fst.nj<-ape::njs(as.dist(t(fst.matrix)))#, "unrooted" ##NOT WORKING??
 }
+
+#' Generate a treemix file from vcf
+#' 
+treemix.from.vcf<-function(vcf,pop.list){
+  tm.df<-matrix(nrow=nrow(vcf),ncol=length(pop.list))
+  for(i in 1:nrow(vcf)){
+    vcf.row<-vcf[i,]
+    #tm.df<-as.matrix(t(apply(vcf,1,function(vcf.row){ #freaking apply was giving me weird results
+    all.alleles<-names(table(vcf.alleles(vcf.row))) 
+    if(length(all.alleles)==2){
+    this.loc<-do.call("cbind",  
+                      lapply(pop.list,function(pop){
+                        pop.vcf.row<-cbind(vcf.row[1:9],vcf.row[grep(pop,colnames(vcf.row))])
+                        pop.alleles<-vcf.alleles(pop.vcf.row)
+                        pop.counts<-table(pop.alleles)
+                        tm.pop<-"0,0"
+                        if(length(pop.counts)==1){
+                          allele<-names(pop.counts)
+                          if(grep(allele,all.alleles)==1){ #maintain order
+                            tm.pop<-paste(pop.counts[[1]],0,sep=",") 
+                          }else{
+                            tm.pop<-paste(0,pop.counts[[1]],sep=",") }
+                        }
+                        if(length(pop.counts)==2){
+                          tm.pop<-paste(pop.counts[[all.alleles[1]]],pop.counts[[all.alleles[2]]],sep=",") 
+                        }
+                        return(tm.pop)
+                      }))
+    }
+    #return(this.loc)
+    tm.df[i,]<-as.vector(this.loc)
+  }#)))
+  colnames(tm.df)<-pop.list
+  return(tm.df)
+}
+tm.fwsw<-treemix.from.vcf(vcf,pop.list)
+write.table(tm.fwsw,"fwsw.treemix",col.names=TRUE,row.names=FALSE,quote=F,sep=' ')
+#then in unix: gzip -c fwsw.treemix > fwsw.treemix.gz
 
 #############################################################################
 ##############################POP STRUCTURE##################################
