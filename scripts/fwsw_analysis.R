@@ -14,6 +14,7 @@ library(adegenet)
 library(scales)
 library(gdata)
 library(ape)
+library(lattice); library(RColorBrewer); library(grid)
 
 setwd("B:/ubuntushare/popgen/fwsw_results/")
 #source("../scripts/popgen_functions.R")
@@ -114,6 +115,19 @@ ibd.by.loc<-fst.ibd.byloc(ped.sub,dist,pop.list)  #all NAs
 rownames(ibd.by.loc)<-sub.map$V2
 
 
+####PLOT FSTS####
+colors<-c("blue","yellow","red")
+pal<-colorRampPalette(colors)
+ncol=80
+cols<-pal(ncol)
+
+png("Fst_fig.png",height=7,width = 8,units="in",res=300)
+levelplot(as.matrix(pwise.fst.all),col.regions=cols,alpha.regions=0.7,
+          scales = list(x=list(rot=90),tck = 0),xlab="",ylab="")
+trellis.focus("legend", side="right", clipp.off=TRUE, highlight=FALSE)
+grid.text(expression(italic(F)[ST]), 0.2, 0, hjust=0.5, vjust=1.2)
+trellis.unfocus()
+dev.off()
 #############################################################################
 #################################OUTLIERS####################################
 #############################################################################
@@ -563,7 +577,7 @@ mtext(expression(pi),2,line=1.5)
 #' http://molecularevolution.org/software/phylogenetics/gsi/download
 
 library(ape)
-library(genealogicalSorting) #installed from source
+#library(genealogicalSorting) #installed from source
 get.dist<-function(vcf.row,pop.list){
   fst.matrix<-matrix(nrow=length(pop.list),ncol=length(pop.list))
   for(i in 1:(length(pop.list)-1)){
@@ -577,7 +591,7 @@ get.dist<-function(vcf.row,pop.list){
   colnames(fst.matrix)<-pop.list
   rownames(fst.matrix)<-pop.list
   fst.nj<-ape::njs(as.dist(t(fst.matrix)))
-  fst.tree<-write.tree(fst.nj)
+  fst.tree<-write.tree(fst.nj,digits=0)
 }
 fst.trees<-list()
 for(vcf.row in 1: nrow(vcf)){
