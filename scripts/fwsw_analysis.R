@@ -574,8 +574,16 @@ get.dist<-function(vcf.row,pop.list){
       fst.matrix[i,j]<-fst$Fst
     }
   }
-  fst.nj<-ape::njs(as.dist(t(fst.matrix)))#, "unrooted" ##NOT WORKING??
+  colnames(fst.matrix)<-pop.list
+  rownames(fst.matrix)<-pop.list
+  fst.nj<-ape::njs(as.dist(t(fst.matrix)))
+  fst.tree<-write.tree(fst.nj)
 }
+fst.trees<-list()
+for(vcf.row in 1: nrow(vcf)){
+  fst.trees<-c(fst.trees,get.dist(vcf[vcf.row,],pop.list)) #getting an error
+}
+#Now what? How do I get rid of the numbers in the trees?
 
 #' Generate a treemix file from vcf
 #' 
@@ -614,6 +622,9 @@ treemix.from.vcf<-function(vcf,pop.list){
 tm.fwsw<-treemix.from.vcf(vcf,pop.list)
 write.table(tm.fwsw,"fwsw.treemix",col.names=TRUE,row.names=FALSE,quote=F,sep=' ')
 #then in unix: gzip -c fwsw.treemix > fwsw.treemix.gz
+
+#in unix (where the program code is)
+source("~/Programs/treemix/src")
 
 #############################################################################
 ##############################POP STRUCTURE##################################
@@ -1030,31 +1041,24 @@ freq<-cbind(all.snps.frq,all.snps.frq$NCHROBS-all.snps.frq$MAC)
 colnames(freq)[ncol(freq)]<-"NAC"
 pop.order<-levels(as.factor(freq$CLST))
 snp.names<-split(freq$SNP,freq$CLST)[[1]]
-mac.by.pop<-as.data.frame(split(freq$MAC,freq$CLST))
+mac.by.pop<-as.data.frame(split(freq$MAC,freq$CLST)) #57251 SNPs
 rownames(mac.by.pop)<-all.snps.map[,2]
 nac.by.pop<-as.data.frame(split(freq$NAC,freq$CLST))
 rownames(nac.by.pop)<-all.snps.map[,2]
-all.snpsfile<-interleave(mac.by.pop,nac.by.pop)
+all.snpsfile<-gdata::interleave(mac.by.pop,nac.by.pop) 
 
 write.table(all.snpsfile, "bayenv/all.fwsw", 
-            col.names=F,row.names=F,quote=F,sep="\t",eol="\n")
+            col.names=F,row.names=T,quote=F,sep="\t",eol="\n")
 
-#then run this:
+#Bayenv says to run this:
 #./calc bfs.sh SNPSFILE ENVIRONFILE MATRIXFILE NUMPOPS NUMITER NUMENVIRON
 #$ ~/Programs/bayenv_2/calc_bf.sh all.fwsw env_data_std.txt representative_matrix.txt 16 100000 3
 
-## or try running it on your own
-for(i in 1:nrow(all.snpsfile)){
-  write.table(all.snpsfile[i:(i+1),],paste("bayenv/snpfiles/",rownames(all.snpsfile)[i],sep=""),
-              quote=F,col.names=F,row.names=F,sep='\t')
-}
-#THINGS ARENT WORKING RIGHT - yields segmentation fault. maybe because of eol?
-
-#~/Programs/bayenv_2/bayenv2 -i $f -e $ENVFILE -m $MATFILE -k $ITNUM -r $RANDOM -p $POPNUM -n $ENVNUM -t
-#~/Programs/bayenv_2/bayenv2 -i ./20645_26 -e ../env_data_std.txt -m ../representative_matrix.txt -k 100000 -r 416 -p 16 -n 3 -t
-
+#INSTEAD:
+#sarah@sarah-VirtualBox:~/sf_ubuntushare/popgen/fwsw_results/bayenv$ Rscript --vanilla ../../scripts/SNPSfromSNPSFILE.R all.fwsw ~/sf_ubuntushare/popgen/fwsw_results/bayenv/snpfiles/
+#../../scripts/run_bayenv2_general.sh representative_matrix.txt env_data_std.txt 16 3 snpfiles
 #####ENVFILE
-env.raw<-read.csv("bayenv/env_data_raw.csv",row.names=1)
+env.raw<-read.csv("bayenv/env_data_raw.csv",row.names=1) 
 #Each environmental variable should be standardized, 
 #i.e. subtract the mean and then divided through by the standard deviation 
 #of the variable across populations.
@@ -1083,16 +1087,21 @@ mantel.rtest(as.dist(t(dist)),as.dist(env.dist),999)
 
 
 #####GET OUTPUT
-bayenv.all<-read.table("bayenv/bf_environ.env_data_std.txt")
-#why are there 2 rows per snp???
-colnames(bayenv.all)<-c("SNP",rownames(env.raw))
-bayenv.all$SNP<-rownames(snpsfile)
-bayenv.all$locus<-gsub("(\\d+)_\\d+","\\1",bayenv.all$SNP)
-map.all$locus<-gsub("(\\d+)_\\d+","\\1",map.all$V2)
+bayenv.all<-read.table("bayenv/bf_environ.env_data_std.txt") #59865 rows??
+#extras got added in, need to figure out which ones to remove.
+dup.snps<-bayenv.all$V1[duplicated(bayenv.all$V1)]
+head(bayenv.all[bayenv.all$V1 %in% dup.snps,])
+bayenv.all[bayenv.all$V1 %in% dup.snps[1],]
+bayenv.all<-bayenv.all[2615:59865,]
 
-bf<-t(as.data.frame(do.call("cbind",apply(bayenv.all,1,function(x){
-  chrom<-map.all$V1[map.all$locus %in% x["locus"]]
-  pos<-map.all$V4[map.all$V2 %in% x["SNP"]]
+colnames(bayenv.all)<-c("SNP",rownames(env.raw))
+bayenv.all$SNP<-rownames(nac.by.pop)
+bayenv.all$locus<-gsub("(\\d+)_\\d+","\\1",bayenv.all$SNP)
+all.snps.map$locus<-gsub("(\\d+)_\\d+","\\1",all.snps.map$V2)
+
+bf<-as.data.frame(do.call("rbind",apply(bayenv.all,1,function(x){
+  chrom<-all.snps.map$V1[all.snps.map$locus %in% x["locus"]]
+  pos<-all.snps.map$V4[all.snps.map$V2 %in% x["SNP"]]
   if(length(unique(chrom))==1){
     this.chrom<-unique(chrom)
   } else{
@@ -1104,22 +1113,23 @@ bf<-t(as.data.frame(do.call("cbind",apply(bayenv.all,1,function(x){
                      Chrom=as.character(this.chrom),
                      Pos=as.numeric(pos),stringsAsFactors=F)
   return(new)
-})),stringsAsFactors=F))
+})),stringsAsFactors=F)
 rownames(bf)<-NULL
-colnames(bf)<-c("SNP","temp","salinity","seagrass","locus","Chrom","Pos")
-bf<-as.data.frame(bf,stringsAsFactors = F)
+colnames(bf)<-c("SNP","temp","salinity","seagrass","Chrom","Pos")
 bf$logTemp<-log(as.numeric(bf$temp))
 bf$logSalt<-log(as.numeric(bf$salinity))
 bf$logSeag<-log(as.numeric(bf$seagrass))
 write.table(bf,"bayenv/fwsw_environ_corr.txt",
             col.names=T,row.names=F,quote=F,sep='\t')
 
-bf.co<-apply(bayenv.all[,2:4],2,quantile,0.95) #get the cutoffs
+bf.co<-apply(bf[,2:4],2,quantile,0.95) #get the cutoffs (2863 of them)
 temp.sig<-bf[bf[,"temp"]>bf.co["temp"],]
 salt.sig<-bf[bf[,"salinity"]>bf.co["salinity"],]
 seag.sig<-bf[bf[,"seagrass"]>bf.co["seagrass"],]
 
-fst.plot(fst.dat = bf,fst.name = "logTemp",chrom.name = "Chrom")
+tp<-fst.plot(fst.dat = bf,fst.name = "logTemp",chrom.name = "Chrom",bp.name = "Pos")
+sp<-fst.plot(fst.dat = bf,fst.name = "logSalt",chrom.name = "Chrom",bp.name = "Pos")
+gp<-fst.plot(fst.dat = bf,fst.name = "logSeag",chrom.name = "Chrom",bp.name = "Pos")
 
 ###################BAYESCAN########################
 #make the pops file
