@@ -35,6 +35,7 @@ lgn<-seq(1,22)
 all.colors<-c(rep("black",2),"#2166ac","black","#2166ac","black","#2166ac",
         rep("black",8),"#2166ac")
 grp.colors<-c('#762a83','#af8dc3','#e7d4e8','#d9f0d3','#7fbf7b','#1b7837')
+grp.colorsB<-c('#c51b7d','#e9a3c9','#fde0ef','#e6f5d0','#a1d76a','#4d9221')
 #############################################################################
 #######################**********FILES*********##############################
 #############################################################################
@@ -191,6 +192,7 @@ colnames(gff)<-c("seqname","source","feature","start","end","score","strand","fr
 #agp<-read.table("../../scovelli_genome/ssc_122016_chromlevel.agp")
 #colnames(agp)<-c("object","object_beg","object_end","part_number","component_type","component_id","component_beg","orientation")
 
+#' extract the significant regions from the gff file
 fw.sig.reg<-do.call(rbind,apply(fw.shared.chr,1,function(sig){
   this.gff<-gff[as.character(gff$seqname) %in% as.character(unlist(sig["Chr"])),]
   this.reg<-this.gff[this.gff$start <= as.numeric(sig["BP"]) & this.gff$end >= as.numeric(sig["BP"]),]
@@ -209,21 +211,30 @@ fw.sig.reg<-do.call(rbind,apply(fw.shared.chr,1,function(sig){
   return(as.data.frame(new))
 }))
 
-#graph without highlighted regions
+#' graph without highlighted regions
+#' first define the scaffold boundaries
+all.chr<-data.frame(Chr=c(as.character(fwsw.tx$Chr),as.character(fwsw.la$Chr),as.character(fwsw.al$Chr),as.character(fwsw.fl$Chr)),
+                    BP=c(fwsw.tx$BP,fwsw.la$BP,fwsw.al$BP,fwsw.fl$BP),stringsAsFactors = F)
+bounds<-data.frame(levels(as.factor(all.chr$Chr)),tapply(as.numeric(as.character(all.chr$BP)),all.chr$Chr,max))
+colnames(bounds)<-c("Chrom","End")
 png("stacks_fsts_fwsw.png",height=8,width=7.5,units="in",res=300)
 par(mfrow=c(4,1),mar=c(0.85,2,0,0.5),oma=c(1,1,1,0.5))
 fwswt.fst<-fst.plot(fwsw.tx,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
-                    groups = scaffs,group.boundaries = scaff.starts,pt.col = grp.colors[1],pt.cex=0,axis.size = 1)
-points(fwswt.fst$BP,fwswt.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[1])
+                    scaffs.to.plot = scaffs,scaffold.widths = bounds,pch=21,bg="",
+                    pt.cols = c(grp.colors[1],grp.colorsB[1]),pt.cex=0.5,axis.size = 1)
+#points(fwswt.fst$BP,fwswt.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[1])
 fwswl.fst<-fst.plot(fwsw.la,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
-                    groups = scaffs,group.boundaries = scaff.starts,pt.col=grp.colors[3],pt.cex=0,axis.size=1)
-points(fwswl.fst$BP,fwswl.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[3])
+                    scaffs.to.plot = scaffs,scaffold.widths = bounds,pch=21,bg="darkgrey",
+                    pt.cols=c(grp.colors[3],grp.colorsB[3]),pt.cex=0.8,axis.size=1)
+#points(fwswl.fst$BP,fwswl.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[3])
 fwswa.fst<-fst.plot(fwsw.al,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
-                    groups = scaffs,group.boundaries = scaff.starts,pt.col=grp.colors[4],pt.cex=0,axis.size = 1)
-points(fwswa.fst$BP,fwswa.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[4])
+                    scaffs.to.plot =  scaffs,scaffold.widths = bounds,
+                    pt.cols=c(grp.colors[4],grp.colorsB[4]),pt.cex=0.7,axis.size = 1)
+#points(fwswa.fst$BP,fwswa.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[4])
 fwswf.fst<-fst.plot(fwsw.fl,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
-                    groups = scaffs,group.boundaries = scaff.starts,pt.col=grp.colors[6],pt.cex=0,axis.size=1)
-points(fwswf.fst$BP,fwswf.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[6])
+                    scaffs.to.plot = scaffs,scaffold.widths =  bounds,
+                    pt.cols=c(grp.colors[6],grp.colorsB[6]),pt.cex=0.6,axis.size=1)
+#points(fwswf.fst$BP,fwswf.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[6])
 mtext(expression(italic(F)[ST]),2,outer=T,line=-1,cex=0.75)
 last<-0
 for(i in 1:length(lgs)){
@@ -236,7 +247,7 @@ dev.off()
 #plot with the outlier regions
 png("stacks_fsts_fwsw_withSig.png",height=8,width=7.5,units="in",res=300)
 par(mfrow=c(4,1),mar=c(0.85,2,0,0.5),oma=c(1,1,1,0.5))
-fwswt.fst<-fst.plot(fwsw.tx,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
+fwswt.fst<-fst.plot.rect(fwsw.tx,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
                     groups = scaffs,group.boundaries = scaff.starts,pt.col = grp.colors[1],pt.cex=0,axis.size = 1)
 points(fwswt.fst$BP,fwswt.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[1])
 points(fwswt.fst$BP[fwswt.fst$Locus.ID %in% all.shared],fwswt.fst$Corrected.AMOVA.Fst[fwswt.fst$Locus.ID %in% all.shared],
