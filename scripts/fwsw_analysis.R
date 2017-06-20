@@ -128,6 +128,27 @@ trellis.focus("legend", side="right", clipp.off=TRUE, highlight=FALSE)
 grid.text(expression(italic(F)[ST]), 0.2, 0, hjust=0.5, vjust=1.2)
 trellis.unfocus()
 dev.off()
+
+#compare to treemix
+cov<-read.table(gzfile(paste(stem, ".cov.gz", sep = "")), as.is = T, head = T, quote = "", comment.char = "")
+#reorder
+covplot = data.frame(matrix(nrow = nrow(c), ncol = ncol(c)))
+for(i in 1:length(poporder)){
+  for( j in 1:length(poporder)){
+    
+    covplot[i, j] = cov[which(names(cov)==poporder[i]), which(names(cov)==poporder[j])]
+    rownames(covplot)[i]<-poporder[i]
+    colnames(covplot)[j]<-poporder[j]
+  }
+}
+cp<-as.matrix(covplot)
+cp[lower.tri(cp)]<-NA
+cp[upper.tri(cp)]<-covplot[upper.tri(covplot)]
+levelplot(cp,col.regions=cols,alpha.regions=0.7,
+          scales = list(x=list(rot=90),tck = 0),xlab="",ylab="")
+trellis.focus("legend", side="right", clipp.off=TRUE, highlight=FALSE)
+grid.text("covariance", 0.2, 0, hjust=0.5, vjust=1.2)
+trellis.unfocus()
 #############################################################################
 #################################OUTLIERS####################################
 #############################################################################
