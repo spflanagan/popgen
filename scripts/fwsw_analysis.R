@@ -35,7 +35,6 @@ lgn<-seq(1,22)
 all.colors<-c(rep("black",2),"#2166ac","black","#2166ac","black","#2166ac",
         rep("black",8),"#2166ac")
 grp.colors<-c('#762a83','#af8dc3','#e7d4e8','#d9f0d3','#7fbf7b','#1b7837')
-grp.colorsB<-c('#c51b7d','#e9a3c9','#fde0ef','#e6f5d0','#a1d76a','#4d9221')
 #############################################################################
 #######################**********FILES*********##############################
 #############################################################################
@@ -59,7 +58,9 @@ scaffs[1:22]<-lgs
 scaff.starts<-tapply(vcf$POS,vcf$`#CHROM`,max)
 scaff.starts<-data.frame(rbind(cbind(names(scaff.starts),scaff.starts)),stringsAsFactors = F)
 locus.info<-c(colnames(vcf[1:9]),"SNP")
-chosen.snps<-choose.one.snp(vcf)$SNP
+#chosen.snps<-choose.one.snp(vcf)$SNP
+#write.table(chosen.snps,"chosen.snps.txt",quote=F)
+chosen.snps<-read.table(write.table)
 #############################################################################
 #######################PLOT THE POINTS ON A MAP##############################
 #############################################################################
@@ -123,7 +124,7 @@ ncol=80
 cols<-pal(ncol)
 
 png("Fst_fig.png",height=7,width = 8,units="in",res=300)
-levelplot(as.matrix(pwise.fst.all),col.regions=cols,alpha.regions=0.7,
+fst.lv<-levelplot(as.matrix(pwise.fst.all),col.regions=cols,alpha.regions=0.7,
           scales = list(x=list(rot=90),tck = 0),xlab="",ylab="")
 trellis.focus("legend", side="right", clipp.off=TRUE, highlight=FALSE)
 grid.text(expression(italic(F)[ST]), 0.2, 0, hjust=0.5, vjust=1.2)
@@ -131,25 +132,38 @@ trellis.unfocus()
 dev.off()
 
 #compare to treemix
-cov<-read.table(gzfile(paste(stem, ".cov.gz", sep = "")), as.is = T, head = T, quote = "", comment.char = "")
+cov<-read.table(gzfile("treemix/fwsw.basic.cov.gz"), as.is = T, head = T, quote = "", comment.char = "")
 #reorder
-covplot = data.frame(matrix(nrow = nrow(c), ncol = ncol(c)))
-for(i in 1:length(poporder)){
-  for( j in 1:length(poporder)){
+covplot <- data.frame(matrix(nrow = nrow(cov), ncol = ncol(cov)))
+for(i in 1:length(pop.list)){
+  for( j in 1:length(pop.list)){
     
-    covplot[i, j] = cov[which(names(cov)==poporder[i]), which(names(cov)==poporder[j])]
-    rownames(covplot)[i]<-poporder[i]
-    colnames(covplot)[j]<-poporder[j]
+    covplot[i, j] = cov[which(names(cov)==pop.list[i]), which(names(cov)==pop.list[j])]
+    rownames(covplot)[i]<-pop.list[i]
+    colnames(covplot)[j]<-pop.list[j]
   }
 }
 cp<-as.matrix(covplot)
 cp[lower.tri(cp)]<-NA
 cp[upper.tri(cp)]<-covplot[upper.tri(covplot)]
-levelplot(cp,col.regions=cols,alpha.regions=0.7,
+cp.lv<-levelplot(cp,col.regions=cols,alpha.regions=0.7,
           scales = list(x=list(rot=90),tck = 0),xlab="",ylab="")
+
+#' Plot them together.
+png("fst_cov_heatmap.png",height=6,width=11,units="in",res=300)
+print(fst.lv,split=c(1,1,2,1),more=TRUE)
+trellis.focus("legend", side="right", clipp.off=TRUE, highlight=FALSE)
+grid.text(expression(italic(F)[ST]), 0.2, 0, hjust=0.5, vjust=1.2)
+trellis.unfocus()
+
+print(cp.lv,split=c(2,1,2,1),more=FALSE)
 trellis.focus("legend", side="right", clipp.off=TRUE, highlight=FALSE)
 grid.text("covariance", 0.2, 0, hjust=0.5, vjust=1.2)
 trellis.unfocus()
+dev.off()
+
+
+
 #############################################################################
 #################################OUTLIERS####################################
 #############################################################################
@@ -184,6 +198,7 @@ for(i in 1:nrow(fw.shared.chr)){
 }
 colnames(snps)<-c("TX","LA","AL","FL")
 snps<-data.frame(cbind(fw.shared.chr,snps))
+write.table(snps,"stacks.sig.snps.txt",sep='\t',row.names=FALSE,col.names=TRUE)
 
 ##compare to scovelli genome..
 gff<-read.delim("../../scovelli_genome/ssc_122016_chromlevel.gff",header=F)
@@ -220,61 +235,69 @@ colnames(bounds)<-c("Chrom","End")
 png("stacks_fsts_fwsw.png",height=8,width=7.5,units="in",res=300)
 par(mfrow=c(4,1),mar=c(0.85,2,0,0.5),oma=c(1,1,1,0.5))
 fwswt.fst<-fst.plot(fwsw.tx,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
-                    scaffs.to.plot = scaffs,scaffold.widths = bounds,pch=21,bg="",
-                    pt.cols = c(grp.colors[1],grp.colorsB[1]),pt.cex=0.5,axis.size = 1)
-#points(fwswt.fst$BP,fwswt.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[1])
+                    scaffs.to.plot = scaffs,scaffold.widths = bounds,pch=19,
+                    pt.cols = c(grp.colors[1],grp.colors[2]),pt.cex=1,axis.size = 1)
+mtext("TXFW vs. TXCC",3,cex=0.75,line=-1)
 fwswl.fst<-fst.plot(fwsw.la,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
-                    scaffs.to.plot = scaffs,scaffold.widths = bounds,pch=21,bg="darkgrey",
-                    pt.cols=c(grp.colors[3],grp.colorsB[3]),pt.cex=0.8,axis.size=1)
-#points(fwswl.fst$BP,fwswl.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[3])
+                    scaffs.to.plot = scaffs,scaffold.widths = bounds,pch=19,
+                    pt.cols=c(grp.colors[2],grp.colors[3]),pt.cex=1,axis.size=1)
+mtext("LAFW vs. ALST",3,cex=0.75,line=-1)
 fwswa.fst<-fst.plot(fwsw.al,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
-                    scaffs.to.plot =  scaffs,scaffold.widths = bounds,
-                    pt.cols=c(grp.colors[4],grp.colorsB[4]),pt.cex=0.7,axis.size = 1)
-#points(fwswa.fst$BP,fwswa.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[4])
+                    scaffs.to.plot =  scaffs,scaffold.widths = bounds,pch=19,
+                    pt.cols=c(grp.colors[3],grp.colors[2]),pt.cex=1,axis.size = 1)
+mtext("ALFW vs. ALST",3,cex=0.75,line=-1)
 fwswf.fst<-fst.plot(fwsw.fl,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
-                    scaffs.to.plot = scaffs,scaffold.widths =  bounds,
-                    pt.cols=c(grp.colors[6],grp.colorsB[6]),pt.cex=0.6,axis.size=1)
-#points(fwswf.fst$BP,fwswf.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[6])
-mtext(expression(italic(F)[ST]),2,outer=T,line=-1,cex=0.75)
+                    scaffs.to.plot = scaffs,scaffold.widths =  bounds,pch=19,
+                    pt.cols=c(grp.colors[6],grp.colors[5]),pt.cex=1,axis.size=1)
+mtext("FLFW vs. FLCC",3,cex=0.75,line=-1)
+mtext(expression(italic(F)[ST]),2,outer=T,line=-0.8,cex=0.75)
 last<-0
 for(i in 1:length(lgs)){
-  text(x=mean(fwswf.fst[fwswf.fst$Chr ==lgs[i],"BP"]),y=-0.05,
+  text(x=mean(fwswf.fst[fwswf.fst$Chr ==lgs[i],"plot.pos"]),y=-0.05,
        labels=lgn[i], adj=1, xpd=TRUE)
-  last<-max(fwswf.fst[fwswf.fst$Chr ==lgs[i],"BP"])
+  last<-max(fwswf.fst[fwswf.fst$Chr ==lgs[i],"plot.pos"])
 }
 dev.off()
 
-#plot with the outlier regions
-png("stacks_fsts_fwsw_withSig.png",height=8,width=7.5,units="in",res=300)
+#' plot with the outlier regions
+#png("stacks_fsts_fwsw_withSig.png",height=8,width=7.5,units="in",res=300)
 par(mfrow=c(4,1),mar=c(0.85,2,0,0.5),oma=c(1,1,1,0.5))
-fwswt.fst<-fst.plot.rect(fwsw.tx,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
-                    groups = scaffs,group.boundaries = scaff.starts,pt.col = grp.colors[1],pt.cex=0,axis.size = 1)
-points(fwswt.fst$BP,fwswt.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[1])
-points(fwswt.fst$BP[fwswt.fst$Locus.ID %in% all.shared],fwswt.fst$Corrected.AMOVA.Fst[fwswt.fst$Locus.ID %in% all.shared],
+fwswt.fst<-fst.plot(fwsw.tx,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
+                    scaffs.to.plot = scaffs,scaffold.widths = bounds,pch=19,
+                    pt.cols = c(grp.colors[1],grp.colors[2]),pt.cex=1,axis.size = 1)
+#points(fwswt.fst$BP,fwswt.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[1])
+points(fwswt.fst$plot.pos[fwswt.fst$Locus.ID %in% all.shared],fwswt.fst$Corrected.AMOVA.Fst[fwswt.fst$Locus.ID %in% all.shared],
        pch=0,col="red",cex=1.3)
+mtext("TXFW vs. TXCC",3,cex=0.75,line=-1)
 fwswl.fst<-fst.plot(fwsw.la,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
-                    groups = scaffs,group.boundaries = scaff.starts,pt.col=grp.colors[3],pt.cex=0,axis.size=1)
-points(fwswl.fst$BP,fwswl.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[3])
-points(fwswl.fst$BP[fwswl.fst$Locus.ID %in% all.shared],fwswl.fst$Corrected.AMOVA.Fst[fwswl.fst$Locus.ID %in% all.shared],
+                    scaffs.to.plot = scaffs,scaffold.widths = bounds,pch=19,
+                    pt.cols=c(grp.colors[2],grp.colors[3]),pt.cex=1,axis.size=1)
+#points(fwswl.fst$BP,fwswl.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[3])
+points(fwswl.fst$plot.pos[fwswl.fst$Locus.ID %in% all.shared],fwswl.fst$Corrected.AMOVA.Fst[fwswl.fst$Locus.ID %in% all.shared],
        pch=0,col="red",cex=1.3)
+mtext("LAFW vs. ALST",3,cex=0.75,line=-1)
 fwswa.fst<-fst.plot(fwsw.al,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
-                    groups = scaffs,group.boundaries = scaff.starts,pt.col=grp.colors[4],pt.cex=0,axis.size = 1)
-points(fwswa.fst$BP,fwswa.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[4])
-points(fwswa.fst$BP[fwswa.fst$Locus.ID %in% all.shared],fwswa.fst$Corrected.AMOVA.Fst[fwswa.fst$Locus.ID %in% all.shared],
+                    scaffs.to.plot = scaffs,scaffold.widths = bounds,pch=19,
+                    pt.cols=c(grp.colors[3],grp.colors[2]),pt.cex=1,axis.size = 1)
+#points(fwswa.fst$BP,fwswa.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[4])
+points(fwswa.fst$plot.pos[fwswa.fst$Locus.ID %in% all.shared],fwswa.fst$Corrected.AMOVA.Fst[fwswa.fst$Locus.ID %in% all.shared],
        pch=0,col="red",cex=1.3)
+mtext("ALFW vs. ALST",3,cex=0.75,line=-1)
 fwswf.fst<-fst.plot(fwsw.fl,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
-                    groups = scaffs,group.boundaries = scaff.starts,pt.col=grp.colors[6],pt.cex=0,axis.size=1)
-points(fwswf.fst$BP,fwswf.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[6])
-points(fwswf.fst$BP[fwswf.fst$Locus.ID %in% all.shared],fwswf.fst$Corrected.AMOVA.Fst[fwswf.fst$Locus.ID %in% all.shared],
+                    scaffs.to.plot = scaffs,scaffold.widths = bounds,pch=19,
+                    pt.cols=c(grp.colors[6],grp.colors[5]),pt.cex=1,axis.size=1)
+#points(fwswf.fst$BP,fwswf.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[6])
+points(fwswf.fst$plot.pos[fwswf.fst$Locus.ID %in% all.shared],fwswf.fst$Corrected.AMOVA.Fst[fwswf.fst$Locus.ID %in% all.shared],
        pch=0,col="red",cex=1.3)
+mtext("FLFW vs. FLCC",3,cex=0.75,line=-1)
 mtext(expression(italic(F)[ST]),2,outer=T,line=-1,cex=0.75)
 last<-0
 for(i in 1:length(lgs)){
-  text(x=mean(fwswf.fst[fwswf.fst$Chr ==lgs[i],"BP"]),y=-0.05,
+  text(x=mean(fwswf.fst[fwswf.fst$Chr ==lgs[i],"plot.pos"]),y=-0.05,
        labels=lgn[i], adj=1, xpd=TRUE)
-  last<-max(fwswf.fst[fwswf.fst$Chr ==lgs[i],"BP"])
+  last<-max(fwswf.fst[fwswf.fst$Chr ==lgs[i],"plot.pos"])
 }
-dev.off()
+#dev.off()
 
 ##For comparison, neighboring sw pops
 swsw.tx<-read.delim("stacks/batch_2.fst_TXCB-TXCC.tsv")
@@ -292,29 +315,34 @@ fw.shared.chr<-fwsw.tx[fwsw.tx$Locus.ID %in% all.shared,c("Locus.ID","Chr","BP",
 tapply(fw.shared.chr$Locus.ID,factor(fw.shared.chr$Chr),function(x){ length(unique(x)) })
 
 swswt.fst<-fst.plot(swsw.tx,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
-                    groups = scaffs,group.boundaries = scaff.starts)
+                    scaffs.to.plot = scaffs,scaffold.widths = bounds,pt.cex = 1,pch=19)
 swswa.fst<-fst.plot(swsw.al,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
-                    groups = scaffs,group.boundaries = scaff.starts)
+                    scaffs.to.plot = scaffs,scaffold.widths = bounds,pt.cex = 1,pch=19)
 swswf.fst<-fst.plot(swsw.fl,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
-                    groups = scaffs,group.boundaries = scaff.starts)
+                    scaffs.to.plot = scaffs,scaffold.widths = bounds,pt.cex = 1,pch=19)
 
 png("stacks_fsts_swsw.png",height=6,width=7.5,units="in",res=300)
 par(mfrow=c(3,1),mar=c(0.85,2,0,0.5),oma=c(1,1,1,0.5))
 swswt.fst<-fst.plot(swsw.tx,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
-                    groups = scaffs,group.boundaries = scaff.starts,pt.col = grp.colors[1],pt.cex=0,axis.size = 1)
-points(swswt.fst$BP,swswt.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[1])
+                    scaffs.to.plot = scaffs,scaffold.widths = bounds,axis.size = 1,
+                    pt.cols=c(grp.colors[1],grp.colors[2]),pt.cex = 1,pch=19)
+mtext("TXCC vs. TXCB",3,line=-1,cex=0.75)
 swswa.fst<-fst.plot(swsw.al,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", y.lim=c(0,1),
-                    groups = scaffs,group.boundaries = scaff.starts,pt.col=grp.colors[3],pt.cex=0,axis.size = 1)
-points(swswa.fst$BP,swswa.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[3])
+                    scaffs.to.plot = scaffs,scaffold.widths = bounds,axis.size = 1,
+                    pt.cols=c(grp.colors[2],grp.colors[3]),pt.cex = 1,pch=19)
+#points(swswa.fst$plot.pos,swswa.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[3])
+mtext("ALST vs. FLSG",3,line=-1,cex=0.75)
 swswf.fst<-fst.plot(swsw.fl,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
-                    groups = scaffs,group.boundaries = scaff.starts,pt.col=grp.colors[6],pt.cex=0,axis.size=1)
-points(swswf.fst$BP,swswf.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[6])
-mtext(expression(italic(F)[ST]),2,outer=T,line=-1,cex=0.75)
+                    scaffs.to.plot = scaffs,scaffold.widths = bounds,axis.size = 1,
+                    pt.cols=c(grp.colors[6],grp.colors[5]),pt.cex = 1,pch=19)
+#points(swswf.fst$plot.pos,swswf.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[6])
+mtext("FLCC vs. FLHB",3,line=-1,cex=0.75)
+mtext(expression(italic(F)[ST]),2,outer=T,line=-0.75,cex=0.75)
 last<-0
 for(i in 1:length(lgs)){
-  text(x=mean(swswf.fst[swswf.fst$Chr ==lgs[i],"BP"]),y=-0.015,
+  text(x=mean(swswf.fst[swswf.fst$Chr ==lgs[i],"plot.pos"]),y=-0.015,
        labels=lgn[i], adj=1, xpd=TRUE)
-  last<-max(swswf.fst[swswf.fst$Chr ==lgs[i],"BP"])
+  last<-max(swswf.fst[swswf.fst$Chr ==lgs[i],"plot.pos"])
 }
 dev.off()
 
@@ -335,134 +363,26 @@ flsg<-grep("FLSG",colnames(vcf),value = T)
 flhb<-grep("FLHB",colnames(vcf),value = T)
 
 tfs<-gwsca(vcf=vcf,locus.info=loci.info,group1=txcb,group2=txfw)
+tfs$SNP<-paste(tfs$Chrom,as.numeric(as.character(tfs$Pos)),sep=".")
 lfs<-gwsca(vcf=vcf,locus.info=loci.info,group1=alst,group2=lafw)
+lfs$SNP<-paste(lfs$Chrom,as.numeric(as.character(lfs$Pos)),sep=".")
 afs<-gwsca(vcf=vcf,locus.info=loci.info,group1=alst,group2=alfw)
+afs$SNP<-paste(afs$Chrom,as.numeric(as.character(afs$Pos)),sep=".")
 ffs<-gwsca(vcf=vcf,locus.info=loci.info,group1=flcc,group2=fllg)
+ffs$SNP<-paste(ffs$Chrom,as.numeric(as.character(ffs$Pos)),sep=".")
+
+#' Shared fst outliers from gwsca
+tfs.sig<-tfs[tfs$Chi.p <= 0.05,"SNP"]
+lfs.sig<-lfs[lfs$Chi.p <= 0.05,"SNP"]
+afs.sig<-afs[afs$Chi.p <= 0.05,"SNP"]
+ffs.sig<-ffs[ffs$Chi.p <= 0.05,"SNP"]
+shared.sig<-tfs.sig[tfs.sig %in% lfs.sig & tfs.sig %in% afs.sig & tfs.sig %in% ffs.sig]
 
 tss<-gwsca(vcf=vcf,locus.info=loci.info,group1=txcb,group2=txcc)
 ass<-gwsca(vcf=vcf,locus.info=loci.info,group1=alst,group2=flsg)
 fss<-gwsca(vcf=vcf,locus.info=loci.info,group1=flcc,group2=flhb)
 
-#With ped file
-txcb<-grep("TXCB",ped.sub$V2,value = T)
-txfw<-grep("TXFW",ped.sub$V2,value = T)
-alst<-grep("ALST",ped.sub$V2,value = T)
-alfw<-grep("ALFW",ped.sub$V2,value = T)
-lafw<-grep("LAFW",ped.sub$V2,value = T)
-flcc<-grep("FLCC",ped.sub$V2,value = T)
-fllg<-grep("FLLG",ped.sub$V2,value = T)
-txcc<-grep("TXCC",ped.sub$V2,value = T)
-flsg<-grep("FLSG",ped.sub$V2,value = T)
-flhb<-grep("FLHB",ped.sub$V2,value = T)
 
-tfs.fst<-fst.one.plink(ped.sub,txcc,txfw)
-  tfs.fst<-fst.sig(tfs.fst)
-lfs.fst<-fst.one.plink(ped.sub,alst,lafw)
-  lfs.fst<-fst.sig(lfs.fst)
-afs.fst<-fst.one.plink(ped.sub,alst,alfw)
-afs.fst<-fst.sig(afs.fst)
-ffs.fst<-fst.one.plink(ped.sub,flcc,fllg)
-  ffs.fst<-fst.sig(ffs.fst)
-tss.fst<-fst.one.plink(ped.sub,txcc,txcb)
-tss.fst<-fst.sig(tss.fst)
-ass.fst<-fst.one.plink(ped.sub,alst,flsg)
-ass.fst<-fst.sig(ass.fst)
-fss.fst<-fst.one.plink(ped.sub,flcc,flhb)
-fss.fst<-fst.sig(fss.fst)
-# fwfw.tf<-read.delim("stacks/batch_2.fst_FLLG-TXFW.tsv")
-# fwfw.ta<-read.delim("stacks/batch_2.fst_ALFW-TXFW.tsv")
-# fwfw.tl<-read.delim("stacks/batch_2.fst_LAFW-TXFW.tsv")
-# fwfw.la<-read.delim("stacks/batch_2.fst_ALFW-LAFW.tsv")
-# fwfw.lf<-read.delim("stacks/batch_2.fst_FLLG-LAFW.tsv")
-# fwfw.af<-read.delim("stacks/batch_2.fst_ALFW-FLLG.tsv")
-# 
-# swsw.tf<-read.delim("stacks/batch_2.fst_FLCC-TXCB.tsv")
-# swsw.ta<-read.delim("stacks/batch_2.fst_ALST-TXCB.tsv")
-# swsw.af<-read.delim("stacks/batch_2.fst_ALST-FLCC.tsv")
-
-scaffs<-levels(as.factor(c(as.character(swsw.tx[,"Chr"]),
-                           as.character(fwsw.tx[,"Chr"]),
-                           as.character(swsw.al[,"Chr"]),
-                           as.character(fwsw.al[,"Chr"]),
-                           as.character(fwsw.la[,"Chr"]),
-                           as.character(swsw.fl[,"Chr"]),
-                           as.character(fwsw.fl[,"Chr"]))))
-scaffs[1:22]<-lgs
-scaff.starts<-tapply(vcf$POS,vcf$`#CHROM`,max)
-scaff.starts<-data.frame(rbind(cbind(names(scaff.starts),scaff.starts)),stringsAsFactors = F)
-png("FW-SW_Fsts.png")
-par(mfrow=c(4,2),oma=c(3,3,1,0),mar=c(1,0.5,1,0))
-ss.t<-fst.plot(swsw.tx,fst.name="Corrected.AMOVA.Fst",
-               axis.size=1.25,chrom.name="Chr",pt.col="black",
-               bp.name="BP",y.lim=c(0,1),pt.cex=1.25,
-               groups=scaffs,group.boundaries = scaff.starts)
-mtext("Texas",2,line=1.4)
-mtext("Saltwater",3)
-fs.t<-fst.plot(fwsw.tx,fst.name="Corrected.AMOVA.Fst",
-               axis.size=1.25,chrom.name="Chr",pt.col="#2166ac",
-               bp.name="BP",y.lim=c(0,1),pt.cex=1.25,
-               groups=scaffs,group.boundaries = scaff.starts)
-mtext("Freshwater",3)
-
-#LA
-ss.l<-fst.plot(swsw.al,fst.name="Corrected.AMOVA.Fst",
-               axis.size=1.25,chrom.name="Chr",pt.col="black",
-               bp.name="BP",y.lim=c(0,1),pt.cex=1.25,
-               groups=scaffs,group.boundaries = scaff.starts)
-mtext("Louisiana",2,line=1.4)
-fs.l<-fst.plot(fwsw.la,fst.name="Corrected.AMOVA.Fst",
-               axis.size=1.25,chrom.name="Chr",pt.col="#2166ac",
-               bp.name="BP",y.lim=c(0,1),pt.cex=1.25,
-               groups=scaffs,group.boundaries = scaff.starts)
-#AL
-ss.a<-fst.plot(swsw.al,fst.name="Corrected.AMOVA.Fst",
-               axis.size=1.25,chrom.name="Chr",pt.col="black",
-               bp.name="BP",y.lim=c(0,1),pt.cex=1.25,
-               groups=scaffs,group.boundaries = scaff.starts)
-mtext("Alabama",2,line=1.4)
-fs.a<-fst.plot(fwsw.al,fst.name="Corrected.AMOVA.Fst",
-               axis.size=1.25,chrom.name="Chr",pt.col="#2166ac",
-               bp.name="BP",y.lim=c(0,1),pt.cex =1.25,
-               groups=scaffs,group.boundaries = scaff.starts)
-
-#FL
-ss.f<-fst.plot(swsw.fl,fst.name="Corrected.AMOVA.Fst",
-               axis.size=1.25,chrom.name="Chr",pt.col="black",
-               bp.name="BP",y.lim=c(0,1),pt.cex=1.25,
-               groups=scaffs,group.boundaries = scaff.starts)
-last<-0
-for(i in 1:length(lgs)){
-  text(x=mean(ss.f[ss.f$Chr ==lgs[i],"BP"]),y=-0.03,
-       labels=lgs[i], adj=1, xpd=TRUE,srt=90,cex=1.25)
-  last<-max(ss.f[ss.f$Chr ==lgs[i],"BP"])
-}
-mtext("Florida",2,line=1.4)
-fs.f<-fst.plot(fwsw.fl,fst.name="Corrected.AMOVA.Fst",
-               axis.size=1.25,chrom.name="Chr",pt.col="#2166ac",
-               bp.name="BP",y.lim=c(0,1),pt.cex=1.25,
-               groups=scaffs,group.boundaries = scaff.starts)
-
-last<-0
-for(i in 1:length(lgs)){
-  text(x=mean(fs.f[fs.f$Chr ==lgs[i],"BP"]),y=-0.03,
-       labels=lgs[i], adj=1, xpd=TRUE,srt=90,cex=1.25)
-  last<-max(fs.f[fs.f$Chr ==lgs[i],"BP"])
-}
-mtext(expression(italic(F)[ST]),2,outer=T,line=1.5)
-dev.off()
-# 
-# par(mfrow=c(6,1),oma=c(0,0,0,0),mar=c(1,1,1,1))
-# ff.tf<-plotting.fsts.scaffs(fwfw.tf,"Fst",pt.lty=1)
-# ff.ta<-plotting.fsts.scaffs(fwfw.ta,"Fst",pt.lty=1)
-# ff.tl<-plotting.fsts.scaffs(fwfw.tl,"Fst",pt.lty=1)
-# ff.la<-plotting.fsts.scaffs(fwfw.la,"Fst",pt.lty=1)
-# ff.lf<-plotting.fsts.scaffs(fwfw.lf,"Fst",pt.lty=1)
-# ff.af<-plotting.fsts.scaffs(fwfw.af,"Fst",pt.lty=1)
-# 
-# par(mfrow=c(3,1),oma=c(0,0,0,0),mar=c(1,1,1,1))
-# ss.tf<-plotting.fsts.scaffs(swsw.tf,"Fst",pt.lty=1)
-# ss.ta<-plotting.fsts.scaffs(swsw.ta,"Fst",pt.lty=1)
-# ss.af<-plotting.fsts.scaffs(swsw.af,"Fst",pt.lty=1)
 
 #### Delta-divergence ####
 #' only use chosen SNPs
