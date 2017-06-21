@@ -35,9 +35,7 @@ lgn<-seq(1,22)
 all.colors<-c(rep("black",2),"#2166ac","black","#2166ac","black","#2166ac",
         rep("black",8),"#2166ac")
 grp.colors<-c('#762a83','#af8dc3','#e7d4e8','#d9f0d3','#7fbf7b','#1b7837')
-#############################################################################
 #######################**********FILES*********##############################
-#############################################################################
 mar.coor<-read.csv("../sw_results/marine_coordinates_revised.csv", header=T)
 fw.coor<-read.csv("fw_coordinates.csv", header=T)
 dist<-read.table("fwsw_geographical_distances.txt",header=T,row.names=1,
@@ -61,9 +59,8 @@ locus.info<-c(colnames(vcf[1:9]),"SNP")
 #chosen.snps<-choose.one.snp(vcf)$SNP
 #write.table(chosen.snps,"chosen.snps.txt",quote=F)
 chosen.snps<-read.table(write.table)
-#############################################################################
+
 #######################PLOT THE POINTS ON A MAP##############################
-#############################################################################
 jpeg("all_sites_map.jpg", res=300, height=7,width=14, units="in")
 pdf("all_sites_map.pdf",height=7,width=14)
 par(oma=c(0,0,0,0),mar=c(0,0,0,0),pin=c(7,7))
@@ -99,9 +96,7 @@ text(x=-80.2,y=28.2,"FLCC",font=2)
 text(x=-80.9,y=29.3,"FLFW",font=2,col="#2166ac")
 dev.off()
 
-#############################################################################
 ##################################IBD########################################
-#############################################################################
 
 #Mantel test using geographical distances and fsts
 
@@ -164,10 +159,9 @@ dev.off()
 
 
 
-#############################################################################
 #################################OUTLIERS####################################
-#############################################################################
-###******************************STACKS*********************************####
+
+#### STACKS ####
 #Compare neighboring pops.
 fwsw.tx<-read.delim("stacks/batch_2.fst_TXCC-TXFW.tsv")
 fwsw.la<-read.delim("stacks/batch_2.fst_ALST-LAFW.tsv")
@@ -182,7 +176,7 @@ length(tx.sig[(tx.sig %in% c(la.sig,al.sig,fl.sig))])
 length(la.sig[(la.sig %in% c(tx.sig,al.sig,fl.sig))])
 length(al.sig[(al.sig %in% c(la.sig,tx.sig,fl.sig))])
 all.shared<-fl.sig[fl.sig %in% la.sig & fl.sig %in% al.sig & fl.sig %in% tx.sig]
-fw.shared.chr<-fwsw.tx[fwsw.tx$Locus.ID %in% all.shared,c("Locus.ID","Chr","BP","Column")]
+fw.shared.chr<-fwsw.tx[fwsw.tx$Locus.ID %in% all.shared,c("Locus.ID","Chr","BP","Column","Overall.Pi")]
 tapply(fw.shared.chr$Locus.ID,factor(fw.shared.chr$Chr),function(x){ length(unique(x)) })
 #are they using the same SNPs or different SNPs?
 snps<-data.frame(nrow=nrow(fw.shared.chr),ncol=4)
@@ -198,6 +192,7 @@ for(i in 1:nrow(fw.shared.chr)){
 }
 colnames(snps)<-c("TX","LA","AL","FL")
 snps<-data.frame(cbind(fw.shared.chr,snps))
+snps$SNP<-paste(snps$Chr,snps$BP,sep=".")
 write.table(snps,"stacks.sig.snps.txt",sep='\t',row.names=FALSE,col.names=TRUE)
 
 ##compare to scovelli genome..
@@ -347,8 +342,6 @@ for(i in 1:length(lgs)){
 dev.off()
 
 
-
-
 ####### Using gwscaR code #####
 loci.info<-c(colnames(vcf[1:9]),"SNP")
 txcb<-grep("TXCB",colnames(vcf),value = T)
@@ -398,7 +391,7 @@ deltad<-deltad[!is.na(deltad$deltad),]#remove NAs
 #' Plot it
 png("delta-divergence.png",height=5,width=7,units="in",res=300)
 par(mar=c(1,1,1,1),oma=c(1,2,1,1))
-dd<-fst.plot(fst.dat = deltad,fst.name = "deltad",bp.name = "Pos",axis=1)
+dd<-fst.plot(fst.dat = deltad,fst.name = "deltad",bp.name = "Pos",axis=1,pch=19)
 mtext(expression(paste(delta,"-divergence")),2,line=1.5)
 smooth.out<-data.frame()
 for(i in 1:length(lgs)){#scaffolds are too short
@@ -406,84 +399,31 @@ for(i in 1:length(lgs)){#scaffolds are too short
   #span<-nrow(this.chrom)/5000
   this.smooth<-loess.smooth(this.chrom$plot.pos,this.chrom$deltad,span=0.1,degree=2) 
   points(this.smooth$x,this.smooth$y,col="cornflowerblue",type="l",lwd=2)
-  this.out<-cbind(this.smooth$x[this.smooth$y>=0.2],this.smooth$y[this.smooth$y>=0.2])
+  this.out<-cbind(this.smooth$x[this.smooth$y>=quantile(this.smooth$y,0.95)],#choosing the outliers
+                  this.smooth$y[this.smooth$y>=quantile(this.smooth$y,0.95)])
   smooth.out<-rbind(smooth.out,this.out)
 }
 dev.off()
 colnames(smooth.out)<-c("plot.pos","smooth.deltad")
-smooth.out<-merge(smooth.out,dd,by="plot.pos")
+smooth.out<-merge(smooth.out,dd,by="plot.pos") #12 loci
+#points(smooth.out$plot.pos,smooth.out$smooth.deltad,col="orchid4")
 write.table(smooth.out,"smoothed.deltad.out.txt",col.names=T,row.names=F,quote=F,sep='\t')
 
-#' sliding window pi and rho - across all snps
-#' pi = 1-sum((ni choose 2)/(n choose i)); ni is number of alleles i in sample, n = sum(ni)
-#' Jones et al. (2012) used 2500bp sliding windows with a step size 500bp<-more than just SNPs, but I'll just focus on SNPs
-#' Hohenlohe did a similar thing and weighted pi by all nt sites (not just SNPs) but rho by SNPs only
-#' Not sure how to make this work for me.
-#' 
-calc.pi<-function(vcf.row){
-  alleles<-vcf.alleles(vcf.row)
-  af.num<-table(alleles)
-  n<-sum(af.num)
-  pi<-1-sum(choose(af.num,2))/choose(n,2)
-  return(pi)
+#' Compare to Stacks Fsts
+# Get the significant Fst loci if they're not already here
+if(!("stacks.sig" %in% ls())){
+  stacks.sig<-read.delim("stacks.sig.snps.txt")
+} 
+if(is.null(stacks.sig$SNP)){ #make sure the SNP column is there.
+  stacks.sig$SNP<-paste(stacks.sig$Chr,stacks.sig$BP,sep=".")
 }
 
-#' rho=1 if allele in pop j is only found in that pop and at least one ind was genotyped at that site 
-#' in each pop; rho = 0 otherwise
-calc.rho<-function(vcf.row,pop.list){
-  pop.alleles<-lapply(pop.list,function(pop){
-    pop.vcf<-cbind(vcf.row[1:9],vcf.row[grep(pop,colnames(vcf.row))])
-    alleles<-vcf.alleles(pop.vcf)
-    af.num<-table(alleles)
-    return(names(af.num))
-  })
-  rho<-0
-  pop.counts<-lapply(pop.alleles,length)
-  if(length(pop.counts[pop.counts==0])>0){
-    unique.counts<-table(unlist(pop.alleles[pop.counts==1]))
-    uni<-unique.counts[unique.counts==1]
-    if(length(uni)>1){
-    uni.matches<-grep(names(uni),pop.alleles)
-    if(length(uni.matches)==1){ #it should only match itself
-      rho<-1}
-  }}
-  return(rho)
-}
+fst.deltad<-stacks.sig[stacks.sig$SNP %in% smooth.out$SNP,]
 
-
-sliding.avg<-function(dat,win.start,width){
-  if((win.start+width)>nrow(dat)){
-    win.end<-nrow(dat)
-  }else {
-    win.end<-(win.start+width)
-  }
-  win.dat<-dat[win.start:win.end,]
-  avg.dat<-data.frame(Avg.Pos=mean(dat[win.start:win.end,1]),
-                     Avg.Pi=mean(win.dat[,2]))
-  return(avg.dat)
-}
-
-sliding.window<-function(vcf,chr,stat="pi",width=250,pop.list=NULL){
-  avg.dat<-lapply(chr,function(chr){
-    chr.vcf<-vcf[vcf[,1] %in% chr,]
-    if(stat=="pi"){
-      dat<-data.frame(Pos=chr.vcf$POS,Pi=unlist(apply(chr.vcf,1,calc.pi))) }
-    if(stat=="rho"){
-      dat<-data.frame(Pos=chr.vcf$POS,Rho=unlist(apply(chr.vcf,1,calc.rho,pop.list=pop.list))) }
-    steps<-seq(1,nrow(chr.vcf),50)
-    if(stat=="pi"){
-      avg.stat<-do.call("rbind",lapply(steps,sliding.avg,dat=dat,width=width)) }
-    if(stat=="rho"){
-      avg.stat<-do.call("rbind",lapply(steps,sliding.avg,dat=dat,width=width)) }
-    avg.stat$Chr<-rep(chr,nrow(avg.stat))
-    head(avg.stat)
-    return(avg.stat)
-  })
-  return(avg.dat)
-}
+#### Other Pop gen statistics ####
 #pi
 avg.pi<-do.call("rbind",sliding.window(vcf,scaffs))
-avg.pi.adj<-fst.plot(avg.pi,scaffold.widths=scaff.starts,
+avg.pi.adj<-fst.plot(avg.pi,scaffold.widths=scaff.starts,pch=19,
                      fst.name = "Avg.Pi",chrom.name = "Chr",bp.name = "Avg.Pos")
 all.pi<-data.frame(Chrom=vcf$`#CHROM`,Pos=vcf$POS,Pi=unlist(apply(vcf,1,calc.pi)))
 all.pi$SNP<-paste(all.pi$Chrom,as.numeric(as.character(all.pi$Pos)),sep=".")
@@ -498,7 +438,7 @@ all.rho$SNP<-paste(all.rho$Chrom,as.numeric(as.character(all.rho$Pos)),sep=".")
 #plot
 png("FWSWpi.png",height=5,width=7,units="in",res=300)
 par(oma=c(2,2,2,2),mar=c(2,2,2,2))
-pi.plot<-fst.plot(all.pi,scaffold.widths=scaff.starts,y.lim=c(0,0.5),axis.size = 0.5,
+pi.plot<-fst.plot(all.pi,scaffold.widths=scaff.starts,y.lim=c(0,0.5),axis.size = 0.5,pch=19,
                      fst.name = "Pi",chrom.name = "Chrom",bp.name = "Pos")
 points(x=avg.pi.adj$plot.pos,y=avg.pi.adj$Avg.Pi,col="cornflowerblue",type="l",lwd=2)
 dev.off()
@@ -521,6 +461,72 @@ pi.plot<-fst.plot(all.pi,scaffold.widths=scaff.starts,y.lim=c(0,0.5),axis.size =
 points(x=avg.pi.adj$plot.pos,y=avg.pi.adj$Avg.Pi,col="cornflowerblue",type="l",lwd=2)
 mtext(expression(pi),2,line=1.5)
 
+#### Looking for directional selection
+#' High Fst, low pi
+pi.sig.fst<-all.pi[all.pi$SNP %in% snps$SNP,] #70 of 72
+points(pi.plot[pi.plot$SNP %in% snps$SNP,"plot.pos"],pi.plot[pi.plot$SNP %in% snps$SNP,"Pi"],col="orchid4")
+
+#add snps
+fwsw.tx$SNP<-paste(fwsw.tx$Chr,fwsw.tx$BP+1,sep=".")
+fwsw.la$SNP<-paste(fwsw.la$Chr,fwsw.la$BP+1,sep=".")
+fwsw.al$SNP<-paste(fwsw.al$Chr,fwsw.al$BP+1,sep=".")
+fwsw.fl$SNP<-paste(fwsw.fl$Chr,fwsw.fl$BP+1,sep=".")
+#plot each chrom with sig. ones
+sig.chroms<-unique(pi.sig.fst$Chrom)
+par(mfrow=c(4,4),mar=c(1,1,1,1),oma=c(1,1,1,1))
+for(i in 1:length(sig.chroms)){ #I could turn this into a function
+  if(sig.chroms[i] %in% lgs){
+    this.tx<-fwsw.tx[fwsw.tx$Chr %in% sig.chroms[i],]
+    tx.smooth<-loess.smooth(this.tx$BP,this.tx$Corrected.AMOVA.Fst,span=0.1,degree=2) 
+    this.la<-fwsw.la[fwsw.la$Chr %in% sig.chroms[i],]
+    la.smooth<-loess.smooth(this.la$BP,this.la$Corrected.AMOVA.Fst,span=0.1,degree=2) 
+    this.al<-fwsw.al[fwsw.al$Chr %in% sig.chroms[i],]
+    al.smooth<-loess.smooth(this.al$BP,this.al$Corrected.AMOVA.Fst,span=0.1,degree=2) 
+    this.fl<-fwsw.fl[fwsw.fl$Chr %in% sig.chroms[i],]
+    fl.smooth<-loess.smooth(this.fl$BP,this.fl$Corrected.AMOVA.Fst,span=0.1,degree=2) 
+    plot(tx.smooth$x,tx.smooth$y,col=grp.colors[1],type="l",ylim=c(0,1),lwd=2,xaxt='n',
+         xlab=paste("Position on ",sig.chroms[i],sep=""),ylab="")
+    mtext(expression(italic(F)[ST]),2,line=2,cex=0.75)
+    points(la.smooth$x,la.smooth$y,col=grp.colors[2],type="l",lwd=2)
+    points(al.smooth$x,al.smooth$y,col=grp.colors[3],type="l",lwd=2)
+    points(fl.smooth$x,fl.smooth$y,col=grp.colors[6],type="l",lwd=2)
+    #add pi
+    points(avg.pi$Avg.Pos[avg.pi$Chr %in% sig.chroms[i]],avg.pi$Avg.Pi[avg.pi$Chr %in% sig.chroms[i]],
+           col="darkgrey",type="l",lwd=2)
+    lapply(pi.sig.fst[pi.sig.fst$Chrom %in% sig.chroms[i],"Pos"],points,y=0.6,pch="-",cex=5)#add bars to sig. fsts
+    lapply(smooth.out[smooth.out$Chrom %in% sig.chroms[i],"Pos"],points,y=0.5,pch="-",cex=5,col="cornflowerblue")
+  }else{
+    this.tx<-fwsw.tx[fwsw.tx$Chr %in% sig.chroms[i],]
+    this.la<-fwsw.la[fwsw.la$Chr %in% sig.chroms[i],]
+    this.al<-fwsw.al[fwsw.al$Chr %in% sig.chroms[i],]
+    this.fl<-fwsw.fl[fwsw.fl$Chr %in% sig.chroms[i],]
+    plot(this.tx$BP,this.tx$Corrected.AMOVA.Fst,col=grp.colors[1],type="l",ylim=c(0,1),lwd=2,xaxt='n',
+         xlab=paste("Position on ",sig.chroms[i],sep=""),ylab="")
+    mtext(expression(italic(F)[ST]),2,line=2,cex=0.75)
+    points(this.la$BP,this.la$Corrected.AMOVA.Fst,col=grp.colors[2],type="l",lwd=2)
+    points(this.al$BP,this.al$Corrected.AMOVA.Fst,col=grp.colors[3],type="l",lwd=2)
+    points(this.fl$BP,this.fl$Corrected.AMOVA.Fst,col=grp.colors[6],type="l",lwd=2)
+    #add pi
+    points(avg.pi$Avg.Pos[avg.pi$Chr %in% sig.chroms[i]],avg.pi$Avg.Pi[avg.pi$Chr %in% sig.chroms[i]],
+           col="darkgrey",type="l",lwd=2)
+    lapply(pi.sig.fst[pi.sig.fst$Chrom %in% sig.chroms[i],"Pos"],points,y=0.6,pch="-",cex=5)#add bars to sig. fsts
+    lapply(smooth.out[smooth.out$Chrom %in% sig.chroms[i],"Pos"],points,y=0.5,pch="-",cex=5,col="cornflowerblue")
+  }
+}#this is kind of a mess.
+
+
+#which points are in the lower 25%?
+put.dir<-pi.sig.fst[pi.sig.fst$Pi <= quantile(pi.plot$Pi,0.25),] #putative directional selection loci.
+
+
+
+#### Looking for balancing selection
+#' Low Fst, high pi (and het)
+
+#plot fsts
+
+
+##### Neighbor joining trees #####
 #' to get trees and calc gsi (maybe):
 #' for each overlapping sliding window (of 33 SNPs, for example), 
 #' generate distance matrix (Fsts) using those SNPs
@@ -529,73 +535,29 @@ mtext(expression(pi),2,line=1.5)
 #' http://molecularevolution.org/software/phylogenetics/gsi/download
 
 library(ape)
-#library(genealogicalSorting) #installed from source
-get.dist<-function(vcf.row,pop.list){
-  fst.matrix<-matrix(nrow=length(pop.list),ncol=length(pop.list))
-  for(i in 1:(length(pop.list)-1)){
-    for(j in (i+1):length(pop.list)){
-      pop1<-colnames(vcf.row)[grep(pop.list[i],colnames(vcf.row))]
-      pop2<-colnames(vcf.row)[grep(pop.list[j],colnames(vcf.row))]
-      fst<-fst.one.vcf(vcf.row, pop1,pop2,maf=0,cov.thresh = 0)
-      fst.matrix[i,j]<-fst$Fst
-    }
-  }
-  colnames(fst.matrix)<-pop.list
-  rownames(fst.matrix)<-pop.list
-  fst.nj<-ape::njs(as.dist(t(fst.matrix)))
-  fst.tree<-write.tree(fst.nj,digits=0)
-}
+
 fst.trees<-list()
 for(vcf.row in 1: nrow(vcf)){
   fst.trees<-c(fst.trees,get.dist(vcf[vcf.row,],pop.list)) #getting an error
 }
 #Now what? How do I get rid of the numbers in the trees?
 
-#' Generate a treemix file from vcf
-#' 
-treemix.from.vcf<-function(vcf,pop.list){
-  tm.df<-matrix(nrow=nrow(vcf),ncol=length(pop.list))
-  for(i in 1:nrow(vcf)){
-    vcf.row<-vcf[i,]
-    #tm.df<-as.matrix(t(apply(vcf,1,function(vcf.row){ #freaking apply was giving me weird results
-    all.alleles<-names(table(vcf.alleles(vcf.row))) 
-    if(length(all.alleles)==2){
-    this.loc<-do.call("cbind",  
-                      lapply(pop.list,function(pop){
-                        pop.vcf.row<-cbind(vcf.row[1:9],vcf.row[grep(pop,colnames(vcf.row))])
-                        pop.alleles<-vcf.alleles(pop.vcf.row)
-                        pop.counts<-table(pop.alleles)
-                        tm.pop<-"0,0"
-                        if(length(pop.counts)==1){
-                          allele<-names(pop.counts)
-                          if(grep(allele,all.alleles)==1){ #maintain order
-                            tm.pop<-paste(pop.counts[[1]],0,sep=",") 
-                          }else{
-                            tm.pop<-paste(0,pop.counts[[1]],sep=",") }
-                        }
-                        if(length(pop.counts)==2){
-                          tm.pop<-paste(pop.counts[[all.alleles[1]]],pop.counts[[all.alleles[2]]],sep=",") 
-                        }
-                        return(tm.pop)
-                      }))
-    }
-    #return(this.loc)
-    tm.df[i,]<-as.vector(this.loc)
-  }#)))
-  colnames(tm.df)<-pop.list
-  return(tm.df)
-}
+##### TREEMIX #####
+
 tm.fwsw<-treemix.from.vcf(vcf,pop.list)
 write.table(tm.fwsw,"fwsw.treemix",col.names=TRUE,row.names=FALSE,quote=F,sep=' ')
 #then in unix: gzip -c fwsw.treemix > fwsw.treemix.gz
 
-#in unix (where the program code is)
-source("~/Programs/treemix/src")
+#In unix: run treemix_analysis.R
 
-#############################################################################
+threepop<-read.table("fwsw.threepop.txt",comment.char="E",sep="",skip=1)#skip all "Estimating" lines
+threepop<-threepop[threepop$V1 != "total_nsnp",]
+#now, which nodes are we interested in?
+m1_patterns<-grep("ALFW",grep("LAFW",grep("TXFW",threepop$V1,value=TRUE),value=TRUE),value=TRUE)
+m1_3pop<-threepop[which(threepop$V1 %in% m1_patterns),]
 ##############################POP STRUCTURE##################################
-#############################################################################
-#******************************ADEGENET*********************************#
+
+#### ADEGENET ####
 dat.plink<-read.PLINK("stacks/subset.raw",parallel=FALSE)
 #look at alleles
 glPlot(dat.plink, posi="topleft")
@@ -726,7 +688,7 @@ legend("top", legend=ppi$Pop, pch=as.numeric(ppi$pch), pt.cex=1.5,cex=0.85,
        col=alpha(ppi$cols, 0.5),pt.bg=alpha(ppi$cols,0.25), ncol=8,bty='n')
 dev.off()
 
-#*******************************PCADAPT***********************************#
+#### PCADAPT ####
 library(pcadapt)
 filename<-read.pcadapt("stacks/subset.ped",type="ped")
 x<-pcadapt("stacks/subset.pcadapt", K=20)
@@ -914,9 +876,7 @@ legend(x=0.6,y=-0.1, legend=ppi$Pop, pch=as.numeric(ppi$pch), pt.cex=1.5,cex=0.8
 dev.off()
 
 
-###########################################################################
 ##############################BAYENV######################################
-##########################################################################
 ped.pops<-gsub("(sample_)(\\w{4})(\\w+)","\\2",ped.sub[,2])
 ped.sex<-sub('(sample_\\w{4})(\\w)(\\w+)','\\2', ped.sub[,2])
 ped.sex[ped.sex=="F"]<-2
@@ -938,7 +898,7 @@ write.table(clust.plink,
 #Then plink --ped bayenv.plink.ped --map subset.map --extract plink.snplist --out bayenv --noweb --allow-no-sex --recode --freq --within plink.clust.txt 
 #9820 SNPs in 698 individuals
 
-#####CONVERT PLINK TO BAYENV2
+##### CONVERT PLINK TO BAYENV2
 freq<-read.table("stacks/bayenv.frq.strat", 
                  header=T, stringsAsFactors=F)
 #want to get $MAC for every snp at every pop 
@@ -961,7 +921,7 @@ write.table(snpsfile, "bayenv/fwsw.snpsfile",
 #../../scripts/run_bayenv2_matrix_general.sh fwsw.snpsfile 16
 #last run on 1 May 2017
 
-#####check Bayenv2 matrix--NOT YET DONE
+##### check Bayenv2 matrix
 matrix.files<-list.files("bayenv/",pattern="matrix")
 matrices<-list()
 for(i in 1:length(matrix.files))
@@ -982,7 +942,7 @@ image(matrices[[9]])
 image(matrices[[10]])
 #these are all essentially the same-use representative matrix
 
-#####SNPFILEs
+##### SNPFILEs
 #for SNPFILE, need just one file per SNP apparently.
 #want to use all of the snps (not just the pruned set)...need to get map with those inds.
 all.snps.map<-read.table("stacks/batch_2.plink.map",header=F,stringsAsFactors = F)
@@ -1028,12 +988,7 @@ env.raw<-read.csv("bayenv/env_data_raw.csv",row.names=1)
 #Each environmental variable should be standardized, 
 #i.e. subtract the mean and then divided through by the standard deviation 
 #of the variable across populations.
-std.by.mean<-function(x){
-  m<-mean(x)
-  s<-sd(x)
-  newx<-(x-m)/s
-  return(newx)
-}
+
 env.std<-t(apply(env.raw,1,std.by.mean))
 env.std<-env.std[,colnames(snpsfile)] #change the column order to match
 write.table(env.std,
