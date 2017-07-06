@@ -58,7 +58,7 @@ scaff.starts<-data.frame(rbind(cbind(names(scaff.starts),scaff.starts)),stringsA
 locus.info<-c(colnames(vcf[1:9]),"SNP")
 #chosen.snps<-choose.one.snp(vcf)$SNP
 #write.table(chosen.snps,"chosen.snps.txt",quote=F)
-chosen.snps<-read.table(write.table)
+chosen.snps<-unlist(read.table("chosen.snps.txt"))
 
 #######################PLOT THE POINTS ON A MAP##############################
 jpeg("all_sites_map.jpg", res=300, height=7,width=14, units="in")
@@ -179,21 +179,21 @@ all.shared<-fl.sig[fl.sig %in% la.sig & fl.sig %in% al.sig & fl.sig %in% tx.sig]
 fw.shared.chr<-fwsw.tx[fwsw.tx$Locus.ID %in% all.shared,c("Locus.ID","Chr","BP","Column","Overall.Pi")]
 tapply(fw.shared.chr$Locus.ID,factor(fw.shared.chr$Chr),function(x){ length(unique(x)) })
 #are they using the same SNPs or different SNPs?
-snps<-data.frame(nrow=nrow(fw.shared.chr),ncol=4)
+stacks.sig<-data.frame(nrow=nrow(fw.shared.chr),ncol=4)
 for(i in 1:nrow(fw.shared.chr)){
   tx.bp<-fwsw.tx[fwsw.tx$Fisher.s.P<0.01 & fwsw.tx$Locus.ID == fw.shared.chr[i,"Locus.ID"],"BP"]
   la.bp<-fwsw.la[fwsw.la$Fisher.s.P<0.01 & fwsw.la$Locus.ID == fw.shared.chr[i,"Locus.ID"],"BP"]
   al.bp<-fwsw.al[fwsw.al$Fisher.s.P<0.01 & fwsw.al$Locus.ID == fw.shared.chr[i,"Locus.ID"],"BP"]
   fl.bp<-fwsw.fl[fwsw.fl$Fisher.s.P<0.01 & fwsw.fl$Locus.ID == fw.shared.chr[i,"Locus.ID"],"BP"]
-  snps[i,1]<-paste(tx.bp,sep=",",collapse = ",")
-  snps[i,2]<-paste(la.bp,sep=",",collapse = ",")
-  snps[i,3]<-paste(al.bp,sep=",",collapse = ",")
-  snps[i,4]<-paste(fl.bp,sep=",",collapse = ",")
+  stacks.sig[i,1]<-paste(tx.bp,sep=",",collapse = ",")
+  stacks.sig[i,2]<-paste(la.bp,sep=",",collapse = ",")
+  stacks.sig[i,3]<-paste(al.bp,sep=",",collapse = ",")
+  stacks.sig[i,4]<-paste(fl.bp,sep=",",collapse = ",")
 }
-colnames(snps)<-c("TX","LA","AL","FL")
-snps<-data.frame(cbind(fw.shared.chr,snps))
-snps$SNP<-paste(snps$Chr,snps$BP,sep=".")
-write.table(snps,"stacks.sig.snps.txt",sep='\t',row.names=FALSE,col.names=TRUE)
+colnames(stacks.sig)<-c("TX","LA","AL","FL")
+stacks.sig<-data.frame(cbind(fw.shared.chr,stacks.sig))
+stacks.sig$SNP<-paste(stacks.sig$Chr,snps$BP,sep=".")
+write.table(stacks.sig,"stacks.sig.snps.txt",sep='\t',row.names=FALSE,col.names=TRUE)
 
 ##compare to scovelli genome..
 gff<-read.delim("../../scovelli_genome/ssc_122016_chromlevel.gff",header=F)
@@ -226,23 +226,24 @@ fw.sig.reg<-do.call(rbind,apply(fw.shared.chr,1,function(sig){
 all.chr<-data.frame(Chr=c(as.character(fwsw.tx$Chr),as.character(fwsw.la$Chr),as.character(fwsw.al$Chr),as.character(fwsw.fl$Chr)),
                     BP=c(fwsw.tx$BP,fwsw.la$BP,fwsw.al$BP,fwsw.fl$BP),stringsAsFactors = F)
 bounds<-data.frame(levels(as.factor(all.chr$Chr)),tapply(as.numeric(as.character(all.chr$BP)),all.chr$Chr,max))
+plot.scaffs<-scaffs[scaffs %in% bounds]
 colnames(bounds)<-c("Chrom","End")
 png("stacks_fsts_fwsw.png",height=8,width=7.5,units="in",res=300)
 par(mfrow=c(4,1),mar=c(0.85,2,0,0.5),oma=c(1,1,1,0.5))
 fwswt.fst<-fst.plot(fwsw.tx,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
-                    scaffs.to.plot = scaffs,scaffold.widths = bounds,pch=19,
+                    scaffs.to.plot=plot.scaffs, scaffold.widths = bounds,pch=19,y.lim = c(0,1),
                     pt.cols = c(grp.colors[1],grp.colors[2]),pt.cex=1,axis.size = 1)
 mtext("TXFW vs. TXCC",3,cex=0.75,line=-1)
 fwswl.fst<-fst.plot(fwsw.la,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
-                    scaffs.to.plot = scaffs,scaffold.widths = bounds,pch=19,
+                    scaffs.to.plot=plot.scaffs, scaffold.widths = bounds,pch=19,y.lim = c(0,1),
                     pt.cols=c(grp.colors[2],grp.colors[3]),pt.cex=1,axis.size=1)
 mtext("LAFW vs. ALST",3,cex=0.75,line=-1)
 fwswa.fst<-fst.plot(fwsw.al,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
-                    scaffs.to.plot =  scaffs,scaffold.widths = bounds,pch=19,
+                    scaffs.to.plot=plot.scaffs, scaffold.widths = bounds,pch=19,y.lim = c(0,1),
                     pt.cols=c(grp.colors[3],grp.colors[2]),pt.cex=1,axis.size = 1)
 mtext("ALFW vs. ALST",3,cex=0.75,line=-1)
 fwswf.fst<-fst.plot(fwsw.fl,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
-                    scaffs.to.plot = scaffs,scaffold.widths =  bounds,pch=19,
+                    scaffs.to.plot=plot.scaffs, scaffold.widths =  bounds,pch=19,y.lim = c(0,1),
                     pt.cols=c(grp.colors[6],grp.colors[5]),pt.cex=1,axis.size=1)
 mtext("FLFW vs. FLCC",3,cex=0.75,line=-1)
 mtext(expression(italic(F)[ST]),2,outer=T,line=-0.8,cex=0.75)
@@ -255,35 +256,35 @@ for(i in 1:length(lgs)){
 dev.off()
 
 #' plot with the outlier regions
-#png("stacks_fsts_fwsw_withSig.png",height=8,width=7.5,units="in",res=300)
+png("stacks_fsts_fwsw_withSig.png",height=8,width=7.5,units="in",res=300)
 par(mfrow=c(4,1),mar=c(0.85,2,0,0.5),oma=c(1,1,1,0.5))
 fwswt.fst<-fst.plot(fwsw.tx,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
-                    scaffs.to.plot = scaffs,scaffold.widths = bounds,pch=19,
+                    scaffs.to.plot=plot.scaffs, y.lim = c(0,1),scaffold.widths = bounds,pch=19,
                     pt.cols = c(grp.colors[1],grp.colors[2]),pt.cex=1,axis.size = 1)
 #points(fwswt.fst$BP,fwswt.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[1])
 points(fwswt.fst$plot.pos[fwswt.fst$Locus.ID %in% all.shared],fwswt.fst$Corrected.AMOVA.Fst[fwswt.fst$Locus.ID %in% all.shared],
-       pch=0,col="red",cex=1.3)
+       pch=1,col="black",cex=1.3)
 mtext("TXFW vs. TXCC",3,cex=0.75,line=-1)
 fwswl.fst<-fst.plot(fwsw.la,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
-                    scaffs.to.plot = scaffs,scaffold.widths = bounds,pch=19,
+                    scaffs.to.plot=plot.scaffs, y.lim = c(0,1),scaffold.widths = bounds,pch=19,
                     pt.cols=c(grp.colors[2],grp.colors[3]),pt.cex=1,axis.size=1)
 #points(fwswl.fst$BP,fwswl.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[3])
 points(fwswl.fst$plot.pos[fwswl.fst$Locus.ID %in% all.shared],fwswl.fst$Corrected.AMOVA.Fst[fwswl.fst$Locus.ID %in% all.shared],
-       pch=0,col="red",cex=1.3)
+       pch=1,col="black",cex=1.3)
 mtext("LAFW vs. ALST",3,cex=0.75,line=-1)
 fwswa.fst<-fst.plot(fwsw.al,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
-                    scaffs.to.plot = scaffs,scaffold.widths = bounds,pch=19,
+                    scaffs.to.plot=plot.scaffs, y.lim = c(0,1),scaffold.widths = bounds,pch=19,
                     pt.cols=c(grp.colors[3],grp.colors[2]),pt.cex=1,axis.size = 1)
 #points(fwswa.fst$BP,fwswa.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[4])
 points(fwswa.fst$plot.pos[fwswa.fst$Locus.ID %in% all.shared],fwswa.fst$Corrected.AMOVA.Fst[fwswa.fst$Locus.ID %in% all.shared],
-       pch=0,col="red",cex=1.3)
+       pch=1,col="black",cex=1.3)
 mtext("ALFW vs. ALST",3,cex=0.75,line=-1)
 fwswf.fst<-fst.plot(fwsw.fl,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
-                    scaffs.to.plot = scaffs,scaffold.widths = bounds,pch=19,
+                    scaffs.to.plot=plot.scaffs, y.lim = c(0,1),scaffold.widths = bounds,pch=19,
                     pt.cols=c(grp.colors[6],grp.colors[5]),pt.cex=1,axis.size=1)
 #points(fwswf.fst$BP,fwswf.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[6])
 points(fwswf.fst$plot.pos[fwswf.fst$Locus.ID %in% all.shared],fwswf.fst$Corrected.AMOVA.Fst[fwswf.fst$Locus.ID %in% all.shared],
-       pch=0,col="red",cex=1.3)
+       pch=1,col="black",cex=1.3)
 mtext("FLFW vs. FLCC",3,cex=0.75,line=-1)
 mtext(expression(italic(F)[ST]),2,outer=T,line=-1,cex=0.75)
 last<-0
@@ -292,7 +293,7 @@ for(i in 1:length(lgs)){
        labels=lgn[i], adj=1, xpd=TRUE)
   last<-max(fwswf.fst[fwswf.fst$Chr ==lgs[i],"plot.pos"])
 }
-#dev.off()
+dev.off()
 
 ##For comparison, neighboring sw pops
 swsw.tx<-read.delim("stacks/batch_2.fst_TXCB-TXCC.tsv")
@@ -319,23 +320,23 @@ swswf.fst<-fst.plot(swsw.fl,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chr
 png("stacks_fsts_swsw.png",height=6,width=7.5,units="in",res=300)
 par(mfrow=c(3,1),mar=c(0.85,2,0,0.5),oma=c(1,1,1,0.5))
 swswt.fst<-fst.plot(swsw.tx,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
-                    scaffs.to.plot = scaffs,scaffold.widths = bounds,axis.size = 1,
+                    scaffs.to.plot=plot.scaffs, y.lim = c(0,1),scaffold.widths = bounds,axis.size = 1,
                     pt.cols=c(grp.colors[1],grp.colors[2]),pt.cex = 1,pch=19)
 mtext("TXCC vs. TXCB",3,line=-1,cex=0.75)
 swswa.fst<-fst.plot(swsw.al,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", y.lim=c(0,1),
-                    scaffs.to.plot = scaffs,scaffold.widths = bounds,axis.size = 1,
+                    scaffs.to.plot=plot.scaffs, scaffold.widths = bounds,axis.size = 1,
                     pt.cols=c(grp.colors[2],grp.colors[3]),pt.cex = 1,pch=19)
 #points(swswa.fst$plot.pos,swswa.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[3])
 mtext("ALST vs. FLSG",3,line=-1,cex=0.75)
 swswf.fst<-fst.plot(swsw.fl,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
-                    scaffs.to.plot = scaffs,scaffold.widths = bounds,axis.size = 1,
+                    scaffs.to.plot=plot.scaffs, y.lim = c(0,1),scaffold.widths = bounds,axis.size = 1,
                     pt.cols=c(grp.colors[6],grp.colors[5]),pt.cex = 1,pch=19)
 #points(swswf.fst$plot.pos,swswf.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[6])
 mtext("FLCC vs. FLHB",3,line=-1,cex=0.75)
 mtext(expression(italic(F)[ST]),2,outer=T,line=-0.75,cex=0.75)
 last<-0
 for(i in 1:length(lgs)){
-  text(x=mean(swswf.fst[swswf.fst$Chr ==lgs[i],"plot.pos"]),y=-0.015,
+  text(x=mean(swswf.fst[swswf.fst$Chr ==lgs[i],"plot.pos"]),y=-0.07,
        labels=lgn[i], adj=1, xpd=TRUE)
   last<-max(swswf.fst[swswf.fst$Chr ==lgs[i],"plot.pos"])
 }
@@ -380,18 +381,23 @@ fss<-gwsca(vcf=vcf,locus.info=loci.info,group1=flcc,group2=flhb)
 #### Delta-divergence ####
 #' only use chosen SNPs
 vcf<-vcf[vcf$SNP %in% chosen.snps,]
-#sw-fw
-swfw.mu<-calc.mean.fst(vcf = vcf,pop.list1 = sw.list,pop.list2 = fw.list,maf.cutoff=0.01)
-fwfw.mu<-calc.mean.fst(vcf = vcf,pop.list1 = fw.list,pop.list2 = fw.list, maf.cutoff=0.01)
-deltad<-merge(swfw.mu,fwfw.mu,by="SNP")
-deltad<-deltad[,c("SNP","Chrom.x","Pos.x","Mean.Fst.x","Mean.Fst.y")]
-colnames(deltad)<-c("SNP","Chrom","Pos","MeanSWFW.Fst","MeanFWFW.Fst")
-deltad$deltad<-deltad$MeanSWFW.Fst - deltad$MeanFWFW.Fst
-deltad<-deltad[!is.na(deltad$deltad),]#remove NAs
+#Calculate delta-divergence
+#' ``` {r, eval = FALSE}
+#' swfw.mu<-calc.mean.fst(vcf = vcf,pop.list1 = sw.list,pop.list2 = fw.list,maf.cutoff=0.01)
+#' fwfw.mu<-calc.mean.fst(vcf = vcf,pop.list1 = fw.list,pop.list2 = fw.list, maf.cutoff=0.01)
+#' deltad<-merge(swfw.mu,fwfw.mu,by="SNP")
+#' deltad<-deltad[,c("SNP","Chrom.x","Pos.x","Mean.Fst.x","Mean.Fst.y")]
+#' colnames(deltad)<-c("SNP","Chrom","Pos","MeanSWFW.Fst","MeanFWFW.Fst")
+#' deltad$deltad<-deltad$MeanSWFW.Fst - deltad$MeanFWFW.Fst
+#' deltad<-deltad[!is.na(deltad$deltad),]#remove NAs
+#' ```
+#' ```{r, echo=FALSE}
+#' deltad<-read.delim("deltadivergence.txt")
+#' ```
 #' Plot it
 png("delta-divergence.png",height=5,width=7,units="in",res=300)
 par(mar=c(1,1,1,1),oma=c(1,2,1,1))
-dd<-fst.plot(fst.dat = deltad,fst.name = "deltad",bp.name = "Pos",axis=1,pch=19)
+dd<-fst.plot(fst.dat = deltad,fst.name = "deltad",bp.name = "Pos",axis=1,pch=19,scaffs.to.plot=plot.scaffs)
 mtext(expression(paste(delta,"-divergence")),2,line=1.5)
 smooth.out<-data.frame()
 for(i in 1:length(lgs)){#scaffolds are too short
