@@ -1052,6 +1052,75 @@ tp<-fst.plot(fst.dat = bf,fst.name = "logTemp",chrom.name = "Chrom",bp.name = "P
 sp<-fst.plot(fst.dat = bf,fst.name = "logSalt",chrom.name = "Chrom",bp.name = "Pos")
 gp<-fst.plot(fst.dat = bf,fst.name = "logSeag",chrom.name = "Chrom",bp.name = "Pos")
 
+
+#####GET OUTPUT
+setwd("bayenv/snpfiles")
+bf.files<-list.files(pattern="bf")
+xtx.files<-list.files(pattern="xtx")
+
+bf.dat<-NULL
+for(i in 1:length(bf.files)){
+  bf<-read.table(bf.files[i])
+  bf.dat<-rbind(bf.dat,bf)
+}
+colnames(bf.dat)<-c("locus", "Temp_BF", "Temp_rho", "Temp_rs", 
+                    "Salinity_BF", "Salinity_rho", "Salinity_rs", 
+                    "seagrass_BF", "seagrass_rho","seagrass_rs")
+bf.dat$locus<-sub("snpfiles/(\\d+.*)","\\1",bf.dat$locus)
+
+xtx<-NULL
+for(i in 1:length(xtx.files)){
+  x<-read.table(xtx.files[i])
+  xtx<-rbind(xtx,x)
+}
+colnames(xtx)<-c("locus","XtX")
+xtx$locus<-sub("snpfiles/(\\d+.*)","\\1",xtx$locus)
+
+setwd("../")
+write.table(bf.dat,"BF_summary.txt",sep='\t',quote=F,row.names=F)
+write.table(xtx,"XtX_summary.txt",sep='\t',quote=F,row.names=F)
+
+
+#####BAYENV: ENV
+bf.scaff<-merge(sub.map, bf.dat, by.x="V2", by.y="locus")
+colnames(bf.scaff)[1:4]<-c("locus","scaffold","dist","BP")
+#focus on Bayes Factors, because of Lotterhos & Whitlock (2015)
+bf<-bf.scaff[,c(1,2,4,5,8,11,14,17,20)]
+bf.co<-apply(bf[,4:9],2,quantile,0.95)
+temp.bf.sig<-bf[bf$Temp_BF>bf.co["Temp_BF"],c(1,2,3,4)]
+sal.bf.sig<-bf[bf$Salinity_BF>bf.co["Salinity_BF"],c(1,2,3,5)]
+ctemp.bf.sig<-bf[bf$coll.temp_BF>bf.co["coll.temp_BF"],c(1,2,3,6)]
+csal.bf.sig<-bf[bf$coll.sal_BF>bf.co["coll.sal_BF"],c(1,2,3,7)]
+grass.bf.sig<-bf[bf$seagrass_BF>bf.co["seagrass_BF"],c(1,2,3,8)]
+tvar.bf.sig<-bf[bf$BFtempvar>bf.co["BFtempvar"],c(1,2,3,9)]
+
+dim(tvar.bf.sig[tvar.bf.sig$locus %in% temp.bf.sig$locus & 
+                  tvar.bf.sig$locus %in% ctemp.bf.sig,])
+dim(sal.bf.sig[sal.bf.sig$locus %in% csal.bf.sig$locus,])
+dim(grass.bf.sig[grass.bf.sig$locus %in% temp.bf.sig$locus &
+                   grass.bf.sig$locus %in% sal.bf.sig$locus,])
+dim(grass.bf.sig[grass.bf.sig$locus %in% ctemp.bf.sig$locus &
+                   grass.bf.sig$locus %in% csal.bf.sig$locus,])
+out.venn<-venn( list("MeanSalinity"=sal.bf.sig$locus,
+                     "MeanTemp"=temp.bf.sig$locus,"Seagrass"=grass.bf.sig$locus))
+
+temp.bf.sig$start<-temp.bf.sig$BP-2500
+temp.bf.sig$end<-temp.bf.sig$BP+2500
+sal.bf.sig$start<-sal.bf.sig$BP-2500
+sal.bf.sig$end<-sal.bf.sig$BP+2500
+ctemp.bf.sig$start<-ctemp.bf.sig$BP-2500
+ctemp.bf.sig$end<-ctemp.bf.sig$BP+2500
+csal.bf.sig$start<-csal.bf.sig$BP-2500
+csal.bf.sig$end<-csal.bf.sig$BP+2500
+grass.bf.sig$start<-grass.bf.sig$BP-2500
+grass.bf.sig$end<-grass.bf.sig$BP+2500
+tvar.bf.sig$start<-tvar.bf.sig$BP-2500
+tvar.bf.sig$end<-tvar.bf.sig$BP+2500
+chroms<-c(as.character(temp.bf.sig$scaffold),as.character(sal.bf.sig$scaffold),
+          as.character(ctemp.bf.sig$scaffold),as.character(csal.bf.sig$scaffold),
+          as.character(grass.bf.sig$scaffold),as.character(tvar.bf.sig$scaffold))
+chroms<-chroms[!duplicated(chroms)]
+
 ###################BAYESCAN########################
 #make the pops file
 vcf<-parse.vcf("batch_2.vcf")
