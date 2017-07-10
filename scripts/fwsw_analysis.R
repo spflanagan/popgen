@@ -15,10 +15,12 @@ library(scales)
 library(gdata)
 library(ape)
 library(lattice); library(RColorBrewer); library(grid)
+library(devtools)
 
 setwd("B:/ubuntushare/popgen/fwsw_results/")
 #source("../scripts/popgen_functions.R")
-source("../../gwscaR/R/gwscaR.R")
+install_github("spflanagan/gwscaR")
+library(gwscaR)
 source("../scripts/phenotype_functions.R")
 
 pop.list<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
@@ -159,6 +161,41 @@ dev.off()
 
 
 
+
+####ALLELE FREQUENCY SPECTRA####
+#' Calculate AFS from vcf
+fw.afs<-lapply(fw.list,function(pop){
+  this.vcf<-cbind(vcf[,locus.info],vcf[,grep(pop,colnames(vcf))])
+  this.afs<-do.call(rbind,apply(this.vcf,1,calc.afs.vcf))
+})
+names(fw.afs)<-c("TXFW","LAFW","ALFW","FLFW")
+sw.afs<-lapply(sw.list,function(pop){
+  this.vcf<-cbind(vcf[,locus.info],vcf[,grep(pop,colnames(vcf))])
+  this.afs<-do.call(rbind,apply(this.vcf,1,calc.afs.vcf))
+})
+names(sw.afs)<-sw.list
+all.afs<-c(fw.afs,sw.afs)
+png("AFS.png",height=10,width=10,units="in",res=300)
+par(mfrow=c(4,4),mar=c(2,2,1,0),oma=c(2,2,0.5,0.5))
+for(i in 1:length(pop.labs)){
+  if(pop.labs[i] %in% names(fw.afs)){
+    color<-"cornflowerblue"
+  }else{
+    color<-"black"
+  }
+  hist(all.afs[[pop.labs[i]]]$RefFreq,ylab="",xlab="",main="",
+       xlim=c(0,1),ylim=c(0,10000),axes=F,col=color)
+  axis(1,pos=0)
+  if(i %in% c(1,5,9,13)){
+    axis(2,pos=0,las=1)
+  }else{
+    axis(2,pos=0,las=1,labels = FALSE)
+    }
+  mtext(pop.labs[i],3,col=color,cex=0.75,line=-1)
+}
+mtext("Reference Allele Frequency",1,outer=TRUE,cex=0.75)
+mtext("Number of SNPs",2,outer = TRUE,cex=0.75,line=1)
+dev.off()
 #################################OUTLIERS####################################
 
 #### STACKS ####
@@ -192,15 +229,13 @@ for(i in 1:nrow(fw.shared.chr)){
 }
 colnames(stacks.sig)<-c("TX","LA","AL","FL")
 stacks.sig<-data.frame(cbind(fw.shared.chr,stacks.sig))
-stacks.sig$SNP<-paste(stacks.sig$Chr,snps$BP,sep=".")
+stacks.sig$SNP<-paste(stacks.sig$Chr,stacks.sig$BP,sep=".")
 write.table(stacks.sig,"stacks.sig.snps.txt",sep='\t',row.names=FALSE,col.names=TRUE)
 
 ##compare to scovelli genome..
-gff<-read.delim("../../scovelli_genome/ssc_122016_chromlevel.gff",header=F)
+gff<-read.delim(gzfile("../../scovelli_genome/ssc_2016_12_20_chromlevel.gff.gz"),header=F)
 colnames(gff)<-c("seqname","source","feature","start","end","score","strand","frame","attribute")
-
-#agp<-read.table("../../scovelli_genome/ssc_122016_chromlevel.agp")
-#colnames(agp)<-c("object","object_beg","object_end","part_number","component_type","component_id","component_beg","orientation")
+genome.blast<-read.csv("../../scovelli_genome/ssc_2016_12_20_cds_nr_blast_results.csv",skip=1,header=T)#I saved it as a csv
 
 #' extract the significant regions from the gff file
 fw.sig.reg<-do.call(rbind,apply(fw.shared.chr,1,function(sig){
@@ -209,17 +244,24 @@ fw.sig.reg<-do.call(rbind,apply(fw.shared.chr,1,function(sig){
   if(nrow(this.reg) == 0){
     if(as.numeric(sig["BP"])>max(as.numeric(this.gff$end))){
       new<-data.frame(Locus=sig["Locus.ID"],Chr=sig["Chr"],BP=sig["BP"],SNPCol=sig["Column"],
-                      region="beyond.last.contig")
+                      region="beyond.last.contig", description=NA)
     }else{
       new<-data.frame(Locus=sig["Locus.ID"],Chr=sig["Chr"],BP=sig["BP"],SNPCol=sig["Column"],
-                      region=NA)
+                      region=NA,description=NA)
     }
   }else{
+    if(length(grep("SSCG\\d+",this.reg$attribute))>0){
+      geneID<-unique(gsub(".*(SSCG\\d+).*","\\1",this.reg$attribute[grep("SSCG\\d+",this.reg$attribute)]))
+      gene<-genome.blast[genome.blast$sscv4_gene_ID %in% geneID,"blastp_hit_description"]
+    }else{
+      gene<-NA
+    }
     new<-data.frame(Locus=sig["Locus.ID"],Chr=sig["Chr"],BP=sig["BP"],SNPCol=sig["Column"],
-                    region=paste(this.reg$feature,sep=",",collapse = ","))
+                    region=paste(this.reg$feature,sep=",",collapse = ","),description=gene)
   }
   return(as.data.frame(new))
 }))
+write.csv(fw.sig.reg,"StacksFWSWOutliers_annotatedByGenome.csv")
 
 #' graph without highlighted regions
 #' first define the scaffold boundaries
@@ -342,7 +384,52 @@ for(i in 1:length(lgs)){
 }
 dev.off()
 
+#' What are the allele frequencies of the significant FWSW outliers in FW pops and in SW pops?
+#' And what are the SNPs?
+#get the RAD loci from the vcf
+stacks.sig$SNP<-paste(stacks.sig$Chr,as.character(as.numeric(as.numeric(stacks.sig$BP) + 1)),sep=".")
+stacks.sig.vcf<-vcf[vcf$SNP %in% stacks.sig$SNP,] #two don't get added, but I can add them manually
+stacks.sig.vcf<-rbind(stacks.sig.vcf,vcf[vcf$ID == 28200,])
+fw.sig.vcf<-stacks.sig.vcf[,c(locus.info,unlist(lapply(fw.list,grep,x=colnames(stacks.sig.vcf),value=TRUE)))]
+sw.sig.vcf<-stacks.sig.vcf[,c(locus.info,unlist(lapply(sw.list,grep,x=colnames(stacks.sig.vcf),value=TRUE)))]
+fw.sig.afs<-do.call(rbind,apply(fw.sig.vcf,1,calc.afs.vcf))
+fw.sig.afs$ID<-fw.sig.vcf$ID
+fw.sig.afs$SNP<-fw.sig.vcf$SNP
+sw.sig.afs<-do.call(rbind,apply(sw.sig.vcf,1,calc.afs.vcf))
+sw.sig.afs$ID<-sw.sig.vcf$ID
+sw.sig.afs$SNP<-fw.sig.vcf$SNP
 
+#reorder to be in chrom order
+fw.sig.afs<-fw.sig.afs[order(factor(fw.sig.afs$Chrom,levels=scaffs)),]
+sw.sig.afs<-sw.sig.afs[order(factor(sw.sig.afs$Chrom,levels=scaffs)),]
+
+png("OutlierAlleleFreqs.png",height=5,width=10,units="in",res=300)
+par(mar=c(3,2,1,1),oma=c(2,2,0,1))
+plot(1:nrow(fw.sig.afs),fw.sig.afs$RefFreq,ylim=c(0,1),type='n',
+    xlab="",ylab="",axes=FALSE)
+axis(2,ylim=c(0,1),pos=0,las=1,cex.axis=0.75)
+mtext("Reference Allele Frequency",2,line=1.5,cex=0.75)
+start<-0.1
+for(i in 1:length(unique(fw.sig.afs$Chrom))){
+  end<-start+nrow(fw.sig.afs[fw.sig.afs$Chrom %in% unique(fw.sig.afs$Chrom)[i],])+0.1
+  if(i%%2){
+    rect(start,0,end,1,col="lightgrey",border="lightgrey")
+  }
+  text(x=mean(c(start,end)),y=0,labels=unique(fw.sig.afs$Chrom)[i],
+       xpd=TRUE,adj=1,srt=45,cex=0.75)
+  start<-end
+}
+#text(x=1:nrow(fw.sig.afs),y=rep(-0.05,nrow(fw.sig.afs)),
+#     labels=fw.sig.afs$Chrom,xpd=TRUE,adj=1,srt=90)
+points(1:nrow(fw.sig.afs),fw.sig.afs$RefFreq, 
+       pch=19,col="cornflowerblue")
+points(1:nrow(fw.sig.afs),sw.sig.afs$RefFreq)
+arrows(x0=1:nrow(fw.sig.afs),x1=1:nrow(fw.sig.afs),
+       y0=sw.sig.afs$RefFreq,y1=fw.sig.afs$RefFreq,
+       angle=45,length=0.1)
+legend(x=50,y=0.15,bty='n',pch=c(19,1),col=c("cornflowerblue","black"),
+       c("Freshwater Populations","Saltwater Populations"),cex=0.75)
+dev.off()
 ####### Using gwscaR code #####
 loci.info<-c(colnames(vcf[1:9]),"SNP")
 txcb<-grep("TXCB",colnames(vcf),value = T)
@@ -397,23 +484,44 @@ vcf<-vcf[vcf$SNP %in% chosen.snps,]
 #' Plot it
 png("delta-divergence.png",height=5,width=7,units="in",res=300)
 par(mar=c(1,1,1,1),oma=c(1,2,1,1))
-dd<-fst.plot(fst.dat = deltad,fst.name = "deltad",bp.name = "Pos",axis=1,pch=19,scaffs.to.plot=plot.scaffs)
+dd<-fst.plot(fst.dat = deltad,fst.name = "deltad",bp.name = "Pos",axis=1,pch=19,scaffs.to.plot=scaffs)
 mtext(expression(paste(delta,"-divergence")),2,line=1.5)
-smooth.out<-data.frame()
+smooth.par<-data.frame()
+smooth.div<-data.frame()
 for(i in 1:length(lgs)){#scaffolds are too short
   this.chrom<-dd[dd$Chrom %in% lgs[i],]
   #span<-nrow(this.chrom)/5000
   this.smooth<-loess.smooth(this.chrom$plot.pos,this.chrom$deltad,span=0.1,degree=2) 
+  this.plot.pos<-unlist(lapply(this.smooth$x,function(x) { this.chrom[which.min(abs(this.chrom$plot.pos-x)),"plot.pos"] }))
   points(this.smooth$x,this.smooth$y,col="cornflowerblue",type="l",lwd=2)
-  this.out<-cbind(this.smooth$x[this.smooth$y>=quantile(this.smooth$y,0.95)],#choosing the outliers
-                  this.smooth$y[this.smooth$y>=quantile(this.smooth$y,0.95)])
-  smooth.out<-rbind(smooth.out,this.out)
+  # this.div<-cbind(x= this.smooth$x[this.smooth$y>=quantile(this.smooth$y,0.95)],#choosing the upper outliers - smoothed
+  #                 smooth.dd=this.smooth$y[this.smooth$y>=quantile(this.smooth$y,0.95)],
+  #                 plot.pos=this.plot.pos[this.smooth$y>=quantile(this.smooth$y,0.95)])
+  # this.par<-cbind(x=this.smooth$x[this.smooth$y<=quantile(this.smooth$y,0.05)],#choosing the lower outliers - smoothed
+  #                 smooth.dd=this.smooth$y[this.smooth$y<=quantile(this.smooth$y,0.05)],
+  #                 plot.pos=this.plot.pos[this.smooth$y<=quantile(this.smooth$y,0.05)])
+  this.div<-cbind(dd=this.chrom$deltad[this.chrom$deltad>=quantile(this.chrom$deltad,0.95)],#choosing the upper outliers
+                  plot.pos=this.chrom$plot.pos[this.chrom$deltad>=quantile(this.chrom$deltad,0.95)])
+  this.par<-cbind(dd=this.chrom$deltad[this.chrom$deltad<=quantile(this.chrom$deltad,0.05)],#choosing the lower outliers
+                  plot.pos=this.chrom$plot.pos[this.chrom$deltad<=quantile(this.chrom$deltad,0.05)])
+  smooth.par<-rbind(smooth.par,this.par)
+  smooth.div<-rbind(smooth.div,this.div)
 }
 dev.off()
-colnames(smooth.out)<-c("plot.pos","smooth.deltad")
-smooth.out<-merge(smooth.out,dd,by="plot.pos") #12 loci
+smooth.div<-merge(smooth.div,dd,by="plot.pos") 
+smooth.par<-merge(smooth.par,dd,by="plot.pos")
+smooth.par<-smooth.par[!duplicated(smooth.par$SNP),]#a couple of SNPs had multiple smoothed delat d values
+smooth.par$FWpi<-apply(cbind(vcf[vcf$SNP %in% smooth.par$SNP,locus.info],
+                             vcf[vcf$SNP %in% smooth.par$SNP,unlist(lapply(fw.list,grep,colnames(vcf)))]),1,calc.pi)
+smooth.par$SWpi<-apply(cbind(vcf[vcf$SNP %in% smooth.par$SNP,locus.info],
+                             vcf[vcf$SNP %in% smooth.par$SNP,unlist(lapply(sw.list,grep,colnames(vcf)))]),1,calc.pi)
+smooth.div$FWpi<-apply(cbind(vcf[vcf$SNP %in% smooth.div$SNP,locus.info],
+                             vcf[vcf$SNP %in% smooth.div$SNP,unlist(lapply(fw.list,grep,colnames(vcf)))]),1,calc.pi)
+smooth.div$SWpi<-apply(cbind(vcf[vcf$SNP %in% smooth.div$SNP,locus.info],
+                             vcf[vcf$SNP %in% smooth.div$SNP,unlist(lapply(sw.list,grep,colnames(vcf)))]),1,calc.pi)
 #points(smooth.out$plot.pos,smooth.out$smooth.deltad,col="orchid4")
-write.table(smooth.out,"smoothed.deltad.out.txt",col.names=T,row.names=F,quote=F,sep='\t')
+dim(smooth.par[smooth.par$SNP %in% stacks.sig$SNP,])
+write.table(rbind(smooth.par,smooth.div),"smoothed.deltad.out.txt",col.names=T,row.names=F,quote=F,sep='\t')
 
 #' Compare to Stacks Fsts
 # Get the significant Fst loci if they're not already here
@@ -421,19 +529,23 @@ if(!("stacks.sig" %in% ls())){
   stacks.sig<-read.delim("stacks.sig.snps.txt")
 } 
 if(is.null(stacks.sig$SNP)){ #make sure the SNP column is there.
-  stacks.sig$SNP<-paste(stacks.sig$Chr,stacks.sig$BP,sep=".")
+  stacks.sig$SNP<-paste(stacks.sig$Chr,as.numeric(stacks.sig$BP)+1,sep=".")
 }
 
-fst.deltad<-stacks.sig[stacks.sig$SNP %in% smooth.out$SNP,]
+#what if I use deltad quantiles, not smoothed quantiles?
+dd.div<-dd[dd$deltad >= quantile(dd$deltad,0.95),]
+dd.par<-dd[dd$deltad <= quantile(dd$deltad,0.05),]
+
 
 #### Other Pop gen statistics ####
 #pi
 avg.pi<-do.call("rbind",sliding.window(vcf,scaffs))
 avg.pi.adj<-fst.plot(avg.pi,scaffold.widths=scaff.starts,pch=19,
-                     fst.name = "Avg.Pi",chrom.name = "Chr",bp.name = "Avg.Pos")
+                    fst.name = "Avg.Pi",chrom.name = "Chr",bp.name = "Avg.Pos")
 all.pi<-data.frame(Chrom=vcf$`#CHROM`,Pos=vcf$POS,Pi=unlist(apply(vcf,1,calc.pi)))
 all.pi$SNP<-paste(all.pi$Chrom,as.numeric(as.character(all.pi$Pos)),sep=".")
-
+write.table(all.pi,"all.pi.txt",col.names = TRUE,row.names=FALSE, quote=FALSE,sep='\t')
+all.pi<-read.table("all.pi.txt",header=T)
 #rho
 avg.rho<-do.call("rbind",sliding.window(vcf,scaffs,stat = "rho",pop.list=pop.list))
 avg.rho.adj<-fst.plot(avg.rho,scaffold.widths=scaff.starts,
@@ -445,32 +557,45 @@ all.rho$SNP<-paste(all.rho$Chrom,as.numeric(as.character(all.rho$Pos)),sep=".")
 png("FWSWpi.png",height=5,width=7,units="in",res=300)
 par(oma=c(2,2,2,2),mar=c(2,2,2,2))
 pi.plot<-fst.plot(all.pi,scaffold.widths=scaff.starts,y.lim=c(0,0.5),axis.size = 0.5,pch=19,
-                     fst.name = "Pi",chrom.name = "Chrom",bp.name = "Pos")
+                     fst.name = "Pi",chrom.name = "Chrom",bp.name = "Pos",pch=19)
 points(x=avg.pi.adj$plot.pos,y=avg.pi.adj$Avg.Pi,col="cornflowerblue",type="l",lwd=2)
 dev.off()
 
-par(mfrow=c(2,1),mar=c(1,1,1,1),oma=c(1,2,1,1))
-dd<-fst.plot(fst.dat = deltad,fst.name = "deltad",bp.name = "Pos",axis=1,
-             y.lim=c(-0.5,1),scaffold.widths=scaff.starts)
-mtext(expression(paste(delta,"-divergence")),2,line=1.5)
+png("deltad_pi.png",height=7,width=5,units="in",res=300)
+par(mfrow=c(2,1),mar=c(1,1,1,1),oma=c(1,2,1,1),cex=0.75)
+dd<-fst.plot(fst.dat = deltad,fst.name = "deltad",bp.name = "Pos",axis=0.75,
+             y.lim=c(-0.5,1),scaffold.widths=scaff.starts,pch=19,scaffs.to.plot = scaffs)
+mtext(expression(paste(delta,"-divergence")),2,line=2,cex=0.75)
 smooth.out<-data.frame()
+smoothed.dd<-data.frame()
 for(i in 1:length(lgs)){#scaffolds are too short
   this.chrom<-dd[dd$Chrom %in% lgs[i],]
-  #span<-nrow(this.chrom)/5000
   this.smooth<-loess.smooth(this.chrom$plot.pos,this.chrom$deltad,span=0.1,degree=2) 
+  these.sig<-stacks.sig[stacks.sig$Chr %in% lgs[i],]
+  this.pos<-unlist(lapply(these.sig$BP,function(x) { this.chrom[which.min(abs(this.chrom$Pos-x)),"Pos"] }))
   points(this.smooth$x,this.smooth$y,col="cornflowerblue",type="l",lwd=2)
-  this.out<-cbind(this.smooth$x[this.smooth$y>=0.2],this.smooth$y[this.smooth$y>=0.2])
-  smooth.out<-rbind(smooth.out,this.out)
+  points(dd[dd$Pos %in% this.pos,c("plot.pos","deltad")],col="darkorchid")
+  smoothed.dd<-rbind(smoothed.dd,data.frame(Chrom=rep(lgs[i],length(this.smooth$x)),x=this.smooth$x,y=this.smooth$y))
 }
-pi.plot<-fst.plot(all.pi,scaffold.widths=scaff.starts,y.lim=c(0,0.5),axis.size = 1,
-                  fst.name = "Pi",chrom.name = "Chrom",bp.name = "Pos")
-points(x=avg.pi.adj$plot.pos,y=avg.pi.adj$Avg.Pi,col="cornflowerblue",type="l",lwd=2)
-mtext(expression(pi),2,line=1.5)
+points(dd[dd$SNP %in% stacks.sig$SNP,c("plot.pos","deltad")],col="darkorchid")
+pi.plot<-fst.plot(all.pi,scaffold.widths=scaff.starts,y.lim=c(0,0.5),axis.size = 0.75,
+                  scaffs.to.plot = scaffs,fst.name = "Pi",chrom.name = "Chrom",bp.name = "Pos",pch=19)
+points(x=avg.pi.adj$plot.pos[avg.pi.adj$Chr %in% lgs],y=avg.pi.adj$Avg.Pi[avg.pi.adj$Chr %in% lgs],
+       col="cornflowerblue",type="l",lwd=2)
+points(pi.plot[pi.plot$SNP %in% stacks.sig$SNP,c("plot.pos","Pi")],col="darkorchid")
+mtext(expression(pi),2,line=2,cex=0.75)
+last<-0
+for(i in 1:length(lgs)){
+  text(x=mean(pi.plot[pi.plot$Chrom ==lgs[i],"plot.pos"]),y=0,
+       labels=lgn[i], adj=1, xpd=TRUE,cex=0.75)
+  last<-max(pi.plot[pi.plot$Chrom ==lgs[i],"plot.pos"])
+}
+dev.off()
 
 #### Looking for directional selection
 #' High Fst, low pi
-pi.sig.fst<-all.pi[all.pi$SNP %in% snps$SNP,] #70 of 72
-points(pi.plot[pi.plot$SNP %in% snps$SNP,"plot.pos"],pi.plot[pi.plot$SNP %in% snps$SNP,"Pi"],col="orchid4")
+pi.sig.fst<-all.pi[all.pi$SNP %in% stacks.sig$SNP,] #70 of 72
+points(pi.plot[pi.plot$SNP %in% stacks.sig$SNP,"plot.pos"],pi.plot[pi.plot$SNP %in% stacks.sig$SNP,"Pi"],col="orchid4")
 
 #add snps
 fwsw.tx$SNP<-paste(fwsw.tx$Chr,fwsw.tx$BP+1,sep=".")
@@ -479,47 +604,137 @@ fwsw.al$SNP<-paste(fwsw.al$Chr,fwsw.al$BP+1,sep=".")
 fwsw.fl$SNP<-paste(fwsw.fl$Chr,fwsw.fl$BP+1,sep=".")
 #plot each chrom with sig. ones
 sig.chroms<-unique(pi.sig.fst$Chrom)
-par(mfrow=c(4,4),mar=c(1,1,1,1),oma=c(1,1,1,1))
+png("FstOutliersStats.png",height=10,width=10,units="in",res=300)
+par(mfrow=c(4,4),mar=c(1,1,1,1),oma=c(1,2.5,1,1))
 for(i in 1:length(sig.chroms)){ #I could turn this into a function
   if(sig.chroms[i] %in% lgs){
     this.tx<-fwsw.tx[fwsw.tx$Chr %in% sig.chroms[i],]
-    tx.smooth<-loess.smooth(this.tx$BP,this.tx$Corrected.AMOVA.Fst,span=0.1,degree=2) 
+    tx.smooth<-do.call("rbind",lapply(seq(1,nrow(this.tx),(nrow(this.tx)*0.15)/5),sliding.avg,
+                                      dat=data.frame(Pos=this.tx$BP,Fst=this.tx$Corrected.AMOVA.Fst),width=nrow(this.tx)*0.15))
+      #loess.smooth(this.tx$BP,this.tx$Corrected.AMOVA.Fst,span=0.1,degree=2) 
     this.la<-fwsw.la[fwsw.la$Chr %in% sig.chroms[i],]
-    la.smooth<-loess.smooth(this.la$BP,this.la$Corrected.AMOVA.Fst,span=0.1,degree=2) 
+    la.smooth<-do.call("rbind",lapply(seq(1,nrow(this.la),(nrow(this.la)*0.15)/5),sliding.avg,
+                                      dat=data.frame(Pos=this.la$BP,Fst=this.la$Corrected.AMOVA.Fst),width=nrow(this.la)*0.15))
+      #loess.smooth(this.la$BP,this.la$Corrected.AMOVA.Fst,span=0.1,degree=2) 
     this.al<-fwsw.al[fwsw.al$Chr %in% sig.chroms[i],]
-    al.smooth<-loess.smooth(this.al$BP,this.al$Corrected.AMOVA.Fst,span=0.1,degree=2) 
+    al.smooth<-do.call("rbind",lapply(seq(1,nrow(this.al),(nrow(this.al)*0.15)/5),sliding.avg,
+                                      dat=data.frame(Pos=this.al$BP,Fst=this.al$Corrected.AMOVA.Fst),width=nrow(this.al)*0.15))
+      #loess.smooth(this.al$BP,this.al$Corrected.AMOVA.Fst,span=0.1,degree=2) 
     this.fl<-fwsw.fl[fwsw.fl$Chr %in% sig.chroms[i],]
-    fl.smooth<-loess.smooth(this.fl$BP,this.fl$Corrected.AMOVA.Fst,span=0.1,degree=2) 
-    plot(tx.smooth$x,tx.smooth$y,col=grp.colors[1],type="l",ylim=c(0,1),lwd=2,xaxt='n',
-         xlab=paste("Position on ",sig.chroms[i],sep=""),ylab="")
-    mtext(expression(italic(F)[ST]),2,line=2,cex=0.75)
-    points(la.smooth$x,la.smooth$y,col=grp.colors[2],type="l",lwd=2)
-    points(al.smooth$x,al.smooth$y,col=grp.colors[3],type="l",lwd=2)
-    points(fl.smooth$x,fl.smooth$y,col=grp.colors[6],type="l",lwd=2)
-    #add pi
-    points(avg.pi$Avg.Pos[avg.pi$Chr %in% sig.chroms[i]],avg.pi$Avg.Pi[avg.pi$Chr %in% sig.chroms[i]],
-           col="darkgrey",type="l",lwd=2)
+    fl.smooth<-do.call("rbind",lapply(seq(1,nrow(this.fl),(nrow(this.fl)*0.15)/5),sliding.avg,
+                                      dat=data.frame(Pos=this.fl$BP,Fst=this.fl$Corrected.AMOVA.Fst),width=nrow(this.fl)*0.15))
+      #loess.smooth(this.fl$BP,this.fl$Corrected.AMOVA.Fst,span=0.1,degree=2) 
+    plot(tx.smooth,col=alpha(grp.colors[1],0.5),type="l",ylim=c(0,1),lwd=2,
+         bty="L",xlab="",ylab="",xaxt='n',yaxt='n')
+    if(i %in% c(1,5,9,13)){
+      axis(2,las=1)  
+    }else{
+      axis(2,labels=FALSE) }
+    mtext(paste("Position on ",sig.chroms[i],sep=""),1,cex=0.75)
+    points(la.smooth,col=alpha(grp.colors[2],0.5),type="l",lwd=2)
+    points(al.smooth,col=alpha(grp.colors[3],0.5),type="l",lwd=2)
+    points(fl.smooth,col=alpha(grp.colors[6],0.5),type="l",lwd=2)
     lapply(pi.sig.fst[pi.sig.fst$Chrom %in% sig.chroms[i],"Pos"],points,y=0.6,pch="-",cex=5)#add bars to sig. fsts
+    #add delta divergence
+    this.chrom<-dd[dd$Chrom %in% sig.chroms[i],]
+    this.smooth<-loess.smooth(this.chrom$Pos,this.chrom$deltad,span=0.1,degree=2)
+    points(this.smooth$x,this.smooth$y,col="cornflowerblue",type="l",lwd=2)
     lapply(smooth.out[smooth.out$Chrom %in% sig.chroms[i],"Pos"],points,y=0.5,pch="-",cex=5,col="cornflowerblue")
-  }else{
-    this.tx<-fwsw.tx[fwsw.tx$Chr %in% sig.chroms[i],]
-    this.la<-fwsw.la[fwsw.la$Chr %in% sig.chroms[i],]
-    this.al<-fwsw.al[fwsw.al$Chr %in% sig.chroms[i],]
-    this.fl<-fwsw.fl[fwsw.fl$Chr %in% sig.chroms[i],]
-    plot(this.tx$BP,this.tx$Corrected.AMOVA.Fst,col=grp.colors[1],type="l",ylim=c(0,1),lwd=2,xaxt='n',
-         xlab=paste("Position on ",sig.chroms[i],sep=""),ylab="")
-    mtext(expression(italic(F)[ST]),2,line=2,cex=0.75)
-    points(this.la$BP,this.la$Corrected.AMOVA.Fst,col=grp.colors[2],type="l",lwd=2)
-    points(this.al$BP,this.al$Corrected.AMOVA.Fst,col=grp.colors[3],type="l",lwd=2)
-    points(this.fl$BP,this.fl$Corrected.AMOVA.Fst,col=grp.colors[6],type="l",lwd=2)
     #add pi
-    points(avg.pi$Avg.Pos[avg.pi$Chr %in% sig.chroms[i]],avg.pi$Avg.Pi[avg.pi$Chr %in% sig.chroms[i]],
-           col="darkgrey",type="l",lwd=2)
-    lapply(pi.sig.fst[pi.sig.fst$Chrom %in% sig.chroms[i],"Pos"],points,y=0.6,pch="-",cex=5)#add bars to sig. fsts
-    lapply(smooth.out[smooth.out$Chrom %in% sig.chroms[i],"Pos"],points,y=0.5,pch="-",cex=5,col="cornflowerblue")
+    fw.inds<-unlist(lapply(fw.list,grep,colnames(vcf)))
+    sw.inds<-unlist(lapply(sw.list,grep,colnames(vcf)))
+    nloci<-nrow(vcf[vcf$`#CHROM` %in% sig.chroms[i],])
+    fw.pi<-do.call("rbind",
+                   sliding.window(cbind(vcf[,locus.info],vcf[,fw.inds]),
+                                  sig.chroms[i],
+                                  nsteps=round((nloci*0.15)/5),
+                                  width=nloci*0.15))
+    sw.pi<-do.call("rbind",
+                   sliding.window(cbind(vcf[,locus.info],vcf[,sw.inds]),
+                                  sig.chroms[i],
+                                  nsteps=round((nloci*0.15)/5),
+                                  width=nloci*0.15))
+    points(fw.pi,col="lightgrey",type="l",lwd=3)
+    points(sw.pi,col="darkgrey",type="l",lwd=3,lty=2)
   }
+  # else{
+  #   this.tx<-fwsw.tx[fwsw.tx$Chr %in% sig.chroms[i],]
+  #   this.la<-fwsw.la[fwsw.la$Chr %in% sig.chroms[i],]
+  #   this.al<-fwsw.al[fwsw.al$Chr %in% sig.chroms[i],]
+  #   this.fl<-fwsw.fl[fwsw.fl$Chr %in% sig.chroms[i],]
+  #   plot(this.tx$BP,this.tx$Corrected.AMOVA.Fst,col=grp.colors[1],type="l",ylim=c(0,1),lwd=2,xaxt='n',
+  #        xlab="",ylab="",xaxt='n',yaxt='n',bty="L")
+  #   axis(2, labels=FALSE)
+  #   mtext(paste("Position on ",sig.chroms[i],sep=""),1,cex=0.75)
+  #   points(this.la$BP,this.la$Corrected.AMOVA.Fst,col=grp.colors[2],type="l",lwd=2)
+  #   points(this.al$BP,this.al$Corrected.AMOVA.Fst,col=grp.colors[3],type="l",lwd=2)
+  #   points(this.fl$BP,this.fl$Corrected.AMOVA.Fst,col=grp.colors[6],type="l",lwd=2)
+  #   #add pi
+  #   points(avg.pi$Avg.Pos[avg.pi$Chr %in% sig.chroms[i]],avg.pi$Avg.Pi[avg.pi$Chr %in% sig.chroms[i]],
+  #          col="darkgrey",type="l",lwd=2)
+  #   lapply(pi.sig.fst[pi.sig.fst$Chrom %in% sig.chroms[i],"Pos"],points,y=0.6,pch="-",cex=5)#add bars to sig. fsts
+  #   lapply(smooth.out[smooth.out$Chrom %in% sig.chroms[i],"Pos"],points,y=0.5,pch="-",cex=5,col="cornflowerblue")
+  # }
 }#this is kind of a mess.
+plot(x=c(0,1),y=c(0,1),type="n",axes=FALSE)
+legend("left",
+  legend=c(expression(TX~FWSW~italic(F)[ST]),
+                expression(LA~FWSW~italic(F)[ST]),
+         expression(AL~FWSW~italic(F)[ST]),expression(FL~FWSW~italic(F)[ST]),
+         expression(delta~-divergence),expression(Average~pi[FW]),
+         expression(Average~pi[SW])),bty='n',lwd=2,lty=c(1,1,1,1,1,1,2),
+       col=c(alpha(grp.colors[1],0.5),alpha(grp.colors[2],0.5),
+             alpha(grp.colors[3],0.5),alpha(grp.colors[6],0.5),
+             "cornflowerblue","lightgrey","darkgrey"))
+mtext(expression(italic(F)[ST]),2,cex=0.75,outer=T,line=1)
+dev.off()
 
+
+for(i in 1:nrow(stacks.sig)){
+  png(paste(stacks.sig$SNP[i],"png",sep="."),height=5,width=7,units="in",res=300)
+  this.tx<-fwsw.tx[fwsw.tx$Chr %in% stacks.sig$Chr[i] & 
+                     fwsw.tx$BP >= stacks.sig$BP[i]-2500 & fwsw.tx$BP >= stacks.sig$BP[i]-2500,]
+  #tx.smooth<-loess.smooth(this.tx$BP,this.tx$Corrected.AMOVA.Fst,span=0.1,degree=2) 
+  this.al<-fwsw.al[fwsw.al$Chr %in% stacks.sig$Chr[i] & 
+                     fwsw.al$BP >= stacks.sig$BP[i]-2500 & fwsw.al$BP >= stacks.sig$BP[i]-2500,]
+#  al.smooth<-loess.smooth(this.al$BP,this.al$Corrected.AMOVA.Fst,span=0.1,degree=2)
+  this.la<-fwsw.la[fwsw.la$Chr %in% stacks.sig$Chr[i] & 
+                     fwsw.la$BP >= stacks.sig$BP[i]-2500 & fwsw.la$BP >= stacks.sig$BP[i]-2500,]
+  #la.smooth<-loess.smooth(this.la$BP,this.la$Corrected.AMOVA.Fst,span=0.1,degree=2) 
+  this.fl<-fwsw.fl[fwsw.fl$Chr %in% stacks.sig$Chr[i] & 
+                     fwsw.fl$BP >= stacks.sig$BP[i]-2500 & fwsw.fl$BP >= stacks.sig$BP[i]-2500,]
+ # fl.smooth<-loess.smooth(this.fl$BP,this.fl$Corrected.AMOVA.Fst,span=0.1,degree=2)
+  
+  plot(this.tx$BP,this.tx$Corrected.AMOVA.Fst,col=alpha(grp.colors[1],0.5),type="l",ylim=c(0,1),lwd=2,xaxt='n',
+      xlab=paste("Position on ",stacks.sig$Chr[i],sep=""),ylab="",bty="L")
+  # plot(tx.smooth$x,tx.smooth$y,col=alpha(grp.colors[1],0.5),type="l",
+  #      ylim=c(0,1),
+  #      lwd=2,xaxt='n',
+  #           xlab=paste("Position on ",sig.chroms[i],sep=""),ylab="",bty="L")
+  mtext(expression(italic(F)[ST]),2,line=2,cex=0.75)
+  points(this.la$BP,this.la$Corrected.AMOVA.Fst,col=alpha(grp.colors[2],0.5),type="l",lwd=2)
+  points(this.al$BP,this.al$Corrected.AMOVA.Fst,col=alpha(grp.colors[3],0.5),type="l",lwd=2)
+  points(this.fl$BP,this.fl$Corrected.AMOVA.Fst,col=alpha(grp.colors[6],0.5),type="l",lwd=2)
+  # points(la.smooth$x,la.smooth$y,col=alpha(grp.colors[2],0.5),type="l",lwd=2)
+  # points(al.smooth$x,al.smooth$y,col=alpha(grp.colors[3],0.5),type="l",lwd=2)
+  # points(fl.smooth$x,fl.smooth$y,col=alpha(grp.colors[6],0.5),type="l",lwd=2)
+  if(stacks.sig$Chr[i] %in% lgs){
+    this.chrom<-dd[dd$Chrom %in% stacks.sig$Chr[i],]
+    #span<-nrow(this.chrom)/5000
+    this.smooth<-loess.smooth(this.chrom$Pos,this.chrom$deltad,span=0.1,degree=2)
+   # this.smooth<-smoothed.dd[smoothed.dd$Chrom %in% stacks.sig$Chr[i] &
+    #                           smoothed.dd$x > min(this.tx$BP) & smoothed.dd$x < max(this.tx$BP),]
+    points(this.smooth$x,this.smooth$y,col="cornflowerblue",type="l",lwd=2)
+  }
+  #add pi
+  #points(avg.pi$Avg.Pos[avg.pi$Chr %in% sig.chroms[i]],avg.pi$Avg.Pi[avg.pi$Chr %in% sig.chroms[i]],
+  #       col="darkgrey",type="l",lwd=2)
+  
+  lapply(stacks.sig[stacks.sig$Chr %in% stacks.sig[i,"Chr"],"BP"],points,y=0.6,pch="-",cex=5,col="darkgrey")#add bars to sig. fsts
+  points(stacks.sig[i,"BP"],0.6,cex=5,pch="-")
+  lapply(smooth.out[smooth.out$Chrom %in% stacks.sig$Chr[i],"Pos"],points,y=0.5,pch="-",cex=5,col="cornflowerblue")
+  dev.off()
+}
 
 #which points are in the lower 25%?
 put.dir<-pi.sig.fst[pi.sig.fst$Pi <= quantile(pi.plot$Pi,0.25),] #putative directional selection loci.
@@ -547,6 +762,25 @@ for(vcf.row in 1: nrow(vcf)){
   fst.trees<-c(fst.trees,get.dist(vcf[vcf.row,],pop.list)) #getting an error
 }
 #Now what? How do I get rid of the numbers in the trees?
+ftt<-lapply(fst.trees,gsub,pattern="\\d+",replacement="")
+ftt<-lapply(ftt,gsub,pattern="[:.-]",replacement="")
+ftt<-lapply(ftt,gsub,pattern="e",replacement="")
+ftrees<-do.call(rbind,ftt)
+ftrees<-data.frame(Chrom=vcf$`#CHROM`,Pos=vcf$POS,SNP=vcf$SNP,
+                   trees=ftrees[,1])
+write.table(ftrees,"ftrees.txt",row.names=F,col.names=T,quote=F)
+library(combinat)
+grps<-permn(fw.list)
+fw.grps<-unlist(lapply(grps,function(grp){
+  grp.tr<-paste("(((",grp[1],",",grp[2],"),",grp[3],"),",grp[4],")",sep="")
+}))
+
+fwtrees<-data.frame() #try to find the ones that match
+apply(ftrees,1,function(snp){
+  if(length(unlist(lapply(fw.grps,grep,snp["trees"])))>0){
+    fwtrees<-rbind(fwtrees,snp)
+  }
+})
 
 ##### TREEMIX #####
 
@@ -556,11 +790,6 @@ write.table(tm.fwsw,"fwsw.treemix",col.names=TRUE,row.names=FALSE,quote=F,sep=' 
 
 #In unix: run treemix_analysis.R
 
-threepop<-read.table("fwsw.threepop.txt",comment.char="E",sep="",skip=1)#skip all "Estimating" lines
-threepop<-threepop[threepop$V1 != "total_nsnp",]
-#now, which nodes are we interested in?
-m1_patterns<-grep("ALFW",grep("LAFW",grep("TXFW",threepop$V1,value=TRUE),value=TRUE),value=TRUE)
-m1_3pop<-threepop[which(threepop$V1 %in% m1_patterns),]
 ##############################POP STRUCTURE##################################
 
 #### ADEGENET ####
@@ -1060,6 +1289,7 @@ gp<-fst.plot(fst.dat = bf,fst.name = "logSeag",chrom.name = "Chrom",bp.name = "P
 
 
 #####GET OUTPUT
+#' ```{r, eval=FALSE}
 setwd("bayenv/snpfiles")
 bf.files<-list.files(pattern="bf")
 xtx.files<-list.files(pattern="xtx")
@@ -1086,46 +1316,71 @@ setwd("../")
 write.table(bf.dat,"BF_summary.txt",sep='\t',quote=F,row.names=F)
 write.table(xtx,"XtX_summary.txt",sep='\t',quote=F,row.names=F)
 
+#' ```
 
-#####BAYENV: ENV
-bf.scaff<-merge(sub.map, bf.dat, by.x="V2", by.y="locus")
+xtx<-read.table("bayenv/XtX_summary.txt",header=TRUE)
+
+#' Analyze the environmental associations
+bf.dat<-read.table("bayenv/BF_summary.txt",header=TRUE)
+bf.scaff<-merge(all.snps.map, bf.dat, by.x="V2", by.y="locus")
 colnames(bf.scaff)[1:4]<-c("locus","scaffold","dist","BP")
-#focus on Bayes Factors, because of Lotterhos & Whitlock (2015)
-bf<-bf.scaff[,c(1,2,4,5,8,11,14,17,20)]
-bf.co<-apply(bf[,4:9],2,quantile,0.95)
-temp.bf.sig<-bf[bf$Temp_BF>bf.co["Temp_BF"],c(1,2,3,4)]
-sal.bf.sig<-bf[bf$Salinity_BF>bf.co["Salinity_BF"],c(1,2,3,5)]
-ctemp.bf.sig<-bf[bf$coll.temp_BF>bf.co["coll.temp_BF"],c(1,2,3,6)]
-csal.bf.sig<-bf[bf$coll.sal_BF>bf.co["coll.sal_BF"],c(1,2,3,7)]
-grass.bf.sig<-bf[bf$seagrass_BF>bf.co["seagrass_BF"],c(1,2,3,8)]
-tvar.bf.sig<-bf[bf$BFtempvar>bf.co["BFtempvar"],c(1,2,3,9)]
+bf<-cbind(bf.scaff[,1:4],bf.scaff[,grep("BF",colnames(bf.scaff))])
+bf$col<-gsub("\\d+_(\\d+)","\\1",bf$locus)
+bf$SNP<-paste(bf$scaffold,as.numeric(bf$BP)+1,sep=".")
+bf.co<-apply(bf[,5:7],2,quantile,0.99) #focus on Bayes Factors, because of Lotterhos & Whitlock (2015)
+temp.bf.sig<-bf[bf$Temp_BF>bf.co["Temp_BF"],c(1,2,4,8,5)]
+sal.bf.sig<-bf[bf$Salinity_BF>bf.co["Salinity_BF"],c(1,2,4,8,6)]
+grass.bf.sig<-bf[bf$seagrass_BF>bf.co["seagrass_BF"],c(1,2,4,8,7)]
 
-dim(tvar.bf.sig[tvar.bf.sig$locus %in% temp.bf.sig$locus & 
-                  tvar.bf.sig$locus %in% ctemp.bf.sig,])
-dim(sal.bf.sig[sal.bf.sig$locus %in% csal.bf.sig$locus,])
-dim(grass.bf.sig[grass.bf.sig$locus %in% temp.bf.sig$locus &
-                   grass.bf.sig$locus %in% sal.bf.sig$locus,])
-dim(grass.bf.sig[grass.bf.sig$locus %in% ctemp.bf.sig$locus &
-                   grass.bf.sig$locus %in% csal.bf.sig$locus,])
-out.venn<-venn( list("MeanSalinity"=sal.bf.sig$locus,
-                     "MeanTemp"=temp.bf.sig$locus,"Seagrass"=grass.bf.sig$locus))
+dim(temp.bf.sig[temp.bf.sig$locus %in% sal.bf.sig$locus & 
+                  temp.bf.sig$locus %in% grass.bf.sig,])
 
-temp.bf.sig$start<-temp.bf.sig$BP-2500
-temp.bf.sig$end<-temp.bf.sig$BP+2500
-sal.bf.sig$start<-sal.bf.sig$BP-2500
-sal.bf.sig$end<-sal.bf.sig$BP+2500
-ctemp.bf.sig$start<-ctemp.bf.sig$BP-2500
-ctemp.bf.sig$end<-ctemp.bf.sig$BP+2500
-csal.bf.sig$start<-csal.bf.sig$BP-2500
-csal.bf.sig$end<-csal.bf.sig$BP+2500
-grass.bf.sig$start<-grass.bf.sig$BP-2500
-grass.bf.sig$end<-grass.bf.sig$BP+2500
-tvar.bf.sig$start<-tvar.bf.sig$BP-2500
-tvar.bf.sig$end<-tvar.bf.sig$BP+2500
-chroms<-c(as.character(temp.bf.sig$scaffold),as.character(sal.bf.sig$scaffold),
-          as.character(ctemp.bf.sig$scaffold),as.character(csal.bf.sig$scaffold),
-          as.character(grass.bf.sig$scaffold),as.character(tvar.bf.sig$scaffold))
-chroms<-chroms[!duplicated(chroms)]
+bf$logSal<-log(bf$Salinity_BF)
+bf$logTemp<-log(bf$Temp_BF)
+bf$logSeagrass<-log(bf$seagrass_BF)
+
+#' plot bayenv results
+png("Bayenv.png",height=10,width=7,units="in",res=300)
+par(mfrow=c(3,1),mar=c(2,2,2,1),oma=c(2,2,2,1))
+bs.sal<-fst.plot(bf,fst.name="logSal",chrom.name="scaffold",bp.name = "BP",
+         scaffs.to.plot = lgs,pch=19,axis.size = 1,pt.cex = 1)
+# points(bs.sal[bs.sal$SNP %in% sal.bf.sig$SNP,"plot.pos"],
+#        bs.sal[bs.sal$SNP %in% sal.bf.sig$SNP,"logSal"],
+#        col="cornflowerblue")
+mtext("log(Salinity Bayes Factor)",2,cex=0.75,line=2.1)
+points(bs.sal[bs.sal$SNP %in% stacks.sig$SNP,"plot.pos"],
+       bs.sal[bs.sal$SNP %in% stacks.sig$SNP,"logSal"],
+       col="cornflowerblue",cex=1.3)
+clip(min(bs.sal$plot.pos),max(bs.sal$plot.pos),
+     min(bs.sal$logSal),max(bs.sal$logSal))
+abline(h=log(bf.co["Salinity_BF"]),col="cornflowerblue",lwd=2)
+
+bs.temp<-fst.plot(bf,fst.name="logTemp",chrom.name="scaffold",bp.name = "BP",
+                 scaffs.to.plot = lgs,pch=19,axis.size = 1,pt.cex=1)
+points(bs.sal[bs.sal$SNP %in% stacks.sig$SNP,"plot.pos"],
+       bs.sal[bs.sal$SNP %in% stacks.sig$SNP,"logTemp"],
+       col="cornflowerblue",cex=1.3)
+clip(min(bs.sal$plot.pos),max(bs.sal$plot.pos),
+     min(bs.sal$logTemp),max(bs.sal$logTemp))
+abline(h=log(bf.co["Temp_BF"]),col="cornflowerblue",lwd=2)
+mtext("log(Temperature Bayes Factor)",2,cex=0.75,line=2.1)
+
+bs.temp<-fst.plot(bf,fst.name="logSeagrass",chrom.name="scaffold",bp.name = "BP",
+                  scaffs.to.plot = lgs,pch=19,axis.size = 1,pt.cex=1)
+points(bs.sal[bs.sal$SNP %in% stacks.sig$SNP,"plot.pos"],
+       bs.sal[bs.sal$SNP %in% stacks.sig$SNP,"logSeagrass"],
+       col="cornflowerblue",cex=1.3)
+clip(min(bs.sal$plot.pos),max(bs.sal$plot.pos),
+     min(bs.sal$logSeagrass),max(bs.sal$logSeagrass))
+abline(h=log(bf.co["seagrass_BF"]),col="cornflowerblue",lwd=2)
+mtext("log(Seagrass Bayes Factor)",2,cex=0.75,line=2.1)
+last<-0
+for(i in 1:length(lgs)){
+  text(x=median(bs.temp[bs.temp$scaffold ==lgs[i],"plot.pos"]),y=-3,
+       labels=lgn[i], adj=1, xpd=TRUE,cex=1)
+  last<-max(bs.temp[bs.temp$scaffold ==lgs[i],"plot.pos"])
+}
+dev.off()
 
 ###################BAYESCAN########################
 #make the pops file

@@ -15,7 +15,7 @@ mtext("Drift parameter",1,line=2)
 resid<-plot_resid("fwsw.basic","poporder",wcols="rb")
 
 
-library(lattice);library(RColorBrewer); library(grid)
+library(lattice); library(grid)
 
 
 m0<-treemix.cov.plot("fwsw.k100bFLLGr",poporder,split=c(1,1,3,2),more=TRUE)
@@ -49,3 +49,7 @@ tree2<-read.table(gzfile("fwsw.k100bFLLGrm2.treeout.gz"), as.is  = T, comment.ch
 tree3<-read.table(gzfile("fwsw.k100bFLLGrm3.treeout.gz"), as.is  = T, comment.char = "", quote = "",skip=1)
 tree4<-read.table(gzfile("fwsw.k100bFLLGrm4.treeout.gz"), as.is  = T, comment.char = "", quote = "",skip=1)
 tree5<-read.table(gzfile("fwsw.k100bFLLGrm5.treeout.gz"), as.is  = T, comment.char = "", quote = "",skip=1)
+
+png("FWSW_treemix_m3.png",height=7,width=7,units="in",res=300)
+t3<-plot_tree("fwsw.k100bFLLGrm3",plus=0.05,scale=F,mbar=T)
+dev.off()
