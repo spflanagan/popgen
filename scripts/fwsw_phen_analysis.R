@@ -15,6 +15,8 @@ source("../scripts/phenotype_functions.R")
 
 pop.list<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
 	"FLFD","FLSI","FLAB","FLPB","FLHB","FLCC","FLLG")
+pop.labs<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
+            "FLFD","FLSI","FLAB","FLPB","FLHB","FLCC","FLFW")
 fw.list<-c("TXFW","LAFW","ALFW","FLLG")
 sw.list<-c("TXSP","TXCC","TXCB","ALST","FLSG","FLKB",
 	"FLFD","FLSI","FLAB","FLPB","FLHB","FLCC")
@@ -60,7 +62,7 @@ band.pca<-rda(bands.pcdat[,3:4])
 fem.pheno.pca<-rda(fem.pheno[,4:9])
 mal.pheno.pca<-rda(mal.pheno[,4:9])
 
-
+pop.pchs<-c(0,1,3,5,4,15,8,17,18,19,21,22,23,24,25,13)
 fem.pop<-bands.pcdat$PopID
 fem.colors<-as.character(fem.pop)
 fem.pch<-as.character(fem.pop)
@@ -70,71 +72,73 @@ mal.colors<-as.character(mal.pop)
 mal.pch<-as.character(mal.pop)
 fw.mal.col<-as.character(mal.pop[mal.pop %in% fw.list])
 for(i in 1:length(pop.list)){
-	fem.colors[fem.colors==pop.list[i]]<-rainbow(length(pop.list))[i]
-	mal.colors[mal.colors==pop.list[i]]<-rainbow(length(pop.list))[i]
+  fem.pch[fem.pch==pop.list[i]]<-pop.pchs[i]
+  mal.pch[mal.pch==pop.list[i]]<-pop.pchs[i]
 	if(pop.list[i] %in% fw.list){
-		fem.pch[fem.pch==pop.list[i]]<-15
-		mal.pch[mal.pch==pop.list[i]]<-15
-		fw.fem.col[fw.fem.col==pop.list[i]]<-rainbow(length(pop.list))[i]
-		fw.mal.col[fw.mal.col==pop.list[i]]<-rainbow(length(pop.list))[i]
+	  fem.colors[fem.colors==pop.list[i]]<-"cornflowerblue"
+	  mal.colors[mal.colors==pop.list[i]]<-"cornflowerblue"
+		fw.fem.col[fw.fem.col==pop.list[i]]<-"cornflowerblue"
+		fw.mal.col[fw.mal.col==pop.list[i]]<-"cornflowerblue"
 	}else{
-		fem.pch[fem.pch==pop.list[i]]<-19
-		mal.pch[mal.pch==pop.list[i]]<-19
+	  fem.colors[fem.colors==pop.list[i]]<-"black"
+	  mal.colors[mal.colors==pop.list[i]]<-"black"
 	}
 }
 fem.pch<-as.numeric(fem.pch)
 mal.pch<-as.numeric(mal.pch)
 
-fw.fem.rows<-rownames(fem.pheno[fem.pheno$PopID %in% fw.list,])
-fw.mal.rows<-rownames(mal.pheno[mal.pheno$PopID %in% fw.list,])
+fw.fem.rows<-which(fem.pheno$PopID %in% fw.list)
+fw.mal.rows<-which(mal.pheno$PopID %in% fw.list)
 
 ###************************************PLOT********************************###
 png("FWSWPhenotypePCA.png",height=8,width=10,units="in",res=300)
 pdf("FWSWPhenotypePCA.pdf",height=8,width=10)
 par(mfrow=c(2,3),oma=c(2,2,2,2),mar=c(2,2,2,2),lwd=1.3)
-plot(mal.pheno.pca,type="n",xlim=c(-3,3),ylim=c(-8.2,4)
+mp<-plot(mal.pheno.pca,type="n",xlim=c(-3,3),ylim=c(-8.2,4)
 	,xlab="",ylab="",las=1,cex.axis=1.5)
 points(mal.pheno.pca,col=alpha(mal.colors,0.5),cex=1.5,pch=mal.pch)
 mtext("PC1 (95.27%)",1,line=2)
 mtext("PC2 (4.11%)",2,line=2.5)
 legend("top",bty='n',c("Male Body Traits"),cex=1.5)
 
-plot(fem.pheno.pca,type="n",xlab="",ylab="",las=1,cex.axis=1.5,ylim=c(-4,12),
+fp<-plot(fem.pheno.pca,type="n",xlab="",ylab="",las=1,cex.axis=1.5,ylim=c(-4,12),
 	xlim=c(-3,3))
 points(fem.pheno.pca,col=alpha(fem.colors,0.5),cex=1.5,pch=fem.pch)
 mtext("PC1 (90.95%)",1,line=2)
 mtext("PC2 (7.73%)",2,line=2.5)
 legend("top",bty='n',c("Female Body Traits"),cex=1.5)
 
-plot(band.pca,type="n",xlab="",ylab="",las=1,cex.axis=1.5,xlim=c(-2,2))
+bp<-plot(band.pca,type="n",xlab="",ylab="",las=1,cex.axis=1.5,xlim=c(-2,2),ylim=c(-3,1))
 points(band.pca,pch=fem.pch,col=alpha(fem.colors,0.5),cex=1.5)
 mtext("PC1 (98.38%)",1,line=2)
 mtext("PC2 (1.62%)",2,line=2.5)
 legend("top",bty='n',c("Female Band Traits"),cex=1.5)
 
 
-plot(mal.pheno.pca$CA$u[fw.mal.rows,1:2],type="n",xlim=c(-0.1,0.1),
-	ylim=c(-.2,.2),xlab="",ylab="",las=1,cex.axis=1.5)
-points(mal.pheno.pca$CA$u[fw.mal.rows,1:2],xlim=c(-0.1,0.1),ylim=c(-.2,.2),
-	col=alpha(fw.mal.col,0.5),cex=1.5,pch=15)
+plot(mp$sites[fw.mal.rows,],type="n",
+     xlim=c(-3,3),ylim=c(-8.2,4),xlab="",ylab="",las=1,cex.axis=1.5)
+abline(h=0,lty=3)
+abline(v=0,lty=3)
+points(mp$sites[fw.mal.rows,],xlim=c(-0.1,0.1),ylim=c(-.2,.2),
+	col=alpha(fw.mal.col,0.5),cex=1.5,pch=mal.pch[fw.mal.rows])
 mtext("PC1 (95.27%)",1,line=2)
 mtext("PC2 (4.11%)",2,line=2.5)
+
+
+plot(fp$sites[fw.fem.rows,],type="n",xlab="",ylab="",las=1,
+	cex.axis=1.5,ylim=c(-4,12),xlim=c(-3,3))
 abline(h=0,lty=3)
 abline(v=0,lty=3)
-
-plot(fem.pheno.pca$CA$u[fw.fem.rows,1:2],type="n",xlab="",ylab="",las=1,
-	cex.axis=1.5,ylim=c(-.2,0.5),xlim=c(-.1,.1))
-points(fem.pheno.pca$CA$u[fw.fem.rows,1:2],
-	col=alpha(fw.fem.col,0.5),cex=1.5,pch=15)
+points(fp$sites[fw.fem.rows,],
+	col=alpha(fw.fem.col,0.5),cex=1.5,pch=fem.pch[fw.fem.rows])
 mtext("PC1 (90.95%)",1,line=2)
 mtext("PC2 (7.73%)",2,line=2.5)
-abline(h=0,lty=3)
-abline(v=0,lty=3)
 
-plot(band.pca$CA$u[fw.fem.rows,1:2],type="n",xlab="",ylab="",las=1,
-	cex.axis=1.5,xlim=c(-0.5,.5),ylim=c(-0.08,0.06))
-points(band.pca$CA$u[fw.fem.rows,1:2],
-	pch=15,col=alpha(fw.fem.col,0.5),cex=1.5)
+
+plot(bp$sites[fw.fem.rows,],type="n",xlab="",ylab="",las=1,
+	cex.axis=1.5,xlim=c(-2,2),ylim=c(-3,1))
+points(bp$sites[fw.fem.rows,],
+	pch=fem.pch[fw.fem.rows],col=alpha(fw.fem.col,0.5),cex=1.5)
 mtext("PC1 (98.38%)",1,line=2)
 mtext("PC2 (1.62%)",2,line=2.5)
 abline(h=0,lty=3)
@@ -143,9 +147,10 @@ abline(v=0,lty=3)
 par(fig = c(0, 1, 0, 1), oma=c(2,1,0,1), mar = c(0, 0, 0, 0), new = TRUE,
 	cex=1)
 plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
-legend("top", pop.list, 
-	pch=c(19,19,15,19,15,19,15,19,19,19,19,19,19,19,19,15), 
-	pt.cex=1,bty='n',	col=alpha(rainbow(npops), 0.5), ncol=8)
+legend("top", pop.labs, 
+	col=c("black","black","cornflowerblue","black","cornflowerblue","black","cornflowerblue",
+	      rep("black",8),"cornflowerblue"),
+	pt.cex=1,bty='n',pch=pop.pchs, ncol=8)
 dev.off()
 ###********************************END PLOT********************************###
 

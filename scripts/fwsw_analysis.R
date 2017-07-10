@@ -19,7 +19,6 @@ library(lattice); library(RColorBrewer); library(grid)
 setwd("B:/ubuntushare/popgen/fwsw_results/")
 #source("../scripts/popgen_functions.R")
 source("../../gwscaR/R/gwscaR.R")
-source("../scripts/phenotype_functions.R")
 
 pop.list<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
 	"FLFD","FLSI","FLAB","FLPB","FLHB","FLCC","FLLG")
@@ -41,9 +40,12 @@ fw.coor<-read.csv("fw_coordinates.csv", header=T)
 dist<-read.table("fwsw_geographical_distances.txt",header=T,row.names=1,
 	sep='\t')
 pwise.fst.all<-read.table("stacks/populations/fwsw_fst_summary.txt",header=T,row.names=1,sep='\t')
-	pwise.fst.all<-rbind(pwise.fst.all,rep(NA,ncol(pwise.fst.all)))
-	rownames(pwise.fst.all)<-colnames(pwise.fst.all)
+	#pwise.fst.all<-rbind(pwise.fst.all,rep(NA,ncol(pwise.fst.all)))
+	rownames(pwise.fst.all)<-pop.labs
+	colnames(pwise.fst.all)<-pop.labs
 pwise.fst.sub<-read.table("stacks/fwsw_fst_summary_subset.txt",header=T,row.names=1,sep='\t')
+  colnames(pwise.fst.sub)<-pop.labs
+  rownames(pwise.fst.sub)<-pop.labs
 ped.sub<-read.table("stacks/subset.ped",header=F)	
 ped.sub$V1<-gsub("sample_(\\w{4})\\w+.*","\\1",ped.sub$V2)
 map.sub<-read.table("stacks/subset.map",header = F,stringsAsFactors = F)
@@ -101,8 +103,8 @@ dev.off()
 #Mantel test using geographical distances and fsts
 
 #read in the subsetted fst summary from running populations with whitelist
-ibd.all<-mantel.rtest(as.dist(t(dist)),as.dist(t(pwise.fst.all)))
-ibd.sub<-mantel.rtest(as.dist(t(dist)),as.dist(t(pwise.fst.sub)))
+ibd.all<-mantel.rtest(as.dist(t(dist)),as.dist(t(pwise.fst.all)),nrepet = 999)
+ibd.sub<-mantel.rtest(as.dist(t(dist)),as.dist(t(pwise.fst.sub)), nrepet=999)
 
 #test
 pairwise.fst(ped.sub,9,10,pop.list)
@@ -141,6 +143,8 @@ for(i in 1:length(pop.list)){
 cp<-as.matrix(covplot)
 cp[lower.tri(cp)]<-NA
 cp[upper.tri(cp)]<-covplot[upper.tri(covplot)]
+colnames(cp)<-pop.labs
+rownames(cp)<-pop.labs
 cp.lv<-levelplot(cp,col.regions=cols,alpha.regions=0.7,
           scales = list(x=list(rot=90),tck = 0),xlab="",ylab="")
 
@@ -694,7 +698,7 @@ legend("top", legend=ppi$Pop, pch=as.numeric(ppi$pch), pt.cex=1.5,cex=0.85,
        col=alpha(ppi$cols, 0.5),pt.bg=alpha(ppi$cols,0.25), ncol=8,bty='n')
 dev.off()
 
-#### PCADAPT ####
+had #### PCADAPT ####
 library(pcadapt)
 filename<-read.pcadapt("stacks/subset.ped",type="ped")
 x<-pcadapt("stacks/subset.pcadapt", K=20)
@@ -1086,6 +1090,7 @@ setwd("../")
 write.table(bf.dat,"BF_summary.txt",sep='\t',quote=F,row.names=F)
 write.table(xtx,"XtX_summary.txt",sep='\t',quote=F,row.names=F)
 
+#what happened to my analysis?!?!
 
 #####BAYENV: ENV
 bf.scaff<-merge(sub.map, bf.dat, by.x="V2", by.y="locus")
@@ -1129,23 +1134,50 @@ chroms<-chroms[!duplicated(chroms)]
 
 ###################BAYESCAN########################
 #make the pops file
-vcf<-parse.vcf("batch_2.vcf")
+#vcf<-parse.vcf("batch_2.vcf")#3900 loci
 inds<-colnames(vcf[10:ncol(vcf)])
 pops<-gsub("sample_(\\w{4})\\w+","\\1",inds)
 pops.info<-cbind(inds,pops)
-write.table(pops.info,"fwsw_pops_info_bayescan.txt",quote=F,row.names=F,col.names=F,sep='\t')
-setwd("../bayescan")
-bs.fst<-read.table("bayescan_fwsw_fst.txt")
-plot_bayescan("bayescan_fwsw_fst.txt")
+write.table(pops.info,"fwsw_pops_info_bayescan_all.txt",quote=F,row.names=F,col.names=F,sep='\t')
+#convert using PGDSpider web interface with SPID = fwsw_pops_info_bayescan_all.txt
+#then run bayescan
+
+
+source("~/Desktop/BayeScan2.1/R functions/plot_R.r")
+bs.fst<-read.table("bayescan/bayescan_fwsw_fst.txt")
+plot_bayescan("bayescan/bayescan_fwsw_fst.txt")
 #plot the fsts
 bs.fst<-data.frame(cbind(vcf[,1:2],bs.fst))
 bs.fst.plot<-fst.plot(bs.fst,fst.name="fst",chrom.name="X.CHROM",bp.name="POS",axis.size=1)#weird fst peak around 0.2
-points(bs.fst.plot$POS[bs.fst.plot$qval<0.05],bs.fst.plot$fst[bs.fst.plot$qval<0.05],pch=19,col="cornflowerblue",cex=0.5)
+points(bs.fst.plot[bs.fst.plot$qval<0.05,c("plot.pos","fst")],pch=19,col="cornflowerblue",cex=0.5)
 
 
-bs.sel<-read.table("bayescan_fwsw.sel")
+bs.sel<-read.table("bayescan/bayescan_fwsw.sel")
 
 #compare to stacks fsts
 fst.shared<-paste(fw.shared.chr$Chr,(fw.shared.chr$BP+1),sep=".")
 bs.fst.snp<-paste(bs.fst$X.CHROM[bs.fst$qval < 0.05],bs.fst$POS[bs.fst$qval < 0.05],sep=".")
 length(bs.fst.snp[bs.fst.snp %in% fst.shared])
+points(bs.fst.plot[bs.fst.snp %in% fst.shared,c("plot.pos","fst")],col="darkorchid")
+
+#' Alpha coefficients indicate the strength and direction of selection. 
+#' Positive alpha = diversifying selection, negative alpha = balancing/purifying selection
+bs.fst$SNP<-paste(bs.fst$X.CHROM,bs.fst$POS,sep=".")
+
+png("bayescan_3900.png",width=10,height=5,units="in",res=300)
+bs.a.plot<-fst.plot(bs.fst,fst.name="alpha",chrom.name="X.CHROM",bp.name="POS",
+                    axis.size=1,pch=19,scaffs.to.plot = scaffs,pt.cex=0.75,
+                    y.lim=c(-3.5,3.5))
+points(bs.a.plot[bs.a.plot$qval<0.01,c("plot.pos","alpha")],pch=19,col=alpha("cornflowerblue",0.5),cex=0.75)
+points(bs.a.plot[bs.a.plot$SNP %in% fst.shared,c("plot.pos","alpha")],col="darkorchid")
+mtext(expression(alpha),2,line=0.5)
+text(280000000,2,"Diversifying",srt=270)
+text(280000000,-2,"Balancing",srt=270)
+last<-0
+for(i in 1:length(lgs)){
+  text(x=mean(bs.a.plot[bs.a.plot$X.CHROM ==lgs[i],"plot.pos"]),y=-3.6,
+       labels=lgn[i], adj=1, xpd=TRUE)
+  last<-max(bs.a.plot[bs.a.plot$X.CHROM ==lgs[i],"plot.pos"])
+}
+dev.off()
+
