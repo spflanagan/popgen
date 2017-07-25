@@ -1,0 +1,313 @@
+---
+title: "Putative FW Genes in Pipefish"
+author: "Sarah P. Flanagan"
+date: "July 25, 2017"
+output: 
+  html_document:
+    fig_caption: true
+---
+
+
+```{r setup}
+knitr::opts_knit$set(root.dir='../fwsw_results/')
+source("../../gwscaR/R/gwscaR.R")
+source("../../gwscaR/R/gwscaR_plot.R")
+source("../../gwscaR/R/gwscaR_utility.R")
+source("../../gwscaR/R/gwscaR_fsts.R")
+source("../../gwscaR/R/gwscaR_popgen.R")
+
+```
+
+## Freshwater putative genes
+
+This analysis supplements that found in *fwsw_analysis.R*, which runs the actual analysis of the dataset. Here, I compare the Fst outliers and delta-divergence outliers to putative genes identified from other studies of teleosts adapting to freshwater environments.
+
+### Read in all the files
+```{r}
+print(getwd())
+#putative genes
+put.genes<-read.delim("putative_genes.txt",header=TRUE,sep='\t')
+#genome annotations
+gff<-read.delim("../../scovelli_genome/ssc_122016_chromlevel.gff",header=F)
+colnames(gff)<-c("seqname","source","feature","start","end","score","strand","frame","attribute")
+#Stacks output
+vcf<-parse.vcf("stacks/fw-sw_populations/batch_2.vcf")
+vcf$SNP<-paste(vcf$`#CHROM`,vcf$POS,sep=".")
+scaffs<-levels(as.factor(vcf[,1]))
+fwsw.tx<-read.delim("stacks/batch_2.fst_TXCC-TXFW.tsv")
+fwsw.la<-read.delim("stacks/batch_2.fst_ALST-LAFW.tsv")
+fwsw.al<-read.delim("stacks/batch_2.fst_ALFW-ALST.tsv")
+fwsw.fl<-read.delim("stacks/batch_2.fst_FLCC-FLLG.tsv")
+#annotated Stacks outliers at 0.01
+fw.sig.reg<-read.csv("StacksFWSWOutliers_annotatedByGenome.csv")
+#deltad
+deltad<-read.delim("deltadivergence.txt")
+
+#set up some helfpul things
+fw.list<-c("TXFW","LAFW","ALFW","FLLG")
+sw.list<-c("TXSP","TXCC","TXCB","ALST","FLSG","FLKB",
+	"FLFD","FLSI","FLAB","FLPB","FLHB","FLCC")
+lgs<-c("LG1","LG2","LG3","LG4","LG5","LG6","LG7","LG8","LG9","LG10","LG11",
+	"LG12","LG13","LG14","LG15","LG16","LG17","LG18","LG19","LG20","LG21",
+	"LG22")
+lgn<-seq(1,22)
+all.colors<-c(rep("black",2),"#2166ac","black","#2166ac","black","#2166ac",
+        rep("black",8),"#2166ac")
+grp.colors<-c('#762a83','#af8dc3','#e7d4e8','#d9f0d3','#7fbf7b','#1b7837')
+
+
+```
+
+### Define some useful functions
+
+These are updated from *fwsw_analysis.R* and are specific to **these** analyses, and are not generalizable!
+```{r}
+ssc.fwsw.fstsig<-function(tx, la, al, fl, cutoff)
+{
+  tx.sig<-tx[tx$Fisher.s.P<cutoff,"Locus.ID"]
+  la.sig<-la[la$Fisher.s.P<cutoff,"Locus.ID"]
+  al.sig<-al[al$Fisher.s.P<cutoff,"Locus.ID"]
+  fl.sig<-fl[fl$Fisher.s.P<cutoff,"Locus.ID"]
+  length(tx.sig[(tx.sig %in% c(la.sig,al.sig,fl.sig))])
+  length(la.sig[(la.sig %in% c(tx.sig,al.sig,fl.sig))])
+  length(al.sig[(al.sig %in% c(la.sig,tx.sig,fl.sig))])
+  all.shared<-fl.sig[fl.sig %in% la.sig & fl.sig %in% al.sig & fl.sig %in% tx.sig]
+  fw.shared.chr<-fwsw.tx[fwsw.tx$Locus.ID %in% all.shared,c("Locus.ID","Chr","BP","Column","Overall.Pi")]
+  tapply(fw.shared.chr$Locus.ID,factor(fw.shared.chr$Chr),function(x){ length(unique(x)) })
+  #are they using the same SNPs or different SNPs?
+  stacks.sig<-data.frame(nrow=nrow(fw.shared.chr),ncol=4)
+  for(i in 1:nrow(fw.shared.chr)){
+    tx.bp<-fwsw.tx[tx$Fisher.s.P<cutoff & tx$Locus.ID == fw.shared.chr[i,"Locus.ID"],"BP"]
+    la.bp<-fwsw.la[la$Fisher.s.P<cutoff & la$Locus.ID == fw.shared.chr[i,"Locus.ID"],"BP"]
+    al.bp<-fwsw.al[al$Fisher.s.P<cutoff & al$Locus.ID == fw.shared.chr[i,"Locus.ID"],"BP"]
+    fl.bp<-fwsw.fl[fl$Fisher.s.P<cutoff & fl$Locus.ID == fw.shared.chr[i,"Locus.ID"],"BP"]
+    stacks.sig[i,1]<-paste(tx.bp,sep=",",collapse = ",")
+    stacks.sig[i,2]<-paste(la.bp,sep=",",collapse = ",")
+    stacks.sig[i,3]<-paste(al.bp,sep=",",collapse = ",")
+    stacks.sig[i,4]<-paste(fl.bp,sep=",",collapse = ",")
+  }
+  colnames(stacks.sig)<-c("TX","LA","AL","FL")
+  stacks.sig<-data.frame(cbind(fw.shared.chr,stacks.sig))
+  stacks.sig$SNP<-paste(stacks.sig$Chr,stacks.sig$BP,sep=".")
+  return(stacks.sig)
+}
+
+#' extract the significant regions from the gff file
+sig.region.ann<-function(fw.shared.chr,gff)
+{
+  fw.sig.reg<-do.call(rbind,apply(fw.shared.chr,1,function(sig){
+    this.gff<-gff[as.character(gff$seqname) %in% as.character(unlist(sig["Chr"])),]
+    this.reg<-this.gff[this.gff$start <= as.numeric(sig["BP"]) & this.gff$end >= as.numeric(sig["BP"]),]
+    if(nrow(this.reg) == 0){
+      if(as.numeric(sig["BP"])>max(as.numeric(this.gff$end))){
+        new<-data.frame(Locus=sig["Locus.ID"],Chr=sig["Chr"],BP=sig["BP"],SNPCol=sig["Column"],
+                        region="beyond.last.contig", description=NA,SSCID=NA)
+      }else{
+        new<-data.frame(Locus=sig["Locus.ID"],Chr=sig["Chr"],BP=sig["BP"],SNPCol=sig["Column"],
+                        region=NA,description=NA,SSCID=NA)
+      }
+    }else{
+      if(length(grep("SSCG\\d+",this.reg$attribute))>0){
+        geneID<-unique(gsub(".*(SSCG\\d+).*","\\1",this.reg$attribute[grep("SSCG\\d+",this.reg$attribute)]))
+        gene<-genome.blast[genome.blast$sscv4_gene_ID %in% geneID,"blastp_hit_description"]
+      }else{
+        geneID<-NA
+        gene<-NA
+      }
+      new<-data.frame(Locus=sig["Locus.ID"],Chr=sig["Chr"],BP=sig["BP"],SNPCol=sig["Column"],
+                      region=paste(this.reg$feature,sep=",",collapse = ","),description=gene,SSCID=geneID)
+    }
+    return(as.data.frame(new))
+  }))
+}
+```
+
+### Combine putative genes and genomic info
+
+```{r}
+#' extract the significant regions from the gff file
+put.reg<-do.call(rbind,apply(put.genes,1,function(gene){
+  ssc.gene<-as.character(gene[[6]])
+  #there might be multiple matches
+  ssc.genes<-unlist(strsplit(ssc.gene,","))
+  #for each gene, match to gff
+  gene.info<-do.call(rbind,lapply(ssc.genes,function(genename){
+    this.gff<-gff[grep(genename,gff$attribute),]
+    chrom<-unique(as.character(this.gff$seqname))
+    start<-min(this.gff$start)
+    stop<-max(this.gff$end)
+    return(c(chrom,start,stop))
+  }))
+  if(as.character(gene[[3]]) == "") { gene[[3]]<-NA }
+  new<-data.frame(Gene=gene[[1]],Function=gene[[2]],Chromsome=gene[[3]],
+                     Species=gene[[4]],Citation=gene[[5]],Scovelli_geneID=gene[[6]],Notes=gene[[7]],
+                     Chrom=paste(as.character(gene.info[,1]),sep=",",collapse = ","),
+                     StartBP=paste(as.numeric(as.character(gene.info[,2])),sep=",",collapse = ","),
+                     StopBP=paste(as.numeric(as.character(gene.info[,3])),sep=",",collapse = ","))
+  return(as.data.frame(new))
+}))
+
+```
+
+## Compare the Stacks outliers with putative genes
+
+### Prep regions for plotting
+
+```{r}
+
+#' Get the plotting positions for the putative genes
+
+all.chr<-data.frame(Chr=c(as.character(fwsw.tx$Chr),as.character(fwsw.la$Chr),as.character(fwsw.al$Chr),as.character(fwsw.fl$Chr)),
+                    BP=c(fwsw.tx$BP,fwsw.la$BP,fwsw.al$BP,fwsw.fl$BP),stringsAsFactors = F)
+bounds<-data.frame(levels(as.factor(all.chr$Chr)),tapply(as.numeric(as.character(all.chr$BP)),all.chr$Chr,max))
+colnames(bounds)<-c("Chrom","End")
+plot.scaffs<-scaffs[scaffs %in% bounds$Chrom]
+#convert put.reg to the plotting BP
+
+new.dat<-data.frame(stringsAsFactors = F)
+last.max<-0
+for(i in 1:length(plot.scaffs)){
+  #pull out the data for this scaffold
+  if(nrow(bounds[bounds$Chrom %in% plot.scaffs[i],])>0){ #sanity check
+    chrom.dat<-put.reg[put.reg$Chrom %in% plot.scaffs[i],]
+    if(nrow(chrom.dat)>0){
+      chrom.dat$plot.min<-as.numeric(as.character(chrom.dat$StartBP))+last.max
+      chrom.dat$plot.max<-as.numeric(as.character(chrom.dat$StopBP))+last.max
+      new.dat<-rbind(new.dat,chrom.dat)
+      #last.max<-max(chrom.dat$plot.pos)+
+      #               as.numeric(scaffold.widths[scaffold.widths[,1] %in% scaffs.to.plot[i],2])
+    }
+    last.max<-last.max+
+      as.numeric(bounds[bounds$Chrom %in% plot.scaffs[i],2])
+  }else{
+    print(paste(plot.scaffs[i], "has no designated width."))
+  }
+}
+#make sure everything is the correct class
+new.dat$plot.min<-as.numeric(as.character(new.dat$plot.min))
+new.dat$plot.max<-as.numeric(as.character(new.dat$plot.max))
+```
+
+
+### Plot the Fsts 
+
+```{r, echo=FALSE, message=F,fig.cap="Outlined points are Stacks shared outliers. Black bars are putative genes"}
+tx.sig<-fwsw.tx[fwsw.tx$Fisher.s.P<0.01,"Locus.ID"]
+la.sig<-fwsw.la[fwsw.la$Fisher.s.P<0.01,"Locus.ID"]
+al.sig<-fwsw.al[fwsw.al$Fisher.s.P<0.01,"Locus.ID"]
+fl.sig<-fwsw.fl[fwsw.fl$Fisher.s.P<0.01,"Locus.ID"]
+length(tx.sig[(tx.sig %in% c(la.sig,al.sig,fl.sig))])
+length(la.sig[(la.sig %in% c(tx.sig,al.sig,fl.sig))])
+length(al.sig[(al.sig %in% c(la.sig,tx.sig,fl.sig))])
+all.shared<-fl.sig[fl.sig %in% la.sig & fl.sig %in% al.sig & fl.sig %in% tx.sig]
+
+par(mfrow=c(4,1),mar=c(0.85,2,0,0.5),oma=c(1,1,1,0.5))
+fwswt.fst<-fst.plot(fwsw.tx,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
+                    scaffs.to.plot=plot.scaffs, scaffold.widths = bounds,pch=19,y.lim = c(0,1),
+                    pt.cols = c(grp.colors[1],grp.colors[2]),pt.cex=1,axis.size = 1)
+apply(new.dat,1,function(dat){
+  arrows(x0=as.numeric(dat[["plot.min"]]),x1=as.numeric(dat[["plot.max"]]),y0=0.9,y1=0.9,length=0,lwd=10)
+})
+points(fwswt.fst$plot.pos[fwswt.fst$Locus.ID %in% all.shared],fwswt.fst$Corrected.AMOVA.Fst[fwswt.fst$Locus.ID %in% all.shared],
+       pch=1,col="black",cex=1.3)
+mtext("TXFW vs. TXCC",3,cex=0.75,line=-1)
+fwswl.fst<-fst.plot(fwsw.la,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
+                    scaffs.to.plot=plot.scaffs, scaffold.widths = bounds,pch=19,y.lim = c(0,1),
+                    pt.cols=c(grp.colors[2],grp.colors[3]),pt.cex=1,axis.size=1)
+apply(new.dat,1,function(dat){
+  arrows(x0=as.numeric(dat[["plot.min"]]),x1=as.numeric(dat[["plot.max"]]),y0=0.9,y1=0.9,length=0,lwd=10)
+})
+points(fwswl.fst$plot.pos[fwswl.fst$Locus.ID %in% all.shared],fwswl.fst$Corrected.AMOVA.Fst[fwswl.fst$Locus.ID %in% all.shared],
+       pch=1,col="black",cex=1.3)
+mtext("LAFW vs. ALST",3,cex=0.75,line=-1)
+fwswa.fst<-fst.plot(fwsw.al,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
+                    scaffs.to.plot=plot.scaffs, scaffold.widths = bounds,pch=19,y.lim = c(0,1),
+                    pt.cols=c(grp.colors[3],grp.colors[2]),pt.cex=1,axis.size = 1)
+apply(new.dat,1,function(dat){
+  arrows(x0=as.numeric(dat[["plot.min"]]),x1=as.numeric(dat[["plot.max"]]),y0=0.9,y1=0.9,length=0,lwd=10)
+})
+points(fwswa.fst$plot.pos[fwswa.fst$Locus.ID %in% all.shared],fwswa.fst$Corrected.AMOVA.Fst[fwswa.fst$Locus.ID %in% all.shared],
+       pch=1,col="black",cex=1.3)
+mtext("ALFW vs. ALST",3,cex=0.75,line=-1)
+fwswf.fst<-fst.plot(fwsw.fl,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
+                    scaffs.to.plot=plot.scaffs, scaffold.widths =  bounds,pch=19,y.lim = c(0,1),
+                    pt.cols=c(grp.colors[6],grp.colors[5]),pt.cex=1,axis.size=1)
+apply(new.dat,1,function(dat){
+  arrows(x0=as.numeric(dat[["plot.min"]]),x1=as.numeric(dat[["plot.max"]]),y0=0.9,y1=0.9,length=0,lwd=10)
+})
+points(fwswf.fst$plot.pos[fwswf.fst$Locus.ID %in% all.shared],fwswf.fst$Corrected.AMOVA.Fst[fwswf.fst$Locus.ID %in% all.shared],
+       pch=1,col="black",cex=1.3)
+mtext("FLFW vs. FLCC",3,cex=0.75,line=-1)
+mtext(expression(italic(F)[ST]),2,outer=T,line=-0.8,cex=0.75)
+last<-0
+for(i in 1:length(lgs)){
+  text(x=mean(fwswf.fst[fwswf.fst$Chr ==lgs[i],"plot.pos"]),y=-0.05,
+       labels=lgn[i], adj=1, xpd=TRUE)
+  last<-max(fwswf.fst[fwswf.fst$Chr ==lgs[i],"plot.pos"])
+}
+```
+
+They look like they match up in some places, but do they really?
+
+```{r}
+all.put.ssc<-as.character(put.reg$Scovelli_geneID)
+all.put.ssc<-unlist(lapply(all.put.ssc,strsplit,","))
+sig.put.match<-all.put.ssc[all.put.ssc %in% fw.sig.reg$SSCID]
+print(dim(sig.put.match))
+```
+
+No, they don't overlap.
+
+### Plotting delta divergence
+
+Now for delta divergence
+
+```{r, echo=FALSE, results='hide',fig.keep='all'}
+par(mar=c(1,1,1,1),oma=c(1,2,1,1))
+dd<-fst.plot(fst.dat = deltad,fst.name = "deltad",bp.name = "Pos",axis=1,pch=19,scaffs.to.plot=scaffs)
+mtext(expression(paste(delta,"-divergence")),2,line=1.5)
+smooth.par<-data.frame()
+smooth.div<-data.frame()
+for(i in 1:length(lgs)){#scaffolds are too short
+  this.chrom<-dd[dd$Chrom %in% lgs[i],]
+  #span<-nrow(this.chrom)/5000
+  this.smooth<-loess.smooth(this.chrom$plot.pos,this.chrom$deltad,span=0.1,degree=2) 
+  this.plot.pos<-unlist(lapply(this.smooth$x,function(x) { this.chrom[which.min(abs(this.chrom$plot.pos-x)),"plot.pos"] }))
+  points(this.smooth$x,this.smooth$y,col="cornflowerblue",type="l",lwd=2)
+  this.div<-cbind(dd=this.chrom$deltad[this.chrom$deltad>=quantile(this.chrom$deltad,0.95)],#choosing the upper outliers
+                  plot.pos=this.chrom$plot.pos[this.chrom$deltad>=quantile(this.chrom$deltad,0.95)])
+  this.par<-cbind(dd=this.chrom$deltad[this.chrom$deltad<=quantile(this.chrom$deltad,0.05)],#choosing the lower outliers
+                  plot.pos=this.chrom$plot.pos[this.chrom$deltad<=quantile(this.chrom$deltad,0.05)])
+  smooth.par<-rbind(smooth.par,this.par)
+  smooth.div<-rbind(smooth.div,this.div)
+}
+apply(new.dat,1,function(dat){
+  arrows(x0=as.numeric(dat[["plot.min"]]),x1=as.numeric(dat[["plot.max"]]),y0=0.9,y1=0.9,length=0,lwd=10)
+})
+```
+
+### Compare delta divergence and putative regions
+
+```{r}
+sdd.out<-read.delim("smoothed.deltad.out.txt",header=T,sep='\t')
+sdd.put.match<-do.call(rbind,apply(sdd.out,1,function(out){
+  this.chrom.dat<-new.dat[new.dat$Chrom %in% out[["Chrom"]],]
+  d<-this.chrom.dat[as.numeric(this.chrom.dat$StartBP) <= as.numeric(out[["Pos"]]) & 
+                   as.numeric(this.chrom.dat$StopBP) >= as.numeric(out[["Pos"]]),]
+  return(d)
+}))
+head(sdd.out)#no matches
+```
+
+### Re-analyzing with 0.05 not 0.01
+```{r}
+genome.blast<-read.csv("../../scovelli_genome/ssc_2016_12_20_cds_nr_blast_results.csv",skip=1,header=T)#I saved it as a csv
+
+fwsw05<-ssc.fwsw.fstsig(fwsw.tx, fwsw.la, fwsw.al, fwsw.fl, cutoff=0.05)
+fwsw05.ann<-sig.region.ann(fwsw05,gff)
+
+sig05.put.match<-all.put.ssc[all.put.ssc %in% fwsw05.ann$SSCID]
+print(dim(sig.put.match)) #no matches
+```
+
+So, none of the putative genes are also outliers, in either Stacks Fsts or the delta divergence analysis.

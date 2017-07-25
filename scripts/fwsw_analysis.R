@@ -66,6 +66,7 @@ locus.info<-c(colnames(vcf[1:9]),"SNP")
 #chosen.snps<-choose.one.snp(vcf)$SNP
 #write.table(chosen.snps,"chosen.snps.txt",quote=F)
 chosen.snps<-unlist(read.table("chosen.snps.txt"))
+put.genes<-read.delim("putative_genes.txt",header=TRUE,sep='\t')
 
 #######################PLOT THE POINTS ON A MAP##############################
 jpeg("all_sites_map.jpg", res=300, height=7,width=14, units="in")
@@ -239,7 +240,7 @@ stacks.sig<-data.frame(cbind(fw.shared.chr,stacks.sig))
 stacks.sig$SNP<-paste(stacks.sig$Chr,stacks.sig$BP,sep=".")
 write.table(stacks.sig,"stacks.sig.snps.txt",sep='\t',row.names=FALSE,col.names=TRUE)
 
-##compare to scovelli genome..
+## compare to scovelli genome..
 gff<-read.delim(gzfile("../../scovelli_genome/ssc_2016_12_20_chromlevel.gff.gz"),header=F)
 colnames(gff)<-c("seqname","source","feature","start","end","score","strand","frame","attribute")
 genome.blast<-read.csv("../../scovelli_genome/ssc_2016_12_20_cds_nr_blast_results.csv",skip=1,header=T)#I saved it as a csv
@@ -251,20 +252,21 @@ fw.sig.reg<-do.call(rbind,apply(fw.shared.chr,1,function(sig){
   if(nrow(this.reg) == 0){
     if(as.numeric(sig["BP"])>max(as.numeric(this.gff$end))){
       new<-data.frame(Locus=sig["Locus.ID"],Chr=sig["Chr"],BP=sig["BP"],SNPCol=sig["Column"],
-                      region="beyond.last.contig", description=NA)
+                      region="beyond.last.contig", description=NA,SSCID=NA)
     }else{
       new<-data.frame(Locus=sig["Locus.ID"],Chr=sig["Chr"],BP=sig["BP"],SNPCol=sig["Column"],
-                      region=NA,description=NA)
+                      region=NA,description=NA,SSCID=NA)
     }
   }else{
     if(length(grep("SSCG\\d+",this.reg$attribute))>0){
       geneID<-unique(gsub(".*(SSCG\\d+).*","\\1",this.reg$attribute[grep("SSCG\\d+",this.reg$attribute)]))
       gene<-genome.blast[genome.blast$sscv4_gene_ID %in% geneID,"blastp_hit_description"]
     }else{
+      geneID<-NA
       gene<-NA
     }
     new<-data.frame(Locus=sig["Locus.ID"],Chr=sig["Chr"],BP=sig["BP"],SNPCol=sig["Column"],
-                    region=paste(this.reg$feature,sep=",",collapse = ","),description=gene)
+                    region=paste(this.reg$feature,sep=",",collapse = ","),description=gene,SSCID=geneID)
   }
   return(as.data.frame(new))
 }))
@@ -528,7 +530,8 @@ smooth.div$SWpi<-apply(cbind(vcf[vcf$SNP %in% smooth.div$SNP,locus.info],
                              vcf[vcf$SNP %in% smooth.div$SNP,unlist(lapply(sw.list,grep,colnames(vcf)))]),1,calc.pi)
 #points(smooth.out$plot.pos,smooth.out$smooth.deltad,col="orchid4")
 dim(smooth.par[smooth.par$SNP %in% stacks.sig$SNP,])
-write.table(rbind(smooth.par,smooth.div),"smoothed.deltad.out.txt",col.names=T,row.names=F,quote=F,sep='\t')
+sdd.out<-rbind(smooth.par,smooth.div)
+write.table(sdd.out,"smoothed.deltad.out.txt",col.names=T,row.names=F,quote=F,sep='\t')
 
 #' Compare to Stacks Fsts
 # Get the significant Fst loci if they're not already here
@@ -609,6 +612,8 @@ fwsw.tx$SNP<-paste(fwsw.tx$Chr,fwsw.tx$BP+1,sep=".")
 fwsw.la$SNP<-paste(fwsw.la$Chr,fwsw.la$BP+1,sep=".")
 fwsw.al$SNP<-paste(fwsw.al$Chr,fwsw.al$BP+1,sep=".")
 fwsw.fl$SNP<-paste(fwsw.fl$Chr,fwsw.fl$BP+1,sep=".")
+#get putative regions
+put.reg<-read.delim("Updated_putative_regions.txt",header=TRUE,sep='\t')
 #plot each chrom with sig. ones
 sig.chroms<-unique(pi.sig.fst$Chrom)
 png("FstOutliersStats.png",height=10,width=10,units="in",res=300)
@@ -646,7 +651,7 @@ for(i in 1:length(sig.chroms)){ #I could turn this into a function
     this.chrom<-dd[dd$Chrom %in% sig.chroms[i],]
     this.smooth<-loess.smooth(this.chrom$Pos,this.chrom$deltad,span=0.1,degree=2)
     points(this.smooth$x,this.smooth$y,col="cornflowerblue",type="l",lwd=2)
-    lapply(smooth.out[smooth.out$Chrom %in% sig.chroms[i],"Pos"],points,y=0.5,pch="-",cex=5,col="cornflowerblue")
+    #lapply(sdd.out[sdd.out$Chrom %in% sig.chroms[i],"Pos"],points,y=0.5,pch="-",cex=5,col="cornflowerblue")
     #add pi
     fw.inds<-unlist(lapply(fw.list,grep,colnames(vcf)))
     sw.inds<-unlist(lapply(sw.list,grep,colnames(vcf)))
@@ -663,25 +668,13 @@ for(i in 1:length(sig.chroms)){ #I could turn this into a function
                                   width=nloci*0.15))
     points(fw.pi,col="lightgrey",type="l",lwd=3)
     points(sw.pi,col="darkgrey",type="l",lwd=3,lty=2)
+    #add putative genes
+    arrows(x0=put.reg[put.reg$Chrom %in% sig.chroms[i],"plot.max"],
+           x1=put.reg[put.reg$Chrom %in% sig.chroms[i],"plot.min"],
+           y0=0.8,y1=0.8,col="indianred",lwd=15,length=0)
+    
   }
-  # else{
-  #   this.tx<-fwsw.tx[fwsw.tx$Chr %in% sig.chroms[i],]
-  #   this.la<-fwsw.la[fwsw.la$Chr %in% sig.chroms[i],]
-  #   this.al<-fwsw.al[fwsw.al$Chr %in% sig.chroms[i],]
-  #   this.fl<-fwsw.fl[fwsw.fl$Chr %in% sig.chroms[i],]
-  #   plot(this.tx$BP,this.tx$Corrected.AMOVA.Fst,col=grp.colors[1],type="l",ylim=c(0,1),lwd=2,xaxt='n',
-  #        xlab="",ylab="",xaxt='n',yaxt='n',bty="L")
-  #   axis(2, labels=FALSE)
-  #   mtext(paste("Position on ",sig.chroms[i],sep=""),1,cex=0.75)
-  #   points(this.la$BP,this.la$Corrected.AMOVA.Fst,col=grp.colors[2],type="l",lwd=2)
-  #   points(this.al$BP,this.al$Corrected.AMOVA.Fst,col=grp.colors[3],type="l",lwd=2)
-  #   points(this.fl$BP,this.fl$Corrected.AMOVA.Fst,col=grp.colors[6],type="l",lwd=2)
-  #   #add pi
-  #   points(avg.pi$Avg.Pos[avg.pi$Chr %in% sig.chroms[i]],avg.pi$Avg.Pi[avg.pi$Chr %in% sig.chroms[i]],
-  #          col="darkgrey",type="l",lwd=2)
-  #   lapply(pi.sig.fst[pi.sig.fst$Chrom %in% sig.chroms[i],"Pos"],points,y=0.6,pch="-",cex=5)#add bars to sig. fsts
-  #   lapply(smooth.out[smooth.out$Chrom %in% sig.chroms[i],"Pos"],points,y=0.5,pch="-",cex=5,col="cornflowerblue")
-  # }
+ 
 }#this is kind of a mess.
 plot(x=c(0,1),y=c(0,1),type="n",axes=FALSE)
 legend("left",
@@ -1437,4 +1430,7 @@ for(i in 1:length(lgs)){
   last<-max(bs.a.plot[bs.a.plot$X.CHROM ==lgs[i],"plot.pos"])
 }
 dev.off()
+
+
+
 
