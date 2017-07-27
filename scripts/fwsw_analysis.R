@@ -1384,7 +1384,7 @@ dev.off()
 
 ###################BAYESCAN########################
 #make the pops file
-#vcf<-parse.vcf("batch_2.vcf")#3900 loci
+vcf.small<-parse.vcf("batch_2.vcf")#3900 loci
 inds<-colnames(vcf[10:ncol(vcf)])
 pops<-gsub("sample_(\\w{4})\\w+","\\1",inds)
 pops.info<-cbind(inds,pops)
@@ -1397,7 +1397,7 @@ source("~/Desktop/BayeScan2.1/R functions/plot_R.r")
 bs.fst<-read.table("bayescan/bayescan_fwsw_fst.txt")
 plot_bayescan("bayescan/bayescan_fwsw_fst.txt")
 #plot the fsts
-bs.fst<-data.frame(cbind(vcf[,1:2],bs.fst))
+bs.fst<-data.frame(cbind(vcf.small[,1:2],bs.fst))
 bs.fst.plot<-fst.plot(bs.fst,fst.name="fst",chrom.name="X.CHROM",bp.name="POS",axis.size=1)#weird fst peak around 0.2
 points(bs.fst.plot[bs.fst.plot$qval<0.05,c("plot.pos","fst")],pch=19,col="cornflowerblue",cex=0.5)
 
