@@ -24,7 +24,6 @@ This analysis supplements that found in *fwsw_analysis.R*, which runs the actual
 
 ### Read in all the files
 ```{r}
-print(getwd())
 #putative genes
 put.genes<-read.delim("putative_genes.txt",header=TRUE,sep='\t')
 #genome annotations
@@ -42,7 +41,8 @@ fwsw.fl<-read.delim("stacks/batch_2.fst_FLCC-FLLG.tsv")
 fw.sig.reg<-read.csv("StacksFWSWOutliers_annotatedByGenome.csv")
 #deltad
 deltad<-read.delim("deltadivergence.txt")
-
+#ld info
+ld<-read.delim("ld_info_fwsw.txt")
 #set up some helfpul things
 fw.list<-c("TXFW","LAFW","ALFW","FLLG")
 sw.list<-c("TXSP","TXCC","TXCB","ALST","FLSG","FLKB",
@@ -139,31 +139,80 @@ put.reg<-do.call(rbind,apply(put.genes,1,function(gene){
     return(c(chrom,start,stop))
   }))
   if(as.character(gene[[3]]) == "") { gene[[3]]<-NA }
-  new<-data.frame(Gene=gene[[1]],Function=gene[[2]],Chromsome=gene[[3]],
-                     Species=gene[[4]],Citation=gene[[5]],Scovelli_geneID=gene[[6]],Notes=gene[[7]],
-                     Chrom=paste(as.character(gene.info[,1]),sep=",",collapse = ","),
-                     StartBP=paste(as.numeric(as.character(gene.info[,2])),sep=",",collapse = ","),
-                     StopBP=paste(as.numeric(as.character(gene.info[,3])),sep=",",collapse = ","))
+  new<-data.frame(Gene=rep(gene[[1]],length(gene.info[,1])),
+                  Function=rep(gene[[2]],length(gene.info[,1])),
+                  Chromsome=rep(gene[[3]],length(gene.info[,1])),
+                  Species=rep(gene[[4]],length(gene.info[,1])),
+                  Citation=rep(gene[[5]],length(gene.info[,1])),
+                  Scovelli_geneID=rep(gene[[6]],length(gene.info[,1])),
+                  Notes=rep(gene[[7]],length(gene.info[,1])),
+                  Chrom=gene.info[,1],StartBP=gene.info[,2],StopBP=gene.info[,3],
+                  stringsAsFactors = FALSE)
   return(as.data.frame(new))
 }))
 
 ```
 
+Note that some genes will have multiple rows as they match multiple locations in the genome.
+
+### Do the putative genes contain RAD loci?
+```{r}
+
+put.reg$rad.loci<-apply(put.reg,1,function(gene){
+  rad<-vcf[vcf$`#CHROM` %in% gene[["Chrom"]] & 
+           vcf$POS >= as.numeric(as.character(gene[["StartBP"]])) & 
+           vcf$POS <= as.numeric(as.character(gene[["StopBP"]])),]  
+  if(nrow(rad)>0){ rad.snps<-paste(rad$SNP,sep=",",collapse=",") }
+  else { rad.snps<-NA }
+  return(rad.snps)
+})
+```
+```{r, echo=FALSE}
+#and how many of the genes have RAD loci?
+counts<-tapply(put.reg$rad.loci,put.reg$Gene,function(gene){
+  cnt<-length(gene[!is.na(gene)])
+})
+```
+
+About `r length(counts[counts>0])/length(counts)*100`% of the putative genes have RAD loci within them - but only about `r nrow(put.reg[!is.na(put.reg$rad.loci),])/nrow(put.reg)*100`% of all of the annotations have RAD loci.
+
 ## Compare the Stacks outliers with putative genes
+
+### What is the maximum distance of loci in LD?
+
+$D'$ was calculated using a custom C++ program (found at https://github.com/spflanagan/SCA/tree/master/programs/pairwise_ld_vcf) using the formula:
+
+$$D' = \sum_{i=1}^m\sum_{j=1}^n \frac{p_iq_j|D_{i,j}|}{D_{max}},$$
+where $m$ is the number of alleles at locus and $n$ is the number of alleles at locus B. $D_{ij}$ was calculated as $f_{ij}-p_iq_j$, where $f_{ij}$ is the frequency of the $A_iB_j$ haplotype, $p_i$ is the frequency of allele $i$, and $q_j$ is the frequency of allele $j$. $D_{max}$ is the lesser of $p_iq_j$ or $q-p_iq_j$ when $D_{ij} \lt 0$ and is the minimum of $(1-p_i)q_i$ or $p_i(1-q_i)$ when $D_{ij} \gt 0$.
+
+In the data.frame **ld**, the locus IDs (**LocIDA** and **LocIDB**) are the positions on the chromosome.
+
+```{r ld}
+ld$pos.diff<-abs(ld$LocIDA - ld$LocIDB)
+chrom.ld<-tapply(ld[ld$D.>0.5,"pos.diff"],ld[ld$D. >0.5,"Chrom"],mean)
+
+nrow(vcf[vcf$`#CHROM` %in% put.reg[1,"Chrom"] 
+    & vcf$POS >= (as.numeric(as.character(put.reg[1,"StartBP"])) - (chrom.ld[put.reg[1,"Chrom"]]/2))
+    & vcf$POS <= (as.numeric(as.character(put.reg[1,"StopBP"])) + (chrom.ld[put.reg[1,"Chrom"]]/2)),])
+vcf[vcf$`#CHROM` %in% put.reg[1,"Chrom"] 
+    & vcf$POS >= (as.numeric(as.character(put.reg[1,"StartBP"])) - 2500)
+    & vcf$POS <= (as.numeric(as.character(put.reg[1,"StopBP"])) + 2500),"SNP"]
+
+
+
+```
 
 ### Prep regions for plotting
 
 ```{r}
 
 #' Get the plotting positions for the putative genes
-
-all.chr<-data.frame(Chr=c(as.character(fwsw.tx$Chr),as.character(fwsw.la$Chr),as.character(fwsw.al$Chr),as.character(fwsw.fl$Chr)),
-                    BP=c(fwsw.tx$BP,fwsw.la$BP,fwsw.al$BP,fwsw.fl$BP),stringsAsFactors = F)
+all.chr<-data.frame(Chr=vcf$`#CHROM`,BP=vcf$POS,stringsAsFactors = F)
 bounds<-data.frame(levels(as.factor(all.chr$Chr)),tapply(as.numeric(as.character(all.chr$BP)),all.chr$Chr,max))
 colnames(bounds)<-c("Chrom","End")
 plot.scaffs<-scaffs[scaffs %in% bounds$Chrom]
-#convert put.reg to the plotting BP
 
+#convert put.reg to the plotting BP
 new.dat<-data.frame(stringsAsFactors = F)
 last.max<-0
 for(i in 1:length(plot.scaffs)){
@@ -256,7 +305,24 @@ sig.put.match<-all.put.ssc[all.put.ssc %in% fw.sig.reg$SSCID]
 print(dim(sig.put.match))
 ```
 
-No, they don't overlap.
+No, they don't overlap. Maybe they're in the same LD region?
+
+```{r}
+fw.sig.reg$SNP<-paste(fw.sig.reg$Chr,as.character(fw.sig.reg$BP),sep=".")
+put.nearby.rad<-apply(put.reg,1,function(put.gene){
+  nearby.rad<-fw.sig.reg[fw.sig.reg$Chr %in% put.gene[["Chrom"]] 
+    & fw.sig.reg$BP >= (as.numeric(as.character(put.gene[["StartBP"]])) - (chrom.ld[put.gene[["Chrom"]] ]))
+    & fw.sig.reg$BP <= (as.numeric(as.character(put.gene[["StopBP"]])) + (chrom.ld[put.gene[["Chrom"]] ])),"SNP"]
+  if(length(nearby.rad)==0){ nearby.rad<-NA }
+  return(paste(nearby.rad,sep=",",collapse=","))
+})
+
+#add the nearby significant rad loci to the put.reg data.frame
+put.reg$nearby.rad<-put.nearby.rad
+head(put.reg[put.reg$nearby.rad!="NA",])
+
+```
+So of the `r nrow(put.reg)` gene annotations `r length(put.nearby.rad[put.nearby.rad!="NA"])` are within the mean LD range of an outlier, which represent `r length(unique(put.reg[put.reg$nearby.rad!="NA","Gene"]))` putative freshwater genes.
 
 ### Plotting delta divergence
 
