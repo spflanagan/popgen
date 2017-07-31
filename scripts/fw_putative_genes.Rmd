@@ -27,7 +27,12 @@ This analysis supplements that found in *fwsw_analysis.R*, which runs the actual
 #putative genes
 put.genes<-read.delim("putative_genes.txt",header=TRUE,sep='\t')
 #genome annotations
-gff<-read.delim("../../scovelli_genome/ssc_122016_chromlevel.gff",header=F)
+gff.name<-list.files(path = "../../scovelli_genome/",pattern="ssc_\\d+.*_chromlevel.gff")
+if(grep("gz",gff.name)){
+  gff<-read.delim(gzfile(paste("../../scovelli_genome/",gff.name,sep="")),header=F)
+} else{
+  gff<-read.delim(paste("../../scovelli_genome/",gff.name,sep=""),header=F)
+}
 colnames(gff)<-c("seqname","source","feature","start","end","score","strand","frame","attribute")
 #Stacks output
 vcf<-parse.vcf("stacks/fw-sw_populations/batch_2.vcf")
@@ -377,3 +382,22 @@ print(dim(sig.put.match)) #no matches
 ```
 
 So, none of the putative genes are also outliers, in either Stacks Fsts or the delta divergence analysis.
+
+### Bayenv
+
+```{r bayenv}
+#taken directly from fwsw_analysis.R
+bf<-read.delim("bf.txt",header=T)
+bf.co<-apply(bf[,5:7],2,quantile,0.99) #focus on Bayes Factors, because of Lotterhos & Whitlock (2015)
+temp.bf.sig<-bf[bf$Temp_BF>bf.co["Temp_BF"],c(1,2,4,8,5)]
+sal.bf.sig<-bf[bf$Salinity_BF>bf.co["Salinity_BF"],c(1,2,4,8,6)]
+grass.bf.sig<-bf[bf$seagrass_BF>bf.co["seagrass_BF"],c(1,2,4,8,7)]
+
+dim(temp.bf.sig[temp.bf.sig$locus %in% sal.bf.sig$locus & 
+                  temp.bf.sig$locus %in% grass.bf.sig,])
+
+bf$logSal<-log(bf$Salinity_BF)
+bf$logTemp<-log(bf$Temp_BF)
+bf$logSeagrass<-log(bf$seagrass_BF)
+
+```
