@@ -1,5 +1,5 @@
 ---
-title: "Putative FW Genes in Pipefish"
+title: "Putative Freshwater Genes in Pipefish"
 author: "Sarah P. Flanagan"
 date: "July 25, 2017"
 output: 
@@ -20,15 +20,15 @@ source("../../gwscaR/R/gwscaR_popgen.R")
 
 ## Freshwater putative genes
 
-This analysis supplements that found in *fwsw_analysis.R*, which runs the actual analysis of the dataset. Here, I compare the Fst outliers and delta-divergence outliers to putative genes identified from other studies of teleosts adapting to freshwater environments.
+This analysis supplements that found in **fwsw_analysis.R**, which runs the actual analysis of the dataset. Here, I compare the Fst outliers and delta-divergence outliers to putative genes identified from other studies of teleosts adapting to freshwater environments.
 
 ### Read in all the files
-```{r}
+```{r files}
 #putative genes
 put.genes<-read.delim("putative_genes.txt",header=TRUE,sep='\t')
 #genome annotations
 gff.name<-list.files(path = "../../scovelli_genome/",pattern="ssc_\\d+.*_chromlevel.gff")
-if(grep("gz",gff.name)){
+if(length(grep("gz",gff.name))>0){
   gff<-read.delim(gzfile(paste("../../scovelli_genome/",gff.name,sep="")),header=F)
 } else{
   gff<-read.delim(paste("../../scovelli_genome/",gff.name,sep=""),header=F)
@@ -46,6 +46,7 @@ fwsw.fl<-read.delim("stacks/batch_2.fst_FLCC-FLLG.tsv")
 fw.sig.reg<-read.csv("StacksFWSWOutliers_annotatedByGenome.csv")
 #deltad
 deltad<-read.delim("deltadivergence.txt")
+sdd.out<-read.delim("smoothed.deltad.out.txt",header=T,sep='\t')
 #ld info
 ld<-read.delim("ld_info_fwsw.txt")
 #set up some helfpul things
@@ -65,8 +66,8 @@ grp.colors<-c('#762a83','#af8dc3','#e7d4e8','#d9f0d3','#7fbf7b','#1b7837')
 
 ### Define some useful functions
 
-These are updated from *fwsw_analysis.R* and are specific to **these** analyses, and are not generalizable!
-```{r}
+These are updated from **fwsw_analysis.R** and are specific to *these* analyses, and are not generalizable!
+```{r functions}
 ssc.fwsw.fstsig<-function(tx, la, al, fl, cutoff)
 {
   tx.sig<-tx[tx$Fisher.s.P<cutoff,"Locus.ID"]
@@ -129,7 +130,7 @@ sig.region.ann<-function(fw.shared.chr,gff)
 
 ### Combine putative genes and genomic info
 
-```{r}
+```{r putative_regions}
 #' extract the significant regions from the gff file
 put.reg<-do.call(rbind,apply(put.genes,1,function(gene){
   ssc.gene<-as.character(gene[[6]])
@@ -161,8 +162,7 @@ put.reg<-do.call(rbind,apply(put.genes,1,function(gene){
 Note that some genes will have multiple rows as they match multiple locations in the genome.
 
 ### Do the putative genes contain RAD loci?
-```{r}
-
+```{r rad_putative}
 put.reg$rad.loci<-apply(put.reg,1,function(gene){
   rad<-vcf[vcf$`#CHROM` %in% gene[["Chrom"]] & 
            vcf$POS >= as.numeric(as.character(gene[["StartBP"]])) & 
@@ -190,18 +190,39 @@ $D'$ was calculated using a custom C++ program (found at https://github.com/spfl
 $$D' = \sum_{i=1}^m\sum_{j=1}^n \frac{p_iq_j|D_{i,j}|}{D_{max}},$$
 where $m$ is the number of alleles at locus and $n$ is the number of alleles at locus B. $D_{ij}$ was calculated as $f_{ij}-p_iq_j$, where $f_{ij}$ is the frequency of the $A_iB_j$ haplotype, $p_i$ is the frequency of allele $i$, and $q_j$ is the frequency of allele $j$. $D_{max}$ is the lesser of $p_iq_j$ or $q-p_iq_j$ when $D_{ij} \lt 0$ and is the minimum of $(1-p_i)q_i$ or $p_i(1-q_i)$ when $D_{ij} \gt 0$.
 
-In the data.frame **ld**, the locus IDs (**LocIDA** and **LocIDB**) are the positions on the chromosome.
+In the data.frame `ld`, the locus IDs (`LocIDA` and `LocIDB`) are the positions on the chromosome.
 
 ```{r ld}
 ld$pos.diff<-abs(ld$LocIDA - ld$LocIDB)
 chrom.ld<-tapply(ld[ld$D.>0.5,"pos.diff"],ld[ld$D. >0.5,"Chrom"],mean)
+```
 
-nrow(vcf[vcf$`#CHROM` %in% put.reg[1,"Chrom"] 
-    & vcf$POS >= (as.numeric(as.character(put.reg[1,"StartBP"])) - (chrom.ld[put.reg[1,"Chrom"]]/2))
-    & vcf$POS <= (as.numeric(as.character(put.reg[1,"StopBP"])) + (chrom.ld[put.reg[1,"Chrom"]]/2)),])
-vcf[vcf$`#CHROM` %in% put.reg[1,"Chrom"] 
-    & vcf$POS >= (as.numeric(as.character(put.reg[1,"StartBP"])) - 2500)
-    & vcf$POS <= (as.numeric(as.character(put.reg[1,"StopBP"])) + 2500),"SNP"]
+### Functions for comparison
+
+```{r comp_functions}
+#' Find outliers in a putative gene region
+outlier.in.region<-function(outlier.df, region.df, oChrom="Chrom", oBP="BP",
+                            rChrom="Chrom",rBPStart="StartBP",rBPStop="StopBP"){
+  out.in<-apply(region.df,1,function(put.gene){
+    oin<-outlier.df[outlier.df[[oChrom]] %in% put.gene[[rChrom]] 
+      & outlier.df[[oBP]] >= as.numeric(as.character(put.gene[[rBPStart]]))
+      & outlier.df[[oBP]] <= as.numeric(as.character(put.gene[[rBPStop]])),"SNP"]
+    if(length(oin)==0){ oin<-NA }
+    return(paste(oin,sep=",",collapse=","))
+  })
+  return(out.in)
+}
+outlier.nearby<-function(outlier.df,region.df,ld.df,
+                         oChrom="Chrom", oBP="BP",
+                         rChrom="Chrom",rBPStart="StartBP",rBPStop="StopBP"){
+  out.nearby<-apply(region.df,1,function(put.gene){
+    nearby<-outlier.df[outlier.df[[oChrom]] %in% put.gene[[rChrom]] 
+      & outlier.df[[oBP]] >= (as.numeric(as.character(put.gene[[rBPStart]])) - (ld.df[put.gene[[rChrom]] ]))
+      & outlier.df[[oBP]] <= (as.numeric(as.character(put.gene[[rBPStop]])) + (ld.df[put.gene[[rChrom]] ])),"SNP"]
+    if(length(nearby)==0){ nearby<-NA }
+    return(paste(nearby,sep=",",collapse=","))
+  })
+}
 
 
 
@@ -209,7 +230,7 @@ vcf[vcf$`#CHROM` %in% put.reg[1,"Chrom"]
 
 ### Prep regions for plotting
 
-```{r}
+```{r fst_plot_prep}
 
 #' Get the plotting positions for the putative genes
 all.chr<-data.frame(Chr=vcf$`#CHROM`,BP=vcf$POS,stringsAsFactors = F)
@@ -245,7 +266,7 @@ new.dat$plot.max<-as.numeric(as.character(new.dat$plot.max))
 
 ### Plot the Fsts 
 
-```{r, echo=FALSE, message=F,fig.cap="Outlined points are Stacks shared outliers. Black bars are putative genes"}
+```{r fst_plot, echo=FALSE, message=F,fig.cap="Outlined points are Stacks shared outliers. Black bars are putative genes"}
 tx.sig<-fwsw.tx[fwsw.tx$Fisher.s.P<0.01,"Locus.ID"]
 la.sig<-fwsw.la[fwsw.la$Fisher.s.P<0.01,"Locus.ID"]
 al.sig<-fwsw.al[fwsw.al$Fisher.s.P<0.01,"Locus.ID"]
@@ -303,24 +324,21 @@ for(i in 1:length(lgs)){
 
 They look like they match up in some places, but do they really?
 
-```{r}
+```{r fst_compare}
 all.put.ssc<-as.character(put.reg$Scovelli_geneID)
 all.put.ssc<-unlist(lapply(all.put.ssc,strsplit,","))
 sig.put.match<-all.put.ssc[all.put.ssc %in% fw.sig.reg$SSCID]
 print(dim(sig.put.match))
+
+#or use the functions
+stacks.in<-outlier.in.region(fw.sig.reg,put.reg)
 ```
 
 No, they don't overlap. Maybe they're in the same LD region?
 
-```{r}
+```{r fst_nearby}
 fw.sig.reg$SNP<-paste(fw.sig.reg$Chr,as.character(fw.sig.reg$BP),sep=".")
-put.nearby.rad<-apply(put.reg,1,function(put.gene){
-  nearby.rad<-fw.sig.reg[fw.sig.reg$Chr %in% put.gene[["Chrom"]] 
-    & fw.sig.reg$BP >= (as.numeric(as.character(put.gene[["StartBP"]])) - (chrom.ld[put.gene[["Chrom"]] ]))
-    & fw.sig.reg$BP <= (as.numeric(as.character(put.gene[["StopBP"]])) + (chrom.ld[put.gene[["Chrom"]] ])),"SNP"]
-  if(length(nearby.rad)==0){ nearby.rad<-NA }
-  return(paste(nearby.rad,sep=",",collapse=","))
-})
+put.nearby.rad<-outlier.nearby(fw.sig.reg,put.reg,chrom.ld)
 
 #add the nearby significant rad loci to the put.reg data.frame
 put.reg$nearby.rad<-put.nearby.rad
@@ -329,11 +347,23 @@ head(put.reg[put.reg$nearby.rad!="NA",])
 ```
 So of the `r nrow(put.reg)` gene annotations `r length(put.nearby.rad[put.nearby.rad!="NA"])` are within the mean LD range of an outlier, which represent `r length(unique(put.reg[put.reg$nearby.rad!="NA","Gene"]))` putative freshwater genes.
 
-### Plotting delta divergence
+### Re-analyzing with 0.05 not 0.01
+```{r}
+genome.blast<-read.csv("../../scovelli_genome/ssc_2016_12_20_cds_nr_blast_results.csv",skip=1,header=T)#I saved it as a csv
 
-Now for delta divergence
+fwsw05<-ssc.fwsw.fstsig(fwsw.tx, fwsw.la, fwsw.al, fwsw.fl, cutoff=0.05)
+fwsw05.ann<-sig.region.ann(fwsw05,gff)
 
-```{r, echo=FALSE, results='hide',fig.keep='all'}
+sig05.put.match<-all.put.ssc[all.put.ssc %in% fwsw05.ann$SSCID]
+print(dim(sig.put.match)) #no matches
+```
+
+
+## Compare \delta-divergence to putative regions
+
+Now for \delta-divergence
+
+```{r dd_plot, echo=FALSE, results='hide',fig.keep='all'}
 par(mar=c(1,1,1,1),oma=c(1,2,1,1))
 dd<-fst.plot(fst.dat = deltad,fst.name = "deltad",bp.name = "Pos",axis=1,pch=19,scaffs.to.plot=scaffs)
 mtext(expression(paste(delta,"-divergence")),2,line=1.5)
@@ -357,47 +387,167 @@ apply(new.dat,1,function(dat){
 })
 ```
 
-### Compare delta divergence and putative regions
+### Compare \delta-divergence and putative regions
 
-```{r}
-sdd.out<-read.delim("smoothed.deltad.out.txt",header=T,sep='\t')
-sdd.put.match<-do.call(rbind,apply(sdd.out,1,function(out){
-  this.chrom.dat<-new.dat[new.dat$Chrom %in% out[["Chrom"]],]
-  d<-this.chrom.dat[as.numeric(this.chrom.dat$StartBP) <= as.numeric(out[["Pos"]]) & 
-                   as.numeric(this.chrom.dat$StopBP) >= as.numeric(out[["Pos"]]),]
-  return(d)
-}))
-head(sdd.out)#no matches
+```{r dd_compare}
+#in the gene
+sdd.in<-outlier.in.region(sdd.out,put.reg,oBP = "Pos")
+put.reg$sdd.in<-sdd.in
 ```
 
-### Re-analyzing with 0.05 not 0.01
-```{r}
-genome.blast<-read.csv("../../scovelli_genome/ssc_2016_12_20_cds_nr_blast_results.csv",skip=1,header=T)#I saved it as a csv
+The genes `r unique(put.reg[put.reg$sdd.in!="NA","Gene"])` contain delta divergence outlier regions.
 
-fwsw05<-ssc.fwsw.fstsig(fwsw.tx, fwsw.la, fwsw.al, fwsw.fl, cutoff=0.05)
-fwsw05.ann<-sig.region.ann(fwsw05,gff)
-
-sig05.put.match<-all.put.ssc[all.put.ssc %in% fwsw05.ann$SSCID]
-print(dim(sig.put.match)) #no matches
+```{r dd_nearby}
+#in the gene
+sdd.nb<-outlier.nearby(sdd.out,put.reg,chrom.ld,oBP = "Pos")
 ```
 
-So, none of the putative genes are also outliers, in either Stacks Fsts or the delta divergence analysis.
+And of the `r nrow(sdd.out)` \delta-divergence outliers, `r length(sdd.nb[sdd.nb!="NA"])/nrow(put.reg)*100`% are in the LD region around putative freshwater genes.
 
-### Bayenv
+
+## Compare Bayenv outliers to putative regions
 
 ```{r bayenv}
 #taken directly from fwsw_analysis.R
 bf<-read.delim("bf.txt",header=T)
+bf$SNP<-paste(bf$scaffold,as.numeric(as.character(bf$BP))+1,sep=".")
 bf.co<-apply(bf[,5:7],2,quantile,0.99) #focus on Bayes Factors, because of Lotterhos & Whitlock (2015)
-temp.bf.sig<-bf[bf$Temp_BF>bf.co["Temp_BF"],c(1,2,4,8,5)]
-sal.bf.sig<-bf[bf$Salinity_BF>bf.co["Salinity_BF"],c(1,2,4,8,6)]
-grass.bf.sig<-bf[bf$seagrass_BF>bf.co["seagrass_BF"],c(1,2,4,8,7)]
-
-dim(temp.bf.sig[temp.bf.sig$locus %in% sal.bf.sig$locus & 
-                  temp.bf.sig$locus %in% grass.bf.sig,])
-
+temp.bf.sig<-bf[bf$Temp_BF>bf.co["Temp_BF"],c(1,2,4,8,5,9)]
+sal.bf.sig<-bf[bf$Salinity_BF>bf.co["Salinity_BF"],c(1,2,4,8,6,9)]
+grass.bf.sig<-bf[bf$seagrass_BF>bf.co["seagrass_BF"],c(1,2,4,8,7,9)]
+#get the log transformed Bayes Factors
 bf$logSal<-log(bf$Salinity_BF)
 bf$logTemp<-log(bf$Temp_BF)
 bf$logSeagrass<-log(bf$seagrass_BF)
 
 ```
+
+There are `r dim(temp.bf.sig[temp.bf.sig$locus %in% sal.bf.sig$locus & temp.bf.sig$locus %in% grass.bf.sig,])` overlapping outliers between temperature-, salinity-, and seagrass-associated loci.
+
+### Salinity
+
+Are any of the Bayenv salinity outliers near the putative freshwater genes?
+```{r bayenv_temp}
+
+bfs.in<-outlier.in.region(sal.bf.sig,put.reg,"scaffold")
+bfs.nb<-outlier.nearby(sal.bf.sig,put.reg,chrom.ld,"scaffold")
+```
+Of the `r nrow(bf)` RAD loci analyzed by *Bayenv2* for associations with temperature, `r length(bfs.in[bfs.in!="NA"])/nrow(put.reg)*100`% are in putative freshwater genes and `r length(bfs.nb[bfs.nb!="NA"])/nrow(put.reg)*100`% are within the LD neighborhood.
+
+### Temperature
+
+Are any of the Bayenv temperature outliers near putative freshwater genes?
+
+```{r bayenv_temp}
+
+bft.in<-outlier.in.region(temp.bf.sig,put.reg,"scaffold")
+bft.nb<-outlier.nearby(temp.bf.sig,put.reg,chrom.ld,"scaffold")
+```
+
+Of the `r nrow(bf)` RAD loci analyzed by *Bayenv2* for associations with temperature, `r length(bft.in[bft.in!="NA"])/nrow(put.reg)*100`% are in putative freshwater genes and `r length(bft.nb[bft.nb!="NA"])/nrow(put.reg)*100`% are within the LD neighborhood.
+
+### Seagrass
+
+Are any of the loci associated with seagrass density in or near putative freshwater genes?
+
+```{r bayenv_grass}
+
+bfg.in<-outlier.in.region(grass.bf.sig,put.reg,"scaffold")
+bfg.nb<-outlier.nearby(grass.bf.sig,put.reg,chrom.ld,"scaffold")
+```
+
+Of the `r nrow(bf)` RAD loci analyzed by *Bayenv2* for associations with temperature, `r length(bfg.in[bfg.in!="NA"])/nrow(put.reg)*100`% are in putative freshwater genes and `r length(bfg.nb[bfg.nb!="NA"])/nrow(put.reg)*100`% are within the LD neighborhood.
+
+### Which putative genes contain each of those?
+
+```{r bayenv_genes}
+put.reg$bfs.in<-bfs.in
+put.reg$bft.in<-bft.in
+put.reg$bfg.in<-bfg.in
+
+
+unique(put.reg[put.reg$bft.in !="NA","Gene"])
+unique(put.reg[put.reg$bfg.in !="NA","Gene"])
+```
+
+
+All three BayEnv tests identified outliers in the genes `r unique(put.reg[put.reg$bfs.in !="NA","Gene"])[unique(put.reg[put.reg$bfs.in !="NA","Gene"]) %in% unique(put.reg[put.reg$bft.in !="NA","Gene"]) & unique(put.reg[put.reg$bfs.in !="NA","Gene"]) %in% unique(put.reg[put.reg$bfg.in !="NA","Gene"])]`. The temperature and grass also share `r unique(put.reg[put.reg$bft.in !="NA","Gene"])[unique(put.reg[put.reg$bft.in !="NA","Gene"]) %in% unique(put.reg[put.reg$bfg.in !="NA","Gene"])][1]`, and temperature and salinity share `r unique(put.reg[put.reg$bfs.in !="NA","Gene"])[unique(put.reg[put.reg$bfs.in !="NA","Gene"]) %in% unique(put.reg[put.reg$bft.in !="NA","Gene"])][1]`. 
+
+Clearly, RHOGTP8 and TNS1 are showing up repeatedly (all Bayenv2 outliers, and \delta-divergence outliers).
+
+But looking at `put.reg[put.reg$Gene =="RHOGTP8",]`, it's obvious that Rho GTPase-activating proteins are distributed throughout the genome (on chromosomes `r unique(put.reg[put.reg$Gene=="RHOGTP8","Chrom"])`).
+
+
+```{r plot_tns1}
+tns1.pstart<-min(as.numeric(as.character(put.reg[put.reg$Gene =="TNS1" & 
+                                                   put.reg$Chrom=="LG1","StartBP"])))-(chrom.ld["LG1"]/2)
+tns1.pstop<-max(as.numeric(as.character(put.reg[put.reg$Gene =="TNS1" & 
+                                                   put.reg$Chrom=="LG1","StartBP"])))+(chrom.ld["LG1"]/2)
+if(tns1.pstop > max(vcf[vcf$`#CHROM`=="LG1","POS"])){ tns1.pstop <- max(vcf[vcf$`#CHROM`=="LG1","POS"]) }
+starts<-as.numeric(put.reg[put.reg$Chrom %in% "LG1" & put.reg$Gene == "TNS1","StartBP"])
+stops<-as.numeric(put.reg[put.reg$Chrom %in% "LG1" & put.reg$Gene == "TNS1","StopBP"])
+
+#generate the dataframes
+this.tx<-fwsw.tx[fwsw.tx$Chr %in% "LG1",]
+tx.smooth<-do.call("rbind",lapply(seq(1,nrow(this.tx),(nrow(this.tx)*0.15)/5),sliding.avg,
+                                  dat=data.frame(Pos=this.tx$BP,Fst=this.tx$Corrected.AMOVA.Fst),
+                                  width=nrow(this.tx)*0.15))
+this.la<-fwsw.la[fwsw.la$Chr %in% "LG1",]
+la.smooth<-do.call("rbind",lapply(seq(1,nrow(this.la),(nrow(this.la)*0.15)/5),sliding.avg,
+                                  dat=data.frame(Pos=this.la$BP,Fst=this.la$Corrected.AMOVA.Fst),
+                                  width=nrow(this.la)*0.15))
+this.al<-fwsw.al[fwsw.al$Chr %in% "LG1",]
+al.smooth<-do.call("rbind",lapply(seq(1,nrow(this.al),(nrow(this.al)*0.15)/5),sliding.avg,
+                                  dat=data.frame(Pos=this.al$BP,Fst=this.al$Corrected.AMOVA.Fst),
+                                  width=nrow(this.al)*0.15))
+this.fl<-fwsw.fl[fwsw.fl$Chr %in% "LG1",]
+fl.smooth<-do.call("rbind",lapply(seq(1,nrow(this.fl),(nrow(this.fl)*0.15)/5),sliding.avg,
+                                  dat=data.frame(Pos=this.fl$BP,Fst=this.fl$Corrected.AMOVA.Fst),
+                                  width=nrow(this.fl)*0.15))
+this.chrom<-deltad[deltad$Chrom %in% "LG1",]
+this.smooth<-loess.smooth(this.chrom$Pos,this.chrom$deltad,span=0.1,degree=2)
+pr.tns1<-put.reg[put.reg$Chrom=="LG1" & put.reg$Gene=="TNS1",]
+sal.tns1<- gsub("LG1.(\\d+)","\\1",pr.tns1$bfs.in[pr.tns1$bfs.in != "NA"])
+tmp.tns1<- gsub("LG1.(\\d+)","\\1",pr.tns1$bft.in[pr.tns1$bft.in != "NA"])
+tmp.tns1<-unlist(strsplit(tmp.tns1,','))
+grs.tns1<- gsub("LG1.(\\d+)","\\1",pr.tns1$bfg.in[pr.tns1$bfg.in != "NA"])
+sdd.tns1<- gsub("LG1.(\\d+)","\\1",pr.tns1$sdd.in[pr.tns1$sdd.in != "NA"])
+tns1.out<-data.frame(BP=c(as.numeric(sal.tns1),as.numeric(tmp.tns1),as.numeric(grs.tns1),as.numeric(sdd.tns1)),
+                     shape=c(rep(1,length(sal.tns1)),rep(2,length(tmp.tns1)),
+                             rep(3,length(grs.tns1)),rep(4,length(sdd.tns1))))
+#plot
+plot(tx.smooth,col=alpha(grp.colors[1],0.5),type="l",ylim=c(0,1),lwd=2,
+     bty="L",xlab="",ylab="",xaxt='n',yaxt='n',xlim=c(tns1.pstart,tns1.pstop))
+axis(2,las=1)  
+mtext("Position on LG1",1)
+points(la.smooth,col=alpha(grp.colors[2],0.5),type="l",lwd=2)
+points(al.smooth,col=grp.colors[3],type="l",lwd=2,lty=2)
+points(fl.smooth,col=alpha(grp.colors[6],0.5),type="l",lwd=2)
+#add delta divergence
+points(this.smooth$x,this.smooth$y,col="cornflowerblue",type="l",lwd=2)
+#add putative genes' LD regions
+#arrows(x0=tns1.pstart,x1=tns1.pstop,y0=0.8,y1=0.8,col="grey",lwd=15,length=0)
+#add putative genes
+arrows(x0=as.numeric(starts),x1=as.numeric(stops),
+       y0=0.8,y1=0.8,col="indianred",lwd=15,length=0)
+#add outlier loci
+points(x = fw.sig.reg[fw.sig.reg$Chr == "LG1","BP"],
+        y = rep(0.7,length(fw.sig.reg[fw.sig.reg$Chr == "LG1","BP"])),col="red")#these don't exist
+clip(x1=min(as.numeric(starts)),x2=max(as.numeric(stops)),y1=0.78,y2=0.82)
+abline(v=tns1.out$BP,col="black")
+#clip(x1=0,x2=tns1.pstop,y1=0,y2=1)
+mtext(expression(italic(F)[ST]),2,line=2)
+legend("topleft",
+  legend=c(expression(TX~FWSW~italic(F)[ST]),
+                expression(LA~FWSW~italic(F)[ST]),
+         expression(AL~FWSW~italic(F)[ST]),expression(FL~FWSW~italic(F)[ST]),
+         expression(delta~-divergence),expression(italic(TNS1)),"Outlier RAD loci"),
+  bty='n',lwd=2,lty=c(1,1,2,1,1,1,1),
+       col=c(alpha(grp.colors[1],0.5),alpha(grp.colors[2],0.5),
+            grp.colors[3],alpha(grp.colors[6],0.5),
+            "cornflowerblue", "indianred","black"))
+```
+
+
+
+
