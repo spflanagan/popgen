@@ -49,6 +49,8 @@ deltad<-read.delim("deltadivergence.txt")
 sdd.out<-read.delim("smoothed.deltad.out.txt",header=T,sep='\t')
 #ld info
 ld<-read.delim("ld_info_fwsw.txt")
+#neighbor joining SNP trees
+fst.trees<-read.delim("ftrees.txt",sep=" ")
 #set up some helfpul things
 fw.list<-c("TXFW","LAFW","ALFW","FLLG")
 sw.list<-c("TXSP","TXCC","TXCB","ALST","FLSG","FLKB",
@@ -331,33 +333,22 @@ sig.put.match<-all.put.ssc[all.put.ssc %in% fw.sig.reg$SSCID]
 print(dim(sig.put.match))
 
 #or use the functions
-stacks.in<-outlier.in.region(fw.sig.reg,put.reg)
+fw.sig.reg$SNP<-paste(fw.sig.reg$Chr,as.character(fw.sig.reg$BP),sep=".")
+stacks.in<-outlier.in.region(fw.sig.reg,put.reg,oChrom="Chr")
 ```
 
 No, they don't overlap. Maybe they're in the same LD region?
 
 ```{r fst_nearby}
-fw.sig.reg$SNP<-paste(fw.sig.reg$Chr,as.character(fw.sig.reg$BP),sep=".")
-put.nearby.rad<-outlier.nearby(fw.sig.reg,put.reg,chrom.ld)
+
+put.nearby.rad<-outlier.nearby(fw.sig.reg,put.reg,chrom.ld,oChrom = "Chr")
 
 #add the nearby significant rad loci to the put.reg data.frame
 put.reg$nearby.rad<-put.nearby.rad
 head(put.reg[put.reg$nearby.rad!="NA",])
 
 ```
-So of the `r nrow(put.reg)` gene annotations `r length(put.nearby.rad[put.nearby.rad!="NA"])` are within the mean LD range of an outlier, which represent `r length(unique(put.reg[put.reg$nearby.rad!="NA","Gene"]))` putative freshwater genes.
-
-### Re-analyzing with 0.05 not 0.01
-```{r}
-genome.blast<-read.csv("../../scovelli_genome/ssc_2016_12_20_cds_nr_blast_results.csv",skip=1,header=T)#I saved it as a csv
-
-fwsw05<-ssc.fwsw.fstsig(fwsw.tx, fwsw.la, fwsw.al, fwsw.fl, cutoff=0.05)
-fwsw05.ann<-sig.region.ann(fwsw05,gff)
-
-sig05.put.match<-all.put.ssc[all.put.ssc %in% fwsw05.ann$SSCID]
-print(dim(sig.put.match)) #no matches
-```
-
+So of the `r nrow(put.reg)` gene annotations `r length(put.nearby.rad[put.nearby.rad!="NA"])` are within the mean LD range of an outlier, which represent `r length(unique(put.reg[put.reg$nearby.rad!="NA","Gene"]))` putative freshwater genes. Those genes are: `r unique(put.reg[put.reg$nearby.rad!="NA","Gene"])[order(unique(put.reg[put.reg$nearby.rad!="NA","Gene"]))]`
 
 ## Compare \delta-divergence to putative regions
 
@@ -477,7 +468,20 @@ Clearly, RHOGTP8 and TNS1 are showing up repeatedly (all Bayenv2 outliers, and \
 
 But looking at `put.reg[put.reg$Gene =="RHOGTP8",]`, it's obvious that Rho GTPase-activating proteins are distributed throughout the genome (on chromosomes `r unique(put.reg[put.reg$Gene=="RHOGTP8","Chrom"])`).
 
+## Neighbor-joining Fst trees
 
+Using `ape`, I calculated neighbor-joining trees and identified `r dim(fst.trees[fst.trees$Monophyletic==TRUE,])` loci with a monophyletic freshwater clade using `is.monophyletic()`. Are any of those SNPs within genes?
+
+```{r nj_trees}
+ftmono<-fst.trees[fst.trees$Monophyletic == TRUE,]
+
+nj.in<-outlier.in.region(ftmono,put.reg,oBP="Pos")
+nj.nb<-outlier.nearby(ftmono,put.reg,chrom.ld,oBP="Pos")
+put.reg$nj.nb<-nj.nb
+```
+
+So `r length(nj.in[nj.in!="NA"])` loci are located within putative freshwater genes, but `r length(nj.nb[nj.nb!="NA"])` are within the LD region of the putative genes, representing `r length(nj.nb[nj.nb!="NA"])/nrow(put.reg)*100` of the putative gene annotations and `r length(unique(put.reg[put.reg$nj.nb != "NA", "Gene"]))` genes
+## Combining all of those analyses
 ```{r plot_tns1}
 tns1.pstart<-min(as.numeric(as.character(put.reg[put.reg$Gene =="TNS1" & 
                                                    put.reg$Chrom=="LG1","StartBP"])))-(chrom.ld["LG1"]/2)

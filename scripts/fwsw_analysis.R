@@ -23,6 +23,10 @@ install_github("spflanagan/gwscaR")
 library(gwscaR)
 source("../scripts/phenotype_functions.R")
 source("../../gwscaR/R/gwscaR.R")
+source("../../gwscaR/R/gwscaR_plot.R")
+source("../../gwscaR/R/gwscaR_utility.R")
+source("../../gwscaR/R/gwscaR_fsts.R")
+source("../../gwscaR/R/gwscaR_popgen.R")
 
 
 pop.list<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
@@ -206,273 +210,6 @@ mtext("Number of SNPs",2,outer = TRUE,cex=0.75,line=1)
 dev.off()
 #################################OUTLIERS####################################
 
-#### STACKS ####
-#Compare neighboring pops.
-fwsw.tx<-read.delim("stacks/batch_2.fst_TXCC-TXFW.tsv")
-fwsw.la<-read.delim("stacks/batch_2.fst_ALST-LAFW.tsv")
-fwsw.al<-read.delim("stacks/batch_2.fst_ALFW-ALST.tsv")
-fwsw.fl<-read.delim("stacks/batch_2.fst_FLCC-FLLG.tsv")
-
-tx.sig<-fwsw.tx[fwsw.tx$Fisher.s.P<0.01,"Locus.ID"]
-la.sig<-fwsw.la[fwsw.la$Fisher.s.P<0.01,"Locus.ID"]
-al.sig<-fwsw.al[fwsw.al$Fisher.s.P<0.01,"Locus.ID"]
-fl.sig<-fwsw.fl[fwsw.fl$Fisher.s.P<0.01,"Locus.ID"]
-length(tx.sig[(tx.sig %in% c(la.sig,al.sig,fl.sig))])
-length(la.sig[(la.sig %in% c(tx.sig,al.sig,fl.sig))])
-length(al.sig[(al.sig %in% c(la.sig,tx.sig,fl.sig))])
-all.shared<-fl.sig[fl.sig %in% la.sig & fl.sig %in% al.sig & fl.sig %in% tx.sig]
-fw.shared.chr<-fwsw.tx[fwsw.tx$Locus.ID %in% all.shared,c("Locus.ID","Chr","BP","Column","Overall.Pi")]
-tapply(fw.shared.chr$Locus.ID,factor(fw.shared.chr$Chr),function(x){ length(unique(x)) })
-#are they using the same SNPs or different SNPs?
-stacks.sig<-data.frame(nrow=nrow(fw.shared.chr),ncol=4)
-for(i in 1:nrow(fw.shared.chr)){
-  tx.bp<-fwsw.tx[fwsw.tx$Fisher.s.P<0.01 & fwsw.tx$Locus.ID == fw.shared.chr[i,"Locus.ID"],"BP"]
-  la.bp<-fwsw.la[fwsw.la$Fisher.s.P<0.01 & fwsw.la$Locus.ID == fw.shared.chr[i,"Locus.ID"],"BP"]
-  al.bp<-fwsw.al[fwsw.al$Fisher.s.P<0.01 & fwsw.al$Locus.ID == fw.shared.chr[i,"Locus.ID"],"BP"]
-  fl.bp<-fwsw.fl[fwsw.fl$Fisher.s.P<0.01 & fwsw.fl$Locus.ID == fw.shared.chr[i,"Locus.ID"],"BP"]
-  stacks.sig[i,1]<-paste(tx.bp,sep=",",collapse = ",")
-  stacks.sig[i,2]<-paste(la.bp,sep=",",collapse = ",")
-  stacks.sig[i,3]<-paste(al.bp,sep=",",collapse = ",")
-  stacks.sig[i,4]<-paste(fl.bp,sep=",",collapse = ",")
-}
-colnames(stacks.sig)<-c("TX","LA","AL","FL")
-stacks.sig<-data.frame(cbind(fw.shared.chr,stacks.sig))
-stacks.sig$SNP<-paste(stacks.sig$Chr,stacks.sig$BP,sep=".")
-write.table(stacks.sig,"stacks.sig.snps.txt",sep='\t',row.names=FALSE,col.names=TRUE)
-
-## compare to scovelli genome..
-gff<-read.delim(gzfile("../../scovelli_genome/ssc_2016_12_20_chromlevel.gff.gz"),header=F)
-colnames(gff)<-c("seqname","source","feature","start","end","score","strand","frame","attribute")
-genome.blast<-read.csv("../../scovelli_genome/ssc_2016_12_20_cds_nr_blast_results.csv",skip=1,header=T)#I saved it as a csv
-
-#' extract the significant regions from the gff file
-fw.sig.reg<-do.call(rbind,apply(fw.shared.chr,1,function(sig){
-  this.gff<-gff[as.character(gff$seqname) %in% as.character(unlist(sig["Chr"])),]
-  this.reg<-this.gff[this.gff$start <= as.numeric(sig["BP"]) & this.gff$end >= as.numeric(sig["BP"]),]
-  if(nrow(this.reg) == 0){
-    if(as.numeric(sig["BP"])>max(as.numeric(this.gff$end))){
-      new<-data.frame(Locus=sig["Locus.ID"],Chr=sig["Chr"],BP=sig["BP"],SNPCol=sig["Column"],
-                      region="beyond.last.contig", description=NA,SSCID=NA)
-    }else{
-      new<-data.frame(Locus=sig["Locus.ID"],Chr=sig["Chr"],BP=sig["BP"],SNPCol=sig["Column"],
-                      region=NA,description=NA,SSCID=NA)
-    }
-  }else{
-    if(length(grep("SSCG\\d+",this.reg$attribute))>0){
-      geneID<-unique(gsub(".*(SSCG\\d+).*","\\1",this.reg$attribute[grep("SSCG\\d+",this.reg$attribute)]))
-      gene<-genome.blast[genome.blast$sscv4_gene_ID %in% geneID,"blastp_hit_description"]
-    }else{
-      geneID<-NA
-      gene<-NA
-    }
-    new<-data.frame(Locus=sig["Locus.ID"],Chr=sig["Chr"],BP=sig["BP"],SNPCol=sig["Column"],
-                    region=paste(this.reg$feature,sep=",",collapse = ","),description=gene,SSCID=geneID)
-  }
-  return(as.data.frame(new))
-}))
-write.csv(fw.sig.reg,"StacksFWSWOutliers_annotatedByGenome.csv")
-
-#' graph without highlighted regions
-#' first define the scaffold boundaries
-all.chr<-data.frame(Chr=c(as.character(fwsw.tx$Chr),as.character(fwsw.la$Chr),as.character(fwsw.al$Chr),as.character(fwsw.fl$Chr)),
-                    BP=c(fwsw.tx$BP,fwsw.la$BP,fwsw.al$BP,fwsw.fl$BP),stringsAsFactors = F)
-bounds<-data.frame(levels(as.factor(all.chr$Chr)),tapply(as.numeric(as.character(all.chr$BP)),all.chr$Chr,max))
-plot.scaffs<-scaffs[scaffs %in% bounds]
-colnames(bounds)<-c("Chrom","End")
-png("stacks_fsts_fwsw.png",height=8,width=7.5,units="in",res=300)
-par(mfrow=c(4,1),mar=c(0.85,2,0,0.5),oma=c(1,1,1,0.5))
-fwswt.fst<-fst.plot(fwsw.tx,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
-                    scaffs.to.plot=plot.scaffs, scaffold.widths = bounds,pch=19,y.lim = c(0,1),
-                    pt.cols = c(grp.colors[1],grp.colors[2]),pt.cex=1,axis.size = 1)
-mtext("TXFW vs. TXCC",3,cex=0.75,line=-1)
-fwswl.fst<-fst.plot(fwsw.la,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
-                    scaffs.to.plot=plot.scaffs, scaffold.widths = bounds,pch=19,y.lim = c(0,1),
-                    pt.cols=c(grp.colors[2],grp.colors[3]),pt.cex=1,axis.size=1)
-mtext("LAFW vs. ALST",3,cex=0.75,line=-1)
-fwswa.fst<-fst.plot(fwsw.al,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
-                    scaffs.to.plot=plot.scaffs, scaffold.widths = bounds,pch=19,y.lim = c(0,1),
-                    pt.cols=c(grp.colors[3],grp.colors[2]),pt.cex=1,axis.size = 1)
-mtext("ALFW vs. ALST",3,cex=0.75,line=-1)
-fwswf.fst<-fst.plot(fwsw.fl,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
-                    scaffs.to.plot=plot.scaffs, scaffold.widths =  bounds,pch=19,y.lim = c(0,1),
-                    pt.cols=c(grp.colors[6],grp.colors[5]),pt.cex=1,axis.size=1)
-mtext("FLFW vs. FLCC",3,cex=0.75,line=-1)
-mtext(expression(italic(F)[ST]),2,outer=T,line=-0.8,cex=0.75)
-last<-0
-for(i in 1:length(lgs)){
-  text(x=mean(fwswf.fst[fwswf.fst$Chr ==lgs[i],"plot.pos"]),y=-0.05,
-       labels=lgn[i], adj=1, xpd=TRUE)
-  last<-max(fwswf.fst[fwswf.fst$Chr ==lgs[i],"plot.pos"])
-}
-dev.off()
-
-#' plot with the outlier regions
-png("stacks_fsts_fwsw_withSig.png",height=8,width=7.5,units="in",res=300)
-par(mfrow=c(4,1),mar=c(0.85,2,0,0.5),oma=c(1,1,1,0.5))
-fwswt.fst<-fst.plot(fwsw.tx,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
-                    scaffs.to.plot=plot.scaffs, y.lim = c(0,1),scaffold.widths = bounds,pch=19,
-                    pt.cols = c(grp.colors[1],grp.colors[2]),pt.cex=1,axis.size = 1)
-#points(fwswt.fst$BP,fwswt.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[1])
-points(fwswt.fst$plot.pos[fwswt.fst$Locus.ID %in% all.shared],fwswt.fst$Corrected.AMOVA.Fst[fwswt.fst$Locus.ID %in% all.shared],
-       pch=1,col="black",cex=1.3)
-mtext("TXFW vs. TXCC",3,cex=0.75,line=-1)
-fwswl.fst<-fst.plot(fwsw.la,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
-                    scaffs.to.plot=plot.scaffs, y.lim = c(0,1),scaffold.widths = bounds,pch=19,
-                    pt.cols=c(grp.colors[2],grp.colors[3]),pt.cex=1,axis.size=1)
-#points(fwswl.fst$BP,fwswl.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[3])
-points(fwswl.fst$plot.pos[fwswl.fst$Locus.ID %in% all.shared],fwswl.fst$Corrected.AMOVA.Fst[fwswl.fst$Locus.ID %in% all.shared],
-       pch=1,col="black",cex=1.3)
-mtext("LAFW vs. ALST",3,cex=0.75,line=-1)
-fwswa.fst<-fst.plot(fwsw.al,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
-                    scaffs.to.plot=plot.scaffs, y.lim = c(0,1),scaffold.widths = bounds,pch=19,
-                    pt.cols=c(grp.colors[3],grp.colors[2]),pt.cex=1,axis.size = 1)
-#points(fwswa.fst$BP,fwswa.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[4])
-points(fwswa.fst$plot.pos[fwswa.fst$Locus.ID %in% all.shared],fwswa.fst$Corrected.AMOVA.Fst[fwswa.fst$Locus.ID %in% all.shared],
-       pch=1,col="black",cex=1.3)
-mtext("ALFW vs. ALST",3,cex=0.75,line=-1)
-fwswf.fst<-fst.plot(fwsw.fl,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
-                    scaffs.to.plot=plot.scaffs, y.lim = c(0,1),scaffold.widths = bounds,pch=19,
-                    pt.cols=c(grp.colors[6],grp.colors[5]),pt.cex=1,axis.size=1)
-#points(fwswf.fst$BP,fwswf.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[6])
-points(fwswf.fst$plot.pos[fwswf.fst$Locus.ID %in% all.shared],fwswf.fst$Corrected.AMOVA.Fst[fwswf.fst$Locus.ID %in% all.shared],
-       pch=1,col="black",cex=1.3)
-mtext("FLFW vs. FLCC",3,cex=0.75,line=-1)
-mtext(expression(italic(F)[ST]),2,outer=T,line=-1,cex=0.75)
-last<-0
-for(i in 1:length(lgs)){
-  text(x=mean(fwswf.fst[fwswf.fst$Chr ==lgs[i],"plot.pos"]),y=-0.05,
-       labels=lgn[i], adj=1, xpd=TRUE)
-  last<-max(fwswf.fst[fwswf.fst$Chr ==lgs[i],"plot.pos"])
-}
-dev.off()
-
-##For comparison, neighboring sw pops
-swsw.tx<-read.delim("stacks/batch_2.fst_TXCB-TXCC.tsv")
-swsw.al<-read.delim("stacks/batch_2.fst_ALST-FLSG.tsv")
-swsw.fl<-read.delim("stacks/batch_2.fst_FLCC-FLHB.tsv")
-
-tx.sw.sig<-swsw.tx[swsw.tx$Fisher.s.P<0.01,"Locus.ID"]
-al.sw.sig<-swsw.al[swsw.al$Fisher.s.P<0.01,"Locus.ID"]
-fl.sw.sig<-swsw.fl[swsw.fl$Fisher.s.P<0.01,"Locus.ID"]
-length(tx.sw.sig[(tx.sw.sig %in% c(al.sw.sig,fl.sw.sig))])
-length(al.sw.sig[(al.sw.sig %in% c(tx.sw.sig,fl.sw.sig))])
-length(fl.sw.sig[(fl.sw.sig %in% c(tx.sw.sig,al.sw.sig))])
-sw.shared<-fl.sw.sig[fl.sw.sig %in% al.sw.sig & fl.sw.sig %in% tx.sw.sig]
-fw.shared.chr<-fwsw.tx[fwsw.tx$Locus.ID %in% all.shared,c("Locus.ID","Chr","BP","Column")]
-tapply(fw.shared.chr$Locus.ID,factor(fw.shared.chr$Chr),function(x){ length(unique(x)) })
-
-swswt.fst<-fst.plot(swsw.tx,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
-                    scaffs.to.plot = scaffs,scaffold.widths = bounds,pt.cex = 1,pch=19)
-swswa.fst<-fst.plot(swsw.al,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
-                    scaffs.to.plot = scaffs,scaffold.widths = bounds,pt.cex = 1,pch=19)
-swswf.fst<-fst.plot(swsw.fl,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
-                    scaffs.to.plot = scaffs,scaffold.widths = bounds,pt.cex = 1,pch=19)
-
-png("stacks_fsts_swsw.png",height=6,width=7.5,units="in",res=300)
-par(mfrow=c(3,1),mar=c(0.85,2,0,0.5),oma=c(1,1,1,0.5))
-swswt.fst<-fst.plot(swsw.tx,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
-                    scaffs.to.plot=plot.scaffs, y.lim = c(0,1),scaffold.widths = bounds,axis.size = 1,
-                    pt.cols=c(grp.colors[1],grp.colors[2]),pt.cex = 1,pch=19)
-mtext("TXCC vs. TXCB",3,line=-1,cex=0.75)
-swswa.fst<-fst.plot(swsw.al,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", y.lim=c(0,1),
-                    scaffs.to.plot=plot.scaffs, scaffold.widths = bounds,axis.size = 1,
-                    pt.cols=c(grp.colors[2],grp.colors[3]),pt.cex = 1,pch=19)
-#points(swswa.fst$plot.pos,swswa.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[3])
-mtext("ALST vs. FLSG",3,line=-1,cex=0.75)
-swswf.fst<-fst.plot(swsw.fl,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
-                    scaffs.to.plot=plot.scaffs, y.lim = c(0,1),scaffold.widths = bounds,axis.size = 1,
-                    pt.cols=c(grp.colors[6],grp.colors[5]),pt.cex = 1,pch=19)
-#points(swswf.fst$plot.pos,swswf.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[6])
-mtext("FLCC vs. FLHB",3,line=-1,cex=0.75)
-mtext(expression(italic(F)[ST]),2,outer=T,line=-0.75,cex=0.75)
-last<-0
-for(i in 1:length(lgs)){
-  text(x=mean(swswf.fst[swswf.fst$Chr ==lgs[i],"plot.pos"]),y=-0.07,
-       labels=lgn[i], adj=1, xpd=TRUE)
-  last<-max(swswf.fst[swswf.fst$Chr ==lgs[i],"plot.pos"])
-}
-dev.off()
-
-#' What are the allele frequencies of the significant FWSW outliers in FW pops and in SW pops?
-#' And what are the SNPs?
-#get the RAD loci from the vcf
-stacks.sig$SNP<-paste(stacks.sig$Chr,as.character(as.numeric(as.numeric(stacks.sig$BP) + 1)),sep=".")
-stacks.sig.vcf<-vcf[vcf$SNP %in% stacks.sig$SNP,] #two don't get added, but I can add them manually
-stacks.sig.vcf<-rbind(stacks.sig.vcf,vcf[vcf$ID == 28200,])
-fw.sig.vcf<-stacks.sig.vcf[,c(locus.info,unlist(lapply(fw.list,grep,x=colnames(stacks.sig.vcf),value=TRUE)))]
-sw.sig.vcf<-stacks.sig.vcf[,c(locus.info,unlist(lapply(sw.list,grep,x=colnames(stacks.sig.vcf),value=TRUE)))]
-fw.sig.afs<-do.call(rbind,apply(fw.sig.vcf,1,calc.afs.vcf))
-fw.sig.afs$ID<-fw.sig.vcf$ID
-fw.sig.afs$SNP<-fw.sig.vcf$SNP
-sw.sig.afs<-do.call(rbind,apply(sw.sig.vcf,1,calc.afs.vcf))
-sw.sig.afs$ID<-sw.sig.vcf$ID
-sw.sig.afs$SNP<-fw.sig.vcf$SNP
-
-#reorder to be in chrom order
-fw.sig.afs<-fw.sig.afs[order(factor(fw.sig.afs$Chrom,levels=scaffs)),]
-sw.sig.afs<-sw.sig.afs[order(factor(sw.sig.afs$Chrom,levels=scaffs)),]
-
-png("OutlierAlleleFreqs.png",height=5,width=10,units="in",res=300)
-par(mar=c(3,2,1,1),oma=c(2,2,0,1))
-plot(1:nrow(fw.sig.afs),fw.sig.afs$RefFreq,ylim=c(0,1),type='n',
-    xlab="",ylab="",axes=FALSE)
-axis(2,ylim=c(0,1),pos=0,las=1,cex.axis=0.75)
-mtext("Reference Allele Frequency",2,line=1.5,cex=0.75)
-start<-0.1
-for(i in 1:length(unique(fw.sig.afs$Chrom))){
-  end<-start+nrow(fw.sig.afs[fw.sig.afs$Chrom %in% unique(fw.sig.afs$Chrom)[i],])+0.1
-  if(i%%2){
-    rect(start,0,end,1,col="lightgrey",border="lightgrey")
-  }
-  text(x=mean(c(start,end)),y=0,labels=unique(fw.sig.afs$Chrom)[i],
-       xpd=TRUE,adj=1,srt=45,cex=0.75)
-  start<-end
-}
-#text(x=1:nrow(fw.sig.afs),y=rep(-0.05,nrow(fw.sig.afs)),
-#     labels=fw.sig.afs$Chrom,xpd=TRUE,adj=1,srt=90)
-points(1:nrow(fw.sig.afs),fw.sig.afs$RefFreq, 
-       pch=19,col="cornflowerblue")
-points(1:nrow(fw.sig.afs),sw.sig.afs$RefFreq)
-arrows(x0=1:nrow(fw.sig.afs),x1=1:nrow(fw.sig.afs),
-       y0=sw.sig.afs$RefFreq,y1=fw.sig.afs$RefFreq,
-       angle=45,length=0.1)
-legend(x=50,y=0.15,bty='n',pch=c(19,1),col=c("cornflowerblue","black"),
-       c("Freshwater Populations","Saltwater Populations"),cex=0.75)
-dev.off()
-####### Using gwscaR code #####
-loci.info<-c(colnames(vcf[1:9]),"SNP")
-txcb<-grep("TXCB",colnames(vcf),value = T)
-txfw<-grep("TXFW",colnames(vcf),value = T)
-alst<-grep("ALST",colnames(vcf),value = T)
-alfw<-grep("ALFW",colnames(vcf),value = T)
-lafw<-grep("LAFW",colnames(vcf),value = T)
-flcc<-grep("FLCC",colnames(vcf),value = T)
-fllg<-grep("FLLG",colnames(vcf),value = T)
-txcc<-grep("TXCC",colnames(vcf),value = T)
-flsg<-grep("FLSG",colnames(vcf),value = T)
-flhb<-grep("FLHB",colnames(vcf),value = T)
-
-tfs<-gwsca(vcf=vcf,locus.info=loci.info,group1=txcb,group2=txfw)
-tfs$SNP<-paste(tfs$Chrom,as.numeric(as.character(tfs$Pos)),sep=".")
-lfs<-gwsca(vcf=vcf,locus.info=loci.info,group1=alst,group2=lafw)
-lfs$SNP<-paste(lfs$Chrom,as.numeric(as.character(lfs$Pos)),sep=".")
-afs<-gwsca(vcf=vcf,locus.info=loci.info,group1=alst,group2=alfw)
-afs$SNP<-paste(afs$Chrom,as.numeric(as.character(afs$Pos)),sep=".")
-ffs<-gwsca(vcf=vcf,locus.info=loci.info,group1=flcc,group2=fllg)
-ffs$SNP<-paste(ffs$Chrom,as.numeric(as.character(ffs$Pos)),sep=".")
-
-#' Shared fst outliers from gwsca
-tfs.sig<-tfs[tfs$Chi.p <= 0.05,"SNP"]
-lfs.sig<-lfs[lfs$Chi.p <= 0.05,"SNP"]
-afs.sig<-afs[afs$Chi.p <= 0.05,"SNP"]
-ffs.sig<-ffs[ffs$Chi.p <= 0.05,"SNP"]
-shared.sig<-tfs.sig[tfs.sig %in% lfs.sig & tfs.sig %in% afs.sig & tfs.sig %in% ffs.sig]
-
-tss<-gwsca(vcf=vcf,locus.info=loci.info,group1=txcb,group2=txcc)
-ass<-gwsca(vcf=vcf,locus.info=loci.info,group1=alst,group2=flsg)
-fss<-gwsca(vcf=vcf,locus.info=loci.info,group1=flcc,group2=flhb)
-
-
 
 #### Delta-divergence ####
 #' only use chosen SNPs
@@ -614,6 +351,323 @@ fwsw.al$SNP<-paste(fwsw.al$Chr,fwsw.al$BP+1,sep=".")
 fwsw.fl$SNP<-paste(fwsw.fl$Chr,fwsw.fl$BP+1,sep=".")
 #get putative regions
 put.reg<-read.delim("Updated_putative_regions.txt",header=TRUE,sep='\t')
+
+#which points are in the lower 25%?
+put.dir<-pi.sig.fst[pi.sig.fst$Pi <= quantile(pi.plot$Pi,0.25),] #putative directional selection loci.
+
+
+
+#### Looking for balancing selection
+#' Low Fst, high pi (and het)
+
+#plot fsts
+
+
+##### Neighbor joining trees #####
+#' to get trees and calc gsi (maybe):
+#' for each overlapping sliding window (of 33 SNPs, for example), 
+#' generate distance matrix (Fsts) using those SNPs
+#' ape::nj(as.dist(matrix), "unrooted")
+#' genealogicalSorting::gsi(tree, class, assignments, uncertainty)
+#' http://molecularevolution.org/software/phylogenetics/gsi/download
+
+library(ape)
+
+#+ eval=FALSE
+fst.trees<-data.frame(Chrom=character(),
+                      Pos=numeric(),SNP=character(),
+                      FstTree=character(),
+                      Monophyletic=logical(),
+                      stringsAsFactors = FALSE)
+for(vcf.row in 1: nrow(vcf)){
+  nj.tree<-get.nj(vcf[vcf.row,],pop.list)
+  mono<-is.monophyletic(nj.tree,tips=c("TXFW","ALFW","LAFW","FLLG"))
+  fst.tree<-data.frame(Chrom=vcf$`#CHROM`[vcf.row],
+                       Pos=vcf$POS[vcf.row],SNP=vcf$SNP[vcf.row],
+                       FstTree=write.tree(nj.tree,digits=0),
+                       Monophyletic=mono,stringsAsFactors = FALSE)
+  fst.trees[vcf.row,]<-fst.tree
+}
+write.table(fst.trees,"ftrees.txt",row.names=F,col.names=T,quote=F)
+
+#+ fsttrees
+fst.trees<-read.delim("ftrees.txt",sep=" ")
+ftmono<-fst.trees[fst.trees$Monophyletic == TRUE,]
+
+ftmono[ftmono$SNP %in% fw.sig.reg$SNP,]
+
+
+####### Fsts with gwscaR code #####
+loci.info<-c(colnames(vcf[1:9]),"SNP")
+txcb<-grep("TXCB",colnames(vcf),value = T)
+txfw<-grep("TXFW",colnames(vcf),value = T)
+alst<-grep("ALST",colnames(vcf),value = T)
+alfw<-grep("ALFW",colnames(vcf),value = T)
+lafw<-grep("LAFW",colnames(vcf),value = T)
+flcc<-grep("FLCC",colnames(vcf),value = T)
+fllg<-grep("FLLG",colnames(vcf),value = T)
+txcc<-grep("TXCC",colnames(vcf),value = T)
+flsg<-grep("FLSG",colnames(vcf),value = T)
+flhb<-grep("FLHB",colnames(vcf),value = T)
+
+tfs<-gwsca(vcf=vcf,locus.info=loci.info,group1=txcb,group2=txfw)
+tfs$SNP<-paste(tfs$Chrom,as.numeric(as.character(tfs$Pos)),sep=".")
+lfs<-gwsca(vcf=vcf,locus.info=loci.info,group1=alst,group2=lafw)
+lfs$SNP<-paste(lfs$Chrom,as.numeric(as.character(lfs$Pos)),sep=".")
+afs<-gwsca(vcf=vcf,locus.info=loci.info,group1=alst,group2=alfw)
+afs$SNP<-paste(afs$Chrom,as.numeric(as.character(afs$Pos)),sep=".")
+ffs<-gwsca(vcf=vcf,locus.info=loci.info,group1=flcc,group2=fllg)
+ffs$SNP<-paste(ffs$Chrom,as.numeric(as.character(ffs$Pos)),sep=".")
+
+#' Shared fst outliers from gwsca
+tfs.sig<-tfs[tfs$Chi.p <= 0.05,"SNP"] #1309
+lfs.sig<-lfs[lfs$Chi.p <= 0.05,"SNP"] #827
+afs.sig<-afs[afs$Chi.p <= 0.05,"SNP"] #692
+ffs.sig<-ffs[ffs$Chi.p <= 0.05,"SNP"] #1044
+shared.sig<-tfs.sig[tfs.sig %in% lfs.sig & tfs.sig %in% afs.sig & tfs.sig %in% ffs.sig] #4
+gwsca.shared<-tfs[tfs$SNP %in% shared.sig,] #not in any gene regions
+
+tss<-gwsca(vcf=vcf,locus.info=loci.info,group1=txcb,group2=txcc)
+tss$SNP<-paste(tss$Chrom, as.numeric(as.character(tss$Pos)),sep=".")
+ass<-gwsca(vcf=vcf,locus.info=loci.info,group1=alst,group2=flsg)
+ass$SNP<-paste(ass$Chrom, as.numeric(as.character(ass$Pos)),sep=".")
+fss<-gwsca(vcf=vcf,locus.info=loci.info,group1=flcc,group2=flhb)
+fss$SNP<-paste(fss$Chrom, as.numeric(as.character(fss$Pos)),sep=".")
+
+tss.sig<-tss[tss$Chi.p <= 0.05,"SNP"] #413
+ass.sig<-ass[ass$Chi.p <= 0.05, "SNP"] #1751
+ffs.sig<-ffs[ffs$Chi.p <= 0.05, "SNP"] #1044
+ffs.sig[ffs.sig %in% tss.sig & ffs.sig %in% ass.sig] #14
+
+#### Stacks Fsts ####
+#Compare neighboring pops.
+fwsw.tx<-read.delim("stacks/batch_2.fst_TXCC-TXFW.tsv")
+fwsw.la<-read.delim("stacks/batch_2.fst_ALST-LAFW.tsv")
+fwsw.al<-read.delim("stacks/batch_2.fst_ALFW-ALST.tsv")
+fwsw.fl<-read.delim("stacks/batch_2.fst_FLCC-FLLG.tsv")
+
+tx.sig<-fwsw.tx[fwsw.tx$Fisher.s.P<0.01,"Locus.ID"]
+la.sig<-fwsw.la[fwsw.la$Fisher.s.P<0.01,"Locus.ID"]
+al.sig<-fwsw.al[fwsw.al$Fisher.s.P<0.01,"Locus.ID"]
+fl.sig<-fwsw.fl[fwsw.fl$Fisher.s.P<0.01,"Locus.ID"]
+length(tx.sig[(tx.sig %in% c(la.sig,al.sig,fl.sig))])
+length(la.sig[(la.sig %in% c(tx.sig,al.sig,fl.sig))])
+length(al.sig[(al.sig %in% c(la.sig,tx.sig,fl.sig))])
+all.shared<-fl.sig[fl.sig %in% la.sig & fl.sig %in% al.sig & fl.sig %in% tx.sig]
+fw.shared.chr<-fwsw.tx[fwsw.tx$Locus.ID %in% all.shared,c("Locus.ID","Chr","BP","Column","Overall.Pi")]
+tapply(fw.shared.chr$Locus.ID,factor(fw.shared.chr$Chr),function(x){ length(unique(x)) })
+#are they using the same SNPs or different SNPs?
+stacks.sig<-data.frame(nrow=nrow(fw.shared.chr),ncol=4)
+for(i in 1:nrow(fw.shared.chr)){
+  tx.bp<-fwsw.tx[fwsw.tx$Fisher.s.P<0.01 & fwsw.tx$Locus.ID == fw.shared.chr[i,"Locus.ID"],"BP"]
+  la.bp<-fwsw.la[fwsw.la$Fisher.s.P<0.01 & fwsw.la$Locus.ID == fw.shared.chr[i,"Locus.ID"],"BP"]
+  al.bp<-fwsw.al[fwsw.al$Fisher.s.P<0.01 & fwsw.al$Locus.ID == fw.shared.chr[i,"Locus.ID"],"BP"]
+  fl.bp<-fwsw.fl[fwsw.fl$Fisher.s.P<0.01 & fwsw.fl$Locus.ID == fw.shared.chr[i,"Locus.ID"],"BP"]
+  stacks.sig[i,1]<-paste(tx.bp,sep=",",collapse = ",")
+  stacks.sig[i,2]<-paste(la.bp,sep=",",collapse = ",")
+  stacks.sig[i,3]<-paste(al.bp,sep=",",collapse = ",")
+  stacks.sig[i,4]<-paste(fl.bp,sep=",",collapse = ",")
+}
+colnames(stacks.sig)<-c("TX","LA","AL","FL")
+stacks.sig<-data.frame(cbind(fw.shared.chr,stacks.sig))
+stacks.sig$SNP<-paste(stacks.sig$Chr,stacks.sig$BP,sep=".")
+write.table(stacks.sig,"stacks.sig.snps.txt",sep='\t',row.names=FALSE,col.names=TRUE)
+
+## compare to scovelli genome..
+#+ annotations, eval=FALSE
+gff<-read.delim(gzfile("../../scovelli_genome/ssc_2016_12_20_chromlevel.gff.gz"),header=F)
+colnames(gff)<-c("seqname","source","feature","start","end","score","strand","frame","attribute")
+genome.blast<-read.csv("../../scovelli_genome/ssc_2016_12_20_cds_nr_blast_results.csv",skip=1,header=T)#I saved it as a csv
+
+#' extract the significant regions from the gff file
+fw.sig.reg<-do.call(rbind,apply(fw.shared.chr,1,function(sig){
+  this.gff<-gff[as.character(gff$seqname) %in% as.character(unlist(sig["Chr"])),]
+  this.reg<-this.gff[this.gff$start <= as.numeric(sig["BP"]) & this.gff$end >= as.numeric(sig["BP"]),]
+  if(nrow(this.reg) == 0){
+    if(as.numeric(sig["BP"])>max(as.numeric(this.gff$end))){
+      new<-data.frame(Locus=sig["Locus.ID"],Chr=sig["Chr"],BP=sig["BP"],SNPCol=sig["Column"],
+                      region="beyond.last.contig", description=NA,SSCID=NA)
+    }else{
+      new<-data.frame(Locus=sig["Locus.ID"],Chr=sig["Chr"],BP=sig["BP"],SNPCol=sig["Column"],
+                      region=NA,description=NA,SSCID=NA)
+    }
+  }else{
+    if(length(grep("SSCG\\d+",this.reg$attribute))>0){
+      geneID<-unique(gsub(".*(SSCG\\d+).*","\\1",this.reg$attribute[grep("SSCG\\d+",this.reg$attribute)]))
+      gene<-genome.blast[genome.blast$sscv4_gene_ID %in% geneID,"blastp_hit_description"]
+    }else{
+      geneID<-NA
+      gene<-NA
+    }
+    new<-data.frame(Locus=sig["Locus.ID"],Chr=sig["Chr"],BP=sig["BP"],SNPCol=sig["Column"],
+                    region=paste(this.reg$feature,sep=",",collapse = ","),description=gene,SSCID=geneID)
+  }
+  return(as.data.frame(new))
+}))
+write.csv(fw.sig.reg,"StacksFWSWOutliers_annotatedByGenome.csv")
+
+#+
+fw.sig.reg<-read.csv("StacksFWSWOutliers_annotatedByGenome.csv")
+
+#' graph without highlighted regions
+#' first define the scaffold boundaries
+all.chr<-data.frame(Chr=c(as.character(fwsw.tx$Chr),as.character(fwsw.la$Chr),as.character(fwsw.al$Chr),as.character(fwsw.fl$Chr)),
+                    BP=c(fwsw.tx$BP,fwsw.la$BP,fwsw.al$BP,fwsw.fl$BP),stringsAsFactors = F)
+bounds<-data.frame(levels(as.factor(all.chr$Chr)),tapply(as.numeric(as.character(all.chr$BP)),all.chr$Chr,max))
+plot.scaffs<-scaffs[scaffs %in% bounds$Chrom]
+colnames(bounds)<-c("Chrom","End")
+#png("stacks_fsts_fwsw.png",height=8,width=7.5,units="in",res=300)
+par(mfrow=c(4,1),mar=c(0.85,2,0,0.5),oma=c(1,1,1,0.5))
+fwswt.fst<-fst.plot(fwsw.tx,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
+                    scaffs.to.plot=plot.scaffs, scaffold.widths = bounds,pch=19,y.lim = c(0,1),
+                    pt.cols = c(grp.colors[1],grp.colors[2]),pt.cex=1,axis.size = 1)
+mtext("TXFW vs. TXCC",3,cex=0.75,line=-1)
+fwswl.fst<-fst.plot(fwsw.la,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
+                    scaffs.to.plot=plot.scaffs, scaffold.widths = bounds,pch=19,y.lim = c(0,1),
+                    pt.cols=c(grp.colors[2],grp.colors[3]),pt.cex=1,axis.size=1)
+mtext("LAFW vs. ALST",3,cex=0.75,line=-1)
+fwswa.fst<-fst.plot(fwsw.al,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
+                    scaffs.to.plot=plot.scaffs, scaffold.widths = bounds,pch=19,y.lim = c(0,1),
+                    pt.cols=c(grp.colors[3],grp.colors[2]),pt.cex=1,axis.size = 1)
+mtext("ALFW vs. ALST",3,cex=0.75,line=-1)
+fwswf.fst<-fst.plot(fwsw.fl,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
+                    scaffs.to.plot=plot.scaffs, scaffold.widths =  bounds,pch=19,y.lim = c(0,1),
+                    pt.cols=c(grp.colors[6],grp.colors[5]),pt.cex=1,axis.size=1)
+mtext("FLFW vs. FLCC",3,cex=0.75,line=-1)
+mtext(expression(italic(F)[ST]),2,outer=T,line=-0.8,cex=0.75)
+last<-0
+for(i in 1:length(lgs)){
+  text(x=mean(fwswf.fst[fwswf.fst$Chr ==lgs[i],"plot.pos"]),y=-0.05,
+       labels=lgn[i], adj=1, xpd=TRUE)
+  last<-max(fwswf.fst[fwswf.fst$Chr ==lgs[i],"plot.pos"])
+}
+#dev.off()
+###### SW-SW neighbors ######
+swsw.tx<-read.delim("stacks/batch_2.fst_TXCB-TXCC.tsv")
+swsw.al<-read.delim("stacks/batch_2.fst_ALST-FLSG.tsv")
+swsw.fl<-read.delim("stacks/batch_2.fst_FLCC-FLHB.tsv")
+
+tx.sw.sig<-swsw.tx[swsw.tx$Fisher.s.P<0.01,"Locus.ID"]
+al.sw.sig<-swsw.al[swsw.al$Fisher.s.P<0.01,"Locus.ID"]
+fl.sw.sig<-swsw.fl[swsw.fl$Fisher.s.P<0.01,"Locus.ID"]
+length(tx.sw.sig[(tx.sw.sig %in% c(al.sw.sig,fl.sw.sig))])
+length(al.sw.sig[(al.sw.sig %in% c(tx.sw.sig,fl.sw.sig))])
+length(fl.sw.sig[(fl.sw.sig %in% c(tx.sw.sig,al.sw.sig))])
+sw.shared<-fl.sw.sig[fl.sw.sig %in% al.sw.sig & fl.sw.sig %in% tx.sw.sig]
+fw.shared.chr<-fwsw.tx[fwsw.tx$Locus.ID %in% all.shared,c("Locus.ID","Chr","BP","Column")]
+tapply(fw.shared.chr$Locus.ID,factor(fw.shared.chr$Chr),function(x){ length(unique(x)) })
+
+swswt.fst<-fst.plot(swsw.tx,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
+                    scaffs.to.plot = scaffs,scaffold.widths = bounds,pt.cex = 1,pch=19)
+swswa.fst<-fst.plot(swsw.al,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
+                    scaffs.to.plot = scaffs,scaffold.widths = bounds,pt.cex = 1,pch=19)
+swswf.fst<-fst.plot(swsw.fl,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
+                    scaffs.to.plot = scaffs,scaffold.widths = bounds,pt.cex = 1,pch=19)
+
+png("stacks_fsts_swsw.png",height=6,width=7.5,units="in",res=300)
+par(mfrow=c(3,1),mar=c(0.85,2,0,0.5),oma=c(1,1,1,0.5))
+swswt.fst<-fst.plot(swsw.tx,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
+                    scaffs.to.plot=plot.scaffs, y.lim = c(0,1),scaffold.widths = bounds,axis.size = 1,
+                    pt.cols=c(grp.colors[1],grp.colors[2]),pt.cex = 1,pch=19)
+mtext("TXCC vs. TXCB",3,line=-1,cex=0.75)
+swswa.fst<-fst.plot(swsw.al,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", y.lim=c(0,1),
+                    scaffs.to.plot=plot.scaffs, scaffold.widths = bounds,axis.size = 1,
+                    pt.cols=c(grp.colors[2],grp.colors[3]),pt.cex = 1,pch=19)
+#points(swswa.fst$plot.pos,swswa.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[3])
+mtext("ALST vs. FLSG",3,line=-1,cex=0.75)
+swswf.fst<-fst.plot(swsw.fl,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
+                    scaffs.to.plot=plot.scaffs, y.lim = c(0,1),scaffold.widths = bounds,axis.size = 1,
+                    pt.cols=c(grp.colors[6],grp.colors[5]),pt.cex = 1,pch=19)
+#points(swswf.fst$plot.pos,swswf.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[6])
+mtext("FLCC vs. FLHB",3,line=-1,cex=0.75)
+mtext(expression(italic(F)[ST]),2,outer=T,line=-0.75,cex=0.75)
+last<-0
+for(i in 1:length(lgs)){
+  text(x=mean(swswf.fst[swswf.fst$Chr ==lgs[i],"plot.pos"]),y=-0.07,
+       labels=lgn[i], adj=1, xpd=TRUE)
+  last<-max(swswf.fst[swswf.fst$Chr ==lgs[i],"plot.pos"])
+}
+dev.off()
+
+#### plotting ####
+
+assign.plotpos<-function(df, plot.scaffs, bounds, df.chrom="Chrom", df.bp="BP"){
+  colnames(bounds)<-c("Chrom","End")
+  new.dat<-data.frame(stringsAsFactors = F)
+  last.max<-0
+  for(i in 1:length(plot.scaffs)){
+    #pull out the data for this scaffold
+    if(nrow(bounds[bounds[[df.chrom]] %in% plot.scaffs[i],])>0){ #sanity check
+      chrom.dat<-df[df[[df.chrom]] %in% plot.scaffs[i],]
+      if(nrow(chrom.dat)>0){
+        chrom.dat$plot.pos<-as.numeric(as.character(chrom.dat[[df.bp]]))+last.max
+        new.dat<-rbind(new.dat,chrom.dat)
+        #last.max<-max(chrom.dat$plot.pos)+
+        #               as.numeric(scaffold.widths[scaffold.widths[,1] %in% scaffs.to.plot[i],2])
+      }
+      last.max<-last.max+
+        as.numeric(bounds[bounds$Chrom %in% plot.scaffs[i],2])
+    }
+  }
+  #make sure everything is the correct class
+  new.dat$plot.pos<-as.numeric(as.character(new.dat$plot.pos))
+  return(new.dat)
+}
+ft.mono<-assign.plotpos(ftmono,plot.scaffs,bounds,df.bp="Pos")
+#' plot with the outlier regions
+png("stacks_fsts_fwsw_withSig_nj.png",height=6,width=8,units="in",res=300)
+par(mfrow=c(5,1),mar=c(0.85,2,0,0.5),oma=c(1,1,1,0.5))
+par(fig=c(0,1,0.9-0.9/4,0.9))
+fwswt.fst<-fst.plot(fwsw.tx,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
+                    scaffs.to.plot=plot.scaffs, y.lim = c(0,1),scaffold.widths = bounds,pch=19,
+                    pt.cols = c(grp.colors[1],grp.colors[2]),pt.cex=1,axis.size = 1)
+#points(fwswt.fst$BP,fwswt.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[1])
+points(fwswt.fst$plot.pos[fwswt.fst$Locus.ID %in% all.shared],fwswt.fst$Corrected.AMOVA.Fst[fwswt.fst$Locus.ID %in% all.shared],
+       pch=1,col="black",cex=1.3)
+mtext("TXFW vs. TXCC",2,cex=0.75)#,line=-1)
+#add a sketch of a cladogram
+par(fig=c(0,0.1,0.9,1),new=T)
+plot(c(0,1),c(0,1),type='n',bty='n',axes=F,ylab="",xlab="",xlim=c(0,1),ylim=c(0,1))
+clip(0,1,0,1)
+abline(a=0.5,b=-0.9)
+abline(a=0.5,b=0.9)
+polygon(x = c(0.36,0.56,0.56),y = c(0.18,0.39,0),col="cornflowerblue",border="cornflowerblue")
+polygon(x = c(0.36,0.56,0.56),y = c(0.82,0.61,1),col="gray25",border="gray25")
+par(fig=c(0,1,0.9,1),new=T)
+plot(c(min(fwswt.fst$plot.pos),max(fwswt.fst$plot.pos)),c(0,1),bty='n',type = 'n',axes=FALSE,xlab="",ylab="")
+abline(v=ft.mono$plot.pos) 
+
+par(fig=c(0,1,0.9-2*(0.9/4),0.9-(0.9/4)),new=T)
+fwswl.fst<-fst.plot(fwsw.la,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
+                    scaffs.to.plot=plot.scaffs, y.lim = c(0,1),scaffold.widths = bounds,pch=19,
+                    pt.cols=c(grp.colors[2],grp.colors[3]),pt.cex=1,axis.size=1)
+#points(fwswl.fst$BP,fwswl.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[3])
+points(fwswl.fst$plot.pos[fwswl.fst$Locus.ID %in% all.shared],fwswl.fst$Corrected.AMOVA.Fst[fwswl.fst$Locus.ID %in% all.shared],
+       pch=1,col="black",cex=1.3)
+mtext("LAFW vs. ALST",2,cex=0.75)#,line=-1)
+par(fig=c(0,1,0.9-3*(0.9/4),0.9-2*(0.9/4)),new=T)
+fwswa.fst<-fst.plot(fwsw.al,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
+                    scaffs.to.plot=plot.scaffs, y.lim = c(0,1),scaffold.widths = bounds,pch=19,
+                    pt.cols=c(grp.colors[3],grp.colors[2]),pt.cex=1,axis.size = 1)
+#points(fwswa.fst$BP,fwswa.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[4])
+points(fwswa.fst$plot.pos[fwswa.fst$Locus.ID %in% all.shared],fwswa.fst$Corrected.AMOVA.Fst[fwswa.fst$Locus.ID %in% all.shared],
+       pch=1,col="black",cex=1.3)
+mtext("ALFW vs. ALST",2,cex=0.75)#,line=-1)
+par(fig=c(0,1,0,0.9/4),new=T)
+fwswf.fst<-fst.plot(fwsw.fl,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
+                    scaffs.to.plot=plot.scaffs, y.lim = c(0,1),scaffold.widths = bounds,pch=19,
+                    pt.cols=c(grp.colors[6],grp.colors[5]),pt.cex=1,axis.size=1)
+#points(fwswf.fst$BP,fwswf.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[6])
+points(fwswf.fst$plot.pos[fwswf.fst$Locus.ID %in% all.shared],fwswf.fst$Corrected.AMOVA.Fst[fwswf.fst$Locus.ID %in% all.shared],
+       pch=1,col="black",cex=1.3)
+mtext("FLFW vs. FLCC",2,cex=0.75)#,line=-1)
+mtext(expression(bold(italic(F)[ST])),2,outer=T,line=-1,cex=0.75)
+labs<-tapply(fwswf.fst$plot.pos,fwswf.fst$Chr,median)
+text(x=labs[lgs],y=-0.07,labels=lgn,xpd=TRUE)
+dev.off()
+
+
+##### >plot each chromosome #####
 #plot each chrom with sig. ones
 sig.chroms<-unique(pi.sig.fst$Chrom)
 png("FstOutliersStats.png",height=10,width=10,units="in",res=300)
@@ -623,19 +677,19 @@ for(i in 1:length(sig.chroms)){ #I could turn this into a function
     this.tx<-fwsw.tx[fwsw.tx$Chr %in% sig.chroms[i],]
     tx.smooth<-do.call("rbind",lapply(seq(1,nrow(this.tx),(nrow(this.tx)*0.15)/5),sliding.avg,
                                       dat=data.frame(Pos=this.tx$BP,Fst=this.tx$Corrected.AMOVA.Fst),width=nrow(this.tx)*0.15))
-      #loess.smooth(this.tx$BP,this.tx$Corrected.AMOVA.Fst,span=0.1,degree=2) 
+    #loess.smooth(this.tx$BP,this.tx$Corrected.AMOVA.Fst,span=0.1,degree=2) 
     this.la<-fwsw.la[fwsw.la$Chr %in% sig.chroms[i],]
     la.smooth<-do.call("rbind",lapply(seq(1,nrow(this.la),(nrow(this.la)*0.15)/5),sliding.avg,
                                       dat=data.frame(Pos=this.la$BP,Fst=this.la$Corrected.AMOVA.Fst),width=nrow(this.la)*0.15))
-      #loess.smooth(this.la$BP,this.la$Corrected.AMOVA.Fst,span=0.1,degree=2) 
+    #loess.smooth(this.la$BP,this.la$Corrected.AMOVA.Fst,span=0.1,degree=2) 
     this.al<-fwsw.al[fwsw.al$Chr %in% sig.chroms[i],]
     al.smooth<-do.call("rbind",lapply(seq(1,nrow(this.al),(nrow(this.al)*0.15)/5),sliding.avg,
                                       dat=data.frame(Pos=this.al$BP,Fst=this.al$Corrected.AMOVA.Fst),width=nrow(this.al)*0.15))
-      #loess.smooth(this.al$BP,this.al$Corrected.AMOVA.Fst,span=0.1,degree=2) 
+    #loess.smooth(this.al$BP,this.al$Corrected.AMOVA.Fst,span=0.1,degree=2) 
     this.fl<-fwsw.fl[fwsw.fl$Chr %in% sig.chroms[i],]
     fl.smooth<-do.call("rbind",lapply(seq(1,nrow(this.fl),(nrow(this.fl)*0.15)/5),sliding.avg,
                                       dat=data.frame(Pos=this.fl$BP,Fst=this.fl$Corrected.AMOVA.Fst),width=nrow(this.fl)*0.15))
-      #loess.smooth(this.fl$BP,this.fl$Corrected.AMOVA.Fst,span=0.1,degree=2) 
+    #loess.smooth(this.fl$BP,this.fl$Corrected.AMOVA.Fst,span=0.1,degree=2) 
     plot(tx.smooth,col=alpha(grp.colors[1],0.5),type="l",ylim=c(0,1),lwd=2,
          bty="L",xlab="",ylab="",xaxt='n',yaxt='n')
     if(i %in% c(1,5,9,13)){
@@ -674,15 +728,15 @@ for(i in 1:length(sig.chroms)){ #I could turn this into a function
            y0=0.8,y1=0.8,col="indianred",lwd=15,length=0)
     
   }
- 
+  
 }#this is kind of a mess.
 plot(x=c(0,1),y=c(0,1),type="n",axes=FALSE)
 legend("left",
-  legend=c(expression(TX~FWSW~italic(F)[ST]),
+       legend=c(expression(TX~FWSW~italic(F)[ST]),
                 expression(LA~FWSW~italic(F)[ST]),
-         expression(AL~FWSW~italic(F)[ST]),expression(FL~FWSW~italic(F)[ST]),
-         expression(delta~-divergence),expression(Average~pi[FW]),
-         expression(Average~pi[SW])),bty='n',lwd=2,lty=c(1,1,1,1,1,1,2),
+                expression(AL~FWSW~italic(F)[ST]),expression(FL~FWSW~italic(F)[ST]),
+                expression(delta~-divergence),expression(Average~pi[FW]),
+                expression(Average~pi[SW])),bty='n',lwd=2,lty=c(1,1,1,1,1,1,2),
        col=c(alpha(grp.colors[1],0.5),alpha(grp.colors[2],0.5),
              alpha(grp.colors[3],0.5),alpha(grp.colors[6],0.5),
              "cornflowerblue","lightgrey","darkgrey"))
@@ -697,16 +751,16 @@ for(i in 1:nrow(stacks.sig)){
   #tx.smooth<-loess.smooth(this.tx$BP,this.tx$Corrected.AMOVA.Fst,span=0.1,degree=2) 
   this.al<-fwsw.al[fwsw.al$Chr %in% stacks.sig$Chr[i] & 
                      fwsw.al$BP >= stacks.sig$BP[i]-2500 & fwsw.al$BP >= stacks.sig$BP[i]-2500,]
-#  al.smooth<-loess.smooth(this.al$BP,this.al$Corrected.AMOVA.Fst,span=0.1,degree=2)
+  #  al.smooth<-loess.smooth(this.al$BP,this.al$Corrected.AMOVA.Fst,span=0.1,degree=2)
   this.la<-fwsw.la[fwsw.la$Chr %in% stacks.sig$Chr[i] & 
                      fwsw.la$BP >= stacks.sig$BP[i]-2500 & fwsw.la$BP >= stacks.sig$BP[i]-2500,]
   #la.smooth<-loess.smooth(this.la$BP,this.la$Corrected.AMOVA.Fst,span=0.1,degree=2) 
   this.fl<-fwsw.fl[fwsw.fl$Chr %in% stacks.sig$Chr[i] & 
                      fwsw.fl$BP >= stacks.sig$BP[i]-2500 & fwsw.fl$BP >= stacks.sig$BP[i]-2500,]
- # fl.smooth<-loess.smooth(this.fl$BP,this.fl$Corrected.AMOVA.Fst,span=0.1,degree=2)
+  # fl.smooth<-loess.smooth(this.fl$BP,this.fl$Corrected.AMOVA.Fst,span=0.1,degree=2)
   
   plot(this.tx$BP,this.tx$Corrected.AMOVA.Fst,col=alpha(grp.colors[1],0.5),type="l",ylim=c(0,1),lwd=2,xaxt='n',
-      xlab=paste("Position on ",stacks.sig$Chr[i],sep=""),ylab="",bty="L")
+       xlab=paste("Position on ",stacks.sig$Chr[i],sep=""),ylab="",bty="L")
   # plot(tx.smooth$x,tx.smooth$y,col=alpha(grp.colors[1],0.5),type="l",
   #      ylim=c(0,1),
   #      lwd=2,xaxt='n',
@@ -722,7 +776,7 @@ for(i in 1:nrow(stacks.sig)){
     this.chrom<-dd[dd$Chrom %in% stacks.sig$Chr[i],]
     #span<-nrow(this.chrom)/5000
     this.smooth<-loess.smooth(this.chrom$Pos,this.chrom$deltad,span=0.1,degree=2)
-   # this.smooth<-smoothed.dd[smoothed.dd$Chrom %in% stacks.sig$Chr[i] &
+    # this.smooth<-smoothed.dd[smoothed.dd$Chrom %in% stacks.sig$Chr[i] &
     #                           smoothed.dd$x > min(this.tx$BP) & smoothed.dd$x < max(this.tx$BP),]
     points(this.smooth$x,this.smooth$y,col="cornflowerblue",type="l",lwd=2)
   }
@@ -736,51 +790,67 @@ for(i in 1:nrow(stacks.sig)){
   dev.off()
 }
 
-#which points are in the lower 25%?
-put.dir<-pi.sig.fst[pi.sig.fst$Pi <= quantile(pi.plot$Pi,0.25),] #putative directional selection loci.
+#### Outlier allele frequencies #### 
+#' What are the allele frequencies of the significant FWSW outliers in FW pops and in SW pops?
+#' And what are the SNPs?
+#get the RAD loci from the vcf
+stacks.sig$SNP<-paste(stacks.sig$Chr,as.character(as.numeric(as.numeric(stacks.sig$BP) + 1)),sep=".")
+stacks.sig.vcf<-vcf[vcf$SNP %in% stacks.sig$SNP,] #two don't get added, but I can add them manually
+stacks.sig.vcf<-rbind(stacks.sig.vcf,vcf[vcf$ID == 28200,])
+fw.sig.vcf<-stacks.sig.vcf[,c(locus.info,unlist(lapply(fw.list,grep,x=colnames(stacks.sig.vcf),value=TRUE)))]
+sw.sig.vcf<-stacks.sig.vcf[,c(locus.info,unlist(lapply(sw.list,grep,x=colnames(stacks.sig.vcf),value=TRUE)))]
+fw.sig.afs<-do.call(rbind,apply(fw.sig.vcf,1,calc.afs.vcf))
+fw.sig.afs$ID<-fw.sig.vcf$ID
+fw.sig.afs$SNP<-fw.sig.vcf$SNP
+sw.sig.afs<-do.call(rbind,apply(sw.sig.vcf,1,calc.afs.vcf))
+sw.sig.afs$ID<-sw.sig.vcf$ID
+sw.sig.afs$SNP<-fw.sig.vcf$SNP
 
+#reorder to be in chrom order
+fw.sig.afs<-fw.sig.afs[order(factor(fw.sig.afs$Chrom,levels=scaffs)),]
+sw.sig.afs<-sw.sig.afs[order(factor(sw.sig.afs$Chrom,levels=scaffs)),]
 
-
-#### Looking for balancing selection
-#' Low Fst, high pi (and het)
-
-#plot fsts
-
-
-##### Neighbor joining trees #####
-#' to get trees and calc gsi (maybe):
-#' for each overlapping sliding window (of 33 SNPs, for example), 
-#' generate distance matrix (Fsts) using those SNPs
-#' ape::nj(as.dist(matrix), "unrooted")
-#' genealogicalSorting::gsi(tree, class, assignments, uncertainty)
-#' http://molecularevolution.org/software/phylogenetics/gsi/download
-
-library(ape)
-
-fst.trees<-list()
-for(vcf.row in 1: nrow(vcf)){
-  fst.trees<-c(fst.trees,get.dist(vcf[vcf.row,],pop.list)) #getting an error
-}
-#Now what? How do I get rid of the numbers in the trees?
-ftt<-lapply(fst.trees,gsub,pattern="\\d+",replacement="")
-ftt<-lapply(ftt,gsub,pattern="[:.-]",replacement="")
-ftt<-lapply(ftt,gsub,pattern="e",replacement="")
-ftrees<-do.call(rbind,ftt)
-ftrees<-data.frame(Chrom=vcf$`#CHROM`,Pos=vcf$POS,SNP=vcf$SNP,
-                   trees=ftrees[,1])
-write.table(ftrees,"ftrees.txt",row.names=F,col.names=T,quote=F)
-library(combinat)
-grps<-permn(fw.list)
-fw.grps<-unlist(lapply(grps,function(grp){
-  grp.tr<-paste("(((",grp[1],",",grp[2],"),",grp[3],"),",grp[4],")",sep="")
-}))
-
-fwtrees<-data.frame() #try to find the ones that match
-apply(ftrees,1,function(snp){
-  if(length(unlist(lapply(fw.grps,grep,snp["trees"])))>0){
-    fwtrees<-rbind(fwtrees,snp)
+png("OutlierAlleleFreqs.png",height=5,width=10,units="in",res=300)
+par(mar=c(3,2,1,1),oma=c(2,2,0,1))
+plot(1:nrow(fw.sig.afs),fw.sig.afs$RefFreq,ylim=c(0,1),type='n',
+     xlab="",ylab="",axes=FALSE)
+axis(2,ylim=c(0,1),pos=0,las=1,cex.axis=0.75)
+mtext("Reference Allele Frequency",2,line=1.5,cex=0.75)
+start<-0.1
+for(i in 1:length(unique(fw.sig.afs$Chrom))){
+  end<-start+nrow(fw.sig.afs[fw.sig.afs$Chrom %in% unique(fw.sig.afs$Chrom)[i],])+0.1
+  if(i%%2){
+    rect(start,0,end,1,col="lightgrey",border="lightgrey")
   }
-})
+  text(x=mean(c(start,end)),y=0,labels=unique(fw.sig.afs$Chrom)[i],
+       xpd=TRUE,adj=1,srt=45,cex=0.75)
+  start<-end
+}
+#text(x=1:nrow(fw.sig.afs),y=rep(-0.05,nrow(fw.sig.afs)),
+#     labels=fw.sig.afs$Chrom,xpd=TRUE,adj=1,srt=90)
+points(1:nrow(fw.sig.afs),fw.sig.afs$RefFreq, 
+       pch=19,col="cornflowerblue")
+points(1:nrow(fw.sig.afs),sw.sig.afs$RefFreq)
+arrows(x0=1:nrow(fw.sig.afs),x1=1:nrow(fw.sig.afs),
+       y0=sw.sig.afs$RefFreq,y1=fw.sig.afs$RefFreq,
+       angle=45,length=0.1)
+legend(x=50,y=0.15,bty='n',pch=c(19,1),col=c("cornflowerblue","black"),
+       c("Freshwater Populations","Saltwater Populations"),cex=0.75)
+dev.off()
+
+##### Jost's D #####
+library(adegenet)
+library(vcfR)
+library(mmod)
+#fix IDs
+vcf$ID<-paste(vcf$ID,vcf$POS,sep="_")
+write.table(vcf,"stacks/fw-sw_populations/fwsw_genind.vcf",col.names =TRUE,sep='\t',
+            quote=FALSE, row.names=FALSE)
+#get vcf in genind form
+rvcf<-vcfR::read.vcfR("stacks/fw-sw_populations/fwsw_genind.vcf")
+avcf<-vcfR2genind(rvcf) #warning entirely non-type individual(s) deleted
+jostd<-D_Jost(avcf)
+jostpw<-pairwise_D(avcf)
 
 ##### TREEMIX #####
 
@@ -789,6 +859,7 @@ write.table(tm.fwsw,"fwsw.treemix",col.names=TRUE,row.names=FALSE,quote=F,sep=' 
 #then in unix: gzip -c fwsw.treemix > fwsw.treemix.gz
 
 #In unix: run treemix_analysis.R
+
 
 ##############################POP STRUCTURE##################################
 
