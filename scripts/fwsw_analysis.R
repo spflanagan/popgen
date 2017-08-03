@@ -862,35 +862,12 @@ jostpw<-pairwise_D(fwsw.genind)#got some warnings about populations
 ##### POPTREE #####
 #create 10 sets of 1000 randomly-chosen loci
 
-
-vcf2gpop<-function(vcf,pop.list,gpop.name){#without the SNP column
-  locusids<-paste(vcf$`#CHROM`,as.character(vcf$POS),sep=".")
-  indids<-colnames(vcf)[10:nrow(vcf)]
-  gpop.mat<-extract.gt.vcf(vcf[,colnames(vcf)!="SNP"])
-  gpop<-t(gpop.mat[,4:ncol(gpop.mat)])
-  gpop[gpop=="0/0"]<-"0101"
-  gpop[gpop=="0/1"]<-"0102"
-  gpop[gpop=="1/0"]<-"0201"
-  gpop[gpop=="1/1"]<-"0202"
-  gpop[gpop=="./."]<-"0000"
-  #write to file
-  write.table(locusids,gpop.name,sep='\n',quote=FALSE,
-              col.names = paste("Title line: ",gpop.name,sep=""),row.names=FALSE)
-  for(i in 1:length(pop.list)){
-    pop<-gpop[grep(pop.list[i],rownames(gpop)),]
-    write.table(paste("POP",pop.list[i],sep=" "),gpop.name,quote=FALSE,col.names = FALSE,row.names=FALSE,append=TRUE)
-    rownames(pop)<-paste(rownames(pop),",",sep="")
-    write.table(pop,gpop.name,quote=FALSE,col.names=FALSE,row.names=TRUE,sep=" ",append=TRUE)
-  }
-  colnames(gpop)<-locusids
-  return(gpop)
-}
-
 for(i in 1:10){
   rowsub<-sample(nrow(vcf),1000,replace = FALSE)
   gpopsub<-vcf2gpop(vcf[rowsub,colnames(vcf)!="SNP"],pop.list,paste("poptree/subset_",i,".genepop",sep=""))
 }
-gpop<-vcf2gpop(vcf[,colnames(vcf)!="SNP"],pop.list,"poptree/fwsw.8141.vcf")
+gpop<-vcf2gpop(vcf[,colnames(vcf)!="SNP"],pop.list,"poptree/fwsw.8141.genepop")
+#then run poptree on all of them
 
 ##### TREEMIX #####
 
