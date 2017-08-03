@@ -1,5 +1,5 @@
 #Author: Sarah P. Flanagan
-#Last Updated: 20 July 2016
+#Last Updated: 2 August 2017
 #Purpose: Analyze FW-SW dataset
 
 rm(list=ls())
@@ -16,6 +16,7 @@ library(gdata)
 library(ape)
 library(lattice); library(RColorBrewer); library(grid)
 library(devtools)
+library(mmod)
 
 setwd("B:/ubuntushare/popgen/fwsw_results/")
 #source("../scripts/popgen_functions.R")
@@ -270,6 +271,8 @@ dim(smooth.par[smooth.par$SNP %in% stacks.sig$SNP,])
 sdd.out<-rbind(smooth.par,smooth.div)
 write.table(sdd.out,"smoothed.deltad.out.txt",col.names=T,row.names=F,quote=F,sep='\t')
 
+dd<-read.delim("deltadivergence.txt")
+sdd.out<-read.delim("smoothed.deltad.out.txt")
 #' Compare to Stacks Fsts
 # Get the significant Fst loci if they're not already here
 if(!("stacks.sig" %in% ls())){
@@ -839,18 +842,55 @@ legend(x=50,y=0.15,bty='n',pch=c(19,1),col=c("cornflowerblue","black"),
 dev.off()
 
 ##### Jost's D #####
-library(adegenet)
-library(vcfR)
-library(mmod)
-#fix IDs
-vcf$ID<-paste(vcf$ID,vcf$POS,sep="_")
-write.table(vcf,"stacks/fw-sw_populations/fwsw_genind.vcf",col.names =TRUE,sep='\t',
-            quote=FALSE, row.names=FALSE)
-#get vcf in genind form
-rvcf<-vcfR::read.vcfR("stacks/fw-sw_populations/fwsw_genind.vcf")
-avcf<-vcfR2genind(rvcf) #warning entirely non-type individual(s) deleted
-jostd<-D_Jost(avcf)
-jostpw<-pairwise_D(avcf)
+#can use mmod but needs to be a genind object
+stru<-read.delim("stacks/fw-sw_populations/fwsw.structure.str",skip=1,sep="")
+stru[,2]<-as.numeric(as.factor(gsub("sample_(\\w{4}).*","\\1",stru[,1])))
+header<-scan("stacks/fw-sw_populations/fwsw.structure.str",nlines = 1,sep="",quiet = TRUE)
+colnames(stru)<-c("","",header)
+write.table(stru,"stacks/fw-sw_populations/fwsw.stru",sep="",quote=FALSE,row.names=FALSE,col.names=TRUE)
+fwsw.genind<-read.structure("stacks/fw-sw_populations/fwsw.stru")
+
+fwsw.genind<-read.genetix("stacks/fw-sw_populations/fwsw.gtx")
+fwsw.genind@pop<-factor(gsub("sample_(\\w{4}).*","\\1",colnames(vcf)[10:(ncol(vcf)-1)]))
+rownames(fwsw.genind@tab)<-gsub("sample_(.*)","\\1",colnames(vcf)[10:(ncol(vcf)-1)])
+jostd<-D_Jost(fwsw.genind) 
+#jostd$global.het
+#[1] 0.08986191
+write.table(jostd$per.locus,"jostd.perlocus.txt",sep='\t',col.names=FALSE,row.names = TRUE,quote=F)
+jostpw<-pairwise_D(fwsw.genind)#got some warnings about populations
+
+##### POPTREE #####
+#create 10 sets of 1000 randomly-chosen loci
+
+
+vcf2gpop<-function(vcf,pop.list,gpop.name){#without the SNP column
+  locusids<-paste(vcf$`#CHROM`,as.character(vcf$POS),sep=".")
+  indids<-colnames(vcf)[10:nrow(vcf)]
+  gpop.mat<-extract.gt.vcf(vcf[,colnames(vcf)!="SNP"])
+  gpop<-t(gpop.mat[,4:ncol(gpop.mat)])
+  gpop[gpop=="0/0"]<-"0101"
+  gpop[gpop=="0/1"]<-"0102"
+  gpop[gpop=="1/0"]<-"0201"
+  gpop[gpop=="1/1"]<-"0202"
+  gpop[gpop=="./."]<-"0000"
+  #write to file
+  write.table(locusids,gpop.name,sep='\n',quote=FALSE,
+              col.names = paste("Title line: ",gpop.name,sep=""),row.names=FALSE)
+  for(i in 1:length(pop.list)){
+    pop<-gpop[grep(pop.list[i],rownames(gpop)),]
+    write.table(paste("POP",pop.list[i],sep=" "),gpop.name,quote=FALSE,col.names = FALSE,row.names=FALSE,append=TRUE)
+    rownames(pop)<-paste(rownames(pop),",",sep="")
+    write.table(pop,gpop.name,quote=FALSE,col.names=FALSE,row.names=TRUE,sep=" ",append=TRUE)
+  }
+  colnames(gpop)<-locusids
+  return(gpop)
+}
+
+for(i in 1:10){
+  rowsub<-sample(nrow(vcf),1000,replace = FALSE)
+  gpopsub<-vcf2gpop(vcf[rowsub,colnames(vcf)!="SNP"],pop.list,paste("poptree/subset_",i,".genepop",sep=""))
+}
+gpop<-vcf2gpop(vcf[,colnames(vcf)!="SNP"],pop.list,"poptree/fwsw.8141.vcf")
 
 ##### TREEMIX #####
 
