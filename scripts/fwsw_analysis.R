@@ -600,7 +600,7 @@ assign.plotpos<-function(df, plot.scaffs, bounds, df.chrom="Chrom", df.bp="BP"){
   last.max<-0
   for(i in 1:length(plot.scaffs)){
     #pull out the data for this scaffold
-    if(nrow(bounds[bounds[[df.chrom]] %in% plot.scaffs[i],])>0){ #sanity check
+    if(nrow(bounds[bounds$Chrom %in% plot.scaffs[i],])>0){ #sanity check
       chrom.dat<-df[df[[df.chrom]] %in% plot.scaffs[i],]
       if(nrow(chrom.dat)>0){
         chrom.dat$plot.pos<-as.numeric(as.character(chrom.dat[[df.bp]]))+last.max
@@ -859,6 +859,25 @@ jostd<-D_Jost(fwsw.genind)
 write.table(jostd$per.locus,"jostd.perlocus.txt",sep='\t',col.names=FALSE,row.names = TRUE,quote=F)
 jostpw<-pairwise_D(fwsw.genind)#got some warnings about populations
 
+##Read in the data
+jostd<-read.delim("jostd.perlocus.txt",header=F)
+colnames(jostd)<-c("locid","D")
+jostd$SNP<-vcf$SNP
+jostd$POS<-vcf$POS
+jostd$Chr<-vcf$`#CHROM`
+jostd$ID<-vcf$ID
+bounds<-data.frame(Chrom = levels(as.factor(jostd$Chr)),
+                   Max=tapply(as.numeric(as.character(jostd$POS)),jostd$Chr,max))
+plot.scaffs<-scaffs[scaffs %in% bounds$Chrom]
+jp<-fst.plot(jostd,fst.name="D",chrom.name="Chr",bp.name="POS",pch=19,scaffold.widths = bounds,
+             scaffs.to.plot = plot.scaffs,axis.size = 1)
+dim(jostd[jostd$SNP %in% stacks.sig$SNP,])
+stacks.sig$SNP<-paste(stacks.sig$Chr,as.numeric(stacks.sig$BP)+1,sep=".")
+sigplot<-assign.plotpos(stacks.sig,plot.scaffs,bounds,df.chrom="Chr",df.bp = "BP")
+points(jp[jp$SNP %in% sigplot$SNP,"plot.pos"],jp[jp$SNP %in% sigplot$SNP,"D"],col="darkorchid")
+abline(h=mean(jp$D))
+abline(h=quantile(jp$D,probs = 0.95),lty=3)
+abline(h=quantile(jp$D,probs = 0.05),lty=3)
 ##### POPTREE #####
 #create 10 sets of 1000 randomly-chosen loci
 
@@ -869,6 +888,28 @@ for(i in 1:10){
 gpop<-vcf2gpop(vcf[,colnames(vcf)!="SNP"],pop.list,"poptree/fwsw.8141.genepop")
 #then run poptree on all of them
 
+###ANALYZE RESULTS
+poptree.files<-list.files(path = "poptree",pattern="*.nwk")
+poptree.files<-lapply(poptree.files,function(x){ paste("poptree",x,sep="/")})
+poptrees<-lapply(poptree.files,read.tree)
+con.poptree<-consensus(poptrees)
+con.poptree$tip.label[con.poptree$tip.label=="FLLG"]<-"FLFW"
+
+clcolr <- rep("black", dim(con.poptree$edge)[1])
+clcolr[c(12,13,14,24)]<-all.colors[3]
+png("poptree.consensus.png",height=7,width=7,units="in",res=300)
+plot.phylo(con.poptree,tip.color = c(rep(grp.colors[6],4),grp.colors[5],
+                                              rep(grp.colors[1],4),rep(grp.colors[2],3),
+                                              rep(grp.colors[3],4)),
+                    edge.color = clcolr,edge.width = 2)
+dev.off()
+png("poptrees.png",height=10,width=10,units="in",res=300)
+par(mfrow=c(3,4),oma=c(1,1,1,1),mar=c(1,1,1,1))
+for(i in 1:length(poptrees)){
+  plot.phylo(poptrees[[i]],cex=1.5)
+  mtext(poptree.files[i],3)
+}
+dev.off()
 ##### TREEMIX #####
 
 tm.fwsw<-treemix.from.vcf(vcf,pop.list)
@@ -1011,7 +1052,7 @@ legend("top", legend=ppi$Pop, pch=as.numeric(ppi$pch), pt.cex=1.5,cex=0.85,
        col=alpha(ppi$cols, 0.5),pt.bg=alpha(ppi$cols,0.25), ncol=8,bty='n')
 dev.off()
 
-had #### PCADAPT ####
+#### PCADAPT ####
 library(pcadapt)
 filename<-read.pcadapt("stacks/subset.ped",type="ped")
 x<-pcadapt("stacks/subset.pcadapt", K=20)
