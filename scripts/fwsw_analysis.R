@@ -59,7 +59,7 @@ pwise.fst.sub<-read.table("stacks/fwsw_fst_summary_subset.txt",header=T,row.name
 ped.sub<-read.table("stacks/subset.ped",header=F)	
 ped.sub$V1<-gsub("sample_(\\w{4})\\w+.*","\\1",ped.sub$V2)
 map.sub<-read.table("stacks/subset.map",header = F,stringsAsFactors = F)
-map.sub$Locus<-paste(gsub("(\\d+)_\\d+","\\1",map.sub$V2),map.sub$V4,sep=".")
+map.sub$Locus<-paste(gsub("(\\d+)_\\d+","\\1",map.sub$V2),(as.numeric(map.sub$V4)+1),sep=".")
 colnames(ped.sub)<-c("Pop","IID","","","","Phenotype","","",map.sub$Locus)
 vcf<-parse.vcf("stacks/fw-sw_populations/batch_2.vcf")
 vcf$SNP<-paste(vcf$`#CHROM`,vcf$POS,sep=".")
@@ -847,17 +847,31 @@ stru<-read.delim("stacks/fw-sw_populations/fwsw.structure.str",skip=1,sep="")
 stru[,2]<-as.numeric(as.factor(gsub("sample_(\\w{4}).*","\\1",stru[,1])))
 header<-scan("stacks/fw-sw_populations/fwsw.structure.str",nlines = 1,sep="",quiet = TRUE)
 colnames(stru)<-c("","",header)
-write.table(stru,"stacks/fw-sw_populations/fwsw.stru",sep="",quote=FALSE,row.names=FALSE,col.names=TRUE)
-fwsw.genind<-read.structure("stacks/fw-sw_populations/fwsw.stru")
+write.table(stru,"stacks/fw-sw_populations/fwsw.stru",sep=" ",quote=FALSE,row.names=FALSE,col.names=TRUE)
+fwsw.genind<-read.structure("stacks/fw-sw_populations/fwsw.stru",
+                            n.ind=697,n.loc=14801,col.lab=1,col.pop = 2,
+                            row.marknames = 1,onerowperind = FALSE,ask=FALSE)
 
-fwsw.genind<-read.genetix("stacks/fw-sw_populations/fwsw.gtx")
-fwsw.genind@pop<-factor(gsub("sample_(\\w{4}).*","\\1",colnames(vcf)[10:(ncol(vcf)-1)]))
-rownames(fwsw.genind@tab)<-gsub("sample_(.*)","\\1",colnames(vcf)[10:(ncol(vcf)-1)])
+#fwsw.genind<-read.genetix("stacks/fw-sw_populations/fwsw.gtx")
+fwsw.genind@pop<-factor(gsub("sample_(\\w{4}).*","\\1",rownames(fwsw.genind@tab)))
+rownames(fwsw.genind@tab)<-gsub("sample_(.*)","\\1",rownames(fwsw.genind@tab))
 jostd<-D_Jost(fwsw.genind) 
 #jostd$global.het
 #[1] 0.08986191
 write.table(jostd$per.locus,"jostd.perlocus.txt",sep='\t',col.names=FALSE,row.names = TRUE,quote=F)
+
 jostpw<-pairwise_D(fwsw.genind)#got some warnings about populations
+write.table(as.matrix(jostpw)[pop.list,pop.list],"pairwise.jostd.14802loc.txt",
+            col.names = TRUE,row.names = TRUE,quote=F,sep='\t')
+
+##use the subset
+#write the whitelist
+subw<-data.frame(Loc=gsub("(\\d+)_\\d+","\\1",map.sub$V2),Pos=gsub("(\\d+)_(\\d+)","\\2",map.sub$V2))
+write.table(subw,"subset.whitelist.txt",col.names=FALSE,row.names=FALSE,quote=F,sep='\t')
+#run populations -b 2 -W subset.whitelist.txt -P fwsw_results/stacks -M fwsw_pops_map.txt --structure
+sub.stru<-read.delim("stacks/subset.structure.tsv",skip=1,sep="")
+stru[,2]<-as.numeric(as.factor(gsub("sample_(\\w{4}).*","\\1",stru[,1])))
+
 
 ##Read in the data
 jostd<-read.delim("jostd.perlocus.txt",header=F)

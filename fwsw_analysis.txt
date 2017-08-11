@@ -22,6 +22,12 @@ DATE STARTED: 5 June 2016
 11. calculate_global_fst
 
 ###############################################################################################
+#####Wednesday, 9 August 2017
+Most of my notes are in a notebook...
+but I want to run populations with a whitelist -- needs LocID and column
+populations -b 2 -W subset.whitelist.txt -P fwsw_results/stacks -M fwsw_pops_map.txt --structure
+
+
 #####Tuesday, 21 February 2017
 I'd been using the wrong populations map, which is why it didn't work
 ->doing this to get a new vcf file, cuz the ones I have aren't any good.

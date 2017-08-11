@@ -15,6 +15,7 @@ source("../../gwscaR/R/gwscaR_plot.R")
 source("../../gwscaR/R/gwscaR_utility.R")
 source("../../gwscaR/R/gwscaR_fsts.R")
 source("../../gwscaR/R/gwscaR_popgen.R")
+library(scales)
 
 ```
 
@@ -47,6 +48,13 @@ fw.sig.reg<-read.csv("StacksFWSWOutliers_annotatedByGenome.csv")
 #deltad
 deltad<-read.delim("deltadivergence.txt")
 sdd.out<-read.delim("smoothed.deltad.out.txt",header=T,sep='\t')
+#josts d
+jostd<-read.delim("jostd.perlocus.txt",header=F)
+colnames(jostd)<-c("locid","D")
+jostd$SNP<-vcf$SNP
+jostd$POS<-vcf$POS
+jostd$Chr<-vcf$`#CHROM`
+jostd$ID<-vcf$ID
 #ld info
 ld<-read.delim("ld_info_fwsw.txt")
 #neighbor joining SNP trees
@@ -400,7 +408,7 @@ And of the `r nrow(sdd.out)` \delta-divergence outliers, `r length(sdd.nb[sdd.nb
 
 ```{r bayenv}
 #taken directly from fwsw_analysis.R
-bf<-read.delim("bf.txt",header=T)
+bf<-read.delim("bayenv/bf.txt",header=T)
 bf$SNP<-paste(bf$scaffold,as.numeric(as.character(bf$BP))+1,sep=".")
 bf.co<-apply(bf[,5:7],2,quantile,0.99) #focus on Bayes Factors, because of Lotterhos & Whitlock (2015)
 temp.bf.sig<-bf[bf$Temp_BF>bf.co["Temp_BF"],c(1,2,4,8,5,9)]
@@ -418,7 +426,7 @@ There are `r dim(temp.bf.sig[temp.bf.sig$locus %in% sal.bf.sig$locus & temp.bf.s
 ### Salinity
 
 Are any of the Bayenv salinity outliers near the putative freshwater genes?
-```{r bayenv_temp}
+```{r bayenv_sal}
 
 bfs.in<-outlier.in.region(sal.bf.sig,put.reg,"scaffold")
 bfs.nb<-outlier.nearby(sal.bf.sig,put.reg,chrom.ld,"scaffold")
@@ -481,6 +489,17 @@ put.reg$nj.nb<-nj.nb
 ```
 
 So `r length(nj.in[nj.in!="NA"])` loci are located within putative freshwater genes, but `r length(nj.nb[nj.nb!="NA"])` are within the LD region of the putative genes, representing `r length(nj.nb[nj.nb!="NA"])/nrow(put.reg)*100` of the putative gene annotations and `r length(unique(put.reg[put.reg$nj.nb != "NA", "Gene"]))` genes
+
+## Jost's D
+
+Jost's D measures the fraction of allelic differentiation between populations. According to Molecular Ecologist, ["if allelic differentiation at a particular locus is the value of interest, it appears that D is the best measure"](http://www.molecularecologist.com/2011/03/should-i-use-fst-gst-or-d-2/), so it might be useful to look at Jost's D in the putatively freshwater genes. 
+
+```{r josts_d}
+jost.in<-d.in.region(jostd,put.reg,oChrom="Chr",oBP="POS")
+
+```
+
+
 ## Combining all of those analyses
 ```{r plot_tns1}
 tns1.pstart<-min(as.numeric(as.character(put.reg[put.reg$Gene =="TNS1" & 
