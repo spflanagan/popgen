@@ -881,6 +881,8 @@ sub.genind@pop<-factor(gsub("sample_(\\w{4}).*","\\1",rownames(sub.genind@tab)))
 jostpw.sub<-pairwise_D(sub.genind)
 jostpw<-as.matrix(jostpw.sub)[pop.list,pop.list]
 jostpw[lower.tri(jostpw)]<-NA
+write.table(jostpw,"Subset.JostsD.tsv",sep='\t',col.names=TRUE,
+            row.names=TRUE,quote=FALSE)
 jost.lv<-levelplot(jostpw,col.regions=cols,alpha.regions=0.7,
                   scales = list(x=list(rot=90),tck = 0),xlab="",ylab="")
 
