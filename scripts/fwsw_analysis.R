@@ -385,10 +385,12 @@ fst.trees<-data.frame(Chrom=character(),
 for(vcf.row in 1: nrow(vcf)){
   nj.tree<-get.nj(vcf[vcf.row,],pop.list)
   mono<-is.monophyletic(nj.tree,tips=c("TXFW","ALFW","LAFW","FLLG"))
+  swmono<-mono<-is.monophyletic(nj.tree,tips=pop.labs[!pop.labs %in% c("TXFW","ALFW","LAFW","FLLG")])
   fst.tree<-data.frame(Chrom=vcf$`#CHROM`[vcf.row],
                        Pos=vcf$POS[vcf.row],SNP=vcf$SNP[vcf.row],
                        FstTree=write.tree(nj.tree,digits=0),
-                       Monophyletic=mono,stringsAsFactors = FALSE)
+                       FWMonophyletic=mono,
+                       SWMonophyletic=swmono,stringsAsFactors = FALSE)
   fst.trees[vcf.row,]<-fst.tree
 }
 write.table(fst.trees,"ftrees.txt",row.names=F,col.names=T,quote=F)
@@ -883,25 +885,55 @@ jostpw<-as.matrix(jostpw.sub)[pop.list,pop.list]
 jostpw[lower.tri(jostpw)]<-NA
 write.table(jostpw,"Subset.JostsD.tsv",sep='\t',col.names=TRUE,
             row.names=TRUE,quote=FALSE)
-jost.lv<-levelplot(jostpw,col.regions=cols,alpha.regions=0.7,
+
+####PLOT Heatmap Fig #####
+#get poptree distance matrix
+pt.dist<-as.matrix(read.table("poptree/fwsw.8141.distance.out",header=T,row.names=1,sep='\t'))
+dimnames(pt.dist)[[1]]<-dimnames(pt.dist)[[2]]<-pop.labs
+jostpw<-as.matrix(read.table("Subset.JostsD.tsv",header=T,sep='\t'))
+dimnames(jostpw)[[1]]<-dimnames(jostpw)[[2]]<-pop.labs
+
+#set conditions for plotting
+colors<-c("black","darkgrey","grey","lightgrey","cornflowerblue")
+pal<-colorRampPalette(colors)
+ncol=80
+cols<-pal(ncol)
+rev.colors<-c("cornflowerblue","lightgrey","grey","darkgrey","black")
+rev.pal<-colorRampPalette(rev.colors)
+rev.cols<-rev.pal(ncol)
+
+hm.height<-list(x=3.8,units="in")#2.2
+hm.width<-list(x=3.9,units="in")#2.4 in RStudio
+
+png("heatmaps.png",height=11,width=11,units="in",res=300)
+fst.lv<-levelplot(as.matrix(pwise.fst.sub),col.regions=cols,alpha.regions=0.7,
                   scales = list(x=list(rot=90),tck = 0),xlab="",ylab="")
-
-
-png("fst_cov_D_heatmap.png",height=6,width=11,units="in",res=300)
-print(fst.lv,split=c(1,1,2,2),more=TRUE)
+print(fst.lv,split=c(1,1,2,2),more=TRUE,panel.width=hm.width,panel.height=hm.height)
 trellis.focus("legend", side="right", clipp.off=TRUE, highlight=FALSE)
-grid.text(expression(italic(F)[ST]), 0.2, 0, hjust=0.5, vjust=1.2)
+grid.text(expression(italic(F)[ST]), 0.2, 0, hjust=0.5, vjust=1.2,gp=gpar(cex=0.75))
 trellis.unfocus()
 
-print(cp.lv,split=c(1,2,2,2),more=FALSE,newpage=FALSE)
+cp.lv<-levelplot(cp,col.regions=rev.cols,alpha.regions=0.7,
+                 scales = list(x=list(rot=90),tck = 0),xlab="",ylab="")
+print(cp.lv,split=c(1,2,2,2),more=FALSE,newpage=FALSE,panel.width=hm.width,panel.height=hm.height)
 trellis.focus("legend", side="right", clipp.off=TRUE, highlight=FALSE)
-grid.text("covariance", 0.2, 0, hjust=0.5, vjust=1.2)
+grid.text("covariance", 0.2, 0, hjust=0.5, vjust=1.2,gp=gpar(cex=0.75))
 trellis.unfocus()
 
-print(jost.lv,split=c(2,1,2,2),more=FALSE,newpage=FALSE)
+jost.lv<-levelplot(jostpw,col.regions=cols,alpha.regions=0.7,
+                   scales = list(x=list(rot=90),tck = 0),xlab="",ylab="")
+print(jost.lv,split=c(2,1,2,2),more=FALSE,newpage=FALSE,panel.width=hm.width,panel.height=hm.height)
 trellis.focus("legend", side="right", clipp.off=TRUE, highlight=FALSE)
-grid.text(expression("Jost's"~italic(D)), 0.2, 0, hjust=0.5, vjust=1.2)
+grid.text(expression("Jost's"~italic(D)), 0.2, 0, hjust=0.5, vjust=1.2,gp=gpar(cex=0.75))
 trellis.unfocus()
+
+ptdist.lv<-levelplot(pt.dist,col.regions=cols,alpha.regions=0.7,
+                     scales = list(x=list(rot=90),tck = 0),xlab="",ylab="")
+print(ptdist.lv,split=c(2,2,2,2),more=FALSE,newpage=FALSE,panel.width=hm.width,panel.height=hm.height)
+trellis.focus("legend", side="right", clipp.off=TRUE, highlight=FALSE)
+grid.text("PopTree2\nDistance", 0.2, 0, hjust=0.5, vjust=1.2,gp=gpar(cex=0.75))
+trellis.unfocus()
+
 dev.off()
 
 
@@ -955,6 +987,23 @@ for(i in 1:length(poptrees)){
   plot.phylo(poptrees[[i]],cex=1.5)
   mtext(poptree.files[i],3)
 }
+dev.off()
+
+#just the full subset tree
+pt.subtree<-poptrees[[1]]
+pt.subtree$tip.label[pt.subtree$tip.label=="FLLG"]<-"FLFW"
+colors<-pt.subtree$tip.label
+colors[colors %in% "FLFW"]<-grp.colors[6]
+colors[colors %in% c("FLPB","FLHB","FLCC")]<-grp.colors[6]
+colors[colors %in% c("FLAB")]<-grp.colors[5]
+colors[colors %in% c("FLSI","FLFD","FLKB","FLSG")]<-grp.colors[3]
+colors[colors %in% c("ALST","ALFW","LAFW")]<-grp.colors[2]
+colors[colors %in% c("TXSP","TXCC","TXFW","TXCB")]<-grp.colors[1]
+clcolr <- rep("black", dim(pt.subtree$edge)[1])
+clcolr[c(6,20,21,22,23)]<-all.colors[3]
+png("poptree8141.png",height=7,width=7,units="in",res=300)
+plot.phylo(pt.subtree,tip.color = colors,
+           edge.color = clcolr,edge.width = 2,label.offset = 0.0015)
 dev.off()
 ##### TREEMIX #####
 
