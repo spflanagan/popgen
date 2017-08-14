@@ -25,7 +25,7 @@ DATE STARTED: 5 June 2016
 #####Wednesday, 9 August 2017
 Most of my notes are in a notebook...
 but I want to run populations with a whitelist -- needs LocID and column
-populations -b 2 -W subset.whitelist.txt -P fwsw_results/stacks -M fwsw_pops_map.txt --structure
+populations -b 2 -W fwsw_results/subset.whitelist.txt -P fwsw_results/stacks -M fwsw_pops_map.txt --structure
 
 
 #####Tuesday, 21 February 2017

@@ -869,8 +869,38 @@ write.table(as.matrix(jostpw)[pop.list,pop.list],"pairwise.jostd.14802loc.txt",
 subw<-data.frame(Loc=gsub("(\\d+)_\\d+","\\1",map.sub$V2),Pos=gsub("(\\d+)_(\\d+)","\\2",map.sub$V2))
 write.table(subw,"subset.whitelist.txt",col.names=FALSE,row.names=FALSE,quote=F,sep='\t')
 #run populations -b 2 -W subset.whitelist.txt -P fwsw_results/stacks -M fwsw_pops_map.txt --structure
-sub.stru<-read.delim("stacks/subset.structure.tsv",skip=1,sep="")
-stru[,2]<-as.numeric(as.factor(gsub("sample_(\\w{4}).*","\\1",stru[,1])))
+sub.stru<-read.delim("stacks/subset.structure.stru",comment.char="#",header=T,row.names=NULL)
+sub.stru[,2]<-as.numeric(as.factor(gsub("sample_(\\w{4}).*","\\1",sub.stru[,1])))
+colnames(sub.stru)[1:2]<-c("","")
+write.table(stru,"stacks/sub.stru",sep=" ",quote=FALSE,row.names=FALSE,col.names=TRUE)
+
+sub.genind<-read.structure("stacks/subset.structure.stru",n.ind=698,
+                           n.loc=9638,col.lab=1,col.pop=2,sep='\t',
+                           row.marknames = 2,onerowperind=FALSE,ask=FALSE)
+sub.genind@pop<-factor(gsub("sample_(\\w{4}).*","\\1",rownames(sub.genind@tab)))
+jostpw.sub<-pairwise_D(sub.genind)
+jostpw<-as.matrix(jostpw.sub)[pop.list,pop.list]
+jostpw[lower.tri(jostpw)]<-NA
+jost.lv<-levelplot(jostpw,col.regions=cols,alpha.regions=0.7,
+                  scales = list(x=list(rot=90),tck = 0),xlab="",ylab="")
+
+
+png("fst_cov_D_heatmap.png",height=6,width=11,units="in",res=300)
+print(fst.lv,split=c(1,1,2,2),more=TRUE)
+trellis.focus("legend", side="right", clipp.off=TRUE, highlight=FALSE)
+grid.text(expression(italic(F)[ST]), 0.2, 0, hjust=0.5, vjust=1.2)
+trellis.unfocus()
+
+print(cp.lv,split=c(1,2,2,2),more=FALSE,newpage=FALSE)
+trellis.focus("legend", side="right", clipp.off=TRUE, highlight=FALSE)
+grid.text("covariance", 0.2, 0, hjust=0.5, vjust=1.2)
+trellis.unfocus()
+
+print(jost.lv,split=c(2,1,2,2),more=FALSE,newpage=FALSE)
+trellis.focus("legend", side="right", clipp.off=TRUE, highlight=FALSE)
+grid.text(expression("Jost's"~italic(D)), 0.2, 0, hjust=0.5, vjust=1.2)
+trellis.unfocus()
+dev.off()
 
 
 ##Read in the data
