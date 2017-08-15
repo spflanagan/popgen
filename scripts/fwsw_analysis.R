@@ -380,7 +380,8 @@ library(ape)
 fst.trees<-data.frame(Chrom=character(),
                       Pos=numeric(),SNP=character(),
                       FstTree=character(),
-                      Monophyletic=logical(),
+                      FWMonophyletic=logical(),
+                      SWMonophyletic=logical(),
                       stringsAsFactors = FALSE)
 for(vcf.row in 1: nrow(vcf)){
   nj.tree<-get.nj(vcf[vcf.row,],pop.list)
