@@ -445,6 +445,7 @@ ffs.sig<-ffs[ffs$Chi.p <= 0.05, "SNP"] #1044
 ffs.sig[ffs.sig %in% tss.sig & ffs.sig %in% ass.sig] #14
 
 #### Stacks Fsts ####
+fwsw<-read.delim("stacks/fw-sw_populations/batch_2.fst_marine-freshwater.tsv")
 #Compare neighboring pops.
 fwsw.tx<-read.delim("stacks/batch_2.fst_TXCC-TXFW.tsv")
 fwsw.la<-read.delim("stacks/batch_2.fst_ALST-LAFW.tsv")
@@ -619,13 +620,42 @@ assign.plotpos<-function(df, plot.scaffs, bounds, df.chrom="Chrom", df.bp="BP"){
   return(new.dat)
 }
 ft.mono<-assign.plotpos(ftmono,plot.scaffs,bounds,df.bp="Pos")
+fwsw.plot<-assign.plotpos(fwsw,plot.scaffs,bounds,df.bp="BP",df.chrom = "Chr")
+
+perlg.add.lines<-function(fwsw.plot,lgs,width=NULL,lwds=4,color="cornflowerblue"){
+  if(is.null(width)){
+    width<-(nrow(this.df)*0.15)
+  }
+  for(i in 1:length(lgs)){
+    this.df<-fwsw.plot[fwsw.plot$Chr %in% lgs[i],]
+    this.smooth<-do.call("rbind",lapply(seq(1,nrow(this.df),width/5),sliding.avg,
+                                        dat=data.frame(Pos=this.df$plot.pos,
+                                                       Fst=this.df$Corrected.AMOVA.Fst),
+                                        width=width))
+    points(this.smooth,col=color,type="l",lwd=lwds)
+  }
+}
+
+
+#' Set up the plotting utilities
+all.chr<-data.frame(Chr=c(as.character(fwsw.tx$Chr),as.character(fwsw.la$Chr),
+                          as.character(fwsw.al$Chr),as.character(fwsw.fl$Chr)),
+  BP=c(fwsw.tx$BP,fwsw.la$BP,fwsw.al$BP,fwsw.fl$BP),stringsAsFactors = F)
+bounds<-data.frame(Chrom=unique(as.factor(all.chr$Chr)),
+                   End=tapply(as.numeric(as.character(all.chr$BP)),
+                          all.chr$Chr,max))
+plot.scaffs<-scaffs[scaffs %in% bounds$Chr]
+plot.scaffs[1:22]<-lgs
+bounds<-bounds[match(plot.scaffs,bounds$Chrom),]
+
 #' plot with the outlier regions
-png("stacks_fsts_fwsw_withSig_nj.png",height=6,width=8,units="in",res=300)
+png("stacks_fsts_nj_fwsw.png",height=6,width=8,units="in",res=300)
 par(mfrow=c(5,1),mar=c(0.85,2,0,0.5),oma=c(1,1,1,0.5))
 par(fig=c(0,1,0.9-0.9/4,0.9))
 fwswt.fst<-fst.plot(fwsw.tx,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
                     scaffs.to.plot=plot.scaffs, y.lim = c(0,1),scaffold.widths = bounds,pch=19,
                     pt.cols = c(grp.colors[1],grp.colors[2]),pt.cex=1,axis.size = 1)
+perlg.add.lines(fwsw.plot,lgs)
 #points(fwswt.fst$BP,fwswt.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[1])
 points(fwswt.fst$plot.pos[fwswt.fst$Locus.ID %in% all.shared],fwswt.fst$Corrected.AMOVA.Fst[fwswt.fst$Locus.ID %in% all.shared],
        pch=1,col="black",cex=1.3)
@@ -646,6 +676,7 @@ par(fig=c(0,1,0.9-2*(0.9/4),0.9-(0.9/4)),new=T)
 fwswl.fst<-fst.plot(fwsw.la,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
                     scaffs.to.plot=plot.scaffs, y.lim = c(0,1),scaffold.widths = bounds,pch=19,
                     pt.cols=c(grp.colors[2],grp.colors[3]),pt.cex=1,axis.size=1)
+perlg.add.lines(fwsw.plot,lgs)
 #points(fwswl.fst$BP,fwswl.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[3])
 points(fwswl.fst$plot.pos[fwswl.fst$Locus.ID %in% all.shared],fwswl.fst$Corrected.AMOVA.Fst[fwswl.fst$Locus.ID %in% all.shared],
        pch=1,col="black",cex=1.3)
@@ -654,6 +685,7 @@ par(fig=c(0,1,0.9-3*(0.9/4),0.9-2*(0.9/4)),new=T)
 fwswa.fst<-fst.plot(fwsw.al,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
                     scaffs.to.plot=plot.scaffs, y.lim = c(0,1),scaffold.widths = bounds,pch=19,
                     pt.cols=c(grp.colors[3],grp.colors[2]),pt.cex=1,axis.size = 1)
+perlg.add.lines(fwsw.plot,lgs)
 #points(fwswa.fst$BP,fwswa.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[4])
 points(fwswa.fst$plot.pos[fwswa.fst$Locus.ID %in% all.shared],fwswa.fst$Corrected.AMOVA.Fst[fwswa.fst$Locus.ID %in% all.shared],
        pch=1,col="black",cex=1.3)
@@ -662,6 +694,7 @@ par(fig=c(0,1,0,0.9/4),new=T)
 fwswf.fst<-fst.plot(fwsw.fl,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
                     scaffs.to.plot=plot.scaffs, y.lim = c(0,1),scaffold.widths = bounds,pch=19,
                     pt.cols=c(grp.colors[6],grp.colors[5]),pt.cex=1,axis.size=1)
+perlg.add.lines(fwsw.plot,lgs)
 #points(fwswf.fst$BP,fwswf.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[6])
 points(fwswf.fst$plot.pos[fwswf.fst$Locus.ID %in% all.shared],fwswf.fst$Corrected.AMOVA.Fst[fwswf.fst$Locus.ID %in% all.shared],
        pch=1,col="black",cex=1.3)
