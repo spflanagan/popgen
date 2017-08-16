@@ -5,7 +5,15 @@ setwd("~/sf_ubuntushare/popgen/fwsw_results/treemix/")
 poporder<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST",
             "ALFW","FLSG","FLKB","FLFD","FLSI","FLAB",
             "FLPB","FLHB","FLCC","FLLG")
-write.table(poporder,"poporder",quote=F)
+grp.colors<-c('#762a83','#af8dc3','#e7d4e8','#d9f0d3','#7fbf7b','#1b7837')
+colors<-poporder
+colors[colors %in% "FLLG"]<-grp.colors[6]
+colors[colors %in% c("FLPB","FLHB","FLCC")]<-grp.colors[6]
+colors[colors %in% c("FLAB")]<-grp.colors[5]
+colors[colors %in% c("FLSI","FLFD","FLKB","FLSG")]<-grp.colors[3]
+colors[colors %in% c("ALST","ALFW","LAFW")]<-grp.colors[2]
+colors[colors %in% c("TXSP","TXCC","TXFW","TXCB")]<-grp.colors[1]
+write.table(cbind(poporder,colors),"poporder",quote=F,sep='\t')
 treemix.dir<-"~/Programs/treemix-1.13/"
 source(paste(treemix.dir,"src/plotting_funcs.R",sep=""))#I've modified these functions
 library(lattice); library(grid)
@@ -94,9 +102,16 @@ tree3<-read.table(gzfile("fwsw.k100bFLPBrm3.treeout.gz"), as.is  = T, comment.ch
 tree4<-read.table(gzfile("fwsw.k100bFLPBrm4.treeout.gz"), as.is  = T, comment.char = "", quote = "",skip=1)
 tree5<-read.table(gzfile("fwsw.k100bFLPBrm5.treeout.gz"), as.is  = T, comment.char = "", quote = "",skip=1)
 
+d <- read.table("fwsw.k100bFLPBrm3.vertices.gz", as.is  = T, comment.char = "", quote = "")
+branch.cols<-rep("black",nrow(d))
+branch.cols[d[,2] %in% c("TXFW","ALFW","LAFW","FLLG")]<-"cornflowerblue"
+
+tip.names<-as.vector(d[d[,5] == "TIP",2])
+tip.names<-data.frame(Original=tip.names,Replacement=tip.names,stringsAsFactors = FALSE)
+tip.names$Replacement[tip.names$Replacement=="FLLG"]<-"FLFW"
 
 png("FWSW_treemix_m3_FLPB.png",height=7,width=7,units="in",res=300)
-t3<-plot_tree("fwsw.k100bFLPBrm3",plus=0.05,scale=F,mbar=F)
+t3<-plot_tree("fwsw.k100bFLPBrm3","poporder",plus=0.05,scale=F,mbar=F,arrow=0.1,tip.order = tip.names)
 ybar<-0.01
 mcols = rev( heat.colors(150) )
 mcols = mcols[50:length(mcols)]
