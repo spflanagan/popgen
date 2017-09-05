@@ -72,6 +72,7 @@ locus.info<-c(colnames(vcf[1:9]),"SNP")
 #write.table(chosen.snps,"chosen.snps.txt",quote=F)
 chosen.snps<-unlist(read.table("chosen.snps.txt"))
 put.genes<-read.delim("putative_genes.txt",header=TRUE,sep='\t')
+stacks.sig<-read.delim("stacks.sig.snps.txt")
 
 #######################PLOT THE POINTS ON A MAP##############################
 jpeg("all_sites_map.jpg", res=300, height=7,width=14, units="in")
@@ -291,11 +292,18 @@ dd.par<-dd[dd$deltad <= quantile(dd$deltad,0.05),]
 #pi
 avg.pi<-do.call("rbind",sliding.window(vcf,scaffs))
 avg.pi.adj<-fst.plot(avg.pi,scaffold.widths=scaff.starts,pch=19,
-                    fst.name = "Avg.Pi",chrom.name = "Chr",bp.name = "Avg.Pos")
+                    fst.name = "Avg.Stat",chrom.name = "Chr",bp.name = "Avg.Pos")
 all.pi<-data.frame(Chrom=vcf$`#CHROM`,Pos=vcf$POS,Pi=unlist(apply(vcf,1,calc.pi)))
 all.pi$SNP<-paste(all.pi$Chrom,as.numeric(as.character(all.pi$Pos)),sep=".")
 write.table(all.pi,"all.pi.txt",col.names = TRUE,row.names=FALSE, quote=FALSE,sep='\t')
 all.pi<-read.table("all.pi.txt",header=T)
+#het
+avg.het<-do.call("rbind",sliding.window(vcf,scaffs,stat="het"))
+avg.het.adj<-fst.plot(avg.het,scaffold.widths=scaff.starts,pch=19,
+                     fst.name = "Avg.Stat",chrom.name = "Chr",bp.name = "Avg.Pos")
+all.het<-data.frame(Chrom=vcf$`#CHROM`,Pos=vcf$POS,Het=unlist(apply(vcf,1,calc.het)))
+all.het$SNP<-paste(all.het$Chrom,as.numeric(as.character(all.het$Pos)),sep=".")
+
 #rho
 avg.rho<-do.call("rbind",sliding.window(vcf,scaffs,stat = "rho",pop.list=pop.list))
 avg.rho.adj<-fst.plot(avg.rho,scaffold.widths=scaff.starts,
@@ -311,8 +319,8 @@ pi.plot<-fst.plot(all.pi,scaffold.widths=scaff.starts,y.lim=c(0,0.5),axis.size =
 points(x=avg.pi.adj$plot.pos,y=avg.pi.adj$Avg.Pi,col="cornflowerblue",type="l",lwd=2)
 dev.off()
 
-png("deltad_pi.png",height=7,width=5,units="in",res=300)
-par(mfrow=c(2,1),mar=c(1,1,1,1),oma=c(1,2,1,1),cex=0.75)
+png("deltad_pi_het.png",height=7,width=5,units="in",res=300)
+par(mfrow=c(3,1),mar=c(1,1,1,1),oma=c(1,2,1,1),cex=0.75)
 dd<-fst.plot(fst.dat = deltad,fst.name = "deltad",bp.name = "Pos",axis=0.75,
              y.lim=c(-0.5,1),scaffold.widths=scaff.starts,pch=19,scaffs.to.plot = scaffs)
 mtext(expression(paste(delta,"-divergence")),2,line=2,cex=0.75)
@@ -330,17 +338,27 @@ for(i in 1:length(lgs)){#scaffolds are too short
 points(dd[dd$SNP %in% stacks.sig$SNP,c("plot.pos","deltad")],col="darkorchid")
 pi.plot<-fst.plot(all.pi,scaffold.widths=scaff.starts,y.lim=c(0,0.5),axis.size = 0.75,
                   scaffs.to.plot = scaffs,fst.name = "Pi",chrom.name = "Chrom",bp.name = "Pos",pch=19)
-points(x=avg.pi.adj$plot.pos[avg.pi.adj$Chr %in% lgs],y=avg.pi.adj$Avg.Pi[avg.pi.adj$Chr %in% lgs],
+points(x=avg.pi.adj$plot.pos[avg.pi.adj$Chr %in% lgs],y=avg.pi.adj$Avg.Stat[avg.pi.adj$Chr %in% lgs],
        col="cornflowerblue",type="l",lwd=2)
 points(pi.plot[pi.plot$SNP %in% stacks.sig$SNP,c("plot.pos","Pi")],col="darkorchid")
 mtext(expression(pi),2,line=2,cex=0.75)
+het.plot<-fst.plot(all.het,scaffold.widths=scaff.starts,axis.size=0.75,
+                   scaffs.to.plot=scaffs,fst.name="Het",chrom.name="Chrom",
+                   bp.name="Pos",pch=19)
+points(x=avg.het.adj$plot.pos[avg.het.adj$Chr %in% lgs],y=avg.het.adj$Avg.Stat[avg.het.adj$Chr %in% lgs],
+       col="cornflowerblue",type="l",lwd=2)
+points(het.plot[het.plot$SNP %in% stacks.sig$SNP,c("plot.pos","Het")],col="darkorchid")
+mtext(expression(italic(H)),2,line=2,cex=0.75)
 last<-0
 for(i in 1:length(lgs)){
-  text(x=mean(pi.plot[pi.plot$Chrom ==lgs[i],"plot.pos"]),y=0,
+  text(x=mean(het.plot[het.plot$Chrom ==lgs[i],"plot.pos"]),y=0,
        labels=lgn[i], adj=1, xpd=TRUE,cex=0.75)
-  last<-max(pi.plot[pi.plot$Chrom ==lgs[i],"plot.pos"])
+  last<-max(het.plot[het.plot$Chrom ==lgs[i],"plot.pos"])
 }
 dev.off()
+
+#Do high pi and het have low deltad?
+
 
 #### Looking for directional selection
 #' High Fst, low pi
