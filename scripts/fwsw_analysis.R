@@ -290,7 +290,7 @@ dd.par<-dd[dd$deltad <= quantile(dd$deltad,0.05),]
 
 #### Other Pop gen statistics ####
 #pi
-avg.pi<-do.call("rbind",sliding.window(vcf,scaffs))
+avg.pi<-do.call("rbind",sliding.window(vcf,lgs))
 avg.pi.adj<-fst.plot(avg.pi,scaffold.widths=scaff.starts,pch=19,
                     fst.name = "Avg.Stat",chrom.name = "Chr",bp.name = "Avg.Pos")
 all.pi<-data.frame(Chrom=vcf$`#CHROM`,Pos=vcf$POS,Pi=unlist(apply(vcf,1,calc.pi)))
@@ -298,7 +298,7 @@ all.pi$SNP<-paste(all.pi$Chrom,as.numeric(as.character(all.pi$Pos)),sep=".")
 write.table(all.pi,"all.pi.txt",col.names = TRUE,row.names=FALSE, quote=FALSE,sep='\t')
 all.pi<-read.table("all.pi.txt",header=T)
 #het
-avg.het<-do.call("rbind",sliding.window(vcf,scaffs,stat="het"))
+avg.het<-do.call("rbind",sliding.window(vcf,lgs,stat="het"))
 avg.het.adj<-fst.plot(avg.het,scaffold.widths=scaff.starts,pch=19,
                      fst.name = "Avg.Stat",chrom.name = "Chr",bp.name = "Avg.Pos")
 all.het<-data.frame(Chrom=vcf$`#CHROM`,Pos=vcf$POS,Het=unlist(apply(vcf,1,calc.het)))
@@ -315,7 +315,7 @@ all.rho$SNP<-paste(all.rho$Chrom,as.numeric(as.character(all.rho$Pos)),sep=".")
 png("FWSWpi.png",height=5,width=7,units="in",res=300)
 par(oma=c(2,2,2,2),mar=c(2,2,2,2))
 pi.plot<-fst.plot(all.pi,scaffold.widths=scaff.starts,y.lim=c(0,0.5),axis.size = 0.5,pch=19,
-                     fst.name = "Pi",chrom.name = "Chrom",bp.name = "Pos",pch=19)
+                     fst.name = "Pi",chrom.name = "Chrom",bp.name = "Pos")
 points(x=avg.pi.adj$plot.pos,y=avg.pi.adj$Avg.Pi,col="cornflowerblue",type="l",lwd=2)
 dev.off()
 
@@ -388,24 +388,66 @@ for(i in 1:length(lgs)){
                       smoothed.dd$Chrom %in% lgs[i],])
 }
 shared.upp<-upp.pi[upp.pi$plot.pos %in% upp.het$plot.pos,] #6 of the SNPs are high in both!
-shared.upp$plot.min<-shared.upp$plot.pos-250000
-shared.upp$plot.max<-shared.upp$plot.pos+250000
-par(mfrow=c(3,2),oma=c(1,1,1,1),mar=c(1,1,1,1))
-for(i in 1:nrow(shared.upp)){
-  plot(pi.plot[pi.plot$Chr == shared.upp[i,"Chr"] & 
-                 pi.plot$plot.pos <= shared.upp[i,"plot.max"] &
-                 pi.plot$plot.pos >= shared.upp[i,"plot.min"],
-               c("plot.pos","Pi")],type="l",lwd=2,ylim=c(0,0.5),axes=F,
-       ylab="",xlab="")
-  points(het.plot[het.plot$Chr == shared.upp[i,"Chr"] & 
-                 het.plot$plot.pos <= shared.upp[i,"plot.max"] &
-                 het.plot$plot.pos >= shared.upp[i,"plot.min"],
-               c("plot.pos","Het")],type="l",col="cornflowerblue",lwd=2)
-  points(shared.upp$plot.pos[i],0.45,pch=25,bg="darkgreen",cex=2)
-  axis(1)
-  axis(2)
-  mtext(expression(pi),2)
-} #crap why isn't this working
+shared.upp$plot.min<-shared.upp$Avg.Pos-250000
+shared.upp$plot.max<-shared.upp$Avg.Pos+250000
+#include Jost's D (from below)
+jostd<-read.delim("jostd.perlocus.txt",header=F)
+colnames(jostd)<-c("locid","D")
+jostd$SNP<-vcf$SNP
+jostd$POS<-vcf$POS
+jostd$Chr<-vcf$`#CHROM`
+jostd$ID<-vcf$ID
+#also marine-fw fsts
+fwsw<-read.delim("stacks/fw-sw_populations/batch_2.fst_marine-freshwater.tsv")
+#colors
+comp.col<-c(Het="#a6611a",pi="#dfc27d",Fst="black",D="#80cdc1",deltad="#018571")
+png("HandPi.png",height=8,width=6,units="in",res=300)
+par(mfrow=c(3,2),oma=c(1,1,1.5,1),mar=c(1,2,1,1))
+for(i in 1:length(unique(shared.upp$Chr))){
+  #Fst
+  this.df<-fwsw[fwsw$Chr %in% unique(shared.upp$Chr)[i],]
+  plot(this.df$BP,this.df$Corrected.AMOVA.Fst,pch=19,cex=0.5,col=alpha(col=comp.col["Fst"],0.25),
+       ylim=c(-0.2,0.5),axes=F,ylab="",xlab="")
+  #the shared peaks
+  points(y=c(-0.2,0.5),
+         x=c(shared.upp$Avg.Pos[shared.upp$Chr %in% unique(shared.upp$Chr)[i]],
+             shared.upp$Avg.Pos[shared.upp$Chr %in% unique(shared.upp$Chr)[i]]),
+         type="l",col=alpha("#543005",0.75),cex=2,lwd=4)
+  #Pi
+  points(avg.pi.adj[avg.pi.adj$Chr%in%unique(shared.upp$Chr)[i],c("Avg.Pos","Avg.Stat")],
+       type="l",lwd=2,col=comp.col["pi"])
+  #Het
+  points(avg.het.adj[avg.het.adj$Chr %in% unique(shared.upp$Chr)[i],c("Avg.Pos","Avg.Stat")],
+         type="l",col=comp.col["Het"],lwd=2)
+  #deltad
+  this.chrom<-dd[dd$Chrom %in% unique(shared.upp$Chr)[i],]
+  this.smooth<-loess.smooth(this.chrom$Pos,this.chrom$deltad,span=0.1,degree=2) 
+  points(this.smooth$x,this.smooth$y,type="l",col=comp.col["deltad"],lwd=2)
+  #Josts D
+  dsmooth<-loess.smooth(jostd$POS[jostd$Chr %in% unique(shared.upp$Chr)[i]],
+                        jostd$D[jostd$Chr %in% unique(shared.upp$Chr)[i]],span=0.1,degree=2) 
+  points(dsmooth$x,dsmooth$y,type="l",col=comp.col["D"],lwd=2)
+  
+  #axes etc
+  axis(1,pos=-0.2,padj = -1,seq(min(pi.plot$Pos[pi.plot$Chrom%in%unique(shared.upp$Chr)[i]]),
+                             max(pi.plot$Pos[pi.plot$Chrom%in%unique(shared.upp$Chr)[i]]),
+                             (max(pi.plot$Pos[pi.plot$Chrom%in%unique(shared.upp$Chr)[i]])-
+                                min(pi.plot$Pos[pi.plot$Chrom%in%unique(shared.upp$Chr)[i]]))/4))
+  axis(2,las=1,hadj=0.75)
+  mtext(paste("Position on ",unique(shared.upp$Chr)[i],sep=""),1,cex=0.75,line=1)
+}
+par(fig=c(0, 1, 0, 1), oma=c(0, 0, 0, 0), 
+    mar=c(0, 0, 0, 0), new=TRUE)
+plot(0, 0, type='n', bty='n', xaxt='n', yaxt='n')
+legend("top",
+       legend=c(expression(Shared~Upper~pi~and~italic(H)),
+                expression(italic(H)),
+                expression(pi),expression(FW-SW~italic(F)[ST]),
+                expression("Jost's"~italic(D)),
+                expression(delta~-divergence)),
+       bty='n',lwd=c(4,2,2,0,2,2),pch=c(32,32,32,19,32,32),
+       col=c(alpha("#543005",0.75),comp.col),ncol=3)
+dev.off()
 
 #### Looking for directional selection
 #' High Fst, low pi
