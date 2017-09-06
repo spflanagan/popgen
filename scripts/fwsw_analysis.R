@@ -358,7 +358,54 @@ for(i in 1:length(lgs)){
 dev.off()
 
 #Do high pi and het have low deltad?
+#do it per chrom
+upp.pi<-NULL
+low.pi<-NULL
+upp.het<-NULL
+low.het<-NULL
+upp.dd<-NULL
+low.dd<-NULL
+for(i in 1:length(lgs)){
+  upp.pi<-rbind(upp.pi,avg.pi.adj[avg.pi.adj$Avg.Stat >= 
+                     quantile(avg.pi.adj$Avg.Stat[avg.pi.adj$Chr %in% lgs[i]],0.95) &
+                     avg.pi.adj$Chr %in% lgs[i],])
+  low.pi<-rbind(low.pi,avg.pi.adj[avg.pi.adj$Avg.Stat <= 
+                     quantile(avg.pi.adj$Avg.Stat[avg.pi.adj$Chr %in% lgs[i]],0.05) &
+                     avg.pi.adj$Chr %in% lgs[i],])
 
+  upp.het<-rbind(upp.het,avg.het.adj[avg.het.adj$Avg.Stat >= 
+                       quantile(avg.het.adj$Avg.Stat[avg.het.adj$Chr %in% lgs[i]],0.95) &
+                       avg.het.adj$Chr %in% lgs[i],])
+  low.het<-rbind(low.het,avg.het.adj[avg.het.adj$Avg.Stat <= 
+                       quantile(avg.het.adj$Avg.Stat[avg.het.adj$Chr %in% lgs[i]],0.05) &
+                       avg.het.adj$Chr %in% lgs[i],])
+
+  upp.dd<-rbind(upp.dd,smoothed.dd[smoothed.dd$y >= 
+                      quantile(smoothed.dd$y[smoothed.dd$Chrom %in% lgs[i]],0.95) &
+                      smoothed.dd$Chrom %in% lgs[i],])
+  low.dd<-rbind(low.dd,smoothed.dd[smoothed.dd$y <= 
+                      quantile(smoothed.dd$y[smoothed.dd$Chrom %in% lgs[i]],0.05) &
+                      smoothed.dd$Chrom %in% lgs[i],])
+}
+shared.upp<-upp.pi[upp.pi$plot.pos %in% upp.het$plot.pos,] #6 of the SNPs are high in both!
+shared.upp$plot.min<-shared.upp$plot.pos-250000
+shared.upp$plot.max<-shared.upp$plot.pos+250000
+par(mfrow=c(3,2),oma=c(1,1,1,1),mar=c(1,1,1,1))
+for(i in 1:nrow(shared.upp)){
+  plot(pi.plot[pi.plot$Chr == shared.upp[i,"Chr"] & 
+                 pi.plot$plot.pos <= shared.upp[i,"plot.max"] &
+                 pi.plot$plot.pos >= shared.upp[i,"plot.min"],
+               c("plot.pos","Pi")],type="l",lwd=2,ylim=c(0,0.5),axes=F,
+       ylab="",xlab="")
+  points(het.plot[het.plot$Chr == shared.upp[i,"Chr"] & 
+                 het.plot$plot.pos <= shared.upp[i,"plot.max"] &
+                 het.plot$plot.pos >= shared.upp[i,"plot.min"],
+               c("plot.pos","Het")],type="l",col="cornflowerblue",lwd=2)
+  points(shared.upp$plot.pos[i],0.45,pch=25,bg="darkgreen",cex=2)
+  axis(1)
+  axis(2)
+  mtext(expression(pi),2)
+} #crap why isn't this working
 
 #### Looking for directional selection
 #' High Fst, low pi
@@ -377,11 +424,6 @@ put.reg<-read.delim("Updated_putative_regions.txt",header=TRUE,sep='\t')
 put.dir<-pi.sig.fst[pi.sig.fst$Pi <= quantile(pi.plot$Pi,0.25),] #putative directional selection loci.
 
 
-
-#### Looking for balancing selection
-#' Low Fst, high pi (and het)
-
-#plot fsts
 
 
 ##### Neighbor joining trees #####
