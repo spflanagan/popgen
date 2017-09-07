@@ -399,20 +399,37 @@ jostd$Chr<-vcf$`#CHROM`
 jostd$ID<-vcf$ID
 #also marine-fw fsts
 fwsw<-read.delim("stacks/fw-sw_populations/batch_2.fst_marine-freshwater.tsv")
+#and putative genes
+put.genes<-read.delim("putative_genes.txt",header=TRUE,sep='\t')
+#genome annotations
+put.reg<-read.delim("putative.gene.regions.tsv",header=T)
+#select genes of interest
+fav.genes<-c("AQP3","TNS1","CAMKK1","mucin","CAII","NAKATPase","ARHGEF3")
+genes2plot<-put.reg[put.reg$Gene %in% fav.genes,]
+#shared Fst outliers
+fw.sig.reg<-read.csv("StacksFWSWOutliers_annotatedByGenome.csv")
 #colors
 comp.col<-c(Het="#a6611a",pi="#dfc27d",Fst="black",D="#80cdc1",deltad="#018571")
-png("HandPi.png",height=8,width=6,units="in",res=300)
-par(mfrow=c(3,2),oma=c(1,1,1.5,1),mar=c(1,2,1,1))
+png("HandPi_subgenes.png",height=8,width=10,units="in",res=300)
+par(mfrow=c(3,2),oma=c(1,1,2,1),mar=c(1,2,1.5,1))
 for(i in 1:length(unique(shared.upp$Chr))){
-  #Fst
   this.df<-fwsw[fwsw$Chr %in% unique(shared.upp$Chr)[i],]
-  plot(this.df$BP,this.df$Corrected.AMOVA.Fst,pch=19,cex=0.5,col=alpha(col=comp.col["Fst"],0.25),
-       ylim=c(-0.2,0.5),axes=F,ylab="",xlab="")
+  plot(this.df$BP,this.df$Corrected.AMOVA.Fst, ylim=c(-0.2,0.5),axes=F,ylab="",xlab="",type='n')
   #the shared peaks
   points(y=c(-0.2,0.5),
          x=c(shared.upp$Avg.Pos[shared.upp$Chr %in% unique(shared.upp$Chr)[i]],
              shared.upp$Avg.Pos[shared.upp$Chr %in% unique(shared.upp$Chr)[i]]),
          type="l",col=alpha("#543005",0.75),cex=2,lwd=4)
+  #putative gene regions
+  g<-genes2plot[genes2plot$Chrom %in% unique(shared.upp$Chr)[i],]
+  a<-put.reg[put.reg$Chrom %in% unique(shared.upp$Chr)[i]& !(put.reg$Gene %in% fav.genes),]
+  #rect(xleft=as.numeric(a$StartBP),xright=as.numeric(a$StopBP),
+  #     ybottom=-0.2,ytop=0.44,col=alpha("gray35",0.5),border=alpha("gray35",0.5))
+  rect(xleft=as.numeric(g$StartBP),xright=as.numeric(g$StopBP),
+       ybottom=-0.2,ytop=0.44,col="indianred",border="indianred")
+  text(x=unique(g$StartBP),y=0.5,cex=0.6,labels=g$Gene[!duplicated(g$StartBP)],srt=90,xpd=T)
+  #Fst
+  points(this.df$BP,this.df$Corrected.AMOVA.Fst,pch=19,cex=0.5,col=alpha(col=comp.col["Fst"],0.25))
   #Pi
   points(avg.pi.adj[avg.pi.adj$Chr%in%unique(shared.upp$Chr)[i],c("Avg.Pos","Avg.Stat")],
        type="l",lwd=2,col=comp.col["pi"])
@@ -427,7 +444,10 @@ for(i in 1:length(unique(shared.upp$Chr))){
   dsmooth<-loess.smooth(jostd$POS[jostd$Chr %in% unique(shared.upp$Chr)[i]],
                         jostd$D[jostd$Chr %in% unique(shared.upp$Chr)[i]],span=0.1,degree=2) 
   points(dsmooth$x,dsmooth$y,type="l",col=comp.col["D"],lwd=2)
-  
+  #shared Fst outliers
+  points(this.df$BP[this.df$BP %in% fw.sig.reg$BP],
+         this.df$Corrected.AMOVA.Fst[this.df$BP %in% fw.sig.reg$BP],
+         pch=8,cex=1,col="orchid4")
   #axes etc
   axis(1,pos=-0.2,padj = -1,seq(min(pi.plot$Pos[pi.plot$Chrom%in%unique(shared.upp$Chr)[i]]),
                              max(pi.plot$Pos[pi.plot$Chrom%in%unique(shared.upp$Chr)[i]]),
@@ -440,13 +460,16 @@ par(fig=c(0, 1, 0, 1), oma=c(0, 0, 0, 0),
     mar=c(0, 0, 0, 0), new=TRUE)
 plot(0, 0, type='n', bty='n', xaxt='n', yaxt='n')
 legend("top",
-       legend=c(expression(Shared~Upper~pi~and~italic(H)),
+       legend=c("Shared Putative Gene",
+                expression(Shared~italic(F)[ST]~Outlier),
+                expression(Large~pi~and~italic(H)),
                 expression(italic(H)),
                 expression(pi),expression(FW-SW~italic(F)[ST]),
                 expression("Jost's"~italic(D)),
                 expression(delta~-divergence)),
-       bty='n',lwd=c(4,2,2,0,2,2),pch=c(32,32,32,19,32,32),
-       col=c(alpha("#543005",0.75),comp.col),ncol=3)
+       bty='n',lwd=c(2,1,4,2,2,0,2,2),pch=c(32,8,32,32,32,19,32,32),
+       lty=c(1,0,1,1,1,0,1,1),
+       col=c("indianred","orchid4",alpha("#543005",0.75),comp.col),ncol=4)
 dev.off()
 
 #### Looking for directional selection
