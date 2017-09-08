@@ -1850,23 +1850,37 @@ fw.sig.reg<-read.csv("StacksFWSWOutliers_annotatedByGenome.csv")
 fw.sig.reg$SNP<-paste(fw.sig.reg$Chr,fw.sig.reg$BP+1,sep=".")
 
 #' Analyze the environmental associations
-bf.dat<-read.table("bayenv/BF_summary.txt",header=TRUE)
-bf.scaff<-merge(all.snps.map, bf.dat, by.x="V2", by.y="locus")
-colnames(bf.scaff)[1:4]<-c("locus","scaffold","dist","BP")
-bf<-cbind(bf.scaff[,1:4],bf.scaff[,grep("BF",colnames(bf.scaff))])
-bf$col<-gsub("\\d+_(\\d+)","\\1",bf$locus)
-bf$SNP<-paste(bf$scaffold,as.numeric(bf$BP)+1,sep=".")
+#bf.dat<-read.table("bayenv/BF_summary.txt",header=TRUE)
+#bf.scaff<-merge(all.snps.map, bf.dat, by.x="V2", by.y="locus")
+#colnames(bf.scaff)[1:4]<-c("locus","scaffold","dist","BP")
+#bf<-cbind(bf.scaff[,1:4],bf.scaff[,grep("BF",colnames(bf.scaff))])
+#bf$col<-gsub("\\d+_(\\d+)","\\1",bf$locus)
+#bf$SNP<-paste(bf$scaffold,as.numeric(bf$BP)+1,sep=".")
+bf<-read.delim("bayenv/bf.txt") #57250
 bf.co<-apply(bf[,5:7],2,quantile,0.99) #focus on Bayes Factors, because of Lotterhos & Whitlock (2015)
 temp.bf.sig<-bf[bf$Temp_BF>bf.co["Temp_BF"],c(1,2,4,8,9,5)]
 sal.bf.sig<-bf[bf$Salinity_BF>bf.co["Salinity_BF"],c(1,2,4,8,9,6)]
 grass.bf.sig<-bf[bf$seagrass_BF>bf.co["seagrass_BF"],c(1,2,4,8,9,7)]
-
 dim(temp.bf.sig[temp.bf.sig$locus %in% sal.bf.sig$locus & 
                   temp.bf.sig$locus %in% grass.bf.sig,])
 
-bf$logSal<-log(bf$Salinity_BF)
-bf$logTemp<-log(bf$Temp_BF)
-bf$logSeagrass<-log(bf$seagrass_BF)
+#with ones in vcf
+bf.fwsw<-bf[bf$SNP %in% vcf$SNP,] #14674
+bf.fwsw.co<-apply(bf[,5:7],2,quantile,0.99) #focus on Bayes Factors, because of Lotterhos & Whitlock (2015)
+temp.fwsw<-bf[bf$Temp_BF>bf.fwsw.co["Temp_BF"],c(1,2,4,8,9,5)]
+sal.fwsw<-bf[bf$Salinity_BF>bf.fwsw.co["Salinity_BF"],c(1,2,4,8,9,6)]
+grass.fwsw<-bf[bf$seagrass_BF>bf.fwsw.co["seagrass_BF"],c(1,2,4,8,9,7)]
+dim(temp.fwsw[temp.fwsw$locus %in% sal.fwsw$locus & 
+                  temp.fwsw$locus %in% grass.fwsw,])
+
+#ones in the ped file
+# bf.fwsw<-bf[bf$SNP %in% vcf$SNP,]
+# bf.fwsw.co<-apply(bf[,5:7],2,quantile,0.99) #focus on Bayes Factors, because of Lotterhos & Whitlock (2015)
+# temp.fwsw<-bf[bf$Temp_BF>bf.co["Temp_BF"],c(1,2,4,8,9,5)]
+# sal.fwsw<-bf[bf$Salinity_BF>bf.co["Salinity_BF"],c(1,2,4,8,9,6)]
+# grass.fwsw<-bf[bf$seagrass_BF>bf.co["seagrass_BF"],c(1,2,4,8,9,7)]
+# dim(temp.fwsw[temp.fwsw$locus %in% sal.fwsw$locus & 
+#                 temp.fwsw$locus %in% grass.fwsw,])
 
 #' plot bayenv results
 png("Bayenv.png",height=10,width=7,units="in",res=300)
@@ -1911,67 +1925,69 @@ for(i in 1:length(lgs)){
 }
 dev.off()
 ####
-stacks.sig<-assign.plotpos(fw.sig.reg, lgs, bounds, "Chr", "BP")
+bounds<-data.frame(levels(as.factor(bf$scaffold)),tapply(as.numeric(as.character(bf$BP)),bf$scaffold,max))
+plot.scaffs<-scaffs[scaffs %in% bounds$Chrom]
+colnames(bounds)<-c("Chrom","End")
 
+fw.sig.plot<-assign.plotpos(fw.sig.reg, lgs, bounds, "Chr", "BP")
+
+png("Bayenv_output.png",height=10,width=7,units="in",res=300)
 par(mfrow=c(3,1),mar=c(2,2,1,1),oma=c(2,2,1,1))
-lgcols<-as.numeric(factor(bs.sal$scaffold))
-lgcols[lgcols %% 2!=0]<-1
-lgcols[lgcols %% 2==0]<-2
-lgcols[lgcols == 1]<-"lightgrey"
-lgcols[lgcols==2]<-"darkgrey"
+lgcols<-data.frame(lg=as.character(bs.sal$scaffold),col=rep("lightgrey",nrow(bs.sal)),
+                   stringsAsFactors = F)
+lgcols[as.numeric(factor(lgcols$lg,levels=plot.scaffs))%%2==0,"col"]<-"darkgrey" #defining the levels maintains the order
+lgcols<-lgcols$col
 plot(c(min(bs.sal$plot.pos),max(bs.sal$plot.pos)),
      c(min(bs.sal$logSal),max(bs.sal$logSal)),type='n',axes=F,
      xlab="",ylab="")
 points(bs.sal$plot.pos,bs.sal$logSal,col=lgcols,pch=19)
 clip(x1 = min(bs.sal$plot.pos),x2=max(bs.sal$plot.pos),
      y1 = min(bs.sal$logSal), y2 = max(bs.sal$logSal))
-abline(v=stacks.sig$plot.pos,col="orchid4")
-points(bs.sal[bs.sal$SNP %in% sal.bf.sig$SNP,c("plot.pos","logSal")],
+abline(v=fw.sig.plot$plot.pos,col="orchid4")
+points(bs.sal[bs.sal$SNP %in% sal.fwsw$SNP,c("plot.pos","logSal")],
        col="cornflowerblue",pch=19)
 axis(2,las=1)
 mtext("log(Salinity BF)",2,cex=0.75,line=2.1)
 
-lgcols<-as.numeric(factor(bs.temp$scaffold))
-lgcols[lgcols %% 2!=0]<-1
-lgcols[lgcols %% 2==0]<-2
-lgcols[lgcols == 1]<-"lightgrey"
-lgcols[lgcols==2]<-"darkgrey"
+lgcols<-data.frame(lg=as.character(bs.temp$scaffold),col=rep("lightgrey",nrow(bs.temp)),
+                   stringsAsFactors = F)
+lgcols[as.numeric(factor(lgcols$lg,levels=plot.scaffs))%%2==0,"col"]<-"darkgrey" #defining the levels maintains the order
+lgcols<-lgcols$col
 plot(c(min(bs.temp$plot.pos),max(bs.temp$plot.pos)),
      c(min(bs.temp$logTemp),max(bs.temp$logTemp)),type='n',axes=F,
      xlab="",ylab="")
 points(bs.temp$plot.pos,bs.temp$logTemp,col=lgcols,pch=19)
 clip(x1 = min(bs.temp$plot.pos),x2=max(bs.temp$plot.pos),
      y1 = min(bs.temp$logTemp), y2 = max(bs.temp$logTemp))
-abline(v=stacks.sig$plot.pos,col="orchid4")
-points(bs.temp[bs.temp$SNP %in% temp.bf.sig$SNP,c("plot.pos","logTemp")],
+abline(v=fw.sig.plot$plot.pos,col="orchid4")
+points(bs.temp[bs.temp$SNP %in% temp.fwsw$SNP,c("plot.pos","logTemp")],
        col="cornflowerblue",pch=19)
 axis(2,las=1)
 mtext("log(Temp BF)",2,cex=0.75,line=2.1)
 
-lgcols<-as.numeric(factor(bs.grass$scaffold))
-lgcols[lgcols %% 2!=0]<-1
-lgcols[lgcols %% 2==0]<-2
-lgcols[lgcols == 1]<-"lightgrey"
-lgcols[lgcols==2]<-"darkgrey"
+lgcols<-data.frame(lg=as.character(bs.grass$scaffold),col=rep("lightgrey",nrow(bs.grass)),
+                   stringsAsFactors = F)
+lgcols[as.numeric(factor(lgcols$lg,levels=plot.scaffs))%%2==0,"col"]<-"darkgrey" #defining the levels maintains the order
+lgcols<-lgcols$col
 plot(c(min(bs.grass$plot.pos),max(bs.grass$plot.pos)),
      c(min(bs.grass$logSeagrass),max(bs.grass$logSeagrass)),type='n',axes=F,
      xlab="",ylab="")
 points(bs.grass$plot.pos,bs.grass$logSeagrass,col=lgcols,pch=19)
 clip(x1 = min(bs.grass$plot.pos),x2=max(bs.grass$plot.pos),
      y1 = min(bs.grass$logSeagrass), y2 = max(bs.grass$logSeagrass))
-abline(v=stacks.sig$plot.pos,col="orchid4")
-points(bs.grass[bs.grass$SNP %in% grass.bf.sig$SNP,
+abline(v=fw.sig.plot$plot.pos,col="orchid4")
+points(bs.grass[bs.grass$SNP %in% grass.fwsw$SNP,
                 c("plot.pos","logSeagrass")],
        col="cornflowerblue",pch=19)
 axis(2,las=1)
 mtext("log(Seagrass BF)",2,cex=0.75,line=2.1)
 last<-0
 for(i in 1:length(lgs)){
-  text(x=median(bs.grass[bs.grass$scaffold ==lgs[i],"plot.pos"]),y=-3,
+  text(x=median(bs.grass[bs.grass$scaffold ==lgs[i],"plot.pos"]),y=-5,
        labels=lgn[i], adj=1, xpd=TRUE,cex=1)
   last<-max(bs.grass[bs.grass$scaffold ==lgs[i],"plot.pos"])
 }
-
+dev.off()
 ###################BAYESCAN########################
 #make the pops file
 vcf.small<-parse.vcf("batch_2.vcf")#3900 loci
