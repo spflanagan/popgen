@@ -1637,6 +1637,13 @@ dev.off()
 
 
 ##############################BAYENV######################################
+#which variables are different?
+env.data<-read.csv("bayenv/env_data_raw.csv",row.names = 1)
+env.data<-rbind(env.data,pop=c(rep("SW",12),rep("FW",4)))
+env.data<-as.data.frame(t(env.data))
+wilcox.test(as.numeric(env.data$temp)~env.data$pop) #ties, but p=0.539
+wilcox.test(as.numeric(env.data$seagrass)~env.data$pop) #ties, but p=0.897
+#modify genetic data
 ped.pops<-gsub("(sample_)(\\w{4})(\\w+)","\\2",ped.sub[,2])
 ped.sex<-sub('(sample_\\w{4})(\\w)(\\w+)','\\2', ped.sub[,2])
 ped.sex[ped.sex=="F"]<-2
