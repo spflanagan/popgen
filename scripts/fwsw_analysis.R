@@ -523,7 +523,7 @@ write.table(fst.trees,"ftrees.txt",row.names=F,col.names=T,quote=F)
 
 #+ fsttrees
 fst.trees<-read.delim("ftrees.txt",sep=" ")
-ftmono<-fst.trees[fst.trees$Monophyletic == TRUE,]
+ftmono<-fst.trees[fst.trees$FWMonophyletic == TRUE,]
 
 ftmono[ftmono$SNP %in% fw.sig.reg$SNP,]
 
@@ -745,15 +745,14 @@ assign.plotpos<-function(df, plot.scaffs, bounds, df.chrom="Chrom", df.bp="BP"){
   new.dat$plot.pos<-as.numeric(as.character(new.dat$plot.pos))
   return(new.dat)
 }
-ft.mono<-assign.plotpos(ftmono,plot.scaffs,bounds,df.bp="Pos")
-fwsw.plot<-assign.plotpos(fwsw,plot.scaffs,bounds,df.bp="BP",df.chrom = "Chr")
 
 perlg.add.lines<-function(fwsw.plot,lgs,width=NULL,lwds=4,color="cornflowerblue"){
-  if(is.null(width)){
-    width<-(nrow(this.df)*0.15)
-  }
+ 
   for(i in 1:length(lgs)){
     this.df<-fwsw.plot[fwsw.plot$Chr %in% lgs[i],]
+    if(is.null(width)){
+      width<-(nrow(this.df)*0.15)
+    }
     this.smooth<-do.call("rbind",lapply(seq(1,nrow(this.df),width/5),sliding.avg,
                                         dat=data.frame(Pos=this.df$plot.pos,
                                                        Fst=this.df$Corrected.AMOVA.Fst),
@@ -765,19 +764,23 @@ perlg.add.lines<-function(fwsw.plot,lgs,width=NULL,lwds=4,color="cornflowerblue"
 
 #' Set up the plotting utilities
 all.chr<-data.frame(Chr=c(as.character(fwsw.tx$Chr),as.character(fwsw.la$Chr),
-                          as.character(fwsw.al$Chr),as.character(fwsw.fl$Chr)),
-  BP=c(fwsw.tx$BP,fwsw.la$BP,fwsw.al$BP,fwsw.fl$BP),stringsAsFactors = F)
+                          as.character(fwsw.al$Chr),as.character(fwsw.fl$Chr),
+                          as.character(bf$scaffold)),
+  BP=c(fwsw.tx$BP,fwsw.la$BP,fwsw.al$BP,fwsw.fl$BP,bf$BP),stringsAsFactors = F)
 bounds<-data.frame(Chrom=unique(as.factor(all.chr$Chr)),
                    End=tapply(as.numeric(as.character(all.chr$BP)),
                           all.chr$Chr,max))
 plot.scaffs<-scaffs[scaffs %in% bounds$Chr]
 plot.scaffs[1:22]<-lgs
 bounds<-bounds[match(plot.scaffs,bounds$Chrom),]
+#generate info
+ft.mono<-assign.plotpos(ftmono,plot.scaffs,bounds,df.bp="Pos")
+fwsw.plot<-assign.plotpos(fwsw,plot.scaffs,bounds,df.bp="BP",df.chrom = "Chr")
 
 #' plot with the outlier regions
-png("stacks_fsts_nj_fwsw.png",height=6,width=8,units="in",res=300)
+png("stacks_fsts_nj_fwsw_bf.png",height=6,width=8,units="in",res=300)
 par(mfrow=c(5,1),mar=c(0.85,2,0,0.5),oma=c(1,1,1,0.5))
-par(fig=c(0,1,0.9-0.9/4,0.9))
+par(fig=c(0,1,0.9-0.9/5,0.9))
 fwswt.fst<-fst.plot(fwsw.tx,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
                     scaffs.to.plot=plot.scaffs, y.lim = c(0,1),scaffold.widths = bounds,pch=19,
                     pt.cols = c(grp.colors[1],grp.colors[2]),pt.cex=1,axis.size = 1)
@@ -798,7 +801,7 @@ par(fig=c(0,1,0.9,1),new=T)
 plot(c(min(fwswt.fst$plot.pos),max(fwswt.fst$plot.pos)),c(0,1),bty='n',type = 'n',axes=FALSE,xlab="",ylab="")
 abline(v=ft.mono$plot.pos) 
 
-par(fig=c(0,1,0.9-2*(0.9/4),0.9-(0.9/4)),new=T)
+par(fig=c(0,1,0.9-2*(0.9/5),0.9-(0.9/5)),new=T)
 fwswl.fst<-fst.plot(fwsw.la,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
                     scaffs.to.plot=plot.scaffs, y.lim = c(0,1),scaffold.widths = bounds,pch=19,
                     pt.cols=c(grp.colors[2],grp.colors[3]),pt.cex=1,axis.size=1)
@@ -807,7 +810,7 @@ perlg.add.lines(fwsw.plot,lgs)
 points(fwswl.fst$plot.pos[fwswl.fst$Locus.ID %in% all.shared],fwswl.fst$Corrected.AMOVA.Fst[fwswl.fst$Locus.ID %in% all.shared],
        pch=1,col="black",cex=1.3)
 mtext("LAFW vs. ALST",2,cex=0.75)#,line=-1)
-par(fig=c(0,1,0.9-3*(0.9/4),0.9-2*(0.9/4)),new=T)
+par(fig=c(0,1,0.9-3*(0.9/5),0.9-2*(0.9/5)),new=T)
 fwswa.fst<-fst.plot(fwsw.al,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
                     scaffs.to.plot=plot.scaffs, y.lim = c(0,1),scaffold.widths = bounds,pch=19,
                     pt.cols=c(grp.colors[3],grp.colors[2]),pt.cex=1,axis.size = 1)
@@ -816,7 +819,7 @@ perlg.add.lines(fwsw.plot,lgs)
 points(fwswa.fst$plot.pos[fwswa.fst$Locus.ID %in% all.shared],fwswa.fst$Corrected.AMOVA.Fst[fwswa.fst$Locus.ID %in% all.shared],
        pch=1,col="black",cex=1.3)
 mtext("ALFW vs. ALST",2,cex=0.75)#,line=-1)
-par(fig=c(0,1,0,0.9/4),new=T)
+par(fig=c(0,1,0.9-4*(0.9/5),0.9-3*(0.9/5)),new=T)
 fwswf.fst<-fst.plot(fwsw.fl,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
                     scaffs.to.plot=plot.scaffs, y.lim = c(0,1),scaffold.widths = bounds,pch=19,
                     pt.cols=c(grp.colors[6],grp.colors[5]),pt.cex=1,axis.size=1)
@@ -826,8 +829,24 @@ points(fwswf.fst$plot.pos[fwswf.fst$Locus.ID %in% all.shared],fwswf.fst$Correcte
        pch=1,col="black",cex=1.3)
 mtext("FLFW vs. FLCC",2,cex=0.75)#,line=-1)
 mtext(expression(bold(italic(F)[ST])),2,outer=T,line=-1,cex=0.75)
+
+#bf
+par(fig=c(0,1,0,0.9/5),new=T)
+bf<-read.delim("bayenv/bf.txt")
+bs.sal<-fst.plot(bf,fst.name="logSal",chrom.name="scaffold",bp.name = "BP",
+                 scaffs.to.plot = lgs,pch=19,axis.size = 1,pt.cex = 1)
+# points(bs.sal[bs.sal$SNP %in% sal.bf.sig$SNP,"plot.pos"],
+#        bs.sal[bs.sal$SNP %in% sal.bf.sig$SNP,"logSal"],
+#        col="cornflowerblue")
+mtext("log(Salinity BF)",2,cex=0.75,line=2.1)
+#points(bs.sal[bs.sal$SNP %in% stacks.sig$SNP,"plot.pos"],
+#       bs.sal[bs.sal$SNP %in% stacks.sig$SNP,"logSal"],
+#       col="cornflowerblue",cex=1.3)
+clip(min(bs.sal$plot.pos),max(bs.sal$plot.pos),
+     min(bs.sal$logSal),max(bs.sal$logSal))
+abline(h=log(bf.co["Salinity_BF"]),col="cornflowerblue",lwd=2)
 labs<-tapply(fwswf.fst$plot.pos,fwswf.fst$Chr,median)
-text(x=labs[lgs],y=-0.07,labels=lgn,xpd=TRUE)
+text(x=labs[lgs],y=-17,labels=lgn,xpd=TRUE)
 dev.off()
 
 
