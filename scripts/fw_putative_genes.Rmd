@@ -421,7 +421,9 @@ bf$logSeagrass<-log(bf$seagrass_BF)
 
 ```
 
-There are `r dim(temp.bf.sig[temp.bf.sig$locus %in% sal.bf.sig$locus & temp.bf.sig$locus %in% grass.bf.sig,])` overlapping outliers between temperature-, salinity-, and seagrass-associated loci.
+There are `r nrow(temp.bf.sig[temp.bf.sig$locus %in% sal.bf.sig$locus & temp.bf.sig$locus %in% grass.bf.sig,])` overlapping outliers between temperature-, salinity-, and seagrass-associated loci.
+
+But if we only care about salinity ones, there are `r nrow(temp.bf.sig)` outliers.
 
 ### Salinity
 
@@ -503,7 +505,19 @@ So `r length(jost.in[jost.in!="NA"])` loci are located within putative freshwate
 
 ## Combining all of those analyses
 
-I'm highlighting a few of the putative genes that have a bunch of outliers nearby or in them. First is TNS1, which matched three genome annotations but only had one region, on LG1, that contained shared outlier Fsts, delta divergence, Bayenv salinity, temperature and seagrass and was near monophyletic neighbor joining trees. 
+Genes containing shared Fst outliers: `r unique(put.reg[put.reg$rad.loci != "NA","Gene"])`
+Genes containing delta divergence outliers: `r unique(put.reg[put.reg$sdd.in != "NA","Gene"])`
+Genes containing Salinity-associated outliers: `r unique(put.reg[put.reg$bfs.in != "NA","Gene"])`
+Genes near monophyletic FW gene trees: `r unique(put.reg[put.reg$nj.nb != "NA","Gene"])`
+Overlap:
+`r unique(put.reg[put.reg$rad.loci != "NA","Gene"])[unique(put.reg[put.reg$rad.loci != "NA","Gene"]) %in% unique(put.reg[put.reg$sdd.in != "NA","Gene"]) &unique(put.reg[put.reg$rad.loci != "NA","Gene"]) %in% unique(put.reg[put.reg$bfs.in != "NA","Gene"]) &unique(put.reg[put.reg$rad.loci != "NA","Gene"]) %in% unique(put.reg[put.reg$nj.nb != "NA","Gene"])]`
+
+### Highlighting specific genes
+
+
+
+I'm highlighting a few of the putative genes that have a bunch of outliers nearby or in them. First is TNS1, which matched three genome annotations but only had one region, on LG1, that contained shared outlier Fsts, delta divergence, Bayenv salinity, were near monophyletic neighbor joining trees. 
+
 ```{r combine_fsts}
 fst.dfs<-list(fwsw.tx,fwsw.la,fwsw.al,fwsw.fl)
 names(fst.dfs)<-c("TX FWSW","LA FWSW","AL FWSW","FL FWSW")
@@ -541,15 +555,14 @@ gene.region.plot<-function(chrom,gene,put.reg,vcf,chrom.ld, fst.dfs,deltad=FALSE
   pr.gene<-put.reg[put.reg$Chrom==chrom & put.reg$Gene==gene,]
   fst.gene<- unlist(strsplit(gsub(paste(chrom,".",sep=""),"",pr.gene$rad.loci[pr.gene$rad.loci != "NA"]),","))
   sal.gene<- unlist(strsplit(gsub(paste(chrom,".",sep=""),"",pr.gene$bfs.in[pr.gene$bfs.in != "NA"]),","))
-  tmp.gene<- unlist(strsplit(gsub(paste(chrom,".",sep=""),"",pr.gene$bft.in[pr.gene$bft.in != "NA"]),","))
-  grs.gene<- unlist(strsplit(gsub(paste(chrom,".",sep=""),"",pr.gene$bfg.in[pr.gene$bfg.in != "NA"]),","))
+ # tmp.gene<- unlist(strsplit(gsub(paste(chrom,".",sep=""),"",pr.gene$bft.in[pr.gene$bft.in != "NA"]),","))
+  #grs.gene<- unlist(strsplit(gsub(paste(chrom,".",sep=""),"",pr.gene$bfg.in[pr.gene$bfg.in != "NA"]),","))
+  #jd.gene<-unlist(strsplit(gsub(paste(chrom,".",sep=""),"",pr.gene$jostd.nb[jostd.nb != "NA"]),","))
   sdd.gene<- unlist(strsplit(gsub(paste(chrom,".",sep=""),"",pr.gene$sdd.in[pr.gene$sdd.in != "NA"]),","))
   nj.gene<-as.numeric(unlist(strsplit(gsub(paste(chrom,".",sep=""),"",pr.gene$nj.nb[pr.gene$nj.nb != "NA"]),",")))
   nb.gene<-as.numeric(unlist(strsplit(gsub(paste(chrom,".",sep=""),"",pr.gene$nearby.rad[pr.gene$nearby.rad != "NA"]),",")))
-  gene.out<-data.frame(BP=c(as.numeric(fst.gene),as.numeric(sal.gene),as.numeric(tmp.gene),
-                            as.numeric(grs.gene),as.numeric(sdd.gene)),
-                       shape=c(rep(8,length(fst.gene)),rep(1,length(sal.gene)),rep(2,length(tmp.gene)),
-                               rep(3,length(grs.gene)),rep(4,length(sdd.gene))))
+  gene.out<-data.frame(BP=c(as.numeric(fst.gene),as.numeric(sal.gene),as.numeric(sdd.gene)),
+                       shape=c(rep(8,length(fst.gene)),rep(1,length(sal.gene)),rep(4,length(sdd.gene))))
   
   if(length(colors) != length(smooth.fsts)){
     colors<-rep(colors,length(smooth.fsts)/length(colors))
@@ -622,20 +635,16 @@ gene.region.plot<-function(chrom,gene,put.reg,vcf,chrom.ld, fst.dfs,deltad=FALSE
          col=cols)
   #add outlier loci
   clip(x1=min(as.numeric(pstart)),x2=max(as.numeric(pstop)),y1=1.01,y2=1.06)
-  abline(v=gene.out$BP,col="black")
+  abline(v=fst.gene,col="black")
+  abline(v=sal.gene,col="gold1",lty=2)
   abline(v=nb.gene,col=alpha("black",0.5))
   abline(v=nj.gene,col="#08519c")
 }
 ```
 
+### Plot all genes - for supplement
+
 ```{r plot_putative_regions}
-
-par(mfrow=c(1,2),oma=c(2,2,2,2),mar=c(2,2,2,2))
-gene.region.plot("LG1","TNS1",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
-                           colors=colors,alphas=alphas,ltys=ltys)
-gene.region.plot("LG9","AQP3",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
-                           colors=colors,alphas=alphas,ltys=ltys)
-
 
 par(mfrow=c(1,3),oma=c(2,2,2,2),mar=c(2,2,2,2))
 arhgef3<-lapply(unique(put.reg[put.reg$Gene=="ARHGEF3" & !is.na(put.reg$rad.loci),"Chrom"]),
