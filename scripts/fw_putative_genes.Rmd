@@ -512,9 +512,6 @@ Genes near monophyletic FW gene trees: `r unique(put.reg[put.reg$nj.nb != "NA","
 Overlap:
 `r unique(put.reg[put.reg$rad.loci != "NA","Gene"])[unique(put.reg[put.reg$rad.loci != "NA","Gene"]) %in% unique(put.reg[put.reg$sdd.in != "NA","Gene"]) &unique(put.reg[put.reg$rad.loci != "NA","Gene"]) %in% unique(put.reg[put.reg$bfs.in != "NA","Gene"]) &unique(put.reg[put.reg$rad.loci != "NA","Gene"]) %in% unique(put.reg[put.reg$nj.nb != "NA","Gene"])]`
 
-### Highlighting specific genes
-
-
 
 I'm highlighting a few of the putative genes that have a bunch of outliers nearby or in them. First is TNS1, which matched three genome annotations but only had one region, on LG1, that contained shared outlier Fsts, delta divergence, Bayenv salinity, were near monophyletic neighbor joining trees. 
 
@@ -528,7 +525,7 @@ ltys=c(1,1,2,1)
 
 ```{r plotting_function}
 gene.region.plot<-function(chrom,gene,put.reg,vcf,chrom.ld, fst.dfs,deltad=FALSE,
-                           colors="black",lwds=2,alphas=0.5,ltys=1){
+                           colors="black",lwds=2,alphas=0.5,ltys=1,legend=TRUE){
   pstart<-min(as.numeric(as.character(put.reg[put.reg$Gene ==gene & 
                                                      put.reg$Chrom==chrom,"StartBP"])))-(chrom.ld[chrom]/2)
   pstop<-max(as.numeric(as.character(put.reg[put.reg$Gene ==gene & 
@@ -585,7 +582,7 @@ gene.region.plot<-function(chrom,gene,put.reg,vcf,chrom.ld, fst.dfs,deltad=FALSE
   rect(xleft=as.numeric(starts),xright=as.numeric(stops),
          ybottom=-0.04,ytop=1,col="indianred",border="indianred")
   #add fsts
-  mtext(paste("Position on ",chrom,sep=""),1)
+  mtext(paste("Position on ",chrom,sep=""),1,cex=0.75)
   for(i in 1:length(smooth.fsts)){
     points(smooth.fsts[[i]],col=alpha(colors[i],alphas[i]),type="l",lwd=lwds[i],lty=ltys[i])
   }
@@ -629,14 +626,21 @@ gene.region.plot<-function(chrom,gene,put.reg,vcf,chrom.ld, fst.dfs,deltad=FALSE
     pchs<-c(pchs,124)
   }
   
+  if(length(sal.gene)>0){
+    lgnd<-c(lgnd,"Salinity-associated")
+    cols<-c(cols,"black")
+    pchs<-c(pchs,25)
+  }
+  if(legend==TRUE){
   legend("topleft",
          legend=lgnd,pch=pchs,
-         bty='n',lwd=c(lwds,2,0,0,0),lty=c(ltys,1,0,0,0),
+         bty='n',lwd=c(lwds,2,0,0,0,0),lty=c(ltys,1,0,0,0,0),
          col=cols)
+  }
   #add outlier loci
   clip(x1=min(as.numeric(pstart)),x2=max(as.numeric(pstop)),y1=1.01,y2=1.06)
   abline(v=fst.gene,col="black")
-  abline(v=sal.gene,col="gold1",lty=2)
+  points(x=sal.gene,y=rep(1.05,length(sal.gene)),col="black",pch=25,cex=0.5)
   abline(v=nb.gene,col=alpha("black",0.5))
   abline(v=nj.gene,col="#08519c")
 }
@@ -685,7 +689,15 @@ rhogtp8<-lapply(unique(put.reg[put.reg$Gene=="RHOGTP8" & !is.na(put.reg$rad.loci
 
 ```
 
+### Create figures
+
 ```{r print_putative_regions, eval=FALSE,echo=FALSE}
+put.reg$plot<-FALSE
+put.reg$plot[!is.na(put.reg$rad.loci)]<-TRUE # | !is.na(put.reg$bfs.in) | !is.na(put.reg$nj.nb)
+fave.lgs<-c("LG1","LG2","LG8","LG9","LG12","LG15","LG19")
+
+unique(put.reg[put.reg$Gene=="AQP3","Chrom"])
+
 png("tns1_aqp3.png",height=5,width=10,res=300,units="in")
 par(mfrow=c(1,2),oma=c(2,2,2,2),mar=c(2,2,2,2))
 gene.region.plot("LG1","TNS1",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
@@ -694,31 +706,57 @@ gene.region.plot("LG9","AQP3",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
                            colors=colors,alphas=alphas,ltys=ltys)
 dev.off()
 
-png("arhgef3.png",height=10/3,width=10,units="in",res=300)
-par(mfrow=c(1,3),oma=c(2,2,2,2),mar=c(2,2,2,2))
-arhgef3<-lapply(unique(put.reg[put.reg$Gene=="ARHGEF3" & !is.na(put.reg$rad.loci),"Chrom"]),
+#PLOT ALL GENES
+png("tns1.png",height=10/3,width=10,units="in",res=300)
+par(mfrow=c(1,2),oma=c(2,2,2,2),mar=c(2,2,2,2))
+tns1<-lapply(unique(put.reg[put.reg$Gene=="TNS1","Chrom"]),
+       gene.region.plot,gene="TNS1",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
+       fst.dfs=fst.dfs,deltad=deltad,colors=colors,alphas=alphas,ltys=ltys)
+dev.off()
+
+png("aqp3.png",height=10,width=10,units="in",res=300)
+par(mfrow=c(3,2),oma=c(2,2,2,2),mar=c(2,2,2,2))
+tns1<-lapply(unique(put.reg[put.reg$Gene=="AQP3" & put.reg$Chrom %in% lgs,"Chrom"]),
+       gene.region.plot,gene="AQP3",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
+       fst.dfs=fst.dfs,deltad=deltad,colors=colors,alphas=alphas,ltys=ltys)
+dev.off()
+
+png("arhgef3.png",height=10,width=10,units="in",res=300)
+par(mfrow=c(5,3),oma=c(2,2,2,2),mar=c(2,2,2,2))
+arhgef3<-lapply(unique(put.reg[put.reg$Gene=="ARHGEF3" & put.reg$Chrom %in% lgs,"Chrom"]),
        gene.region.plot,gene="ARHGEF3",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
        fst.dfs=fst.dfs,deltad=deltad,colors=colors,alphas=alphas,ltys=ltys)
 dev.off()
 
-png("nakatpase.png",height=5,width=10,units="in",res=300)
-par(mfrow=c(1,2),oma=c(2,2,2,2),mar=c(2,2,2,2))
-nakatpase<-lapply(unique(put.reg[put.reg$Gene=="NAKATPase" & !is.na(put.reg$rad.loci),"Chrom"]),
+png("nakatpase.png",height=8,width=10,units="in",res=300)
+par(mfrow=c(2,3),oma=c(2,2,2,2),mar=c(2,2,2,2))
+nakatpase<-lapply(unique(put.reg[put.reg$Gene=="NAKATPase" & put.reg$Chrom %in% lgs,"Chrom"]),
        gene.region.plot,gene="NAKATPase",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
        fst.dfs=fst.dfs,deltad=deltad,colors=colors,alphas=alphas,ltys=ltys)
 dev.off()
 
-png("ca.png",height=7.5,width=10,units="in",res=300)
-par(mfrow=c(2,3),oma=c(2,2,2,2),mar=c(2,2,2,2))
-ca<-lapply(unique(put.reg[put.reg$Gene=="CA" & !is.na(put.reg$rad.loci),"Chrom"]),
-       gene.region.plot,gene="CA",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
-       fst.dfs=fst.dfs,deltad=deltad,colors=colors,alphas=alphas,ltys=ltys)
-ca2<-lapply(unique(put.reg[put.reg$Gene=="CAII" & !is.na(put.reg$rad.loci),"Chrom"]),
+png("ca.png",height=10,width=7.5,units="in",res=300)
+par(mfrow=c(4,2),oma=c(2,2,2,2),mar=c(2,2,2,2))
+ca2<-lapply(unique(put.reg[put.reg$Gene=="CAII" &put.reg$Chrom %in% lgs,"Chrom"]),
        gene.region.plot,gene="CAII",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
        fst.dfs=fst.dfs,deltad=deltad,colors=colors,alphas=alphas,ltys=ltys)
 dev.off()
+
+png("mucins.png",height=10,width=10,units="in",res=300)
+par(mfrow=c(4,3),oma=c(2,2,2,2),mar=c(2,2,2,2))
+ca2<-lapply(unique(put.reg[put.reg$Gene=="mucin" &put.reg$Chrom %in% lgs,"Chrom"]),
+       gene.region.plot,gene="mucin",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
+       fst.dfs=fst.dfs,deltad=deltad,colors=colors,alphas=alphas,ltys=ltys)
+dev.off()
+
+png("camkk1.png",height=7,width=10,units="in",res=300)
+par(mfrow=c(2,3),oma=c(2,2,2,2),mar=c(2,2,2,2))
+ca2<-lapply(unique(put.reg[put.reg$Gene=="CAMKK1" &put.reg$Chrom %in% lgs,"Chrom"]),
+       gene.region.plot,gene="CAMKK1",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
+       fst.dfs=fst.dfs,deltad=deltad,colors=colors,alphas=alphas,ltys=ltys)
+dev.off()
        
-png("mucin.png",height=5,width=10,units="in",res=300)
+png("special.mucin.png",height=5,width=10,units="in",res=300)
 par(mfrow=c(1,2),oma=c(2,2,2,2),mar=c(2,2,2,2))
 gene.region.plot("LG2","mucin",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
                            colors=colors,alphas=alphas,ltys=ltys)
@@ -736,13 +774,75 @@ dev.off()
 
 
 png("rhogtp.png",height=10,width=10,units="in",res=300)
-par(mfrow=c(3,3),oma=c(2,2,2,2),mar=c(2,2,2,2))
-rhogtp8<-lapply(unique(put.reg[put.reg$Gene=="RHOGTP8" & !is.na(put.reg$rad.loci),"Chrom"]),
+par(mfrow=c(6,3),oma=c(2,2,2,2),mar=c(2,2,2,2))
+rhogtp8<-lapply(unique(put.reg[put.reg$Gene=="RHOGTP8" & put.reg$Chrom %in% lgs,"Chrom"]),
        gene.region.plot,gene="RHOGTP8",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
        fst.dfs=fst.dfs,deltad=deltad,colors=colors,alphas=alphas,ltys=ltys)
 dev.off()
 ```
 
+```{r making_Fig7, eval=FALSE,echo=FALSE}
 
+png("Fig7candidateGenes.png",height=10,width=10,units="in",res=300)
+
+
+par(mfrow=c(4,3),oma=c(2,2,4.5,2),mar=c(1,2,1,1))
+gene.region.plot("LG1","mucin",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
+                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE)
+text(x=8500000,y=0.8,expression(italic(mucin)),xpd=T)
+gene.region.plot("LG2","mucin",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
+                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE)
+text(x=1000000,y=0.8,expression(italic(mucin)),xpd=T)
+gene.region.plot("LG8","mucin",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
+                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE)
+text(x=7100000,y=0.8,expression(italic(mucin)),xpd=T)
+#row2
+gene.region.plot("LG1","RHOGTP8",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
+                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE)
+text(x=5000000,y=0.8,expression(italic(RhoGTPase)),xpd=T)
+gene.region.plot("LG5","RHOGTP8",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
+                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE)
+text(x=7500000,y=0.8,expression(italic(RhoGTPase)),xpd=T)
+gene.region.plot("LG20","RHOGTP8",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
+                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE)
+text(x=2000000,y=0.8,expression(italic(RhoGTPase)),xpd=T)
+#row3
+gene.region.plot("LG1","TNS1",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
+                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE)
+text(x=17000000,y=0.8,expression(italic(TNS1)),xpd=T)
+gene.region.plot("LG1","AQP3",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
+                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE)
+text(x=6500000,y=0.8,expression(italic(Aquaporin3)),xpd=T)
+gene.region.plot("LG1","NAKATPase",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
+                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE)
+text(x=5500000,y=0.8,expression(italic(Na^'+'*K^'+'*ATPase)),xpd=T)
+#row4
+gene.region.plot("LG2","CAII",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
+                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE)
+text(x=4500000,y=0.8,expression(italic(CAII)),xpd=T)
+gene.region.plot("LG2","CAMKK1",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
+                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE)
+text(x=6500000,y=0.8,expression(italic(CAMKK1)),xpd=T)
+gene.region.plot("LG13","ARHGEF3",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
+                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE)
+text(x=1750000,y=0.8,expression(italic(ARHGEF3)),xpd=T)
+par(mfrow=c(1, 1), oma=rep(0, 4), mar=rep(0, 4), new=TRUE)
+plot(0:1, 0:1, type="n", xlab="", ylab="", axes=FALSE)
+
+legend("top",c(expression(TX~FWSW~italic(F)[ST]),
+                expression(LA~FWSW~italic(F)[ST]),
+                expression(AL~FWSW~italic(F)[ST]),
+                expression(FL~FWSW~italic(F)[ST]),
+                expression(delta~-divergence),
+                expression(Shared~italic(F)[ST]~Outliers),
+                "Salinity-associated SNPs",
+                "Monophyletic FW Gene Tree",
+                "FW Candidate Gene"),
+       pch=c(rep(32,5),124,25,124,124),lty=c(1,1,1,1,1,0,0,0,0),lwd=2,
+       col=c(colors,"cornflowerblue","black","black","#08519c","indianred"),
+       bty='n',ncol=3,cex=0.75,x.intersp=0)
+
+dev.off()
+```
 
 

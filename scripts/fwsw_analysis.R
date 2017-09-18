@@ -721,7 +721,7 @@ for(i in 1:length(lgs)){
 }
 dev.off()
 
-#### plotting ####
+#### PLOT FIG. 5 ####
 
 assign.plotpos<-function(df, plot.scaffs, bounds, df.chrom="Chrom", df.bp="BP"){
   colnames(bounds)<-c("Chrom","End")
@@ -761,6 +761,27 @@ perlg.add.lines<-function(fwsw.plot,lgs,width=NULL,lwds=4,color="cornflowerblue"
   }
 }
 
+#' files to read in if they're not already
+fwsw<-read.delim("stacks/fw-sw_populations/batch_2.fst_marine-freshwater.tsv")
+#Compare neighboring pops.
+fwsw.tx<-read.delim("stacks/batch_2.fst_TXCC-TXFW.tsv")
+fwsw.la<-read.delim("stacks/batch_2.fst_ALST-LAFW.tsv")
+fwsw.al<-read.delim("stacks/batch_2.fst_ALFW-ALST.tsv")
+fwsw.fl<-read.delim("stacks/batch_2.fst_FLCC-FLLG.tsv")
+tx.sig<-fwsw.tx[fwsw.tx$Fisher.s.P<0.01,"Locus.ID"]
+la.sig<-fwsw.la[fwsw.la$Fisher.s.P<0.01,"Locus.ID"]
+al.sig<-fwsw.al[fwsw.al$Fisher.s.P<0.01,"Locus.ID"]
+fl.sig<-fwsw.fl[fwsw.fl$Fisher.s.P<0.01,"Locus.ID"]
+length(tx.sig[(tx.sig %in% c(la.sig,al.sig,fl.sig))])
+length(la.sig[(la.sig %in% c(tx.sig,al.sig,fl.sig))])
+length(al.sig[(al.sig %in% c(la.sig,tx.sig,fl.sig))])
+all.shared<-fl.sig[fl.sig %in% la.sig & fl.sig %in% al.sig & fl.sig %in% tx.sig]
+bf<-read.delim("bayenv/bf.txt") #57250
+bf.co<-apply(bf[,5:7],2,quantile,0.99) #focus on Bayes Factors, because of Lotterhos & Whitlock (2015)
+sal.bf.sig<-bf[bf$Salinity_BF>bf.co["Salinity_BF"],c(1,2,4,8,9,6)]
+stacks.sig<-read.delim("stacks.sig.snps.txt")
+fst.trees<-read.delim("ftrees.txt",sep=" ")
+ftmono<-fst.trees[fst.trees$FWMonophyletic == TRUE,]
 
 #' Set up the plotting utilities
 all.chr<-data.frame(Chr=c(as.character(fwsw.tx$Chr),as.character(fwsw.la$Chr),
@@ -777,6 +798,7 @@ bounds<-bounds[match(plot.scaffs,bounds$Chrom),]
 ft.mono<-assign.plotpos(ftmono,plot.scaffs,bounds,df.bp="Pos")
 fwsw.plot<-assign.plotpos(fwsw,plot.scaffs,bounds,df.bp="BP",df.chrom = "Chr")
 
+dev.off()
 #' plot with the outlier regions
 png("stacks_fsts_nj_fwsw_bf.png",height=6,width=8,units="in",res=300)
 par(mfrow=c(5,1),mar=c(0.85,2,0,0.5),oma=c(1,1,1,0.5))
@@ -786,8 +808,10 @@ fwswt.fst<-fst.plot(fwsw.tx,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chr
                     pt.cols = c(grp.colors[1],grp.colors[2]),pt.cex=1,axis.size = 1)
 perlg.add.lines(fwsw.plot,lgs)
 #points(fwswt.fst$BP,fwswt.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[1])
-points(fwswt.fst$plot.pos[fwswt.fst$Locus.ID %in% all.shared],fwswt.fst$Corrected.AMOVA.Fst[fwswt.fst$Locus.ID %in% all.shared],
-       pch=1,col="black",cex=1.3)
+#points(fwswt.fst$plot.pos[fwswt.fst$Locus.ID %in% all.shared],fwswt.fst$Corrected.AMOVA.Fst[fwswt.fst$Locus.ID %in% all.shared],
+#       pch=1,col="black",cex=1.3)
+clip(0,max(fwswt.fst$plot.pos),0,1)
+abline(v=fwswt.fst$plot.pos[fwswt.fst$Locus.ID %in% all.shared])
 mtext("TXFW vs. TXCC",2,cex=0.75)#,line=-1)
 #add a sketch of a cladogram
 par(fig=c(0,0.1,0.9,1),new=T)
@@ -807,8 +831,10 @@ fwswl.fst<-fst.plot(fwsw.la,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chr
                     pt.cols=c(grp.colors[2],grp.colors[3]),pt.cex=1,axis.size=1)
 perlg.add.lines(fwsw.plot,lgs)
 #points(fwswl.fst$BP,fwswl.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[3])
-points(fwswl.fst$plot.pos[fwswl.fst$Locus.ID %in% all.shared],fwswl.fst$Corrected.AMOVA.Fst[fwswl.fst$Locus.ID %in% all.shared],
-       pch=1,col="black",cex=1.3)
+#points(fwswl.fst$plot.pos[fwswl.fst$Locus.ID %in% all.shared],fwswl.fst$Corrected.AMOVA.Fst[fwswl.fst$Locus.ID %in% all.shared],
+#       pch=1,col="black",cex=1.3)
+clip(0,max(fwswl.fst$plot.pos),0,1)
+abline(v=fwswl.fst$plot.pos[fwswl.fst$Locus.ID %in% all.shared])
 mtext("LAFW vs. ALST",2,cex=0.75)#,line=-1)
 par(fig=c(0,1,0.9-3*(0.9/5),0.9-2*(0.9/5)),new=T)
 fwswa.fst<-fst.plot(fwsw.al,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
@@ -816,8 +842,10 @@ fwswa.fst<-fst.plot(fwsw.al,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chr
                     pt.cols=c(grp.colors[3],grp.colors[2]),pt.cex=1,axis.size = 1)
 perlg.add.lines(fwsw.plot,lgs)
 #points(fwswa.fst$BP,fwswa.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[4])
-points(fwswa.fst$plot.pos[fwswa.fst$Locus.ID %in% all.shared],fwswa.fst$Corrected.AMOVA.Fst[fwswa.fst$Locus.ID %in% all.shared],
-       pch=1,col="black",cex=1.3)
+#points(fwswa.fst$plot.pos[fwswa.fst$Locus.ID %in% all.shared],fwswa.fst$Corrected.AMOVA.Fst[fwswa.fst$Locus.ID %in% all.shared],
+#       pch=1,col="black",cex=1.3)
+clip(0,max(fwswa.fst$plot.pos),0,1)
+abline(v=fwswa.fst$plot.pos[fwswa.fst$Locus.ID %in% all.shared])
 mtext("ALFW vs. ALST",2,cex=0.75)#,line=-1)
 par(fig=c(0,1,0.9-4*(0.9/5),0.9-3*(0.9/5)),new=T)
 fwswf.fst<-fst.plot(fwsw.fl,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
@@ -825,8 +853,10 @@ fwswf.fst<-fst.plot(fwsw.fl,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chr
                     pt.cols=c(grp.colors[6],grp.colors[5]),pt.cex=1,axis.size=1)
 perlg.add.lines(fwsw.plot,lgs)
 #points(fwswf.fst$BP,fwswf.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[6])
-points(fwswf.fst$plot.pos[fwswf.fst$Locus.ID %in% all.shared],fwswf.fst$Corrected.AMOVA.Fst[fwswf.fst$Locus.ID %in% all.shared],
-       pch=1,col="black",cex=1.3)
+#points(fwswf.fst$plot.pos[fwswf.fst$Locus.ID %in% all.shared],fwswf.fst$Corrected.AMOVA.Fst[fwswf.fst$Locus.ID %in% all.shared],
+#       pch=1,col="black",cex=1.3)
+clip(0,max(fwswf.fst$plot.pos),0,1)
+abline(v=fwswf.fst$plot.pos[fwswf.fst$Locus.ID %in% all.shared])
 mtext("FLFW vs. FLCC",2,cex=0.75)#,line=-1)
 mtext(expression(bold(italic(F)[ST])),2,outer=T,line=-1,cex=0.75)
 
@@ -835,18 +865,22 @@ par(fig=c(0,1,0,0.9/5),new=T)
 bf<-read.delim("bayenv/bf.txt")
 bs.sal<-fst.plot(bf,fst.name="logSal",chrom.name="scaffold",bp.name = "BP",
                  scaffs.to.plot = lgs,pch=19,axis.size = 1,pt.cex = 1)
-# points(bs.sal[bs.sal$SNP %in% sal.bf.sig$SNP,"plot.pos"],
-#        bs.sal[bs.sal$SNP %in% sal.bf.sig$SNP,"logSal"],
-#        col="cornflowerblue")
+points(bs.sal[bs.sal$SNP %in% sal.bf.sig$SNP,"plot.pos"],
+        bs.sal[bs.sal$SNP %in% sal.bf.sig$SNP,"logSal"],
+        col="cornflowerblue",pch=19)
+clip(0,max(bs.sal$plot.pos),-3,241)
+abline(v=fwswf.fst$plot.pos[fwswf.fst$Locus.ID %in% all.shared])
 mtext("log(Salinity BF)",2,cex=0.75,line=2.1)
 #points(bs.sal[bs.sal$SNP %in% stacks.sig$SNP,"plot.pos"],
 #       bs.sal[bs.sal$SNP %in% stacks.sig$SNP,"logSal"],
 #       col="cornflowerblue",cex=1.3)
-clip(min(bs.sal$plot.pos),max(bs.sal$plot.pos),
-     min(bs.sal$logSal),max(bs.sal$logSal))
-abline(h=log(bf.co["Salinity_BF"]),col="cornflowerblue",lwd=2)
+#clip(min(bs.sal$plot.pos),max(bs.sal$plot.pos),
+#     min(bs.sal$logSal),max(bs.sal$logSal))
+#abline(h=log(bf.co["Salinity_BF"]),col="cornflowerblue",lwd=2)
+
+#add chromosome labels
 labs<-tapply(fwswf.fst$plot.pos,fwswf.fst$Chr,median)
-text(x=labs[lgs],y=-17,labels=lgn,xpd=TRUE)
+text(x=labs[lgs],y=-25,labels=lgn,xpd=TRUE)
 dev.off()
 
 
