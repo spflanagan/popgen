@@ -691,6 +691,8 @@ rhogtp8<-lapply(unique(put.reg[put.reg$Gene=="RHOGTP8" & !is.na(put.reg$rad.loci
 
 ### Create figures
 
+Based on the plots above, I'll exclude cases where the candidate gene is beyond the scope of the FST data.
+
 ```{r print_putative_regions, eval=FALSE,echo=FALSE}
 put.reg$plot<-FALSE
 put.reg$plot[!is.na(put.reg$rad.loci)]<-TRUE # | !is.na(put.reg$bfs.in) | !is.na(put.reg$nj.nb)
@@ -716,44 +718,112 @@ dev.off()
 
 png("aqp3.png",height=10,width=10,units="in",res=300)
 par(mfrow=c(3,2),oma=c(2,2,2,2),mar=c(2,2,2,2))
-tns1<-lapply(unique(put.reg[put.reg$Gene=="AQP3" & put.reg$Chrom %in% lgs,"Chrom"]),
+tns1<-lapply(unique(put.reg[put.reg$Gene=="AQP3" & put.reg$Chrom %in% lgs & put.reg$Chrom != "LG18","Chrom"]),
        gene.region.plot,gene="AQP3",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
-       fst.dfs=fst.dfs,deltad=deltad,colors=colors,alphas=alphas,ltys=ltys)
+       fst.dfs=fst.dfs,deltad=deltad,colors=colors,alphas=alphas,ltys=ltys,legend=FALSE)
+plot(0:1,0:1,type='n',xlab="",ylab="",axes=F)
+legend("top",c(expression(TX~FWSW~italic(F)[ST]),
+                expression(LA~FWSW~italic(F)[ST]),
+                expression(AL~FWSW~italic(F)[ST]),
+                expression(FL~FWSW~italic(F)[ST]),
+                expression(delta~-divergence),
+                expression(Shared~italic(F)[ST]~Outliers),
+                "Salinity-associated SNPs",
+                "Monophyletic FW Gene Tree",
+                "FW Candidate Gene"),
+       pch=c(rep(32,5),124,25,124,124),lty=c(1,1,1,1,1,0,0,0,0),lwd=2,
+       col=c(colors,"cornflowerblue","black","black","#08519c","indianred"),
+       bty='n',ncol=3,x.intersp=0)
 dev.off()
 
 png("arhgef3.png",height=10,width=10,units="in",res=300)
-par(mfrow=c(5,3),oma=c(2,2,2,2),mar=c(2,2,2,2))
-arhgef3<-lapply(unique(put.reg[put.reg$Gene=="ARHGEF3" & put.reg$Chrom %in% lgs,"Chrom"]),
+par(mfrow=c(4,3),oma=c(2,2,2,2),mar=c(2,2,2,2))
+arhgef3<-lapply(unique(put.reg[put.reg$Gene=="ARHGEF3" & put.reg$Chrom %in% lgs
+                               &!(put.reg$Chrom %in% c("LG5","LG12","LG22")),"Chrom"]),
        gene.region.plot,gene="ARHGEF3",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
        fst.dfs=fst.dfs,deltad=deltad,colors=colors,alphas=alphas,ltys=ltys)
 dev.off()
 
 png("nakatpase.png",height=8,width=10,units="in",res=300)
 par(mfrow=c(2,3),oma=c(2,2,2,2),mar=c(2,2,2,2))
-nakatpase<-lapply(unique(put.reg[put.reg$Gene=="NAKATPase" & put.reg$Chrom %in% lgs,"Chrom"]),
+nakatpase<-lapply(unique(put.reg[put.reg$Gene=="NAKATPase" & put.reg$Chrom %in% lgs & 
+                                   put.reg$Chrom != "LG14","Chrom"]),
        gene.region.plot,gene="NAKATPase",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
-       fst.dfs=fst.dfs,deltad=deltad,colors=colors,alphas=alphas,ltys=ltys)
+       fst.dfs=fst.dfs,deltad=deltad,colors=colors,alphas=alphas,ltys=ltys,legend=FALSE)
+plot(0:1,0:1,type='n',xlab="",ylab="",axes=F)
+legend("top",c(expression(TX~FWSW~italic(F)[ST]),
+                expression(LA~FWSW~italic(F)[ST]),
+                expression(AL~FWSW~italic(F)[ST]),
+                expression(FL~FWSW~italic(F)[ST]),
+                expression(delta~-divergence),
+                expression(Shared~italic(F)[ST]~Outliers),
+                "Salinity-associated SNPs",
+                "Monophyletic FW Gene Tree",
+                "FW Candidate Gene"),
+       pch=c(rep(32,5),124,25,124,124),lty=c(1,1,1,1,1,0,0,0,0),lwd=2,
+       col=c(colors,"cornflowerblue","black","black","#08519c","indianred"),
+       bty='n',ncol=1,x.intersp=0)
 dev.off()
 
 png("ca.png",height=10,width=7.5,units="in",res=300)
 par(mfrow=c(4,2),oma=c(2,2,2,2),mar=c(2,2,2,2))
 ca2<-lapply(unique(put.reg[put.reg$Gene=="CAII" &put.reg$Chrom %in% lgs,"Chrom"]),
        gene.region.plot,gene="CAII",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
-       fst.dfs=fst.dfs,deltad=deltad,colors=colors,alphas=alphas,ltys=ltys)
+       fst.dfs=fst.dfs,deltad=deltad,colors=colors,alphas=alphas,ltys=ltys,legend=FALSE)
+plot(0:1,0:1,type='n',xlab="",ylab="",axes=F)
+legend("top",c(expression(TX~FWSW~italic(F)[ST]),
+                expression(LA~FWSW~italic(F)[ST]),
+                expression(AL~FWSW~italic(F)[ST]),
+                expression(FL~FWSW~italic(F)[ST]),
+                expression(delta~-divergence),
+                expression(Shared~italic(F)[ST]~Outliers),
+                "Salinity-associated SNPs",
+                "Monophyletic FW Gene Tree",
+                "FW Candidate Gene"),
+       pch=c(rep(32,5),124,25,124,124),lty=c(1,1,1,1,1,0,0,0,0),lwd=2,
+       col=c(colors,"cornflowerblue","black","black","#08519c","indianred"),
+       bty='n',ncol=1,x.intersp=0)
 dev.off()
 
 png("mucins.png",height=10,width=10,units="in",res=300)
 par(mfrow=c(4,3),oma=c(2,2,2,2),mar=c(2,2,2,2))
-ca2<-lapply(unique(put.reg[put.reg$Gene=="mucin" &put.reg$Chrom %in% lgs,"Chrom"]),
+ca2<-lapply(unique(put.reg[put.reg$Gene=="mucin" &put.reg$Chrom %in% lgs &
+                             put.reg$Chrom != "LG18","Chrom"]),
        gene.region.plot,gene="mucin",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
-       fst.dfs=fst.dfs,deltad=deltad,colors=colors,alphas=alphas,ltys=ltys)
+       fst.dfs=fst.dfs,deltad=deltad,colors=colors,alphas=alphas,ltys=ltys,legend=FALSE)
+plot(0:1,0:1,type='n',xlab="",ylab="",axes=F)
+legend("top",c(expression(TX~FWSW~italic(F)[ST]),
+                expression(LA~FWSW~italic(F)[ST]),
+                expression(AL~FWSW~italic(F)[ST]),
+                expression(FL~FWSW~italic(F)[ST]),
+                expression(delta~-divergence),
+                expression(Shared~italic(F)[ST]~Outliers),
+                "Salinity-associated SNPs",
+                "Monophyletic FW Gene Tree",
+                "FW Candidate Gene"),
+       pch=c(rep(32,5),124,25,124,124),lty=c(1,1,1,1,1,0,0,0,0),lwd=2,
+       col=c(colors,"cornflowerblue","black","black","#08519c","indianred"),
+       bty='n',ncol=1,x.intersp=0)
 dev.off()
 
 png("camkk1.png",height=7,width=10,units="in",res=300)
 par(mfrow=c(2,3),oma=c(2,2,2,2),mar=c(2,2,2,2))
 ca2<-lapply(unique(put.reg[put.reg$Gene=="CAMKK1" &put.reg$Chrom %in% lgs,"Chrom"]),
        gene.region.plot,gene="CAMKK1",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
-       fst.dfs=fst.dfs,deltad=deltad,colors=colors,alphas=alphas,ltys=ltys)
+       fst.dfs=fst.dfs,deltad=deltad,colors=colors,alphas=alphas,ltys=ltys,legend=FALSE)
+plot(0:1,0:1,type='n',xlab="",ylab="",axes=F)
+legend("top",c(expression(TX~FWSW~italic(F)[ST]),
+                expression(LA~FWSW~italic(F)[ST]),
+                expression(AL~FWSW~italic(F)[ST]),
+                expression(FL~FWSW~italic(F)[ST]),
+                expression(delta~-divergence),
+                expression(Shared~italic(F)[ST]~Outliers),
+                "Salinity-associated SNPs",
+                "Monophyletic FW Gene Tree",
+                "FW Candidate Gene"),
+       pch=c(rep(32,5),124,25,124,124),lty=c(1,1,1,1,1,0,0,0,0),lwd=2,
+       col=c(colors,"cornflowerblue","black","black","#08519c","indianred"),
+       bty='n',ncol=1,x.intersp=0)
 dev.off()
        
 png("special.mucin.png",height=5,width=10,units="in",res=300)
@@ -764,7 +834,7 @@ gene.region.plot("LG8","mucin",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
                            colors=colors,alphas=alphas,ltys=ltys)
 dev.off()
 
-png("camkk1.png",height=5,width=10,units="in",res=300)
+png("camkk1_only2.png",height=5,width=10,units="in",res=300)
 par(mfrow=c(1,2),oma=c(2,2,2,2),mar=c(2,2,2,2))
 gene.region.plot("LG1","CAMKK1",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
                            colors=colors,alphas=alphas,ltys=ltys)
@@ -774,10 +844,25 @@ dev.off()
 
 
 png("rhogtp.png",height=10,width=10,units="in",res=300)
-par(mfrow=c(6,3),oma=c(2,2,2,2),mar=c(2,2,2,2))
-rhogtp8<-lapply(unique(put.reg[put.reg$Gene=="RHOGTP8" & put.reg$Chrom %in% lgs,"Chrom"]),
+par(mfrow=c(4,4),oma=c(2,2,2,2),mar=c(2,2,2,2))
+rhogtp8<-lapply(unique(put.reg[put.reg$Gene=="RHOGTP8" & put.reg$Chrom %in% lgs & 
+                                 put.reg$Chrom != "LG18","Chrom"]),
        gene.region.plot,gene="RHOGTP8",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
-       fst.dfs=fst.dfs,deltad=deltad,colors=colors,alphas=alphas,ltys=ltys)
+       fst.dfs=fst.dfs,deltad=deltad,colors=colors,alphas=alphas,ltys=ltys,legend=FALSE)
+par(mfrow=c(1, 1), oma=rep(0, 4), mar=rep(0, 4), new=TRUE)
+plot(0:1,0:1,type='n',xlab="",ylab="",axes=F)
+legend("top",c(expression(TX~FWSW~italic(F)[ST]),
+                expression(LA~FWSW~italic(F)[ST]),
+                expression(AL~FWSW~italic(F)[ST]),
+                expression(FL~FWSW~italic(F)[ST]),
+                expression(delta~-divergence),
+                expression(Shared~italic(F)[ST]~Outliers),
+                "Salinity-associated SNPs",
+                "Monophyletic FW Gene Tree",
+                "FW Candidate Gene"),
+       pch=c(rep(32,5),124,25,124,124),lty=c(1,1,1,1,1,0,0,0,0),lwd=2,
+       col=c(colors,"cornflowerblue","black","black","#08519c","indianred"),
+       bty='n',ncol=5,cex=0.75,x.intersp=0)
 dev.off()
 ```
 

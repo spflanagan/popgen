@@ -201,55 +201,58 @@ int main(int argc, char* argv[])
 		FileTest(matches_file, matches_name);
 		while (getline(matches_file, line, '\n'))
 		{
-			lin.clear();
-			lin.str(line);
-			if (lin >> a >> b >> c >> d >> e >> f >> g >> h)
+			if (line.substr(0, 1) != "#")
 			{
-				//sqlID,batchID,catalogID,indID,indlocusID, haplotype,stack depth, log likelihood
-				per_ind[i].stack_depth = per_ind[i].stack_depth + g;
-				per_ind[i].num_with_this++;
-				//need to designate new locus components
-				if (c >= per_loc.size())
+				lin.clear();
+				lin.str(line);
+				if (lin >> a >> b >> c >> d >> e >> f >> g >> h)
 				{
-					for (int s = per_loc.size(); s < c + 1; s++)
+					//sqlID,batchID,catalogID,indID,indlocusID, haplotype,stack depth, log likelihood
+					per_ind[i].stack_depth = per_ind[i].stack_depth + g;
+					per_ind[i].num_with_this++;
+					//need to designate new locus components
+					if (c >= per_loc.size())
 					{
-						per_loc.push_back(summary());
+						for (int s = per_loc.size(); s < c + 1; s++)
+						{
+							per_loc.push_back(summary());
+						}
 					}
-				}
-				if (c % 10000 == 0)
-				{
-					cout << "Working...found locus " << c << '\n';
-				}
-				per_loc[c].stack_depth = per_loc[c].stack_depth + g;
-				per_loc[c].num_with_this++;
-				per_loc[c].name = c;
-				if (g >= 5)
-				{
-					per_loc[c].num_above_5x++;
-					per_ind[i].num_above_5x++;
-				}
-				if (g >= 10)
-				{
-					per_loc[c].num_above_10x++;
-					per_ind[i].num_above_10x++;
-				}
-				/*if (i == 0)
-				{
-				per_loc[c].min_cov = g;
-				per_ind[i].min_cov = g;
-				}*/
-				if (g < per_loc[c].min_cov)
+					if (c % 10000 == 0)
+					{
+						cout << "Working...found locus " << c << '\n';
+					}
+					per_loc[c].stack_depth = per_loc[c].stack_depth + g;
+					per_loc[c].num_with_this++;
+					per_loc[c].name = c;
+					if (g >= 5)
+					{
+						per_loc[c].num_above_5x++;
+						per_ind[i].num_above_5x++;
+					}
+					if (g >= 10)
+					{
+						per_loc[c].num_above_10x++;
+						per_ind[i].num_above_10x++;
+					}
+					/*if (i == 0)
+					{
 					per_loc[c].min_cov = g;
-				if (g < per_ind[i].min_cov)
 					per_ind[i].min_cov = g;
-				if (g > per_loc[c].max_cov)
-					per_loc[c].max_cov = g;
-				if (g > per_ind[i].max_cov)
-					per_ind[i].max_cov = g;
-			}
-			else
-			{
-				cout << "WARNING: failed to decode line '" << line << "'\n";
+					}*/
+					if (g < per_loc[c].min_cov)
+						per_loc[c].min_cov = g;
+					if (g < per_ind[i].min_cov)
+						per_ind[i].min_cov = g;
+					if (g > per_loc[c].max_cov)
+						per_loc[c].max_cov = g;
+					if (g > per_ind[i].max_cov)
+						per_ind[i].max_cov = g;
+				}
+				else
+				{
+					cout << "WARNING: failed to decode line '" << line << "'\n";
+				}
 			}
 		}
 		matches_file.close();
