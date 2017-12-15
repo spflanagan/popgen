@@ -4,6 +4,18 @@
 
 rm(list=ls())
 
+setwd("B:/ubuntushare/popgen/fwsw_results/")
+#source("../scripts/popgen_functions.R")
+install_github("spflanagan/gwscaR")
+library(gwscaR)
+source("../scripts/phenotype_functions.R")
+source("../../gwscaR/R/gwscaR.R")
+source("../../gwscaR/R/gwscaR_plot.R")
+source("../../gwscaR/R/gwscaR_utility.R")
+source("../../gwscaR/R/gwscaR_fsts.R")
+source("../../gwscaR/R/gwscaR_popgen.R")
+
+## @knitr fwsw_analysis_setup
 library(ade4)
 library(lme4)
 library(maps);library(gplots)
@@ -17,19 +29,6 @@ library(ape)
 library(lattice); library(RColorBrewer); library(grid)
 library(devtools)
 library(mmod)
-
-setwd("B:/ubuntushare/popgen/fwsw_results/")
-#source("../scripts/popgen_functions.R")
-install_github("spflanagan/gwscaR")
-library(gwscaR)
-source("../scripts/phenotype_functions.R")
-source("../../gwscaR/R/gwscaR.R")
-source("../../gwscaR/R/gwscaR_plot.R")
-source("../../gwscaR/R/gwscaR_utility.R")
-source("../../gwscaR/R/gwscaR_fsts.R")
-source("../../gwscaR/R/gwscaR_popgen.R")
-
-
 pop.list<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
 	"FLFD","FLSI","FLAB","FLPB","FLHB","FLCC","FLLG")
 pop.labs<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
@@ -45,36 +44,45 @@ all.colors<-c(rep("black",2),"#2166ac","black","#2166ac","black","#2166ac",
         rep("black",8),"#2166ac")
 grp.colors<-c('#762a83','#af8dc3','#e7d4e8','#d9f0d3','#7fbf7b','#1b7837')
 #######################**********FILES*********##############################
+## @knitr files
 mar.coor<-read.csv("../sw_results/marine_coordinates_revised.csv", header=T)
 fw.coor<-read.csv("fw_coordinates.csv", header=T)
 dist<-read.table("fwsw_geographical_distances.txt",header=T,row.names=1,
 	sep='\t')
-pwise.fst.all<-read.table("stacks/populations/fwsw_fst_summary.txt",header=T,row.names=1,sep='\t')
+put.genes<-read.delim("putative_genes.txt",header=TRUE,sep='\t')
+## @knitr pwise_fsts_files
+pwise.fst.all<-read.table("stacks/fwsw_fst_summary.txt",header=T,row.names=1,sep='\t')
 	#pwise.fst.all<-rbind(pwise.fst.all,rep(NA,ncol(pwise.fst.all)))
 	rownames(pwise.fst.all)<-pop.labs
 	colnames(pwise.fst.all)<-pop.labs
 pwise.fst.sub<-read.table("stacks/fwsw_fst_summary_subset.txt",header=T,row.names=1,sep='\t')
   colnames(pwise.fst.sub)<-pop.labs
   rownames(pwise.fst.sub)<-pop.labs
+## @knitr separate_plink
 ped.sub<-read.table("stacks/subset.ped",header=F)	
 ped.sub$V1<-gsub("sample_(\\w{4})\\w+.*","\\1",ped.sub$V2)
 map.sub<-read.table("stacks/subset.map",header = F,stringsAsFactors = F)
 map.sub$Locus<-paste(gsub("(\\d+)_\\d+","\\1",map.sub$V2),(as.numeric(map.sub$V4)+1),sep=".")
 colnames(ped.sub)<-c("Pop","IID","","","","Phenotype","","",map.sub$Locus)
+## @knitr lumped_vcf
 vcf<-parse.vcf("stacks/fw-sw_populations/batch_2.vcf")
+#chosen.snps<-choose.one.snp(vcf)$SNP
+#write.table(chosen.snps,"chosen.snps.txt",quote=F)
+chosen.snps<-unlist(read.table("chosen.snps.txt"))
+## @knitr stacks_sig
+stacks.sig<-read.delim("stacks.sig.snps.txt")
+
+## @knitr vcf_setup
 vcf$SNP<-paste(vcf$`#CHROM`,vcf$POS,sep=".")
 scaffs<-levels(as.factor(vcf[,1]))
 scaffs[1:22]<-lgs
 scaff.starts<-tapply(vcf$POS,vcf$`#CHROM`,max)
 scaff.starts<-data.frame(rbind(cbind(names(scaff.starts),scaff.starts)),stringsAsFactors = F)
 locus.info<-c(colnames(vcf[1:9]),"SNP")
-#chosen.snps<-choose.one.snp(vcf)$SNP
-#write.table(chosen.snps,"chosen.snps.txt",quote=F)
-chosen.snps<-unlist(read.table("chosen.snps.txt"))
-put.genes<-read.delim("putative_genes.txt",header=TRUE,sep='\t')
-stacks.sig<-read.delim("stacks.sig.snps.txt")
+
 
 #### SUMMARY STATS####
+## @knitr summary
 #separate
 sep.vcf<-parse.vcf("stacks/batch_2.vcf")
 length(unique(sep.vcf$ID))
@@ -86,6 +94,7 @@ nrow(vcf) #num SNPs
 length(unique(vcf$ID)) #num RAD loci
 length(chosen.snps) #num snps chosen for proximity
 #######################PLOT THE POINTS ON A MAP##############################
+## @knitr map
 jpeg("all_sites_map.jpg", res=300, height=7,width=14, units="in")
 pdf("all_sites_map.pdf",height=7,width=14)
 par(oma=c(0,0,0,0),mar=c(0,0,0,0),pin=c(7,7))
@@ -122,7 +131,7 @@ text(x=-80.9,y=29.3,"FLFW",font=2,col="#2166ac")
 dev.off()
 
 ##################################IBD########################################
-
+## @knitr IBD
 #Mantel test using geographical distances and fsts
 
 #read in the subsetted fst summary from running populations with whitelist
@@ -138,6 +147,7 @@ rownames(ibd.by.loc)<-sub.map$V2
 
 
 ####PLOT FSTS####
+## @knitr pwise_fsts
 colors<-c("blue","yellow","red")
 pal<-colorRampPalette(colors)
 ncol=80
@@ -151,8 +161,11 @@ grid.text(expression(italic(F)[ST]), 0.2, 0, hjust=0.5, vjust=1.2)
 trellis.unfocus()
 dev.off()
 
+
 #compare to treemix
-cov<-read.table(gzfile("treemix/fwsw.basic.cov.gz"), as.is = T, head = T, quote = "", comment.char = "")
+treemix.file<-"treemix/fwsw.basic.cov.gz"
+## @knitr treemix
+cov<-read.table(gzfile(treemix.file), as.is = T, head = T, quote = "", comment.char = "")
 #reorder
 covplot <- data.frame(matrix(nrow = nrow(cov), ncol = ncol(cov)))
 for(i in 1:length(pop.list)){
@@ -172,7 +185,9 @@ cp.lv<-levelplot(cp,col.regions=cols,alpha.regions=0.7,
           scales = list(x=list(rot=90),tck = 0),xlab="",ylab="")
 
 #' Plot them together.
-png("fst_cov_heatmap.png",height=6,width=11,units="in",res=300)
+fst.tree.name<-"fst_cov_heatmap.png"
+## @knitr fst_treemix_plot
+png(fst.tree.name,height=6,width=11,units="in",res=300)
 print(fst.lv,split=c(1,1,2,1),more=TRUE)
 trellis.focus("legend", side="right", clipp.off=TRUE, highlight=FALSE)
 grid.text(expression(italic(F)[ST]), 0.2, 0, hjust=0.5, vjust=1.2)
@@ -188,6 +203,8 @@ dev.off()
 
 
 ####ALLELE FREQUENCY SPECTRA####
+afs.plot.name<-"AFS.png"
+## @knitr AFS
 #' Calculate AFS from vcf
 fw.afs<-lapply(fw.list,function(pop){
   this.vcf<-cbind(vcf[,locus.info],vcf[,grep(pop,colnames(vcf))])
@@ -200,7 +217,7 @@ sw.afs<-lapply(sw.list,function(pop){
 })
 names(sw.afs)<-sw.list
 all.afs<-c(fw.afs,sw.afs)
-png("AFS.png",height=10,width=10,units="in",res=300)
+png(afs.plot.name,height=10,width=10,units="in",res=300)
 par(mfrow=c(4,4),mar=c(2,2,1,0),oma=c(2,2,0.5,0.5))
 for(i in 1:length(pop.labs)){
   if(pop.labs[i] %in% names(fw.afs)){
@@ -225,23 +242,31 @@ dev.off()
 
 
 #### Delta-divergence ####
+## @knitr deltad
+dd.name<-"deltadivergence.txt"
 #' only use chosen SNPs
 vcf<-vcf[vcf$SNP %in% chosen.snps,]
 #Calculate delta-divergence
 #' ``` {r, eval = FALSE}
-#' swfw.mu<-calc.mean.fst(vcf = vcf,pop.list1 = sw.list,pop.list2 = fw.list,maf.cutoff=0.01)
-#' fwfw.mu<-calc.mean.fst(vcf = vcf,pop.list1 = fw.list,pop.list2 = fw.list, maf.cutoff=0.01)
-#' deltad<-merge(swfw.mu,fwfw.mu,by="SNP")
-#' deltad<-deltad[,c("SNP","Chrom.x","Pos.x","Mean.Fst.x","Mean.Fst.y")]
-#' colnames(deltad)<-c("SNP","Chrom","Pos","MeanSWFW.Fst","MeanFWFW.Fst")
-#' deltad$deltad<-deltad$MeanSWFW.Fst - deltad$MeanFWFW.Fst
-#' deltad<-deltad[!is.na(deltad$deltad),]#remove NAs
+## @knitr setupDeltaD
+swfw.mu<-calc.mean.fst(vcf = vcf,pop.list1 = sw.list,pop.list2 = fw.list,maf.cutoff=0.01)
+fwfw.mu<-calc.mean.fst(vcf = vcf,pop.list1 = fw.list,pop.list2 = fw.list, maf.cutoff=0.01)
+deltad<-merge(swfw.mu,fwfw.mu,by="SNP")
+ deltad<-deltad[,c("SNP","Chrom.x","Pos.x","Mean.Fst.x","Mean.Fst.y")]
+colnames(deltad)<-c("SNP","Chrom","Pos","MeanSWFW.Fst","MeanFWFW.Fst")
+deltad$deltad<-deltad$MeanSWFW.Fst - deltad$MeanFWFW.Fst
+deltad<-deltad[!is.na(deltad$deltad),]#remove NAs
+write.table(deltad, dd.name,sep='\t',col.names = TRUE,row.names = FALSE)
 #' ```
 #' ```{r, echo=FALSE}
-#' deltad<-read.delim("deltadivergence.txt")
+## @knitr readDeltaD
+ deltad<-read.delim(dd.name)
 #' ```
 #' Plot it
-png("delta-divergence.png",height=5,width=7,units="in",res=300)
+dd.plot.name<-"delta-divergence.png"
+sdd.name<-"smoothed.deltad.out.txt"
+## @knitr PlotDeltaD
+png(dd.plot.name,height=5,width=7,units="in",res=300)
 par(mar=c(1,1,1,1),oma=c(1,2,1,1))
 dd<-fst.plot(fst.dat = deltad,fst.name = "deltad",bp.name = "Pos",axis=1,pch=19,scaffs.to.plot=scaffs)
 mtext(expression(paste(delta,"-divergence")),2,line=1.5)
@@ -281,10 +306,11 @@ smooth.div$SWpi<-apply(cbind(vcf[vcf$SNP %in% smooth.div$SNP,locus.info],
 #points(smooth.out$plot.pos,smooth.out$smooth.deltad,col="orchid4")
 dim(smooth.par[smooth.par$SNP %in% stacks.sig$SNP,])
 sdd.out<-rbind(smooth.par,smooth.div)
-write.table(sdd.out,"smoothed.deltad.out.txt",col.names=T,row.names=F,quote=F,sep='\t')
+write.table(sdd.out,sdd.name,col.names=T,row.names=F,quote=F,sep='\t')
 
-dd<-read.delim("deltadivergence.txt")
-sdd.out<-read.delim("smoothed.deltad.out.txt")
+dd<-read.delim(dd.name)
+sdd.out<-read.delim(sdd.name)
+## @knitr DDoutVstacksOut
 #' Compare to Stacks Fsts
 # Get the significant Fst loci if they're not already here
 if(!("stacks.sig" %in% ls())){
@@ -301,6 +327,7 @@ dd.par<-dd[dd$deltad <= quantile(dd$deltad,0.05),]
 
 #### Other Pop gen statistics ####
 #pi
+## @knitr pi
 avg.pi<-do.call("rbind",sliding.window(vcf,lgs))
 avg.pi.adj<-fst.plot(avg.pi,scaffold.widths=scaff.starts,pch=19,
                     fst.name = "Avg.Stat",chrom.name = "Chr",bp.name = "Avg.Pos")
@@ -308,6 +335,7 @@ all.pi<-data.frame(Chrom=vcf$`#CHROM`,Pos=vcf$POS,Pi=unlist(apply(vcf,1,calc.pi)
 all.pi$SNP<-paste(all.pi$Chrom,as.numeric(as.character(all.pi$Pos)),sep=".")
 write.table(all.pi,"all.pi.txt",col.names = TRUE,row.names=FALSE, quote=FALSE,sep='\t')
 all.pi<-read.table("all.pi.txt",header=T)
+## @knitr het
 #het
 avg.het<-do.call("rbind",sliding.window(vcf,lgs,stat="het"))
 avg.het.adj<-fst.plot(avg.het,scaffold.widths=scaff.starts,pch=19,

@@ -1,0 +1,85 @@
+---
+title: "FWSW with smallest dataset"
+output: html_document
+author: "Sarah P. Flanagan"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+description: "Re-running the freshwater-saltwater analysis using only the dataset from pairwise population comparisons"
+---
+
+In my initial analysis of the freshwater-saltwater dataset, I had two vcf files: 
+1. one generated from all pairwise comparisons of populations, containing SNPs only found in all 16 populations, in 75% of individuals, and with a minor allele frequency of at least 5%.
+2. one generated from comparing lumped 'freshwater' and 'saltwater' populations, containing SNPs found in 50% of individuals and with a minor allele frequency of at least 5%.
+
+I did the majority of the analyses using set #2, but would like to explore what changes if I use the other dataset.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir='./fwsw_results/')
+```
+```{r source}
+source("../../gwscaR/R/gwscaR.R")
+source("../../gwscaR/R/gwscaR_plot.R")
+source("../../gwscaR/R/gwscaR_utility.R")
+source("../../gwscaR/R/gwscaR_fsts.R")
+source("../../gwscaR/R/gwscaR_popgen.R")
+library(knitr)
+```
+```{r access_analysis, echo=FALSE}
+read_chunk("../scripts/fwsw_analysis.R")
+```
+```{r fwsw_analysis_setup, include=FALSE}
+```
+```{r read_vcf}
+vcf<-parse.vcf("stacks/batch_2.vcf") #this is the smaller dataset
+```
+```{r vcf_setup}
+```
+```{r pwise_fsts_files}
+```
+```{r separate_plink}
+```
+```{r choose_subset, eval=FALSE}
+chosen.snps<-choose.one.snp(vcf)$SNP
+write.table(chosen.snps,"chosen.all.snps.txt",quote=F)
+```
+```{r read_subset,echo=FALSE}
+chosen.snps<-unlist(read.table("chosen.all.snps.txt"))
+```
+
+There are `r length(chosen.snps)` SNPs that I'll use from the vcf file, from `r nrow(vcf)` RAD loci.
+
+Somehow the pruned and subsetted ped/map files have `r nrow(map.sub)` SNPs from `r length(unique(gsub("(\\d+)_\\d+","\\1",map.sub$V2)))` RAD loci.
+
+## Re-running the analysis
+
+### Treemix and Fsts
+**I need to re-run Treemix**
+```{r define_filenames}
+treemix.file<-as.character("treemix/fwsw.basic.cov.gz")
+fst.tree.name<-as.character("ALLfst_cov_heatmap.png")
+afs.plot.name<-as.character("All_AFS.png")
+dd.plot.name<-as.character("separate_delta-divergence.png")
+dd.name<-as.character("sep.deltadivergence.txt")
+sdd.name<-as.character("sep.smoothedDD.out.txt")
+```
+I'll run treemix and plotting treemix once I've re-run it.
+
+
+**I need to re-run PopTree2**
+
+### Allele Frequency Spectrum
+```{r AFS,echo=FALSE}
+```
+![AFS_with _separateSNPs]("All_AFS.png")
+
+
+### Pi
+```{r pi,echo=FALSE}
+```
+
+### delta-divergence
+```{r setupDeltaD}
+```
+
+
+
