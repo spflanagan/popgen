@@ -7,10 +7,11 @@ description: "Re-running the freshwater-saltwater analysis using only the datase
 ---
 
 In my initial analysis of the freshwater-saltwater dataset, I had two vcf files: 
-1. one generated from all pairwise comparisons of populations, containing SNPs only found in all 16 populations, in 75% of individuals, and with a minor allele frequency of at least 5%.
-2. one generated from comparing lumped 'freshwater' and 'saltwater' populations, containing SNPs found in 50% of individuals and with a minor allele frequency of at least 5%.
+1. one generated from all pairwise comparisons of populations, containing SNPs only found in all 16 populations, in 75% of individuals, and with a minor allele frequency of at least 5%. ("separate")
+2. one generated from all pairwise comparisons of populations, containing SNPs found in 4 populations, in 75% of individuals, and with a minor allele frequency of at least 5%. ("P4")
+3. one generated from comparing lumped 'freshwater' and 'saltwater' populations, containing SNPs found in 50% of individuals and with a minor allele frequency of at least 5%. ("lumped")
 
-I did the majority of the analyses using set #2, but would like to explore what changes if I use the other dataset.
+I did the majority of the analyses using set #3, but would like to explore what changes if I use dataset #2. I think #1 is too restrictive. Dataset #2 is in the "subset" dataset, and is what I ran the structure analyses on.
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -24,24 +25,32 @@ source("../../gwscaR/R/gwscaR_fsts.R")
 source("../../gwscaR/R/gwscaR_popgen.R")
 library(knitr)
 ```
+
 ```{r access_analysis, echo=FALSE}
-read_chunk("../scripts/fwsw_analysis.R")
+knitr::read_chunk("../scripts/fwsw_analysis.R")
 ```
-```{r fwsw_analysis_setup, include=FALSE}
+
+```{r FWSWsetup, echo=FALSE}
 ```
+
 ```{r read_vcf}
 vcf<-parse.vcf("stacks/batch_2.vcf") #this is the smaller dataset
 ```
 ```{r vcf_setup}
 ```
-```{r pwise_fsts_files}
+
+```{r pwise_fsts_files,eval=FALSE}
 ```
-```{r separate_plink}
+
+```{r P4plink}
 ```
-```{r choose_subset, eval=FALSE}
+
+```{r choose_subset, eval=FALSE} 
+#only run this once! 
 chosen.snps<-choose.one.snp(vcf)$SNP
 write.table(chosen.snps,"chosen.all.snps.txt",quote=F)
 ```
+
 ```{r read_subset,echo=FALSE}
 chosen.snps<-unlist(read.table("chosen.all.snps.txt"))
 ```
@@ -68,18 +77,17 @@ I'll run treemix and plotting treemix once I've re-run it.
 **I need to re-run PopTree2**
 
 ### Allele Frequency Spectrum
-```{r AFS,echo=FALSE}
+```{r calcAFS,echo=FALSE, eval=FALSE}
 ```
-![AFS_with _separateSNPs]("All_AFS.png")
+```{r plotAFS, echo=FALSE, eval=FALSE}
+```
 
 
 ### Pi
-```{r pi,echo=FALSE}
+```{r pi,echo=FALSE, eval=FALSE}
 ```
 
 ### delta-divergence
-```{r setupDeltaD}
+```{r setupDeltaD,eval=FALSE}
 ```
-
-
 

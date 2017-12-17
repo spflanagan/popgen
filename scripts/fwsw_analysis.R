@@ -15,7 +15,7 @@ source("../../gwscaR/R/gwscaR_utility.R")
 source("../../gwscaR/R/gwscaR_fsts.R")
 source("../../gwscaR/R/gwscaR_popgen.R")
 
-## @knitr fwsw_analysis_setup
+## ---- FWSWsetup
 library(ade4)
 library(lme4)
 library(maps);library(gplots)
@@ -43,14 +43,16 @@ lgn<-seq(1,22)
 all.colors<-c(rep("black",2),"#2166ac","black","#2166ac","black","#2166ac",
         rep("black",8),"#2166ac")
 grp.colors<-c('#762a83','#af8dc3','#e7d4e8','#d9f0d3','#7fbf7b','#1b7837')
+## ---- end-of-FWSWsetup
 #######################**********FILES*********##############################
-## @knitr files
+## ---- files
 mar.coor<-read.csv("../sw_results/marine_coordinates_revised.csv", header=T)
 fw.coor<-read.csv("fw_coordinates.csv", header=T)
 dist<-read.table("fwsw_geographical_distances.txt",header=T,row.names=1,
 	sep='\t')
 put.genes<-read.delim("putative_genes.txt",header=TRUE,sep='\t')
-## @knitr pwise_fsts_files
+## ---- end
+## ---- pwiseFstsFiles
 pwise.fst.all<-read.table("stacks/fwsw_fst_summary.txt",header=T,row.names=1,sep='\t')
 	#pwise.fst.all<-rbind(pwise.fst.all,rep(NA,ncol(pwise.fst.all)))
 	rownames(pwise.fst.all)<-pop.labs
@@ -58,28 +60,33 @@ pwise.fst.all<-read.table("stacks/fwsw_fst_summary.txt",header=T,row.names=1,sep
 pwise.fst.sub<-read.table("stacks/fwsw_fst_summary_subset.txt",header=T,row.names=1,sep='\t')
   colnames(pwise.fst.sub)<-pop.labs
   rownames(pwise.fst.sub)<-pop.labs
-## @knitr separate_plink
+## ---- end
+  
+## ---- P4plink
 ped.sub<-read.table("stacks/subset.ped",header=F)	
 ped.sub$V1<-gsub("sample_(\\w{4})\\w+.*","\\1",ped.sub$V2)
 map.sub<-read.table("stacks/subset.map",header = F,stringsAsFactors = F)
 map.sub$Locus<-paste(gsub("(\\d+)_\\d+","\\1",map.sub$V2),(as.numeric(map.sub$V4)+1),sep=".")
 colnames(ped.sub)<-c("Pop","IID","","","","Phenotype","","",map.sub$Locus)
-## @knitr lumped_vcf
+## ---- end-P4plink
+
+## ---- lumpedVcf
 vcf<-parse.vcf("stacks/fw-sw_populations/batch_2.vcf")
 #chosen.snps<-choose.one.snp(vcf)$SNP
 #write.table(chosen.snps,"chosen.snps.txt",quote=F)
 chosen.snps<-unlist(read.table("chosen.snps.txt"))
-## @knitr stacks_sig
+## @knitr stacksSig
 stacks.sig<-read.delim("stacks.sig.snps.txt")
+## ---- end
 
-## @knitr vcf_setup
+## ---- vcfSetup
 vcf$SNP<-paste(vcf$`#CHROM`,vcf$POS,sep=".")
 scaffs<-levels(as.factor(vcf[,1]))
 scaffs[1:22]<-lgs
 scaff.starts<-tapply(vcf$POS,vcf$`#CHROM`,max)
 scaff.starts<-data.frame(rbind(cbind(names(scaff.starts),scaff.starts)),stringsAsFactors = F)
 locus.info<-c(colnames(vcf[1:9]),"SNP")
-
+## ---- end
 
 #### SUMMARY STATS####
 ## @knitr summary
@@ -94,7 +101,7 @@ nrow(vcf) #num SNPs
 length(unique(vcf$ID)) #num RAD loci
 length(chosen.snps) #num snps chosen for proximity
 #######################PLOT THE POINTS ON A MAP##############################
-## @knitr map
+## ---- map
 jpeg("all_sites_map.jpg", res=300, height=7,width=14, units="in")
 pdf("all_sites_map.pdf",height=7,width=14)
 par(oma=c(0,0,0,0),mar=c(0,0,0,0),pin=c(7,7))
@@ -129,9 +136,10 @@ text(x=-79.7,y=27.2,"FLHB",font=2)
 text(x=-80.2,y=28.2,"FLCC",font=2)
 text(x=-80.9,y=29.3,"FLFW",font=2,col="#2166ac")
 dev.off()
+## ---- end
 
 ##################################IBD########################################
-## @knitr IBD
+## ---- IBD
 #Mantel test using geographical distances and fsts
 
 #read in the subsetted fst summary from running populations with whitelist
@@ -144,10 +152,10 @@ pairwise.fst(ped.sub,9,10,pop.list)
 ibd.by.loc<-fst.ibd.byloc(ped.sub,dist,pop.list)  #all NAs
 #ignore warnings?  In is.euclid(m1) : Zero distance(s)
 rownames(ibd.by.loc)<-sub.map$V2
-
+## ---- end
 
 ####PLOT FSTS####
-## @knitr pwise_fsts
+## ---- pwiseFsts
 colors<-c("blue","yellow","red")
 pal<-colorRampPalette(colors)
 ncol=80
@@ -160,11 +168,11 @@ trellis.focus("legend", side="right", clipp.off=TRUE, highlight=FALSE)
 grid.text(expression(italic(F)[ST]), 0.2, 0, hjust=0.5, vjust=1.2)
 trellis.unfocus()
 dev.off()
-
+## ---- end
 
 #compare to treemix
 treemix.file<-"treemix/fwsw.basic.cov.gz"
-## @knitr treemix
+## ---- treemix
 cov<-read.table(gzfile(treemix.file), as.is = T, head = T, quote = "", comment.char = "")
 #reorder
 covplot <- data.frame(matrix(nrow = nrow(cov), ncol = ncol(cov)))
@@ -183,10 +191,10 @@ colnames(cp)<-pop.labs
 rownames(cp)<-pop.labs
 cp.lv<-levelplot(cp,col.regions=cols,alpha.regions=0.7,
           scales = list(x=list(rot=90),tck = 0),xlab="",ylab="")
-
+## ---- end
 #' Plot them together.
 fst.tree.name<-"fst_cov_heatmap.png"
-## @knitr fst_treemix_plot
+## ---- fstTreemixPlot
 png(fst.tree.name,height=6,width=11,units="in",res=300)
 print(fst.lv,split=c(1,1,2,1),more=TRUE)
 trellis.focus("legend", side="right", clipp.off=TRUE, highlight=FALSE)
@@ -198,13 +206,13 @@ trellis.focus("legend", side="right", clipp.off=TRUE, highlight=FALSE)
 grid.text("covariance", 0.2, 0, hjust=0.5, vjust=1.2)
 trellis.unfocus()
 dev.off()
-
+## ---- end
 
 
 
 ####ALLELE FREQUENCY SPECTRA####
 afs.plot.name<-"AFS.png"
-## @knitr AFS
+## ---- calcAFS
 #' Calculate AFS from vcf
 fw.afs<-lapply(fw.list,function(pop){
   this.vcf<-cbind(vcf[,locus.info],vcf[,grep(pop,colnames(vcf))])
@@ -217,7 +225,11 @@ sw.afs<-lapply(sw.list,function(pop){
 })
 names(sw.afs)<-sw.list
 all.afs<-c(fw.afs,sw.afs)
+## ---- end
+## ---- printAFS
 png(afs.plot.name,height=10,width=10,units="in",res=300)
+## ---- end
+## ---- plotAFS
 par(mfrow=c(4,4),mar=c(2,2,1,0),oma=c(2,2,0.5,0.5))
 for(i in 1:length(pop.labs)){
   if(pop.labs[i] %in% names(fw.afs)){
@@ -237,16 +249,20 @@ for(i in 1:length(pop.labs)){
 }
 mtext("Reference Allele Frequency",1,outer=TRUE,cex=0.75)
 mtext("Number of SNPs",2,outer = TRUE,cex=0.75,line=1)
+## ---- end
+## ---- closeAFS
 dev.off()
+## ---- end
 #################################OUTLIERS####################################
 
 
 #### Delta-divergence ####
-## @knitr deltad
+## ---- deltadFiles
 dd.name<-"deltadivergence.txt"
 #' only use chosen SNPs
 vcf<-vcf[vcf$SNP %in% chosen.snps,]
-#Calculate delta-divergence
+## ---- end
+#Calculate deltaDivergence
 #' ``` {r, eval = FALSE}
 ## @knitr setupDeltaD
 swfw.mu<-calc.mean.fst(vcf = vcf,pop.list1 = sw.list,pop.list2 = fw.list,maf.cutoff=0.01)
@@ -258,14 +274,16 @@ deltad$deltad<-deltad$MeanSWFW.Fst - deltad$MeanFWFW.Fst
 deltad<-deltad[!is.na(deltad$deltad),]#remove NAs
 write.table(deltad, dd.name,sep='\t',col.names = TRUE,row.names = FALSE)
 #' ```
+## ---- end
 #' ```{r, echo=FALSE}
-## @knitr readDeltaD
+## ---- readDeltaD
  deltad<-read.delim(dd.name)
+## ---- end
 #' ```
 #' Plot it
 dd.plot.name<-"delta-divergence.png"
 sdd.name<-"smoothed.deltad.out.txt"
-## @knitr PlotDeltaD
+## ---- PlotDeltaD
 png(dd.plot.name,height=5,width=7,units="in",res=300)
 par(mar=c(1,1,1,1),oma=c(1,2,1,1))
 dd<-fst.plot(fst.dat = deltad,fst.name = "deltad",bp.name = "Pos",axis=1,pch=19,scaffs.to.plot=scaffs)
@@ -310,7 +328,8 @@ write.table(sdd.out,sdd.name,col.names=T,row.names=F,quote=F,sep='\t')
 
 dd<-read.delim(dd.name)
 sdd.out<-read.delim(sdd.name)
-## @knitr DDoutVstacksOut
+## ---- end
+## ---- DDoutVstacksOut
 #' Compare to Stacks Fsts
 # Get the significant Fst loci if they're not already here
 if(!("stacks.sig" %in% ls())){
@@ -324,10 +343,10 @@ if(is.null(stacks.sig$SNP)){ #make sure the SNP column is there.
 dd.div<-dd[dd$deltad >= quantile(dd$deltad,0.95),]
 dd.par<-dd[dd$deltad <= quantile(dd$deltad,0.05),]
 
-
+## ---- end
 #### Other Pop gen statistics ####
 #pi
-## @knitr pi
+## ---- pi
 avg.pi<-do.call("rbind",sliding.window(vcf,lgs))
 avg.pi.adj<-fst.plot(avg.pi,scaffold.widths=scaff.starts,pch=19,
                     fst.name = "Avg.Stat",chrom.name = "Chr",bp.name = "Avg.Pos")
@@ -335,20 +354,22 @@ all.pi<-data.frame(Chrom=vcf$`#CHROM`,Pos=vcf$POS,Pi=unlist(apply(vcf,1,calc.pi)
 all.pi$SNP<-paste(all.pi$Chrom,as.numeric(as.character(all.pi$Pos)),sep=".")
 write.table(all.pi,"all.pi.txt",col.names = TRUE,row.names=FALSE, quote=FALSE,sep='\t')
 all.pi<-read.table("all.pi.txt",header=T)
-## @knitr het
+## ---- end
+## ---- het
 #het
 avg.het<-do.call("rbind",sliding.window(vcf,lgs,stat="het"))
 avg.het.adj<-fst.plot(avg.het,scaffold.widths=scaff.starts,pch=19,
                      fst.name = "Avg.Stat",chrom.name = "Chr",bp.name = "Avg.Pos")
 all.het<-data.frame(Chrom=vcf$`#CHROM`,Pos=vcf$POS,Het=unlist(apply(vcf,1,calc.het)))
 all.het$SNP<-paste(all.het$Chrom,as.numeric(as.character(all.het$Pos)),sep=".")
-
-#rho
+## ---- end
+## ---- rho
 avg.rho<-do.call("rbind",sliding.window(vcf,scaffs,stat = "rho",pop.list=pop.list))
 avg.rho.adj<-fst.plot(avg.rho,scaffold.widths=scaff.starts,
                      fst.name = "Avg.Pi",chrom.name = "Chr",bp.name = "Avg.Pos")
 all.rho<-data.frame(Chrom=vcf$`#CHROM`,Pos=vcf$POS,Rho=unlist(apply(vcf,1,calc.rho,pop.list=pop.list)))
 all.rho$SNP<-paste(all.rho$Chrom,as.numeric(as.character(all.rho$Pos)),sep=".")
+## ---- end
 
 #plot
 png("FWSWpi.png",height=5,width=7,units="in",res=300)
@@ -1734,36 +1755,52 @@ dev.off()
 
 
 ##############################BAYENV######################################
+## ---- compareEnvVariables
 #which variables are different?
 env.data<-read.csv("bayenv/env_data_raw.csv",row.names = 1)
 env.data<-rbind(env.data,pop=c(rep("SW",12),rep("FW",4)))
 env.data<-as.data.frame(t(env.data))
 wilcox.test(as.numeric(env.data$temp)~env.data$pop) #ties, but p=0.539
 wilcox.test(as.numeric(env.data$seagrass)~env.data$pop) #ties, but p=0.897
-#modify genetic data
+## ---- end-compareEnvVariables
+
+## ---- renameSex
+rename.sex<-function(ped){
+  ped.sex<-sub('(sample_\\w{4})(\\w)(\\w+)','\\2', ped.sub[,2])
+  ped.sex[ped.sex=="F"]<-2
+  ped.sex[ped.sex=="D"]<-2
+  ped.sex[ped.sex=="M"]<-1
+  ped.sex[ped.sex=="P"]<-1
+  ped.sex[ped.sex=="N"]<-1
+  ped.sex[ped.sex=="I"]<-0
+  ped.sex[ped.sex=="J"]<-0
+  return(ped.sex)
+}
+## ---- end-renameSex
+
+bayenv.ped<-"bayenv/bayenv.plink.ped"
+bayenv.clst<-"bayenv/plink.clust.txt"
+## ---- modify-ped
 ped.pops<-gsub("(sample_)(\\w{4})(\\w+)","\\2",ped.sub[,2])
-ped.sex<-sub('(sample_\\w{4})(\\w)(\\w+)','\\2', ped.sub[,2])
-ped.sex[ped.sex=="F"]<-2
-ped.sex[ped.sex=="D"]<-2
-ped.sex[ped.sex=="M"]<-1
-ped.sex[ped.sex=="P"]<-1
-ped.sex[ped.sex=="N"]<-1
-ped.sex[ped.sex=="I"]<-0
-ped.sex[ped.sex=="J"]<-0
+ped.sex<-rename.sex(ped.sub)
 ped.sub[,1]<-ped.pops
 ped.sub[,5]<-ped.sex
-write.table(ped.sub,"bayenv/bayenv.plink.ped", 
+write.table(ped.sub,bayenv.ped, 
             row.names=F, col.names=F, quote=F, sep=" ",eol="\n")
 
 clust.plink<-data.frame(FamID=ped.pops, IndID=ped.sub[,2],Pop=ped.pops)
 write.table(clust.plink, 
             "bayenv/plink.clust.txt",
             col.names=F, row.names=F, quote=F, sep="\t", eol="\n")
+## ---- end-modify-ped
 #Then plink --ped bayenv.plink.ped --map subset.map --extract plink.snplist --out bayenv --noweb --allow-no-sex --recode --freq --within plink.clust.txt 
 #9820 SNPs in 698 individuals
 
 ##### CONVERT PLINK TO BAYENV2
-freq<-read.table("stacks/bayenv.frq.strat", 
+snpsfile.name<-"bayenv/fwsw.snpsfile"
+freq.name<-"stacks/bayenv.frq.strat"
+## ---- plink-to-bayenv
+freq<-read.table(freq.name, 
                  header=T, stringsAsFactors=F)
 #want to get $MAC for every snp at every pop 
 #and NCHROBS-MAC for every stnp at every pop
@@ -1778,14 +1815,15 @@ nac.by.pop<-as.data.frame(split(freq$NAC,freq$CLST))
 rownames(nac.by.pop)<-snp.names
 snpsfile<-interleave(mac.by.pop,nac.by.pop)
 
-write.table(snpsfile, "bayenv/fwsw.snpsfile", 
+write.table(snpsfile, snpsfile.name, 
             col.names=F,row.names=F,quote=F,sep="\t",eol="\n") #bayenv SNPSFILE
-
+## ---- end-plink-to-bayenv
 #NOW RUN MATRIX ESTIMATION: run_bayenv2_matrix_general.sh
 #../../scripts/run_bayenv2_matrix_general.sh fwsw.snpsfile 16
 #last run on 1 May 2017
 
 ##### check Bayenv2 matrix
+## ---- check-matrices
 matrix.files<-list.files("bayenv/",pattern="matrix")
 matrices<-list()
 for(i in 1:length(matrix.files))
@@ -1805,25 +1843,35 @@ image(matrices[[8]])
 image(matrices[[9]])
 image(matrices[[10]])
 #these are all essentially the same-use representative matrix
+## ---- end-check-matrices
 
 ##### SNPFILEs
 #for SNPFILE, need just one file per SNP apparently.
 #want to use all of the snps (not just the pruned set)...need to get map with those inds.
-all.snps.map<-read.table("stacks/batch_2.plink.map",header=F,stringsAsFactors = F)
-all.snps.ped<-read.table("stacks/batch_2.plink.ped", header=F, stringsAsFactors=F)
+map.name<-"stacks/batch_2.plink.map"
+ped.name<-"stacks/batch_2.plink.ped"
+out.ped.name<-"stacks/fwsw_all.ped"
+clust.name<-"stacks/all.clust.txt"
+## ---- modifyAllPlink
+all.snps.map<-read.table(map.name,header=F,stringsAsFactors = F)
+all.snps.ped<-read.table(ped.name, header=F, stringsAsFactors=F)
 ped.pop<-sub('sample_(\\w{4}).*','\\1', all.snps.ped[,2])
 all.snps.ped[,1]<-ped.pop
-all.snps.ped[,5]<-ped.sex
-write.table(all.snps.ped,"stacks/fwsw_all.ped",col.names=F,row.names=F,quote=F,sep='\t',eol='\n')
+all.snps.ped[,5]<-rename.sex(all.snps.ped)
+write.table(all.snps.ped,out.ped.name,col.names=F,row.names=F,quote=F,sep='\t',eol='\n')
 all.snps.clust<-cbind(ped.pop,all.snps.ped[,2],ped.pop)
-write.table(all.snps.clust, "stacks/all.clust.txt", sep="\t", eol="\n", quote=F,
+write.table(all.snps.clust, clust.name, sep="\t", eol="\n", quote=F,
             row.names=F, col.names=F)
+## ---- end-modifyAllPlink
 #then need to run 
 #plink --map batch_2.plink.map --ped fwsw_all.ped --freq --within all.clust.txt --allow-no-sex --noweb --out all.bayenv.plink
 #57251 markers in 698 individuals
 
 #read in frequency per pop
-all.snps.frq<-read.table("stacks/all.bayenv.plink.frq.strat", 
+all.freq.name<-"stacks/all.bayenv.plink.frq.strat"
+snpsfiles.name<-"bayenv/all.fwsw"
+## ---- make-all-snpfiles
+all.snps.frq<-read.table(all.freq.name, 
                          header=T, stringsAsFactors=F)
 #want to get $MAC for every snp at every pop 
 #and NCHROBS-MAC for every stnp at every pop
@@ -1837,9 +1885,9 @@ nac.by.pop<-as.data.frame(split(freq$NAC,freq$CLST))
 rownames(nac.by.pop)<-all.snps.map[,2]
 all.snpsfile<-gdata::interleave(mac.by.pop,nac.by.pop) 
 
-write.table(all.snpsfile, "bayenv/all.fwsw", 
+write.table(all.snpsfile, snpsfiles.name, 
             col.names=F,row.names=T,quote=F,sep="\t",eol="\n")
-
+## ---- end-make-all-snpfiles
 #Bayenv says to run this:
 #./calc bfs.sh SNPSFILE ENVIRONFILE MATRIXFILE NUMPOPS NUMITER NUMENVIRON
 #$ ~/Programs/bayenv_2/calc_bf.sh all.fwsw env_data_std.txt representative_matrix.txt 16 100000 3
@@ -1848,6 +1896,7 @@ write.table(all.snpsfile, "bayenv/all.fwsw",
 #sarah@sarah-VirtualBox:~/sf_ubuntushare/popgen/fwsw_results/bayenv$ Rscript --vanilla ../../scripts/SNPSfromSNPSFILE.R all.fwsw ~/sf_ubuntushare/popgen/fwsw_results/bayenv/snpfiles/
 #../../scripts/run_bayenv2_general.sh representative_matrix.txt env_data_std.txt 16 3 snpfiles
 #####ENVFILE
+## ---- convert-env
 env.raw<-read.csv("bayenv/env_data_raw.csv",row.names=1) 
 #Each environmental variable should be standardized, 
 #i.e. subtract the mean and then divided through by the standard deviation 
@@ -1858,7 +1907,9 @@ env.std<-env.std[,colnames(snpsfile)] #change the column order to match
 write.table(env.std,
             "bayenv/env_data_std.txt",
             sep='\t',quote=F,col.names=F,row.names=F,eol='\n')
+## ---- end-convert-env
 
+## ---- analyze-env-data
 ##Are they correlated with distance?
 colnames(env.raw)[colnames(env.dist) =="FLLG"]<-"FLFW"
 env.dist<-as.matrix(vegdist(t(env.raw)))
@@ -1869,7 +1920,7 @@ mantel.rtest(as.dist(t(dist)),as.dist(env.dist),999)
 # Call: mantelnoneuclid(m1 = m1, m2 = m2, nrepet = nrepet)
 # Based on 999 replicates
 # Simulated p-value: 0.104
-
+## ---- end-analyze-env-data
 
 #####GET OUTPUT
 bayenv.all<-read.table("bayenv/bf_environ.env_data_std.txt") #59865 rows??
@@ -1879,6 +1930,8 @@ head(bayenv.all[bayenv.all$V1 %in% dup.snps,])
 bayenv.all[bayenv.all$V1 %in% dup.snps[1],]
 bayenv.all<-bayenv.all[2615:59865,]
 
+bf.out.name<-"bayenv/fwsw_environ_corr.txt"
+## ---- analyze-bayenv
 colnames(bayenv.all)<-c("SNP",rownames(env.raw))
 bayenv.all$SNP<-rownames(nac.by.pop)
 bayenv.all$locus<-gsub("(\\d+)_\\d+","\\1",bayenv.all$SNP)
@@ -1904,7 +1957,7 @@ colnames(bf)<-c("SNP","temp","salinity","seagrass","Chrom","Pos")
 bf$logTemp<-log(as.numeric(bf$temp))
 bf$logSalt<-log(as.numeric(bf$salinity))
 bf$logSeag<-log(as.numeric(bf$seagrass))
-write.table(bf,"bayenv/fwsw_environ_corr.txt",
+write.table(bf,bf.out.name,
             col.names=T,row.names=F,quote=F,sep='\t')
 
 bf.co<-apply(bf[,2:4],2,quantile,0.95) #get the cutoffs (2863 of them)
@@ -1915,7 +1968,7 @@ seag.sig<-bf[bf[,"seagrass"]>bf.co["seagrass"],]
 tp<-fst.plot(fst.dat = bf,fst.name = "logTemp",chrom.name = "Chrom",bp.name = "Pos")
 sp<-fst.plot(fst.dat = bf,fst.name = "logSalt",chrom.name = "Chrom",bp.name = "Pos")
 gp<-fst.plot(fst.dat = bf,fst.name = "logSeag",chrom.name = "Chrom",bp.name = "Pos")
-
+## ---- end-analyze-bayenv
 
 #####Bayenv output ####
 #' ```{r, eval=FALSE}
