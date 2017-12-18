@@ -6,12 +6,12 @@ date: "`r format(Sys.time(), '%d %B, %Y')`"
 description: "Re-running the freshwater-saltwater analysis using only the dataset from pairwise population comparisons"
 ---
 
-In my initial analysis of the freshwater-saltwater dataset, I had two vcf files: 
+In my initial analysis of the freshwater-saltwater dataset, I had three vcf files: 
 1. one generated from all pairwise comparisons of populations, containing SNPs only found in all 16 populations, in 75% of individuals, and with a minor allele frequency of at least 5%. ("separate")
 2. one generated from all pairwise comparisons of populations, containing SNPs found in 4 populations, in 75% of individuals, and with a minor allele frequency of at least 5%. ("P4")
 3. one generated from comparing lumped 'freshwater' and 'saltwater' populations, containing SNPs found in 50% of individuals and with a minor allele frequency of at least 5%. ("lumped")
 
-I did the majority of the analyses using set #3, but would like to explore what changes if I use dataset #2. I think #1 is too restrictive. Dataset #2 is in the "subset" dataset, and is what I ran the structure analyses on.
+I did the majority of the analyses using set #3, but would like to explore what changes if I use dataset #2. I think #1 is too restrictive. Dataset #2 is in the "subset" dataset, and is what I ran the structure analyses on. This is the dataset I'm going to move forward with for the paper.
 
 Note that in most of these cases the actual analysis will be set to `eval=FALSE` once I've run it once, because then I save the output and only have to read it in, saving compilation time.
 
@@ -45,11 +45,11 @@ This P4/subset dataset has `r nrow(map.sub)` SNPs from `r length(unique(gsub("(\
 
 ## Generate a new vcf file
 
-The first thing to do is to create a vcf file using the subset parameters. I've already got a whitelist of loci in the subsetted dataset, so I need to run `populations -b 2 -W fwsw_results/subset.whitelist.txt -P fwsw_results/stacks -M fwsw_pops_map.txt --vcf`, which I did on 2017-12-18 on silivren-lond.
+The first thing to do is to create a vcf file using the subset parameters. I've already got a whitelist of loci in the subsetted dataset, so I need to run `populations -b 2 -W fwsw_results/subset.whitelist.txt -P fwsw_results/stacks -M fwsw_pops_map.txt --vcf`, which I did on 2017-12-18 on silivren-lond. I then re-named it to p4.vcf (and the other output files).
 
 
 ```{r read_vcf}
-vcf<-parse.vcf("stacks/batch_2.vcf") #this is the smaller dataset
+vcf<-parse.vcf("stacks/p4.vcf") #this is the smaller dataset
 ```
 ```{r vcfSetup}
 ```
@@ -58,12 +58,12 @@ The vcf file contains `r nrow(vcf)` SNPs from `r length(unique(vcf$ID))` RAD loc
 
 Choose a subset of the SNPs to re-use. [Do I need to do this?]
 
-```{r choose_subset, eval=FALSE} 
+```{r choose_subset} 
 chosen.snps<-choose.one.snp(vcf)$SNP
 write.table(chosen.snps,"chosen.all.snps.txt",quote=F)
 ```
 
-```{r read_subset,echo=FALSE}
+```{r read_subset,eval=FALSE}
 chosen.snps<-unlist(read.table("chosen.all.snps.txt"))
 ```
 
@@ -93,16 +93,16 @@ To run treemix, I follow the following steps:
 
 All of these require setting a root, which is FLPB based on previous trees.
 
-First, I need to create a file in the correct format, which uses the vcf file. To do that, I ran `populations -b 2 -W fwsw_results/subset.whitelist.txt -P fwsw_results/stacks -M fwsw_pops_map.txt --vcf` in Ubuntu on silivren-lond on 2017-12-18.
+First, I need to create a file in the correct format, which uses the vcf file: 
 
-```{r nameTreemix}
+```{r nameTreemix, eval=FALSE}
 treemix.name<-"treemix/p4_treemix"
 treemix.prefix<-"p4_"
 ```
-```{r generateTreemix}
+```{r generateTreemix, eval=FALSE}
 ```
 
-Then, in unix, I need to run `gzip -c treemix/p4_treemix > treemix/p4_treemix.gz`. Now I can run `scripts/run_treemix.sh`, which implements steps 1 and 2, and which I need to run in Ubuntu.
+Then, in unix, I need to run `gzip -c treemix/p4_treemix > treemix/p4_treemix.gz`. Now I can run `scripts/run_treemix.sh`, which implements steps 1 and 2, and which I need to run in Ubuntu. *Note that there are a lot of "no counts" warnings from treemix. Also, that it runs very quickly*
 
 After that, I can evaluate the different outcomes.
 
