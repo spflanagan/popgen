@@ -13,6 +13,8 @@ In my initial analysis of the freshwater-saltwater dataset, I had two vcf files:
 
 I did the majority of the analyses using set #3, but would like to explore what changes if I use dataset #2. I think #1 is too restrictive. Dataset #2 is in the "subset" dataset, and is what I ran the structure analyses on.
 
+Note that in most of these cases the actual analysis will be set to `eval=FALSE` once I've run it once, because then I save the output and only have to read it in, saving compilation time.
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_knit$set(root.dir='./fwsw_results/')
@@ -30,23 +32,33 @@ library(knitr)
 knitr::read_chunk("../scripts/fwsw_analysis.R")
 ```
 
-```{r FWSWsetup, echo=FALSE}
+```{r FWSWsetup, include=FALSE}
 ```
 
-```{r read_vcf}
-vcf<-parse.vcf("stacks/batch_2.vcf") #this is the smaller dataset
-```
-```{r vcf_setup}
-```
-
-```{r pwise_fsts_files,eval=FALSE}
+```{r pwiseFstsFiles,eval=FALSE}
 ```
 
 ```{r P4plink}
 ```
 
+This P4/subset dataset has `r nrow(map.sub)` SNPs from `r length(unique(gsub("(\\d+)_\\d+","\\1",map.sub$V2)))` RAD loci, from `r nrow(ped.sub)` indivudals in 16 populations.
+
+## Generate a new vcf file
+
+The first thing to do is to create a vcf file using the subset parameters. I've already got a whitelist of loci in the subsetted dataset, so I need to run `populations -b 2 -W fwsw_results/subset.whitelist.txt -P fwsw_results/stacks -M fwsw_pops_map.txt --vcf`, which I did on 2017-12-18 on silivren-lond.
+
+
+```{r read_vcf}
+vcf<-parse.vcf("stacks/batch_2.vcf") #this is the smaller dataset
+```
+```{r vcfSetup}
+```
+
+The vcf file contains `r nrow(vcf)` SNPs from `r length(unique(vcf$ID))` RAD loci.
+
+Choose a subset of the SNPs to re-use. [Do I need to do this?]
+
 ```{r choose_subset, eval=FALSE} 
-#only run this once! 
 chosen.snps<-choose.one.snp(vcf)$SNP
 write.table(chosen.snps,"chosen.all.snps.txt",quote=F)
 ```
@@ -57,14 +69,52 @@ chosen.snps<-unlist(read.table("chosen.all.snps.txt"))
 
 There are `r length(chosen.snps)` SNPs that I'll use from the vcf file, from `r nrow(vcf)` RAD loci.
 
-Somehow the pruned and subsetted ped/map files have `r nrow(map.sub)` SNPs from `r length(unique(gsub("(\\d+)_\\d+","\\1",map.sub$V2)))` RAD loci.
+
 
 ## Re-running the analysis
 
-### Treemix and Fsts
-**I need to re-run Treemix**
+I've already run STRUCTURE, adegenet, PCAdapt, pairwise Jost's D, and Fsts on the P4 (or "subset") dataset, so I can just read in those files. Although, since I don't need to re-run STRUCTURE, adegenet, or PCAdapt, I won't read those in. 
+
+```{r readExistingFiles}
+jostpw<-read.delim("Subset.JostsD.tsv",sep='\t',header=TRUE,row.names=1)
+```
+The bayes factors and Fsts are all in the following chunk.
+```{r Fig5Files}
+```
+
+### Treemix
+
+To run treemix, I follow the following steps:
+
+1. Fit tree without migration
+2. Add migration edges using `-m`.
+3. Use f3 and f4 ancestry estimation to approximate the amount of admixture and compare to treemix.
+4. Use f4 statistics to understand poor fits.
+
+All of these require setting a root, which is FLPB based on previous trees.
+
+First, I need to create a file in the correct format, which uses the vcf file. To do that, I ran `populations -b 2 -W fwsw_results/subset.whitelist.txt -P fwsw_results/stacks -M fwsw_pops_map.txt --vcf` in Ubuntu on silivren-lond on 2017-12-18.
+
+```{r nameTreemix}
+treemix.name<-"treemix/p4_treemix"
+treemix.prefix<-"p4_"
+```
+```{r generateTreemix}
+```
+
+Then, in unix, I need to run `gzip -c treemix/p4_treemix > treemix/p4_treemix.gz`. Now I can run `scripts/run_treemix.sh`, which implements steps 1 and 2, and which I need to run in Ubuntu.
+
+After that, I can evaluate the different outcomes.
+
+```{r TreemixSetup}
+```
+```{r FLPBoutgroup}
+```
+Look at the image and choose a favorite.
+
+
 ```{r define_filenames}
-treemix.file<-as.character("treemix/fwsw.basic.cov.gz")
+treemix.file<-as.character("treemix/fwsw.basic.cov.gz")#what is 'basic'?
 fst.tree.name<-as.character("ALLfst_cov_heatmap.png")
 afs.plot.name<-as.character("All_AFS.png")
 dd.plot.name<-as.character("separate_delta-divergence.png")
@@ -72,6 +122,8 @@ dd.name<-as.character("sep.deltadivergence.txt")
 sdd.name<-as.character("sep.smoothedDD.out.txt")
 ```
 I'll run treemix and plotting treemix once I've re-run it.
+
+### PopTree2
 
 
 **I need to re-run PopTree2**

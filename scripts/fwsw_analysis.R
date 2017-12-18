@@ -89,7 +89,6 @@ locus.info<-c(colnames(vcf[1:9]),"SNP")
 ## ---- end
 
 #### SUMMARY STATS####
-## @knitr summary
 #separate
 sep.vcf<-parse.vcf("stacks/batch_2.vcf")
 length(unique(sep.vcf$ID))
@@ -264,7 +263,7 @@ vcf<-vcf[vcf$SNP %in% chosen.snps,]
 ## ---- end
 #Calculate deltaDivergence
 #' ``` {r, eval = FALSE}
-## @knitr setupDeltaD
+## ---- setupDeltaD
 swfw.mu<-calc.mean.fst(vcf = vcf,pop.list1 = sw.list,pop.list2 = fw.list,maf.cutoff=0.01)
 fwfw.mu<-calc.mean.fst(vcf = vcf,pop.list1 = fw.list,pop.list2 = fw.list, maf.cutoff=0.01)
 deltad<-merge(swfw.mu,fwfw.mu,by="SNP")
@@ -417,6 +416,7 @@ for(i in 1:length(lgs)){
 }
 dev.off()
 
+## ---- HighPIlowDD
 #Do high pi and het have low deltad?
 #do it per chrom
 upp.pi<-NULL
@@ -450,13 +450,17 @@ for(i in 1:length(lgs)){
 shared.upp<-upp.pi[upp.pi$plot.pos %in% upp.het$plot.pos,] #6 of the SNPs are high in both!
 shared.upp$plot.min<-shared.upp$Avg.Pos-250000
 shared.upp$plot.max<-shared.upp$Avg.Pos+250000
+## ---- end
 #include Jost's D (from below)
-jostd<-read.delim("jostd.perlocus.txt",header=F)
+jostd.name<-"jostd.perlocus.txt"
+## ---- readJostD
+jostd<-read.delim(jostd.name,header=F)
 colnames(jostd)<-c("locid","D")
 jostd$SNP<-vcf$SNP
 jostd$POS<-vcf$POS
 jostd$Chr<-vcf$`#CHROM`
 jostd$ID<-vcf$ID
+## ---- end
 #also marine-fw fsts
 fwsw<-read.delim("stacks/fw-sw_populations/batch_2.fst_marine-freshwater.tsv")
 #and putative genes
@@ -468,9 +472,11 @@ fav.genes<-c("AQP3","TNS1","CAMKK1","mucin","CAII","NAKATPase","ARHGEF3")
 genes2plot<-put.reg[put.reg$Gene %in% fav.genes,]
 #shared Fst outliers
 fw.sig.reg<-read.csv("StacksFWSWOutliers_annotatedByGenome.csv")
+h.pi.name<-"HandPi_subgenes.png"
+## ---- plotHandPi
 #colors
 comp.col<-c(Het="#a6611a",pi="#dfc27d",Fst="black",D="#80cdc1",deltad="#018571")
-png("HandPi_subgenes.png",height=8,width=10,units="in",res=300)
+png(h.pi.name,height=8,width=10,units="in",res=300)
 par(mfrow=c(3,2),oma=c(1,1,2,1),mar=c(1,2,1.5,1))
 for(i in 1:length(unique(shared.upp$Chr))){
   this.df<-fwsw[fwsw$Chr %in% unique(shared.upp$Chr)[i],]
@@ -531,6 +537,7 @@ legend("top",
        lty=c(1,0,1,1,1,0,1,1),
        col=c("indianred","orchid4",alpha("#543005",0.75),comp.col),ncol=4)
 dev.off()
+## ---- end
 
 #### Looking for directional selection
 #' High Fst, low pi
@@ -559,6 +566,7 @@ put.dir<-pi.sig.fst[pi.sig.fst$Pi <= quantile(pi.plot$Pi,0.25),] #putative direc
 #' genealogicalSorting::gsi(tree, class, assignments, uncertainty)
 #' http://molecularevolution.org/software/phylogenetics/gsi/download
 
+## ---- NJtrees
 library(ape)
 
 #+ eval=FALSE
@@ -586,9 +594,10 @@ fst.trees<-read.delim("ftrees.txt",sep=" ")
 ftmono<-fst.trees[fst.trees$FWMonophyletic == TRUE,]
 
 ftmono[ftmono$SNP %in% fw.sig.reg$SNP,]
-
+## ---- end
 
 ####### Fsts with gwscaR code #####
+## ---- myFsts
 loci.info<-c(colnames(vcf[1:9]),"SNP")
 txcb<-grep("TXCB",colnames(vcf),value = T)
 txfw<-grep("TXFW",colnames(vcf),value = T)
@@ -629,8 +638,9 @@ tss.sig<-tss[tss$Chi.p <= 0.05,"SNP"] #413
 ass.sig<-ass[ass$Chi.p <= 0.05, "SNP"] #1751
 ffs.sig<-ffs[ffs$Chi.p <= 0.05, "SNP"] #1044
 ffs.sig[ffs.sig %in% tss.sig & ffs.sig %in% ass.sig] #14
-
+## ---- end
 #### Stacks Fsts ####
+## ---- StacksFsts
 fwsw<-read.delim("stacks/fw-sw_populations/batch_2.fst_marine-freshwater.tsv")
 #Compare neighboring pops.
 fwsw.tx<-read.delim("stacks/batch_2.fst_TXCC-TXFW.tsv")
@@ -664,6 +674,7 @@ colnames(stacks.sig)<-c("TX","LA","AL","FL")
 stacks.sig<-data.frame(cbind(fw.shared.chr,stacks.sig))
 stacks.sig$SNP<-paste(stacks.sig$Chr,stacks.sig$BP,sep=".")
 write.table(stacks.sig,"stacks.sig.snps.txt",sep='\t',row.names=FALSE,col.names=TRUE)
+## ---- end
 
 ## compare to scovelli genome..
 #+ annotations, eval=FALSE
@@ -782,7 +793,7 @@ for(i in 1:length(lgs)){
 dev.off()
 
 #### PLOT FIG. 5 ####
-
+## ---- plottingFunctions
 assign.plotpos<-function(df, plot.scaffs, bounds, df.chrom="Chrom", df.bp="BP"){
   colnames(bounds)<-c("Chrom","End")
   new.dat<-data.frame(stringsAsFactors = F)
@@ -820,8 +831,10 @@ perlg.add.lines<-function(fwsw.plot,lgs,width=NULL,lwds=4,color="cornflowerblue"
     points(this.smooth,col=color,type="l",lwd=lwds)
   }
 }
+## ---- end
 
 #' files to read in if they're not already
+## ---- Fig5Files
 fwsw<-read.delim("stacks/fw-sw_populations/batch_2.fst_marine-freshwater.tsv")
 #Compare neighboring pops.
 fwsw.tx<-read.delim("stacks/batch_2.fst_TXCC-TXFW.tsv")
@@ -840,9 +853,14 @@ bf<-read.delim("bayenv/bf.txt") #57250
 bf.co<-apply(bf[,5:7],2,quantile,0.99) #focus on Bayes Factors, because of Lotterhos & Whitlock (2015)
 sal.bf.sig<-bf[bf$Salinity_BF>bf.co["Salinity_BF"],c(1,2,4,8,9,6)]
 stacks.sig<-read.delim("stacks.sig.snps.txt")
+## ---- end
+## ---- readNJtrees
 fst.trees<-read.delim("ftrees.txt",sep=" ")
 ftmono<-fst.trees[fst.trees$FWMonophyletic == TRUE,]
+## ---- end
 
+fig5.name<-"stacks_fsts_nj_fwsw_bf.png"
+## ---- Fig5
 #' Set up the plotting utilities
 all.chr<-data.frame(Chr=c(as.character(fwsw.tx$Chr),as.character(fwsw.la$Chr),
                           as.character(fwsw.al$Chr),as.character(fwsw.fl$Chr),
@@ -859,7 +877,7 @@ ft.mono<-assign.plotpos(ftmono,plot.scaffs,bounds,df.bp="Pos")
 fwsw.plot<-assign.plotpos(fwsw,plot.scaffs,bounds,df.bp="BP",df.chrom = "Chr")
 
 #' plot with the outlier regions
-png("stacks_fsts_nj_fwsw_bf.png",height=6,width=8,units="in",res=300)
+png(fig5.name,height=6,width=8,units="in",res=300)
 par(mfrow=c(5,1),mar=c(0.85,2,0,0.5),oma=c(1,1,1,0.5))
 par(fig=c(0,1,0.9-0.9/5,0.9))
 fwswt.fst<-fst.plot(fwsw.tx,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
@@ -947,7 +965,7 @@ mtext("log(Salinity BF)",2,cex=0.75,line=2.1)
 labs<-tapply(bs.sal$plot.pos,bs.sal$scaffold,median)
 text(x=labs[lgs],y=-25,labels=lgn,xpd=TRUE)
 dev.off()
-
+## ---- end
 
 ##### >plot each chromosome #####
 #plot each chrom with sig. ones
@@ -1121,25 +1139,31 @@ legend(x=50,y=0.15,bty='n',pch=c(19,1),col=c("cornflowerblue","black"),
 dev.off()
 
 ##### Jost's D #####
+str.name<-"stacks/fw-sw_populations/fwsw.structure.str"
+stru.name<-"stacks/fw-sw_populations/fwsw.stru"
+## ---- str2genind
 #can use mmod but needs to be a genind object
-stru<-read.delim("stacks/fw-sw_populations/fwsw.structure.str",skip=1,sep="")
+stru<-read.delim(str,skip=1,sep="")
 stru[,2]<-as.numeric(as.factor(gsub("sample_(\\w{4}).*","\\1",stru[,1])))
-header<-scan("stacks/fw-sw_populations/fwsw.structure.str",nlines = 1,sep="",quiet = TRUE)
+header<-scan(str.name,nlines = 1,sep="",quiet = TRUE)
 colnames(stru)<-c("","",header)
-write.table(stru,"stacks/fw-sw_populations/fwsw.stru",sep=" ",quote=FALSE,row.names=FALSE,col.names=TRUE)
-fwsw.genind<-read.structure("stacks/fw-sw_populations/fwsw.stru",
+write.table(stru,stru.name,sep=" ",quote=FALSE,row.names=FALSE,col.names=TRUE)
+## ---- end
+## ---- calcJostD
+fwsw.genind<-read.structure(stru.name,
                             n.ind=697,n.loc=14801,col.lab=1,col.pop = 2,
                             row.marknames = 1,onerowperind = FALSE,ask=FALSE)
 
-#fwsw.genind<-read.genetix("stacks/fw-sw_populations/fwsw.gtx")
 fwsw.genind@pop<-factor(gsub("sample_(\\w{4}).*","\\1",rownames(fwsw.genind@tab)))
 rownames(fwsw.genind@tab)<-gsub("sample_(.*)","\\1",rownames(fwsw.genind@tab))
 jostd<-D_Jost(fwsw.genind) 
+jostpw<-pairwise_D(fwsw.genind)#got some warnings about populations
+## ---- end
 #jostd$global.het
 #[1] 0.08986191
 write.table(jostd$per.locus,"jostd.perlocus.txt",sep='\t',col.names=FALSE,row.names = TRUE,quote=F)
 
-jostpw<-pairwise_D(fwsw.genind)#got some warnings about populations
+
 write.table(as.matrix(jostpw)[pop.list,pop.list],"pairwise.jostd.14802loc.txt",
             col.names = TRUE,row.names = TRUE,quote=F,sep='\t')
 
@@ -1284,14 +1308,16 @@ plot.phylo(pt.subtree,tip.color = colors,
            edge.color = clcolr,edge.width = 2,label.offset = 0.0015)
 dev.off()
 ##### TREEMIX #####
-
+treemix.name<-"fwsw.treemix"
+treemix.prefix<-"fwsw."
+## ---- generateTreemix
 tm.fwsw<-treemix.from.vcf(vcf,pop.list)
-write.table(tm.fwsw,"fwsw.treemix",col.names=TRUE,row.names=FALSE,quote=F,sep=' ')
-#then in unix: gzip -c fwsw.treemix > fwsw.treemix.gz
+write.table(tm.fwsw,treemix.name,col.names=TRUE,row.names=FALSE,quote=F,sep=' ')
+#then in unix: gzip -c treemix.name > treemix.name.gz
+## ---- end
 
-#In unix: run treemix_analysis.R
-
-#ANALYZE
+#ANALYZE (from treemix_analysis.R)
+## ---- TreemixSetup
 setwd("treemix")
 poporder<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST",
             "ALFW","FLSG","FLKB","FLFD","FLSI","FLAB",
@@ -1305,85 +1331,92 @@ colors[colors %in% c("ALST","ALFW","LAFW")]<-grp.colors[2]
 colors[colors %in% c("TXSP","TXCC","TXFW","TXCB")]<-grp.colors[1]
 write.table(cbind(poporder,colors),"poporder",quote=F,sep='\t')
 source("../../scripts/treemix_plotting_funcs.R")#I've modified these functions
+## ---- end
 
-
-## Basic tree
+## ---- BasicTree
 par(mfrow=c(1,2),oma=c(2,2,2,2),mar=c(2,2,2,2))
-tree<-plot_tree("fwsw.basic",plotmig=F,scale=F,mbar=F,plus=0.05)
+tree<-plot_tree(paste(treemix.prefix,"basic",sep=""),plotmig=F,scale=F,mbar=F,plus=0.05)
 mtext("Drift parameter",1,line=2)
-resid<-plot_resid("fwsw.basic","poporder",wcols="rb")
+resid<-plot_resid(paste(treemix.prefix,"basic",sep=""),"poporder",wcols="rb")
+## ---- end
 
-### FLLG as outgroup
-m0<-treemix.cov.plot("fwsw.k100bFLLGr",poporder,split=c(1,1,3,2),more=TRUE)
-m1<-treemix.cov.plot("fwsw.k100bFLLGrm1",poporder,split=c(2,1,3,2),more=TRUE)
-m2<-treemix.cov.plot("fwsw.k100bFLLGrm2",poporder,split=c(3,1,3,2),more=TRUE)
-m3<-treemix.cov.plot("fwsw.k100bFLLGrm3",poporder,split=c(1,2,3,2),more=TRUE)
-m4<-treemix.cov.plot("fwsw.k100bFLLGrm4",poporder,split=c(2,2,3,2),more=TRUE)
-m5<-treemix.cov.plot("fwsw.k100bFLLGrm5",poporder,split=c(3,2,3,2),more=FALSE)
+
+## ---- FLLGoutgroup
+m0<-treemix.cov.plot(paste(treemix.prefix,"k100bFLLGr",sep=""),poporder,split=c(1,1,3,2),more=TRUE)
+m1<-treemix.cov.plot(paste(treemix.prefix,"k100bFLLGrm1",sep=""),poporder,split=c(2,1,3,2),more=TRUE)
+m2<-treemix.cov.plot(paste(treemix.prefix,"k100bFLLGrm2",sep=""),poporder,split=c(3,1,3,2),more=TRUE)
+m3<-treemix.cov.plot(paste(treemix.prefix,"k100bFLLGrm3",sep=""),poporder,split=c(1,2,3,2),more=TRUE)
+m4<-treemix.cov.plot(paste(treemix.prefix,"k100bFLLGrm4",sep=""),poporder,split=c(2,2,3,2),more=TRUE)
+m5<-treemix.cov.plot(paste(treemix.prefix,"k100bFLLGrm5",sep=""),poporder,split=c(3,2,3,2),more=FALSE)
 par(mfrow=c(2,3))
-r0<-plot_resid("fwsw.k100bFLLGr","poporder")
-r1<-plot_resid("fwsw.k100bFLLGrm1","poporder")
-r2<-plot_resid("fwsw.k100bFLLGrm2","poporder")
-r3<-plot_resid("fwsw.k100bFLLGrm3","poporder")
-r4<-plot_resid("fwsw.k100bFLLGrm4","poporder")
-r5<-plot_resid("fwsw.k100bFLLGrm5","poporder")
+r0<-plot_resid(paste(treemix.prefix,"fwsw.k100bFLLGr",sep=""),"poporder")
+r1<-plot_resid(paste(treemix.prefix,"k100bFLLGrm1",sep=""),"poporder")
+r2<-plot_resid(paste(treemix.prefix,"k100bFLLGrm2",sep=""),"poporder")
+r3<-plot_resid(paste(treemix.prefix,"k100bFLLGrm3",sep=""),"poporder")
+r4<-plot_resid(paste(treemix.prefix,"k100bFLLGrm4",sep=""),"poporder")
+r5<-plot_resid(paste(treemix.prefix,"k100bFLLGrm5",sep=""),"poporder")
 
 png("migration_trees_treemix.png",height=6,width=11,units="in",res=300)
 par(mfrow=c(2,3),mar=c(1,1,1,1),oma=c(1,1,1,1))
-t0<-plot_tree("fwsw.k100bFLLGr",plotmig = F,plus=0.05,scale=F,mbar=F)
-t1<-plot_tree("fwsw.k100bFLLGrm1",plus=0.05,scale=F,mbar=F)
-t2<-plot_tree("fwsw.k100bFLLGrm2",plus=0.05,scale=F,mbar=F)
-t3<-plot_tree("fwsw.k100bFLLGrm3",plus=0.05,scale=F,mbar=F)
-t4<-plot_tree("fwsw.k100bFLLGrm4",plus=0.05,scale=F,mbar=F)
-t5<-plot_tree("fwsw.k100bFLLGrm5",plus=0.05,scale=F,mbar=F)
+t0<-plot_tree(paste(treemix.prefix,"k100bFLLGr",sep=""),plotmig = F,plus=0.05,scale=F,mbar=F)
+t1<-plot_tree(paste(treemix.prefix,"k100bFLLGrm1",sep=""),plus=0.05,scale=F,mbar=F)
+t2<-plot_tree(paste(treemix.prefix,"k100bFLLGrm2",sep=""),plus=0.05,scale=F,mbar=F)
+t3<-plot_tree(paste(treemix.prefix,"k100bFLLGrm3",sep=""),plus=0.05,scale=F,mbar=F)
+t4<-plot_tree(paste(treemix.prefix,"k100bFLLGrm4",sep=""),plus=0.05,scale=F,mbar=F)
+t5<-plot_tree(paste(treemix.prefix,"k100bFLLGrm5",sep=""),plus=0.05,scale=F,mbar=F)
 dev.off()
 
 #' Evaluate migration p-values
-tree0<-read.table(gzfile("fwsw.k100bFLLGr.treeout.gz"), as.is  = T, comment.char = "", quote = "")
-tree1<-read.table(gzfile("fwsw.k100bFLLGrm1.treeout.gz"), as.is  = T, comment.char = "", quote = "",skip=1)
-tree2<-read.table(gzfile("fwsw.k100bFLLGrm2.treeout.gz"), as.is  = T, comment.char = "", quote = "",skip=1)
-tree3<-read.table(gzfile("fwsw.k100bFLLGrm3.treeout.gz"), as.is  = T, comment.char = "", quote = "",skip=1)
-tree4<-read.table(gzfile("fwsw.k100bFLLGrm4.treeout.gz"), as.is  = T, comment.char = "", quote = "",skip=1)
-tree5<-read.table(gzfile("fwsw.k100bFLLGrm5.treeout.gz"), as.is  = T, comment.char = "", quote = "",skip=1)
+tree0<-read.table(gzfile(paste(treemix.prefix,"k100bFLLGr.treeout.gz",sep="")), as.is  = T, comment.char = "", quote = "")
+tree1<-read.table(gzfile(paste(treemix.prefix,"k100bFLLGrm1.treeout.gz",sep="")), as.is  = T, comment.char = "", quote = "",skip=1)
+tree2<-read.table(gzfile(paste(treemix.prefix,"k100bFLLGrm2.treeout.gz",sep="")), as.is  = T, comment.char = "", quote = "",skip=1)
+tree3<-read.table(gzfile(paste(treemix.prefix,"k100bFLLGrm3.treeout.gz",sep="")), as.is  = T, comment.char = "", quote = "",skip=1)
+tree4<-read.table(gzfile(paste(treemix.prefix,"k100bFLLGrm4.treeout.gz",sep="")), as.is  = T, comment.char = "", quote = "",skip=1)
+tree5<-read.table(gzfile(paste(treemix.prefix,"k100bFLLGrm5.treeout.gz",sep="")), as.is  = T, comment.char = "", quote = "",skip=1)
 
-png("FWSW_treemix_m3.png",height=7,width=7,units="in",res=300)
-t3<-plot_tree("fwsw.k100bFLLGrm3",plus=0.05,scale=F,mbar=T)
+png(paste(treemix.prefix,"treemix_m3.png",sep=""),height=7,width=7,units="in",res=300)
+t3<-plot_tree(paste(treemix.prefix,"k100bFLLGrm3",sep=""),plus=0.05,scale=F,mbar=T)
 dev.off()
-
-##### FLPB as outgroup 
-m0<-treemix.cov.plot("fwsw.k100bFLPBr",poporder,split=c(1,1,3,2),more=TRUE)
-m1<-treemix.cov.plot("fwsw.k100bFLPBrm1",poporder,split=c(2,1,3,2),more=TRUE)
-m2<-treemix.cov.plot("fwsw.k100bFLPBrm2",poporder,split=c(3,1,3,2),more=TRUE)
-m3<-treemix.cov.plot("fwsw.k100bFLPBrm3",poporder,split=c(1,2,3,2),more=TRUE)
-m4<-treemix.cov.plot("fwsw.k100bFLPBrm4",poporder,split=c(2,2,3,2),more=TRUE)
-m5<-treemix.cov.plot("fwsw.k100bFLPBrm5",poporder,split=c(3,2,3,2),more=FALSE)
+## ---- end
+## ---- FLPBoutgroup 
+m0<-treemix.cov.plot(paste(treemix.prefix,"k100bFLPBr",sep=""),poporder,split=c(1,1,3,2),more=TRUE)
+m1<-treemix.cov.plot(paste(treemix.prefix,"k100bFLPBrm1",sep=""),poporder,split=c(2,1,3,2),more=TRUE)
+m2<-treemix.cov.plot(paste(treemix.prefix,"k100bFLPBrm2",sep=""),poporder,split=c(3,1,3,2),more=TRUE)
+m3<-treemix.cov.plot(paste(treemix.prefix,"k100bFLPBrm3",sep=""),poporder,split=c(1,2,3,2),more=TRUE)
+m4<-treemix.cov.plot(paste(treemix.prefix,"k100bFLPBrm4",sep=""),poporder,split=c(2,2,3,2),more=TRUE)
+m5<-treemix.cov.plot(paste(treemix.prefix,"k100bFLPBrm5",sep=""),poporder,split=c(3,2,3,2),more=FALSE)
 par(mfrow=c(2,3))
-r0<-plot_resid("fwsw.k100bFLPBr","poporder")
-r1<-plot_resid("fwsw.k100bFLPBrm1","poporder")
-r2<-plot_resid("fwsw.k100bFLPBrm2","poporder")
-r3<-plot_resid("fwsw.k100bFLPBrm3","poporder")
-r4<-plot_resid("fwsw.k100bFLPBrm4","poporder")
-r5<-plot_resid("fwsw.k100bFLPBrm5","poporder")
+r0<-plot_resid(paste(treemix.prefix,"k100bFLPBr",sep=""),"poporder")
+r1<-plot_resid(paste(treemix.prefix,"k100bFLPBrm1",sep=""),"poporder")
+r2<-plot_resid(paste(treemix.prefix,"k100bFLPBrm2",sep=""),"poporder")
+r3<-plot_resid(paste(treemix.prefix,"k100bFLPBrm3",sep=""),"poporder")
+r4<-plot_resid(paste(treemix.prefix,"k100bFLPBrm4",sep=""),"poporder")
+r5<-plot_resid(paste(treemix.prefix,"k100bFLPBrm5",sep=""),"poporder")
 
-png("migration_trees_treemix_FLPB.png",height=6,width=11,units="in",res=300)
+png(paste(treemix.prefix,"migration_trees_treemix_FLPB.png",sep=""),height=6,width=11,units="in",res=300)
 par(mfrow=c(2,3),mar=c(1,1,1,1),oma=c(1,1,1,1))
-t0<-plot_tree("fwsw.k100bFLPBr",plotmig = F,plus=0.05,scale=F,mbar=F)
-t1<-plot_tree("fwsw.k100bFLPBrm1",plus=0.05,scale=F,mbar=F)
-t2<-plot_tree("fwsw.k100bFLPBrm2",plus=0.05,scale=F,mbar=F)
-t3<-plot_tree("fwsw.k100bFLPBrm3",plus=0.05,scale=F,mbar=F)
-t4<-plot_tree("fwsw.k100bFLPBrm4",plus=0.05,scale=F,mbar=F)
-t5<-plot_tree("fwsw.k100bFLPBrm5",plus=0.05,scale=F,mbar=F)
+t0<-plot_tree(paste(treemix.prefix,"k100bFLPBr",sep=""),plotmig = F,plus=0.05,scale=F,mbar=F)
+t1<-plot_tree(paste(treemix.prefix,"k100bFLPBrm1",sep=""),plus=0.05,scale=F,mbar=F)
+t2<-plot_tree(paste(treemix.prefix,"k100bFLPBrm2",sep=""),plus=0.05,scale=F,mbar=F)
+t3<-plot_tree(paste(treemix.prefix,"k100bFLPBrm3",sep=""),plus=0.05,scale=F,mbar=F)
+t4<-plot_tree(paste(treemix.prefix,"k100bFLPBrm4",sep=""),plus=0.05,scale=F,mbar=F)
+t5<-plot_tree(paste(treemix.prefix,"k100bFLPBrm5",sep=""),plus=0.05,scale=F,mbar=F)
 dev.off()
 
 #' Evaluate migration p-values
-tree0<-read.table(gzfile("fwsw.k100bFLPBr.treeout.gz"), as.is  = T, comment.char = "", quote = "")
-tree1<-read.table(gzfile("fwsw.k100bFLPBrm1.treeout.gz"), as.is  = T, comment.char = "", quote = "",skip=1)
-tree2<-read.table(gzfile("fwsw.k100bFLPBrm2.treeout.gz"), as.is  = T, comment.char = "", quote = "",skip=1)
-tree3<-read.table(gzfile("fwsw.k100bFLPBrm3.treeout.gz"), as.is  = T, comment.char = "", quote = "",skip=1)
-tree4<-read.table(gzfile("fwsw.k100bFLPBrm4.treeout.gz"), as.is  = T, comment.char = "", quote = "",skip=1)
-tree5<-read.table(gzfile("fwsw.k100bFLPBrm5.treeout.gz"), as.is  = T, comment.char = "", quote = "",skip=1)
+tree0<-read.table(gzfile(paste(treemix.prefix,"k100bFLPBr.treeout.gz",sep="")), as.is  = T, comment.char = "", quote = "")
+tree1<-read.table(gzfile(paste(treemix.prefix,"k100bFLPBrm1.treeout.gz",sep="")), as.is  = T, comment.char = "", quote = "",skip=1)
+tree2<-read.table(gzfile(paste(treemix.prefix,"k100bFLPBrm2.treeout.gz",sep="")), as.is  = T, comment.char = "", quote = "",skip=1)
+tree3<-read.table(gzfile(paste(treemix.prefix,"k100bFLPBrm3.treeout.gz",sep="")), as.is  = T, comment.char = "", quote = "",skip=1)
+tree4<-read.table(gzfile(paste(treemix.prefix,"k100bFLPBrm4.treeout.gz",sep="")), as.is  = T, comment.char = "", quote = "",skip=1)
+tree5<-read.table(gzfile(paste(treemix.prefix,"k100bFLPBrm5.treeout.gz",sep="")), as.is  = T, comment.char = "", quote = "",skip=1)
+## ---- end
 
-d <- read.table("fwsw.k100bFLPBrm3.vertices.gz", as.is  = T, comment.char = "", quote = "")
+tm.vertices<-"fwsw.k100bFLPBrm3.vertices.gz"
+tm.plot<-"FWSW_treemix_m3_FLPB.png"
+tm.tree<-"fwsw.k100bFLPBrm3"
+## ---- TreemixFavorite
+d <- read.table(tm.vertices, as.is  = T, comment.char = "", quote = "")
 branch.cols<-rep("black",nrow(d))
 branch.cols[d[,2] %in% c("TXFW","ALFW","LAFW","FLLG")]<-"cornflowerblue"
 
@@ -1391,8 +1424,8 @@ tip.names<-as.vector(d[d[,5] == "TIP",2])
 tip.names<-data.frame(Original=tip.names,Replacement=tip.names,stringsAsFactors = FALSE)
 tip.names$Replacement[tip.names$Replacement=="FLLG"]<-"FLFW"
 
-png("FWSW_treemix_m3_FLPB.png",height=7,width=7,units="in",res=300)
-t3<-plot_tree("fwsw.k100bFLPBrm3","poporder",plus=0.05,scale=F,mbar=F,arrow=0.1,
+png(tm.plot,height=7,width=7,units="in",res=300)
+t3<-plot_tree(tm.tree,"poporder",plus=0.05,scale=F,mbar=F,arrow=0.1,
               tip.order = tip.names,lwd = 2,branch.cols = branch.cols)
 ybar<-0.01
 mcols = rev( heat.colors(150) )
@@ -1408,14 +1441,18 @@ text(0.15+xma+0.001, yma, lab = "0.5", adj = 0, cex =0.7)
 text(0.15, yma+0.06, lab = "Migration", adj = 0 , cex = 0.6)
 text(0.15, yma+0.03, lab = "weight", adj = 0 , cex = 0.6)
 dev.off()
+## ---- end
 
-####plot with poptree ####
-png("trees.png",height=5,width=10,units="in",res=300)
+plotName<-"trees.png"
+tm.tree<-"treemix/fwsw.k100bFLPBrm3"
+
+## ---- plotTreemixPoptree
+png(plotName,height=5,width=10,units="in",res=300)
 par(mfrow=c(1,2),oma=c(1,1,1,0.1),mar=c(1,1,1,0.1))
 plot.phylo(pt.subtree,tip.color = colors,
            edge.color = clcolr,edge.width = 2,label.offset = 0.0015)
 mtext("PopTree2",3)
-t3<-plot_tree("treemix/fwsw.k100bFLPBrm3","treemix/poporder",plus=0.05,scale=F,mbar=F,arrow=0.1,
+t3<-plot_tree(tm.tree,"treemix/poporder",plus=0.05,scale=F,mbar=F,arrow=0.1,
               tip.order = tip.names,lwd = 2,branch.cols = branch.cols,xlab=F)
 mtext("Treemix",3)
 ybar<-0.01
@@ -1432,6 +1469,7 @@ text(0.15+xma+0.001, yma, lab = "0.5", adj = 0, cex =0.7)
 text(0.15, yma+0.06, lab = "Migration", adj = 0 , cex = 0.6)
 text(0.15, yma+0.03, lab = "weight", adj = 0 , cex = 0.6)
 dev.off()
+## ---- end
 
 ##############################POP STRUCTURE##################################
 
@@ -1636,7 +1674,7 @@ dev.off()
 ###### STRUCTURE #####
 
 #setwd("../../")
-
+## ---- readStructure
 structure.k2<-read.table(
   "structure//fwsw//admix//Results//admix_run_2_f_clusters.txt",
   sep='\t', header=F)
@@ -1647,6 +1685,7 @@ structure.k6<-read.table(
   "structure//fwsw//admix//Results//admix_run_6_f_clusters.txt",
   sep='\t', header=F)
 structure.k6$V1<-sub('sample_([A-Z]{4})','\\1', structure.k6$V1)
+## ---- end
 tapply(structure.k6$V2,structure.k6$V1,max) #V2 has FLAt group
 tapply(structure.k6$V3,structure.k6$V1,max) #V3 has TX group
 tapply(structure.k6$V4,structure.k6$V1,max) #V4 has AL group
@@ -1667,7 +1706,7 @@ plotting.structure(str6,2,pop.list, make.file=FALSE, plot.new=F,
                    ylabel=expression(atop(italic(K)==6,Delta~italic(K)==326.1)))
 dev.off()
 
-##### COMBINED GRAPH ####
+##### COMBINED FIGURE ####
 npop<-length(pop.list)
 pseq<-1:npop
 m<-matrix(c(1:32,rep(33,4),rep(34,4),rep(35,4),rep(0,4),
