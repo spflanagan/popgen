@@ -25,6 +25,7 @@ source("../../gwscaR/R/gwscaR_plot.R")
 source("../../gwscaR/R/gwscaR_utility.R")
 source("../../gwscaR/R/gwscaR_fsts.R")
 source("../../gwscaR/R/gwscaR_popgen.R")
+source("../scripts/treemix_plotting_funcs.R")#I've modified these functions
 library(knitr)
 ```
 
@@ -38,7 +39,7 @@ knitr::read_chunk("../scripts/fwsw_analysis.R")
 ```{r pwiseFstsFiles,eval=FALSE}
 ```
 
-```{r P4plink}
+```{r P4plink,cache=TRUE}
 ```
 
 This P4/subset dataset has `r nrow(map.sub)` SNPs from `r length(unique(gsub("(\\d+)_\\d+","\\1",map.sub$V2)))` RAD loci, from `r nrow(ped.sub)` indivudals in 16 populations.
@@ -48,22 +49,22 @@ This P4/subset dataset has `r nrow(map.sub)` SNPs from `r length(unique(gsub("(\
 The first thing to do is to create a vcf file using the subset parameters. I've already got a whitelist of loci in the subsetted dataset, so I need to run `populations -b 2 -W fwsw_results/subset.whitelist.txt -P fwsw_results/stacks -M fwsw_pops_map.txt --vcf`, which I did on 2017-12-18 on silivren-lond. I then re-named it to p4.vcf (and the other output files).
 
 
-```{r read_vcf}
+```{r read_vcf,cache=TRUE}
 vcf<-parse.vcf("stacks/p4.vcf") #this is the smaller dataset
 ```
-```{r vcfSetup}
+```{r vcfSetup, echo=TRUE}
 ```
 
 The vcf file contains `r nrow(vcf)` SNPs from `r length(unique(vcf$ID))` RAD loci.
 
 Choose a subset of the SNPs to re-use. [Do I need to do this?]
 
-```{r choose_subset} 
+```{r choose_subset, eval=FALSE} 
 chosen.snps<-choose.one.snp(vcf)$SNP
 write.table(chosen.snps,"chosen.all.snps.txt",quote=F)
 ```
 
-```{r read_subset,eval=FALSE}
+```{r read_subset}
 chosen.snps<-unlist(read.table("chosen.all.snps.txt"))
 ```
 
@@ -95,9 +96,9 @@ All of these require setting a root, which is FLPB based on previous trees.
 
 First, I need to create a file in the correct format, which uses the vcf file: 
 
-```{r nameTreemix, eval=FALSE}
+```{r nameTreemix}
 treemix.name<-"treemix/p4_treemix"
-treemix.prefix<-"p4_"
+treemix.prefix<-"treemix/p4_"
 ```
 ```{r generateTreemix, eval=FALSE}
 ```
@@ -108,10 +109,42 @@ After that, I can evaluate the different outcomes.
 
 ```{r TreemixSetup}
 ```
-```{r FLPBoutgroup}
+```{r FLPBoutgroup, results="hide",fig.keep="high"}
 ```
-Look at the image and choose a favorite.
 
+Population pairs that are 'too far apart' on the tree (have high error estimates) are ones that are likely candidates for gene flow - and these are the squares with dark greens, blues, and black. These are LAFW-TXFW and ALFW-TXFW in almost all of the SE graphs
+
+```{r FLPBmigration, results="hide",fig.keep="high"}
+```
+Look at the p-values: do migration events always improve the fit of the data?
+```{r FLPBpvals}
+```
+All of the added migration edges improve the fit. But which one is important?
+
+#### Evaluating migration edges
+
+We can use the three- and four-population tests to evaluate these admixture events.
+
+```{r f3f4}
+f3.name<-"treemix/p4_threepop.txt"
+f4.name<-"treemix/p4_fourpop.txt"
+
+#extract the relevant lines
+extract.fs<-function(filename,pat="^[A-Z]{4};"){
+  f<-readLines(filename)
+  fmatch<-f[grep(pat,f)]
+  f<-read.table(text=fmatch)
+  colnames(f)<-c("pops","f","SE","Z")
+  return(f)
+}
+f3<-extract.fs(f3.name)
+f4<-extract.fs(f4.name,pat="^[A-Z]{4},")
+
+#add p-values
+f3$p<-pnorm(f3$Z)
+f4$p<-pnorm(f4$Z)
+
+```
 
 ```{r define_filenames}
 treemix.file<-as.character("treemix/fwsw.basic.cov.gz")#what is 'basic'?

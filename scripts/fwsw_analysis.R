@@ -1319,6 +1319,7 @@ write.table(tm.fwsw,treemix.name,col.names=TRUE,row.names=FALSE,quote=F,sep=' ')
 #ANALYZE (from treemix_analysis.R)
 ## ---- TreemixSetup
 setwd("treemix")
+source("../../scripts/treemix_plotting_funcs.R")#I've modified these functions
 poporder<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST",
             "ALFW","FLSG","FLKB","FLFD","FLSI","FLAB",
             "FLPB","FLHB","FLCC","FLLG")
@@ -1330,7 +1331,6 @@ colors[colors %in% c("FLSI","FLFD","FLKB","FLSG")]<-grp.colors[3]
 colors[colors %in% c("ALST","ALFW","LAFW")]<-grp.colors[2]
 colors[colors %in% c("TXSP","TXCC","TXFW","TXCB")]<-grp.colors[1]
 write.table(cbind(poporder,colors),"poporder",quote=F,sep='\t')
-source("../../scripts/treemix_plotting_funcs.R")#I've modified these functions
 ## ---- end
 
 ## ---- BasicTree
@@ -1392,8 +1392,10 @@ r2<-plot_resid(paste(treemix.prefix,"k100bFLPBrm2",sep=""),"poporder")
 r3<-plot_resid(paste(treemix.prefix,"k100bFLPBrm3",sep=""),"poporder")
 r4<-plot_resid(paste(treemix.prefix,"k100bFLPBrm4",sep=""),"poporder")
 r5<-plot_resid(paste(treemix.prefix,"k100bFLPBrm5",sep=""),"poporder")
+## ---- end
 
 png(paste(treemix.prefix,"migration_trees_treemix_FLPB.png",sep=""),height=6,width=11,units="in",res=300)
+## ---- FLPBmigration
 par(mfrow=c(2,3),mar=c(1,1,1,1),oma=c(1,1,1,1))
 t0<-plot_tree(paste(treemix.prefix,"k100bFLPBr",sep=""),plotmig = F,plus=0.05,scale=F,mbar=F)
 t1<-plot_tree(paste(treemix.prefix,"k100bFLPBrm1",sep=""),plus=0.05,scale=F,mbar=F)
@@ -1401,15 +1403,22 @@ t2<-plot_tree(paste(treemix.prefix,"k100bFLPBrm2",sep=""),plus=0.05,scale=F,mbar
 t3<-plot_tree(paste(treemix.prefix,"k100bFLPBrm3",sep=""),plus=0.05,scale=F,mbar=F)
 t4<-plot_tree(paste(treemix.prefix,"k100bFLPBrm4",sep=""),plus=0.05,scale=F,mbar=F)
 t5<-plot_tree(paste(treemix.prefix,"k100bFLPBrm5",sep=""),plus=0.05,scale=F,mbar=F)
+## ---- end
 dev.off()
 
-#' Evaluate migration p-values
+## ---- FLPBpvals
 tree0<-read.table(gzfile(paste(treemix.prefix,"k100bFLPBr.treeout.gz",sep="")), as.is  = T, comment.char = "", quote = "")
 tree1<-read.table(gzfile(paste(treemix.prefix,"k100bFLPBrm1.treeout.gz",sep="")), as.is  = T, comment.char = "", quote = "",skip=1)
 tree2<-read.table(gzfile(paste(treemix.prefix,"k100bFLPBrm2.treeout.gz",sep="")), as.is  = T, comment.char = "", quote = "",skip=1)
 tree3<-read.table(gzfile(paste(treemix.prefix,"k100bFLPBrm3.treeout.gz",sep="")), as.is  = T, comment.char = "", quote = "",skip=1)
 tree4<-read.table(gzfile(paste(treemix.prefix,"k100bFLPBrm4.treeout.gz",sep="")), as.is  = T, comment.char = "", quote = "",skip=1)
 tree5<-read.table(gzfile(paste(treemix.prefix,"k100bFLPBrm5.treeout.gz",sep="")), as.is  = T, comment.char = "", quote = "",skip=1)
+
+tree1[,4]
+tree2[,4]
+tree3[,4]
+tree4[,4]
+tree5[,4]
 ## ---- end
 
 tm.vertices<-"fwsw.k100bFLPBrm3.vertices.gz"
