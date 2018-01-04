@@ -1149,16 +1149,18 @@ header<-scan(str.name,nlines = 1,sep="",quiet = TRUE)
 colnames(stru)<-c("","",header)
 write.table(stru,stru.name,sep=" ",quote=FALSE,row.names=FALSE,col.names=TRUE)
 ## ---- end
+num.loci<-14801
+num.ind<-697
 ## ---- calcJostD
 fwsw.genind<-read.structure(stru.name,
-                            n.ind=697,n.loc=14801,col.lab=1,col.pop = 2,
+                            n.ind=num.ind,n.loc=num.loci,col.lab=1,col.pop = 2,
                             row.marknames = 1,onerowperind = FALSE,ask=FALSE)
 
 fwsw.genind@pop<-factor(gsub("sample_(\\w{4}).*","\\1",rownames(fwsw.genind@tab)))
 rownames(fwsw.genind@tab)<-gsub("sample_(.*)","\\1",rownames(fwsw.genind@tab))
 jostd<-D_Jost(fwsw.genind) 
-jostpw<-pairwise_D(fwsw.genind)#got some warnings about populations
 ## ---- end
+jostpw<-pairwise_D(fwsw.genind)#got some warnings about populations
 #jostd$global.het
 #[1] 0.08986191
 write.table(jostd$per.locus,"jostd.perlocus.txt",sep='\t',col.names=FALSE,row.names = TRUE,quote=F)
@@ -1177,8 +1179,12 @@ sub.stru[,2]<-as.numeric(as.factor(gsub("sample_(\\w{4}).*","\\1",sub.stru[,1]))
 colnames(sub.stru)[1:2]<-c("","")
 write.table(stru,"stacks/sub.stru",sep=" ",quote=FALSE,row.names=FALSE,col.names=TRUE)
 
-sub.genind<-read.structure("stacks/subset.structure.stru",n.ind=698,
-                           n.loc=9638,col.lab=1,col.pop=2,sep='\t',
+sub.str<-"stacks/subset.structure.stru"
+num.loci<-9638
+num.ind<-698
+## ---- pairwiseJostsDsubset
+sub.genind<-read.structure(sub.str,n.ind=num.ind,
+                           n.loc=num.loci,col.lab=1,col.pop=2,sep='\t',
                            row.marknames = 2,onerowperind=FALSE,ask=FALSE)
 sub.genind@pop<-factor(gsub("sample_(\\w{4}).*","\\1",rownames(sub.genind@tab)))
 jostpw.sub<-pairwise_D(sub.genind)
@@ -1186,7 +1192,7 @@ jostpw<-as.matrix(jostpw.sub)[pop.list,pop.list]
 jostpw[lower.tri(jostpw)]<-NA
 write.table(jostpw,"Subset.JostsD.tsv",sep='\t',col.names=TRUE,
             row.names=TRUE,quote=FALSE)
-
+## ---- end
 ####PLOT Heatmap Fig #####
 #get poptree distance matrix
 pt.dist<-as.matrix(read.table("poptree/fwsw.8141.distance.out",header=T,row.names=1,sep='\t'))
