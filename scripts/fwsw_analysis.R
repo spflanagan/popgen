@@ -1260,15 +1260,16 @@ abline(h=quantile(jp$D,probs = 0.05),lty=3)
 
 ##### POPTREE #####
 #create 10 sets of 1000 randomly-chosen loci
-
+## ---- CreatePoptreeSubsets
 for(i in 1:10){
   rowsub<-sample(nrow(vcf),1000,replace = FALSE)
   gpopsub<-vcf2gpop(vcf[rowsub,colnames(vcf)!="SNP"],pop.list,paste("poptree/subset_",i,".genepop",sep=""))
 }
 gpop<-vcf2gpop(vcf[,colnames(vcf)!="SNP"],pop.list,"poptree/fwsw.8141.genepop")
 #then run poptree on all of them
-
-###ANALYZE RESULTS
+## ---- end
+poptree.prefix<-"poptree/poptree."
+## ---- AnalyzePoptree
 poptree.files<-list.files(path = "poptree",pattern="*.nwk")
 poptree.files<-lapply(poptree.files,function(x){ paste("poptree",x,sep="/")})
 poptrees<-lapply(poptree.files,read.tree)
@@ -1277,20 +1278,22 @@ con.poptree$tip.label[con.poptree$tip.label=="FLLG"]<-"FLFW"
 
 clcolr <- rep("black", dim(con.poptree$edge)[1])
 clcolr[c(12,13,14,24)]<-all.colors[3]
-png("poptree.consensus.png",height=7,width=7,units="in",res=300)
+png(paste(poptree.prefix,".consensus.png",sep=""),height=7,width=7,units="in",res=300)
 plot.phylo(con.poptree,tip.color = c(rep(grp.colors[6],4),grp.colors[5],
                                               rep(grp.colors[1],4),rep(grp.colors[2],3),
                                               rep(grp.colors[3],4)),
                     edge.color = clcolr,edge.width = 2)
 dev.off()
-png("poptrees.png",height=10,width=10,units="in",res=300)
+png(paste(poptree.prefix,".png",sep=""),height=10,width=10,units="in",res=300)
 par(mfrow=c(3,4),oma=c(1,1,1,1),mar=c(1,1,1,1))
 for(i in 1:length(poptrees)){
   plot.phylo(poptrees[[i]],cex=1.5)
   mtext(poptree.files[i],3)
 }
 dev.off()
-
+## ---- end-AnalyzePoptree
+poptree.png<-"poptree8141.png"
+## ---- PlotFullPoptreeSubset
 #just the full subset tree
 pt.subtree<-poptrees[[1]]
 pt.subtree$tip.label[pt.subtree$tip.label=="FLLG"]<-"FLFW"
@@ -1303,13 +1306,15 @@ colors[colors %in% c("ALST","ALFW","LAFW")]<-grp.colors[2]
 colors[colors %in% c("TXSP","TXCC","TXFW","TXCB")]<-grp.colors[1]
 clcolr <- rep("black", dim(pt.subtree$edge)[1])
 clcolr[c(6,20,21,22,23)]<-all.colors[3]
-png("poptree8141.png",height=7,width=7,units="in",res=300)
+png(poptree.png,height=7,width=7,units="in",res=300)
 plot.phylo(pt.subtree,tip.color = colors,
            edge.color = clcolr,edge.width = 2,label.offset = 0.0015)
 dev.off()
+## ---- end-PlotFullPoptreeSubset
 ##### TREEMIX #####
 treemix.name<-"fwsw.treemix"
 treemix.prefix<-"fwsw."
+poporder.file<-"poporder"
 ## ---- generateTreemix
 tm.fwsw<-treemix.from.vcf(vcf,pop.list)
 write.table(tm.fwsw,treemix.name,col.names=TRUE,row.names=FALSE,quote=F,sep=' ')
@@ -1331,6 +1336,7 @@ colors[colors %in% c("FLSI","FLFD","FLKB","FLSG")]<-grp.colors[3]
 colors[colors %in% c("ALST","ALFW","LAFW")]<-grp.colors[2]
 colors[colors %in% c("TXSP","TXCC","TXFW","TXCB")]<-grp.colors[1]
 write.table(cbind(poporder,colors),"poporder",quote=F,sep='\t')
+setwd("../")
 ## ---- end
 
 ## ---- BasicTree
@@ -1349,12 +1355,12 @@ m3<-treemix.cov.plot(paste(treemix.prefix,"k100bFLLGrm3",sep=""),poporder,split=
 m4<-treemix.cov.plot(paste(treemix.prefix,"k100bFLLGrm4",sep=""),poporder,split=c(2,2,3,2),more=TRUE)
 m5<-treemix.cov.plot(paste(treemix.prefix,"k100bFLLGrm5",sep=""),poporder,split=c(3,2,3,2),more=FALSE)
 par(mfrow=c(2,3))
-r0<-plot_resid(paste(treemix.prefix,"fwsw.k100bFLLGr",sep=""),"poporder")
-r1<-plot_resid(paste(treemix.prefix,"k100bFLLGrm1",sep=""),"poporder")
-r2<-plot_resid(paste(treemix.prefix,"k100bFLLGrm2",sep=""),"poporder")
-r3<-plot_resid(paste(treemix.prefix,"k100bFLLGrm3",sep=""),"poporder")
-r4<-plot_resid(paste(treemix.prefix,"k100bFLLGrm4",sep=""),"poporder")
-r5<-plot_resid(paste(treemix.prefix,"k100bFLLGrm5",sep=""),"poporder")
+r0<-plot_resid(paste(treemix.prefix,"k100bFLLGr",sep=""),poporder.file)
+r1<-plot_resid(paste(treemix.prefix,"k100bFLLGrm1",sep=""),poporder.file)
+r2<-plot_resid(paste(treemix.prefix,"k100bFLLGrm2",sep=""),poporder.file)
+r3<-plot_resid(paste(treemix.prefix,"k100bFLLGrm3",sep=""),poporder.file)
+r4<-plot_resid(paste(treemix.prefix,"k100bFLLGrm4",sep=""),poporder.file)
+r5<-plot_resid(paste(treemix.prefix,"k100bFLLGrm5",sep=""),poporder.file)
 
 png("migration_trees_treemix.png",height=6,width=11,units="in",res=300)
 par(mfrow=c(2,3),mar=c(1,1,1,1),oma=c(1,1,1,1))
@@ -1386,12 +1392,12 @@ m3<-treemix.cov.plot(paste(treemix.prefix,"k100bFLPBrm3",sep=""),poporder,split=
 m4<-treemix.cov.plot(paste(treemix.prefix,"k100bFLPBrm4",sep=""),poporder,split=c(2,2,3,2),more=TRUE)
 m5<-treemix.cov.plot(paste(treemix.prefix,"k100bFLPBrm5",sep=""),poporder,split=c(3,2,3,2),more=FALSE)
 par(mfrow=c(2,3))
-r0<-plot_resid(paste(treemix.prefix,"k100bFLPBr",sep=""),"poporder")
-r1<-plot_resid(paste(treemix.prefix,"k100bFLPBrm1",sep=""),"poporder")
-r2<-plot_resid(paste(treemix.prefix,"k100bFLPBrm2",sep=""),"poporder")
-r3<-plot_resid(paste(treemix.prefix,"k100bFLPBrm3",sep=""),"poporder")
-r4<-plot_resid(paste(treemix.prefix,"k100bFLPBrm4",sep=""),"poporder")
-r5<-plot_resid(paste(treemix.prefix,"k100bFLPBrm5",sep=""),"poporder")
+r0<-plot_resid(paste(treemix.prefix,"k100bFLPBr",sep=""),poporder.file)
+r1<-plot_resid(paste(treemix.prefix,"k100bFLPBrm1",sep=""),poporder.file)
+r2<-plot_resid(paste(treemix.prefix,"k100bFLPBrm2",sep=""),poporder.file)
+r3<-plot_resid(paste(treemix.prefix,"k100bFLPBrm3",sep=""),poporder.file)
+r4<-plot_resid(paste(treemix.prefix,"k100bFLPBrm4",sep=""),poporder.file)
+r5<-plot_resid(paste(treemix.prefix,"k100bFLPBrm5",sep=""),poporder.file)
 ## ---- end
 
 png(paste(treemix.prefix,"migration_trees_treemix_FLPB.png",sep=""),height=6,width=11,units="in",res=300)
@@ -1433,8 +1439,8 @@ tip.names<-as.vector(d[d[,5] == "TIP",2])
 tip.names<-data.frame(Original=tip.names,Replacement=tip.names,stringsAsFactors = FALSE)
 tip.names$Replacement[tip.names$Replacement=="FLLG"]<-"FLFW"
 
-png(tm.plot,height=7,width=7,units="in",res=300)
-t3<-plot_tree(tm.tree,"poporder",plus=0.05,scale=F,mbar=F,arrow=0.1,
+#png(tm.plot,height=7,width=7,units="in",res=300)
+t3<-plot_tree(stem=tm.tree,"treemix/poporder",plus=0.05,scale=F,mbar=F,arrow=0.1,
               tip.order = tip.names,lwd = 2,branch.cols = branch.cols)
 ybar<-0.01
 mcols = rev( heat.colors(150) )
@@ -1449,7 +1455,7 @@ text(0.15+xma+0.001, ymi, lab = "0", adj = 0, cex = 0.7)
 text(0.15+xma+0.001, yma, lab = "0.5", adj = 0, cex =0.7)
 text(0.15, yma+0.06, lab = "Migration", adj = 0 , cex = 0.6)
 text(0.15, yma+0.03, lab = "weight", adj = 0 , cex = 0.6)
-dev.off()
+#dev.off()
 ## ---- end
 
 plotName<-"trees.png"
@@ -1482,7 +1488,7 @@ dev.off()
 
 ##############################POP STRUCTURE##################################
 
-#### ADEGENET ####
+## ---- Adegenet
 dat.plink<-read.PLINK("stacks/subset.raw",parallel=FALSE)
 #look at alleles
 glPlot(dat.plink, posi="topleft")
@@ -1612,8 +1618,9 @@ plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
 legend("top", legend=ppi$Pop, pch=as.numeric(ppi$pch), pt.cex=1.5,cex=0.85,
        col=alpha(ppi$cols, 0.5),pt.bg=alpha(ppi$cols,0.25), ncol=8,bty='n')
 dev.off()
+## ---- end-adegenet
 
-#### PCADAPT ####
+## ---- pcadapt
 library(pcadapt)
 filename<-read.pcadapt("stacks/subset.ped",type="ped")
 x<-pcadapt("stacks/subset.pcadapt", K=20)
@@ -1679,6 +1686,7 @@ plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
 legend("top", legend=ppi$Pop, pch=as.numeric(ppi$pch), pt.cex=1.5,cex=0.85,
        col=alpha(ppi$cols, 0.5),pt.bg=alpha(ppi$cols,0.25), ncol=8,bty='n')
 dev.off()
+## ---- end-pcadapt
 
 ###### STRUCTURE #####
 
@@ -1695,6 +1703,7 @@ structure.k6<-read.table(
   sep='\t', header=F)
 structure.k6$V1<-sub('sample_([A-Z]{4})','\\1', structure.k6$V1)
 ## ---- end
+## ---- AnalyzeStructure
 tapply(structure.k6$V2,structure.k6$V1,max) #V2 has FLAt group
 tapply(structure.k6$V3,structure.k6$V1,max) #V3 has TX group
 tapply(structure.k6$V4,structure.k6$V1,max) #V4 has AL group
@@ -1714,8 +1723,10 @@ plotting.structure(str6,2,pop.list, make.file=FALSE, plot.new=F,
                    colors=grp.colors,xlabel=T,xlabcol = xcol,
                    ylabel=expression(atop(italic(K)==6,Delta~italic(K)==326.1)))
 dev.off()
+## ---- end-AnalyzeStructure
 
 ##### COMBINED FIGURE ####
+## ---- PopStructurePlot
 npop<-length(pop.list)
 pseq<-1:npop
 m<-matrix(c(1:32,rep(33,4),rep(34,4),rep(35,4),rep(0,4),
@@ -1800,7 +1811,7 @@ plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
 legend(x=0.6,y=-0.1, legend=ppi$Pop, pch=as.numeric(ppi$pch), pt.cex=1.5,cex=0.85,
        col=alpha(ppi$cols, 0.5),pt.bg=alpha(ppi$cols,0.25), ncol=2,bty='n')
 dev.off()
-
+## ---- end-PopStructurePlot
 
 ##############################BAYENV######################################
 ## ---- compareEnvVariables
@@ -1828,7 +1839,7 @@ rename.sex<-function(ped){
 
 bayenv.ped<-"bayenv/bayenv.plink.ped"
 bayenv.clst<-"bayenv/plink.clust.txt"
-## ---- modify-ped
+## ---- modifyPed
 ped.pops<-gsub("(sample_)(\\w{4})(\\w+)","\\2",ped.sub[,2])
 ped.sex<-rename.sex(ped.sub)
 ped.sub[,1]<-ped.pops
@@ -1840,14 +1851,14 @@ clust.plink<-data.frame(FamID=ped.pops, IndID=ped.sub[,2],Pop=ped.pops)
 write.table(clust.plink, 
             "bayenv/plink.clust.txt",
             col.names=F, row.names=F, quote=F, sep="\t", eol="\n")
-## ---- end-modify-ped
+## ---- end-modifyPed
 #Then plink --ped bayenv.plink.ped --map subset.map --extract plink.snplist --out bayenv --noweb --allow-no-sex --recode --freq --within plink.clust.txt 
 #9820 SNPs in 698 individuals
 
 ##### CONVERT PLINK TO BAYENV2
 snpsfile.name<-"bayenv/fwsw.snpsfile"
 freq.name<-"stacks/bayenv.frq.strat"
-## ---- plink-to-bayenv
+## ---- plink2bayenv
 freq<-read.table(freq.name, 
                  header=T, stringsAsFactors=F)
 #want to get $MAC for every snp at every pop 
@@ -1865,13 +1876,13 @@ snpsfile<-interleave(mac.by.pop,nac.by.pop)
 
 write.table(snpsfile, snpsfile.name, 
             col.names=F,row.names=F,quote=F,sep="\t",eol="\n") #bayenv SNPSFILE
-## ---- end-plink-to-bayenv
+## ---- end-plink2bayenv
 #NOW RUN MATRIX ESTIMATION: run_bayenv2_matrix_general.sh
 #../../scripts/run_bayenv2_matrix_general.sh fwsw.snpsfile 16
 #last run on 1 May 2017
 
 ##### check Bayenv2 matrix
-## ---- check-matrices
+## ---- checkMatrices
 matrix.files<-list.files("bayenv/",pattern="matrix")
 matrices<-list()
 for(i in 1:length(matrix.files))
@@ -1891,7 +1902,7 @@ image(matrices[[8]])
 image(matrices[[9]])
 image(matrices[[10]])
 #these are all essentially the same-use representative matrix
-## ---- end-check-matrices
+## ---- end-checkMatrices
 
 ##### SNPFILEs
 #for SNPFILE, need just one file per SNP apparently.
@@ -1918,7 +1929,7 @@ write.table(all.snps.clust, clust.name, sep="\t", eol="\n", quote=F,
 #read in frequency per pop
 all.freq.name<-"stacks/all.bayenv.plink.frq.strat"
 snpsfiles.name<-"bayenv/all.fwsw"
-## ---- make-all-snpfiles
+## ---- makeAllSnpfiles
 all.snps.frq<-read.table(all.freq.name, 
                          header=T, stringsAsFactors=F)
 #want to get $MAC for every snp at every pop 
@@ -1935,7 +1946,7 @@ all.snpsfile<-gdata::interleave(mac.by.pop,nac.by.pop)
 
 write.table(all.snpsfile, snpsfiles.name, 
             col.names=F,row.names=T,quote=F,sep="\t",eol="\n")
-## ---- end-make-all-snpfiles
+## ---- end-makeAllSnpfiles
 #Bayenv says to run this:
 #./calc bfs.sh SNPSFILE ENVIRONFILE MATRIXFILE NUMPOPS NUMITER NUMENVIRON
 #$ ~/Programs/bayenv_2/calc_bf.sh all.fwsw env_data_std.txt representative_matrix.txt 16 100000 3
@@ -1944,7 +1955,7 @@ write.table(all.snpsfile, snpsfiles.name,
 #sarah@sarah-VirtualBox:~/sf_ubuntushare/popgen/fwsw_results/bayenv$ Rscript --vanilla ../../scripts/SNPSfromSNPSFILE.R all.fwsw ~/sf_ubuntushare/popgen/fwsw_results/bayenv/snpfiles/
 #../../scripts/run_bayenv2_general.sh representative_matrix.txt env_data_std.txt 16 3 snpfiles
 #####ENVFILE
-## ---- convert-env
+## ---- convertEnv
 env.raw<-read.csv("bayenv/env_data_raw.csv",row.names=1) 
 #Each environmental variable should be standardized, 
 #i.e. subtract the mean and then divided through by the standard deviation 
@@ -1955,9 +1966,9 @@ env.std<-env.std[,colnames(snpsfile)] #change the column order to match
 write.table(env.std,
             "bayenv/env_data_std.txt",
             sep='\t',quote=F,col.names=F,row.names=F,eol='\n')
-## ---- end-convert-env
+## ---- end-convertEnv
 
-## ---- analyze-env-data
+## ---- analyzeEnvData
 ##Are they correlated with distance?
 colnames(env.raw)[colnames(env.dist) =="FLLG"]<-"FLFW"
 env.dist<-as.matrix(vegdist(t(env.raw)))
@@ -1968,7 +1979,7 @@ mantel.rtest(as.dist(t(dist)),as.dist(env.dist),999)
 # Call: mantelnoneuclid(m1 = m1, m2 = m2, nrepet = nrepet)
 # Based on 999 replicates
 # Simulated p-value: 0.104
-## ---- end-analyze-env-data
+## ---- end-analyzeEnvData
 
 #####GET OUTPUT
 bayenv.all<-read.table("bayenv/bf_environ.env_data_std.txt") #59865 rows??
@@ -1979,7 +1990,7 @@ bayenv.all[bayenv.all$V1 %in% dup.snps[1],]
 bayenv.all<-bayenv.all[2615:59865,]
 
 bf.out.name<-"bayenv/fwsw_environ_corr.txt"
-## ---- analyze-bayenv
+## ---- analyzeBayenv
 colnames(bayenv.all)<-c("SNP",rownames(env.raw))
 bayenv.all$SNP<-rownames(nac.by.pop)
 bayenv.all$locus<-gsub("(\\d+)_\\d+","\\1",bayenv.all$SNP)
@@ -2016,7 +2027,7 @@ seag.sig<-bf[bf[,"seagrass"]>bf.co["seagrass"],]
 tp<-fst.plot(fst.dat = bf,fst.name = "logTemp",chrom.name = "Chrom",bp.name = "Pos")
 sp<-fst.plot(fst.dat = bf,fst.name = "logSalt",chrom.name = "Chrom",bp.name = "Pos")
 gp<-fst.plot(fst.dat = bf,fst.name = "logSeag",chrom.name = "Chrom",bp.name = "Pos")
-## ---- end-analyze-bayenv
+## ---- end-analyzeBayenv
 
 #####Bayenv output ####
 #' ```{r, eval=FALSE}

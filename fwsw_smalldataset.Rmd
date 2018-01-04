@@ -70,18 +70,51 @@ chosen.snps<-unlist(read.table("chosen.all.snps.txt"))
 
 There are `r length(chosen.snps)` SNPs that I'll use from the vcf file, from `r nrow(vcf)` RAD loci.
 
+## Figure 1
+
+The first figure in the paper is a map of the collection sites.
+
+```{r map, eval=FALSE}
+```
+![Figure 1. Map of collection sites](fwsw_results/all_sites_map.jpg)
+
+## Figure 2
+
+The second figure in the paper is showing population structure, using STRUCTURE, adegenet, and PCAdapt. These analyses were run as exactly written in `fwsw_analysis.R`, so I won't reproduce that code here.
+
+```{r Adegenet, eval=FALSE, echo=FALSE}
+```
+```{r pcadapt, eval=FALSE, echo=FALSE}
+```
+```{r readStructure, eval=FALSE, echo=FALSE}
+```
+```{r AnalyzeStructure, eval=FALSE, echo=FALSE}
+```
+```{r PopStructurePlot, eval=FALSE, echo=FALSE}
+```
+
+![Figure 2. Population Structure](fwsw_results/pop_structure_comb.jpeg)
 
 
-## Re-running the analysis
+## Figure 3
 
-I've already run STRUCTURE, adegenet, PCAdapt, pairwise Jost's D, and Fsts on the P4 (or "subset") dataset, so I can just read in those files. Although, since I don't need to re-run STRUCTURE, adegenet, or PCAdapt, I won't read those in. 
+I don't need to re-calculate pairwise Jost's D, and Fsts using the P4 (or "subset") dataset, so I can just read in those files. 
 
-```{r readExistingFiles}
+```{r read_existing_files}
 jostpw<-read.delim("Subset.JostsD.tsv",sep='\t',header=TRUE,row.names=1)
 ```
-The bayes factors and Fsts are all in the following chunk.
-```{r Fig5Files}
+
+And let's define some other names
+
+
+```{r define_filenames}
+fst.tree.name<-as.character("ALLfst_cov_heatmap.png")
+afs.plot.name<-as.character("All_AFS.png")
+dd.plot.name<-as.character("separate_delta-divergence.png")
+dd.name<-as.character("sep.deltadivergence.txt")
+sdd.name<-as.character("sep.smoothedDD.out.txt")
 ```
+
 
 ### Treemix
 
@@ -99,6 +132,7 @@ First, I need to create a file in the correct format, which uses the vcf file:
 ```{r nameTreemix}
 treemix.name<-"treemix/p4_treemix"
 treemix.prefix<-"treemix/p4_"
+poporder.file<-"treemix/poporder"
 ```
 ```{r generateTreemix, eval=FALSE}
 ```
@@ -116,14 +150,19 @@ Population pairs that are 'too far apart' on the tree (have high error estimates
 
 ```{r FLPBmigration, results="hide",fig.keep="high"}
 ```
+
 Look at the p-values: do migration events always improve the fit of the data?
+
 ```{r FLPBpvals}
 ```
-All of the added migration edges improve the fit. But which one is important?
+
+All of the added migration edges improve the fit. Evaluating both the residual and migration edge plots, we can see that four migration edges reduces the error between LAFW & TXFW and ALFW & TXFW. The largest SE is between FLFW (FLLG) and itself, and secondarily between LAFW and itself. This means that those branches are surprisingly long, which I am comfortable accepting. The strongest migration edge, between the branch from the Atlantic Florida to Gulf Florida populations -> FLAB, is unsurprising because that is an intermediate location between the Atlantic and Gulf coasts. In some of the structure analyses it clusters with the Gulf coast and in others it is its own admixed group - supporting the tree structure here.
+
+The other migration events are somewhat more surprising. We will evaluate those using the three and four population analyses.
 
 #### Evaluating migration edges
 
-We can use the three- and four-population tests to evaluate these admixture events.
+First, let's read in the three and four population analysis results. These tested all possible three- and four-population tree groups to see whether they pass a test of 'treeness'. If not, their p-value will be small, and they don't form a nice tree.
 
 ```{r f3f4}
 f3.name<-"treemix/p4_threepop.txt"
@@ -146,20 +185,118 @@ f4$p<-pnorm(f4$Z)
 
 ```
 
-```{r define_filenames}
-treemix.file<-as.character("treemix/fwsw.basic.cov.gz")#what is 'basic'?
-fst.tree.name<-as.character("ALLfst_cov_heatmap.png")
-afs.plot.name<-as.character("All_AFS.png")
-dd.plot.name<-as.character("separate_delta-divergence.png")
-dd.name<-as.character("sep.deltadivergence.txt")
-sdd.name<-as.character("sep.smoothedDD.out.txt")
+Now we can investigate the migration edges added to the trees. 
+
+##### Atlantic/Gulf->FLAB
+
+This least surprising migration edge would be expected to show a signature of admixture. I'll check the treeness of FLHB;FLSI,FLAB and FLHB,FLCC;FLSI,FLAB. For comparison, I can look at FLHB;FLSI,FLFD and FLHB,FLCC;FLSI,FLFD
+
+```{r FL}
+checks3<-c("FLHB;FLSI,FLAB","FLHB;FLFD,FLSI")
+f3[f3$pops %in% checks3,]
+checks4<-c("FLSI,FLAB;FLHB,FLCC","FLFD,FLSI;FLHB,FLCC")
+f4[f4$pops %in% checks4,]
 ```
-I'll run treemix and plotting treemix once I've re-run it.
+They pass the three-population tests but not the four-population tests. 
+
+##### TXFW->TXCB
+
+To investigate this migration edge, I need to evaluate whether a [TXFW[TXCB,TXCC]] or [TXFW[TXCB,TXSP]] topology is an appropriate tree. 
+
+```{r TX_f3}
+checks<-c("TXFW;TXCC,TXCB",
+          "TXFW;TXSP,TXCB")
+f3[f3$pops %in% checks,]
+```
+
+Neither of these fail the treeness test, so TXFW is essentially functioning as an effective outgroup/more ancestral population. Let's check if a four population tree also makes sense.
+
+```{r TX_f4}
+f4[f4$pops %in% "TXSP,TXCC;TXFW,TXCB",]
+```
+
+This also passes the treeness test - so this isn't an actual admixture event, more of demonstrating shared ancestry.
+
+##### TXFW->LAFW/ALFW
+
+This migration edge would suggest a three-population structure of [TXFW[ALFW,LAFW]] or a four-population structure of [TXFW,TXCB[LAFW,ALFW]] or [TXFW,ALST[LAFW,ALFW]]
+```{r TXFW_ALLAFW}
+
+checks<-c("TXFW,TXCB;LAFW,ALFW",
+          "TXFW,ALST;LAFW,ALFW")#to get the correct order of populations I had to
+                                #use grep and manually try a few different ones
+f4[f4$pops %in% checks,]
+f3[f3$pops == "TXFW;LAFW,ALFW",]
+
+```
+
+The three-population test does not fail the treeness test but the four-population tests do fail the treeness tests. This suggests that TXFW functions as an outgroup to the LAFW and ALFW - they are perhaps derived from the TXFW population rather than experiencing current admixture.
+
+##### FLFW->TX/AL
+
+FLLG is actually FLFW, and there's a migration edge from it to the Alabama/Louisiana clade and the Texas clade. So, we can test FLLG;ALST,TXFW, FLLG;ALFW,TXCB, FLLG;ALFW,TXFW or FLLG;ALST,TXCC - see if the migration is specifically to freshwater populations or not.
+
+```{r FLFW_f3}
+checks<-c("FLLG;TXFW,ALST","FLLG;TXCB,ALFW","FLLG;TXCB,LAFW",#mix of freshwater
+          "FLLG;TXFW,ALFW","FLLG;TXFW,LAFW",                 #all freshwater
+          "FLLG;TXCC,ALST")                                  #no freshwater
+f3[f3$pops %in% checks,]
+```
+These all pass the treeness test.
+
+#### Plot the chosen tree
+
+```{r treemix_define}
+treemix.file<-as.character("treemix/p4_k100bFLPBr.cov.gz")
+tm.vertices<-"treemix/p4_k100bFLPBrm4.vertices.gz"
+tm.plot<-"treemix/p4_treemix_m4_FLPB.png"
+tm.tree<-"treemix/p4_k100bFLPBrm4"
+```
+```{r TreemixFavorite, echo=FALSE,results="hide",fig.keep="high"}
+```
 
 ### PopTree2
 
+For the PopTree2 analysis, I need to convert the vcf file to genepop format. I did this using PGDSpider2. Then I ran PopTree2 on Windows10, using Da to calculate neighbor-joining trees and using 1000 bootstrap replicates.
 
-**I need to re-run PopTree2**
+Or, if that doesn't work,
+
+```{r CreatePoptreeSubsets, eval=FALSE}
+```
+
+And then run poptree
+
+```{r poptree_prefix, eval=FALSE}
+poptree.prefix<-"poptree/p4."
+poptree.png<-"p4.poptree.png"
+```
+```{r AnalyzePoptree, eval=FALSE}
+```
+```{r PlotFullPoptreeSubset, eval=FALSE}
+```
+
+
+## Figure 4
+
+Figure 4 is the Poptree2 and Treemix trees next to each other
+
+```{r tree_files,eval=FALSE}
+plotName<-"p4.trees.png"
+tm.tree<-"treemix/p4_k100bFLPBrm4"
+#pt.subtree<-
+```
+```{r plotTreemixPoptree,eval=FALSE}
+```
+```{r, eval=FALSE}
+#![Figure 4. Trees](fwsw_results/p4.trees.png)
+```
+
+## Figure 5
+
+The bayes factors and Fsts are all in the following chunk.
+```{r Fig5Files}
+```
+
 
 ### Allele Frequency Spectrum
 ```{r calcAFS,echo=FALSE, eval=FALSE}
