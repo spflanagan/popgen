@@ -285,7 +285,7 @@ tm.tree<-"treemix/p4_k100bFLPBrm4"
 
 I need to re-run `populations` because I don't seem to have the correct fst files. I can use the whitelist and hopefully include bootstrapping and kernel smoothing: 
 
-`populations -b 2 -W fwsw_results/subset.whitelist.txt -P fwsw_results/stacks -M fwsw_pops_map.txt --fsts`
+`populations -b 2 -W fwsw_results/subset.whitelist.txt -P fwsw_results/stacks -M fwsw_pops_map.txt --fstats --vcf_haplotypes --genomic --bootstrap -k `
 
 The bayes factors and Fsts are all in the following chunk.
 
