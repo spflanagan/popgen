@@ -287,20 +287,63 @@ I need to re-run `populations` because I don't seem to have the correct fst file
 
 `populations -b 2 -W fwsw_results/subset.whitelist.txt -P fwsw_results/stacks -M fwsw_pops_map.txt --fstats --vcf_haplotypes --genomic --bootstrap -k `
 
-The bayes factors and Fsts are all in the following chunk.
+And then I will identify the shared outliers among them. But first, let's define some names.
 
-```{r Fig5Files}
-```
-
-And let's define some names
 ```{r define_fig5_names}
 dd.plot.name<-as.character("separate_delta-divergence.png")
 dd.name<-as.character("sep.deltadivergence.txt")
 sdd.name<-as.character("sep.smoothedDD.out.txt")
 afs.plot.name<-as.character("All_AFS.png")
+stacks.sig.out<-"p4.stacks.sig.snps.txt"
+```
+```{r StacksFsts}
+```
+
+There are `r nrow(stacks.sig)` shared SNPs using the Fisher's P as a cutoff.
+
+The bayes factors and Fsts are all in the following chunk.
+
+```{r Fig5Files}
 ```
 
 Figure 5 includes Fst data, Bayes Factors data, colors from Structure, and reciprocal monophyly data, plus smoothed Fst values (which I think I will leave out this round).
+
+I had originally calculated monophyletic trees using the regular vcf file with SNPs
+
+```{r NJTrees}
+```
+```{r recalc_trees, eval=FALSE}
+ftrees.snp<-calc.ftrees(vcf,mono.tips = c("TXFW","ALFW","LAFW","FLLG"),
+                        other.tips = pop.list[!pop.list %in% c("TXFW","ALFW","LAFW","FLLG")],out.file="p4.snp.ftrees.txt")
+
+
+hap.vcf<-parse.vcf("stacks/batch_2.haplotypes.vcf")
+hap.vcf$SNP<-paste(hap.vcf$`#CHROM`,hap.vcf$POS,sep=".")
+ftrees.hap<-calc.ftrees(hap.vcf,mono.tips = c("TXFW","ALFW","LAFW","FLLG"),
+                        other.tips = pop.list[!pop.list %in% c("TXFW","ALFW","LAFW","FLLG")],out.file="p4.hap.ftrees.txt")
+
+```
+```{r read_trees, echo=FALSE}
+ftrees.snp<-read.delim("p4.snp.ftrees.txt")
+ftrees.hap<-read.delim("p4.hap.ftrees.txt")
+```
+```{r id_monophyletic}
+ftsnp.mono<-ftrees.snp[ftrees.snp$FWMonophyletic == TRUE,]
+fthap.mono<-ftrees.hap[ftrees.hap$FWMonophyletic == TRUE,]
+```
+
+There are `r nrow(ftrees.snp)` monophyletic SNP trees and `r nrow(ftrees.hap)` haplotype trees. The SNP data had `r nrow(is.na(ftrees.snp[ftrees.snp$FWMonophyletic),])` loci with data missing from at least population; thes were excluded. The haplotype data had `r nrow(is.na(ftrees.hap[ftrees.hap$FWMonophyletic),])` loci with data missing from at least one population, which were excluded. The SNP dataset has `r nrow(ftsnp.mono)` monophyletic SNPs and the haplotype dataset has `r nrow(fthap.mono)` monophyletic haplotypes.
+
+Now I'm ready to plot Figure 5.
+```{r plottingFunctions}
+```
+
+**still need to re-annotate the genome and do the swsw comparison plots. 
+**might be nice to include other aspects in this graph, esp the sw-associated SNPs.
+
+```{r Fig5}
+```
+
 
 ## Figure 6
 

@@ -566,35 +566,56 @@ put.dir<-pi.sig.fst[pi.sig.fst$Pi <= quantile(pi.plot$Pi,0.25),] #putative direc
 #' genealogicalSorting::gsi(tree, class, assignments, uncertainty)
 #' http://molecularevolution.org/software/phylogenetics/gsi/download
 
+fttrees.name<-"ftrees.txt"
 ## ---- NJtrees
-library(ape)
+calc.ftrees<-function(vcf, mono.tips, other.tips, out.file){
+  if(!"package:ape" %in% search()){ library(ape) }
 
-#+ eval=FALSE
-fst.trees<-data.frame(Chrom=character(),
-                      Pos=numeric(),SNP=character(),
-                      FstTree=character(),
-                      FWMonophyletic=logical(),
-                      SWMonophyletic=logical(),
-                      stringsAsFactors = FALSE)
-for(vcf.row in 1: nrow(vcf)){
-  nj.tree<-get.nj(vcf[vcf.row,],pop.list)
-  mono<-is.monophyletic(nj.tree,tips=c("TXFW","ALFW","LAFW","FLLG"))
-  swmono<-mono<-is.monophyletic(nj.tree,tips=pop.labs[!pop.labs %in% c("TXFW","ALFW","LAFW","FLLG")])
-  fst.tree<-data.frame(Chrom=vcf$`#CHROM`[vcf.row],
-                       Pos=vcf$POS[vcf.row],SNP=vcf$SNP[vcf.row],
-                       FstTree=write.tree(nj.tree,digits=0),
-                       FWMonophyletic=mono,
-                       SWMonophyletic=swmono,stringsAsFactors = FALSE)
-  fst.trees[vcf.row,]<-fst.tree
+  #+ eval=FALSE
+  fst.trees<-data.frame(Chrom=character(),
+                        Pos=numeric(),SNP=character(),
+                        FstTree=character(),
+                        FWMonophyletic=logical(),
+                        SWMonophyletic=logical(),
+                        stringsAsFactors = FALSE)
+  for(vcf.row in 1: nrow(vcf)){
+    
+    nj.tree<-tryCatch({
+      get.nj(vcf[vcf.row,],pop.list)},
+      warning=function(war){
+        print(paste("row",vcf.row,"has missing data"))
+        nj.tree<-NA
+      })
+    
+    if(length(nj.tree)==1){
+      fst.tree<-data.frame(Chrom=vcf$`#CHROM`[vcf.row],
+                           Pos=vcf$POS[vcf.row],SNP=vcf$SNP[vcf.row],
+                           FstTree="MISSING_DATA",
+                           FWMonophyletic=NA,
+                           SWMonophyletic=NA,stringsAsFactors = FALSE)
+    } else {
+      mono<-is.monophyletic(nj.tree,tips=mono.tips)
+      swmono<-is.monophyletic(nj.tree,tips=other.tips)
+      fst.tree<-data.frame(Chrom=vcf$`#CHROM`[vcf.row],
+                           Pos=vcf$POS[vcf.row],SNP=vcf$SNP[vcf.row],
+                           FstTree=write.tree(nj.tree,digits=0),
+                           FWMonophyletic=mono,
+                           SWMonophyletic=swmono,stringsAsFactors = FALSE)
+    }
+    fst.trees[vcf.row,]<-fst.tree
+  }
+  write.table(fst.trees,out.file,row.names=F,col.names=T,quote=F)
+  return(fst.trees)
 }
-write.table(fst.trees,"ftrees.txt",row.names=F,col.names=T,quote=F)
+## ---- end
 
+## ---- readFstTrees
 #+ fsttrees
-fst.trees<-read.delim("ftrees.txt",sep=" ")
+fst.trees<-read.delim(fttrees.name,sep=" ")
 ftmono<-fst.trees[fst.trees$FWMonophyletic == TRUE,]
 
-ftmono[ftmono$SNP %in% fw.sig.reg$SNP,]
 ## ---- end
+ftmono[ftmono$SNP %in% fw.sig.reg$SNP,]
 
 ####### Fsts with gwscaR code #####
 ## ---- myFsts
@@ -640,6 +661,7 @@ ffs.sig<-ffs[ffs$Chi.p <= 0.05, "SNP"] #1044
 ffs.sig[ffs.sig %in% tss.sig & ffs.sig %in% ass.sig] #14
 ## ---- end
 #### Stacks Fsts ####
+stacks.sig.out<-"stacks.sig.snps.txt"
 ## ---- StacksFsts
 fwsw<-read.delim("stacks/fw-sw_populations/batch_2.fst_marine-freshwater.tsv")
 #Compare neighboring pops.
@@ -673,7 +695,7 @@ for(i in 1:nrow(fw.shared.chr)){
 colnames(stacks.sig)<-c("TX","LA","AL","FL")
 stacks.sig<-data.frame(cbind(fw.shared.chr,stacks.sig))
 stacks.sig$SNP<-paste(stacks.sig$Chr,stacks.sig$BP,sep=".")
-write.table(stacks.sig,"stacks.sig.snps.txt",sep='\t',row.names=FALSE,col.names=TRUE)
+write.table(stacks.sig,stacks.sig.out,sep='\t',row.names=FALSE,col.names=TRUE)
 ## ---- end
 
 ## compare to scovelli genome..
@@ -834,6 +856,7 @@ perlg.add.lines<-function(fwsw.plot,lgs,width=NULL,lwds=4,color="cornflowerblue"
 ## ---- end
 
 #' files to read in if they're not already
+stacks.sig.out<-"p4.stacks.sig.snps.txt"
 ## ---- Fig5Files
 fwsw<-read.delim("stacks/fw-sw_populations/batch_2.fst_marine-freshwater.tsv")
 #Compare neighboring pops.
@@ -852,7 +875,7 @@ all.shared<-fl.sig[fl.sig %in% la.sig & fl.sig %in% al.sig & fl.sig %in% tx.sig]
 bf<-read.delim("bayenv/bf.txt") #57250
 bf.co<-apply(bf[,5:7],2,quantile,0.99) #focus on Bayes Factors, because of Lotterhos & Whitlock (2015)
 sal.bf.sig<-bf[bf$Salinity_BF>bf.co["Salinity_BF"],c(1,2,4,8,9,6)]
-stacks.sig<-read.delim("stacks.sig.snps.txt")
+stacks.sig<-read.delim(stacks.sig.out)
 ## ---- end
 ## ---- readNJtrees
 fst.trees<-read.delim("ftrees.txt",sep=" ")
