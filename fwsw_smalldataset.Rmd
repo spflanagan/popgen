@@ -324,15 +324,15 @@ ftrees.hap<-calc.ftrees(hap.vcf,mono.tips = c("TXFW","ALFW","LAFW","FLLG"),
 
 ```
 ```{r read_trees, echo=FALSE}
-ftrees.snp<-read.delim("p4.snp.ftrees.txt")
-ftrees.hap<-read.delim("p4.hap.ftrees.txt")
+ftrees.snp<-read.delim("p4.snp.ftrees.txt", sep=' ')
+ftrees.hap<-read.delim("p4.hap.ftrees.txt", sep=' ')
 ```
 ```{r id_monophyletic}
 ftsnp.mono<-ftrees.snp[ftrees.snp$FWMonophyletic == TRUE,]
 fthap.mono<-ftrees.hap[ftrees.hap$FWMonophyletic == TRUE,]
 ```
 
-There are `r nrow(ftrees.snp)` monophyletic SNP trees and `r nrow(ftrees.hap)` haplotype trees. The SNP data had `r nrow(is.na(ftrees.snp[ftrees.snp$FWMonophyletic),])` loci with data missing from at least population; thes were excluded. The haplotype data had `r nrow(is.na(ftrees.hap[ftrees.hap$FWMonophyletic),])` loci with data missing from at least one population, which were excluded. The SNP dataset has `r nrow(ftsnp.mono)` monophyletic SNPs and the haplotype dataset has `r nrow(fthap.mono)` monophyletic haplotypes.
+There are `r nrow(ftrees.snp)` monophyletic SNP trees and `r nrow(ftrees.hap)` haplotype trees. The SNP data had `r nrow(ftrees.snp[is.na(ftrees.snp$FWMonophyletic),])` loci with data missing from at least population; thes were excluded. The haplotype data had `r nrow(ftrees.hap[is.na(ftrees.hap$FWMonophyletic),])` loci with data missing from at least one population, which were excluded. The SNP dataset has `r nrow(ftsnp.mono)` monophyletic SNPs and the haplotype dataset has `r nrow(fthap.mono)` monophyletic haplotypes.
 
 Now I'm ready to plot Figure 5.
 ```{r plottingFunctions}
@@ -340,10 +340,15 @@ Now I'm ready to plot Figure 5.
 
 **still need to re-annotate the genome and do the swsw comparison plots. 
 **might be nice to include other aspects in this graph, esp the sw-associated SNPs.
+```{r}
+ftmono<-ftsnp.mono
+fig5.name<-"p4_stacks_fsts_nj_fwsw_bf.png"
+```
 
 ```{r Fig5}
 ```
 
+![Figure 5. Fsts](fwsw_results/p4_stacks_fsts_nj_fwsw_bf.png)
 
 ## Figure 6
 
