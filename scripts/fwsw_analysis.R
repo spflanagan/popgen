@@ -225,10 +225,9 @@ sw.afs<-lapply(sw.list,function(pop){
 names(sw.afs)<-sw.list
 all.afs<-c(fw.afs,sw.afs)
 ## ---- end
-## ---- printAFS
-png(afs.plot.name,height=10,width=10,units="in",res=300)
-## ---- end
 ## ---- plotAFS
+png(afs.plot.name,height=10,width=10,units="in",res=300)
+
 par(mfrow=c(4,4),mar=c(2,2,1,0),oma=c(2,2,0.5,0.5))
 for(i in 1:length(pop.labs)){
   if(pop.labs[i] %in% names(fw.afs)){
@@ -248,8 +247,6 @@ for(i in 1:length(pop.labs)){
 }
 mtext("Reference Allele Frequency",1,outer=TRUE,cex=0.75)
 mtext("Number of SNPs",2,outer = TRUE,cex=0.75,line=1)
-## ---- end
-## ---- closeAFS
 dev.off()
 ## ---- end
 #################################OUTLIERS####################################
@@ -344,16 +341,16 @@ dd.par<-dd[dd$deltad <= quantile(dd$deltad,0.05),]
 
 ## ---- end
 #### Other Pop gen statistics ####
-#pi
+pi.file.name<-"all.pi.txt"
 ## ---- pi
 avg.pi<-do.call("rbind",sliding.window(vcf,lgs))
 avg.pi.adj<-fst.plot(avg.pi,scaffold.widths=scaff.starts,pch=19,
                     fst.name = "Avg.Stat",chrom.name = "Chr",bp.name = "Avg.Pos")
 all.pi<-data.frame(Chrom=vcf$`#CHROM`,Pos=vcf$POS,Pi=unlist(apply(vcf,1,calc.pi)))
 all.pi$SNP<-paste(all.pi$Chrom,as.numeric(as.character(all.pi$Pos)),sep=".")
-write.table(all.pi,"all.pi.txt",col.names = TRUE,row.names=FALSE, quote=FALSE,sep='\t')
-all.pi<-read.table("all.pi.txt",header=T)
+write.table(all.pi,pi.file.name,col.names = TRUE,row.names=FALSE, quote=FALSE,sep='\t')
 ## ---- end
+all.pi<-read.table(pi.file.name,header=T)
 ## ---- het
 #het
 avg.het<-do.call("rbind",sliding.window(vcf,lgs,stat="het"))
@@ -883,7 +880,7 @@ ftmono<-fst.trees[fst.trees$FWMonophyletic == TRUE,]
 ## ---- end
 
 fig5.name<-"stacks_fsts_nj_fwsw_bf.png"
-## ---- Fig5
+## ---- Fig5dataSetup
 #' Set up the plotting utilities
 all.chr<-data.frame(Chr=c(as.character(fwsw.tx$Chr),as.character(fwsw.la$Chr),
                           as.character(fwsw.al$Chr),as.character(fwsw.fl$Chr),
@@ -898,15 +895,20 @@ bounds<-bounds[match(plot.scaffs,bounds$Chrom),]
 #generate info
 ft.mono<-assign.plotpos(ftmono,plot.scaffs,bounds,df.bp="Pos")
 fwsw.plot<-assign.plotpos(fwsw,plot.scaffs,bounds,df.bp="BP",df.chrom = "Chr")
-
+addLines<-TRUE
+addLines<-FALSE
+## ---- end
+## ---- Fig5plot
 #' plot with the outlier regions
 png(fig5.name,height=6,width=8,units="in",res=300)
 par(mfrow=c(5,1),mar=c(0.85,2,0,0.5),oma=c(1,1,1,0.5))
 par(fig=c(0,1,0.9-0.9/5,0.9))
+
 fwswt.fst<-fst.plot(fwsw.tx,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
                     scaffs.to.plot=plot.scaffs, y.lim = c(0,1),scaffold.widths = bounds,pch=19,
                     pt.cols = c(grp.colors[1],grp.colors[2]),pt.cex=1,axis.size = 1)
-perlg.add.lines(fwsw.plot,lgs)
+if(addLines==TRUE){ perlg.add.lines(fwsw.plot,lgs) }
+if(addSmooth==TRUE){ points(fwswt.fst$plot.pos,fwswt.fst$Smoothed.Fst,col="cornflowerblue",type="l") }
 #points(fwswt.fst$BP,fwswt.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[1])
 #points(fwswt.fst$plot.pos[fwswt.fst$Locus.ID %in% all.shared],fwswt.fst$Corrected.AMOVA.Fst[fwswt.fst$Locus.ID %in% all.shared],
 #       pch=1,col="black",cex=1.3)
@@ -915,6 +917,7 @@ abline(v=fwswt.fst$plot.pos[fwswt.fst$Locus.ID %in% all.shared],col="gray47")
 mtext("TXFW vs. TXCC",2,cex=0.75)#,line=-1)
 labs<-tapply(fwswt.fst$plot.pos,fwswt.fst$Chr,median)
 text(x=labs[lgs],y=-0.1,labels=lgn,xpd=TRUE)
+
 #add a sketch of a cladogram
 par(fig=c(0,0.1,0.9,1),new=T)
 plot(c(0,1),c(0,1),type='n',bty='n',axes=F,ylab="",xlab="",xlim=c(0,1),ylim=c(0,1))
@@ -931,7 +934,8 @@ par(fig=c(0,1,0.9-2*(0.9/5),0.9-(0.9/5)),new=T)
 fwswl.fst<-fst.plot(fwsw.la,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
                     scaffs.to.plot=plot.scaffs, y.lim = c(0,1),scaffold.widths = bounds,pch=19,
                     pt.cols=c(grp.colors[2],grp.colors[3]),pt.cex=1,axis.size=1)
-perlg.add.lines(fwsw.plot,lgs)
+if(addLines==TRUE){ perlg.add.lines(fwsw.plot,lgs) }
+if(addSmooth==TRUE){ points(fwswl.fst$plot.pos,fwswl.fst$Smoothed.Fst,col="cornflowerblue",type="l") }
 #points(fwswl.fst$BP,fwswl.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[3])
 #points(fwswl.fst$plot.pos[fwswl.fst$Locus.ID %in% all.shared],fwswl.fst$Corrected.AMOVA.Fst[fwswl.fst$Locus.ID %in% all.shared],
 #       pch=1,col="black",cex=1.3)
@@ -940,11 +944,13 @@ abline(v=fwswl.fst$plot.pos[fwswl.fst$Locus.ID %in% all.shared],col="gray47")
 mtext("LAFW vs. ALST",2,cex=0.75)#,line=-1)
 labs<-tapply(fwswl.fst$plot.pos,fwswl.fst$Chr,median)
 text(x=labs[lgs],y=-0.1,labels=lgn,xpd=TRUE)
+
 par(fig=c(0,1,0.9-3*(0.9/5),0.9-2*(0.9/5)),new=T)
 fwswa.fst<-fst.plot(fwsw.al,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
                     scaffs.to.plot=plot.scaffs, y.lim = c(0,1),scaffold.widths = bounds,pch=19,
                     pt.cols=c(grp.colors[3],grp.colors[2]),pt.cex=1,axis.size = 1)
-perlg.add.lines(fwsw.plot,lgs)
+if(addLines==TRUE){ perlg.add.lines(fwsw.plot,lgs) }
+if(addSmooth==TRUE){ points(fwswa.fst$plot.pos,fwswa.fst$Smoothed.Fst,col="cornflowerblue",type="l") }
 #points(fwswa.fst$BP,fwswa.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[4])
 #points(fwswa.fst$plot.pos[fwswa.fst$Locus.ID %in% all.shared],fwswa.fst$Corrected.AMOVA.Fst[fwswa.fst$Locus.ID %in% all.shared],
 #       pch=1,col="black",cex=1.3)
@@ -954,10 +960,13 @@ mtext("ALFW vs. ALST",2,cex=0.75)#,line=-1)
 labs<-tapply(fwswa.fst$plot.pos,fwswa.fst$Chr,median)
 text(x=labs[lgs],y=-0.1,labels=lgn,xpd=TRUE)
 par(fig=c(0,1,0.9-4*(0.9/5),0.9-3*(0.9/5)),new=T)
+
+
 fwswf.fst<-fst.plot(fwsw.fl,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
                     scaffs.to.plot=plot.scaffs, y.lim = c(0,1),scaffold.widths = bounds,pch=19,
                     pt.cols=c(grp.colors[6],grp.colors[5]),pt.cex=1,axis.size=1)
-perlg.add.lines(fwsw.plot,lgs)
+if(addLines==TRUE){ perlg.add.lines(fwsw.plot,lgs) }
+if(addSmooth==TRUE){ points(fwswf.fst$plot.pos,fwswf.fst$Smoothed.Fst,col="cornflowerblue",type="l") }
 #points(fwswf.fst$BP,fwswf.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[6])
 #points(fwswf.fst$plot.pos[fwswf.fst$Locus.ID %in% all.shared],fwswf.fst$Corrected.AMOVA.Fst[fwswf.fst$Locus.ID %in% all.shared],
 #       pch=1,col="black",cex=1.3)
@@ -967,7 +976,7 @@ mtext("FLFW vs. FLCC",2,cex=0.75)#,line=-1)
 mtext(expression(bold(italic(F)[ST])),2,outer=T,line=-1,cex=0.75)
 labs<-tapply(fwswf.fst$plot.pos,fwswf.fst$Chr,median)
 text(x=labs[lgs],y=-0.1,labels=lgn,xpd=TRUE)
-#bf
+#BF
 par(fig=c(0,1,0,0.9/5),new=T)
 bs.sal<-fst.plot(bf,fst.name="logSal",chrom.name="scaffold",bp.name = "BP",scaffold.widths=bounds,
                  scaffs.to.plot = plot.scaffs,pch=19,axis.size = 1,pt.cex = 1)

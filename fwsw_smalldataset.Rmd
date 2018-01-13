@@ -293,7 +293,7 @@ And then I will identify the shared outliers among them. But first, let's define
 dd.plot.name<-as.character("separate_delta-divergence.png")
 dd.name<-as.character("sep.deltadivergence.txt")
 sdd.name<-as.character("sep.smoothedDD.out.txt")
-afs.plot.name<-as.character("All_AFS.png")
+afs.plot.name<-as.character("p4.All_AFS.png")
 stacks.sig.out<-"p4.stacks.sig.snps.txt"
 ```
 ```{r StacksFsts}
@@ -343,9 +343,14 @@ Now I'm ready to plot Figure 5.
 ```{r}
 ftmono<-ftsnp.mono
 fig5.name<-"p4_stacks_fsts_nj_fwsw_bf.png"
+png(fig5.name,height=6,width=8,units="in",res=300)
+addLines<-FALSE
+addSmooth<-TRUE
 ```
 
-```{r Fig5}
+```{r Fig5dataSetup}
+```
+```{r Fig5plot, eval=FALSE}
 ```
 
 ![Figure 5. Fsts](fwsw_results/p4_stacks_fsts_nj_fwsw_bf.png)
@@ -355,17 +360,28 @@ fig5.name<-"p4_stacks_fsts_nj_fwsw_bf.png"
 In Figure 6, we show different measures of diversity: pi (nucleotide diversity), heterozygosity, Jost's D, and delta-divergence. Additionally, we include the shared Fst outliers and putative loci, and highlight regions with high `pi` and \italic(H).
 
 ### Allele Frequency Spectrum
-```{r calcAFS,echo=FALSE, eval=FALSE}
+```{r calcAFS}
 ```
 ```{r plotAFS, echo=FALSE, eval=FALSE}
 ```
 
+![Figure S1. Fsts](fwsw_results/p4.All_AFS.png)
+
 ### Pi
-```{r pi,echo=FALSE, eval=FALSE}
+```{r pi_setup}
+pi.file.name<-"p4.pi.txt"
+```
+```{r pi, fig.keep='none', eval=FALSE}
+```
+```{r pi_readin}
+all.pi<-read.table(pi.file.name,header=T)
 ```
 
 ### delta-divergence
 ```{r setupDeltaD,eval=FALSE}
+```
+```{r readDeltaD, echo=FALSE}
+deltad<-read.delim(dd.name, header=TRUE)
 ```
 
 ### Jost's D
@@ -380,6 +396,9 @@ jostd<-D_Jost(sub.genind)
 write.table(jostd$per.locus,"p4.jostd.perlocus.txt",sep='\t',col.names=FALSE,row.names = TRUE,quote=F)
 ```
 Now this is done, so I don't need to evaluate it again -- I'll just need to read it in from a file when I want to use it.
+```{r getJostsD, echo=FALSE}
+jostd<-read.delim("p4.jostd.perlocus.txt",header=FALSE)
+```
 
 ## Figure 7
 
