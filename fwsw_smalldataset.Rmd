@@ -299,7 +299,7 @@ annotations.name<-"p4.StacksFWSWOutliers_annotatedByGenome.csv"
 ```
 ```{r StacksFsts}
 ```
-```{r compare2ScovelliGenome}
+```{r compare2ScovelliGenome,eval=FALSE}
 ```
 ```{r read_compare}
 fw.sig.reg<-read.csv(annotations.name)
@@ -365,14 +365,17 @@ hap.mono.ids<-hap.vcf[hap.vcf$SNP %in% fthap.mono$SNP,c("SNP","ID")]
 snp.mono.ids<-vcf[vcf$SNP %in% ftsnp.mono$SNP,c("SNP","ID")]
 ```
 
-They share `r nrow(hap.mono.ids[hap.mono.ids$ID %in% snp.mono.ids$ID,])` RAD loci. I'll move forward with the haplotype analyses, since those are probably more informative.
+They share `r nrow(hap.mono.ids[hap.mono.ids$ID %in% snp.mono.ids$ID,])` RAD loci. However, I don't really trust how the data are treated in the vcf haplotype format, so I'll just use the SNPs for now (and I'm analyzing the data with BEAST).
 
 Let's compare the genome-wide locations
+```{r echo=FALSE}
+ftmono<-ftsnp.mono
+```
 ```{r plottingFunctions, echo=FALSE}
 ```
 ```{r Fig5dataSetup}
 ```
-```{r prepNJ_plotting, fig.keep='last'}
+```{r prepNJ_plotting}
 ftsnp<-assign.plotpos(ftsnp.mono,plot.scaffs,bounds,df.bp="Pos")
 fthap<-assign.plotpos(fthap.mono,plot.scaffs,bounds,df.bp="Pos")
 
@@ -424,6 +427,22 @@ addSmooth<-TRUE
 ```
 
 ![Figure 5. Fsts](fwsw_results/p4_stacks_fsts_njhap_fwsw_bf.png)
+
+There seems to be an overabundance of shared outliers on LG8. I can test this using the multinomial distribution. 
+```{r overrep_chrom}
+sig.chrom<-stacks.sig[stacks.sig$Chr %in% lgs,]
+sig.chrom$Chr<-factor(sig.chrom$Chr)
+nloci<-nrow(sig.chrom)
+nchrom<-length(lgs)
+exp.perchrom<-rep(nloci/length(lgs),length(lgs))
+names(exp.perchrom)<-lgs
+exp.perchrom
+obs.perchrom<-tapply(sig.chrom$Locus.ID,sig.chrom$Chr,length)[lgs]
+names(obs.perchrom)<-lgs
+obs.perchrom[is.na(obs.perchrom)]<-0
+obs.perchrom
+dmultinom(x = obs.perchrom,prob = exp.perchrom)
+```
 
 ## Figure 6
 

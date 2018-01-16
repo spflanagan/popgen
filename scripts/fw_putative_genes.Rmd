@@ -194,6 +194,8 @@ counts<-tapply(put.reg$rad.loci,put.reg$Gene,function(gene){
 
 About `r length(counts[counts>0])/length(counts)*100`% of the putative genes have RAD loci within them - but only about `r nrow(put.reg[!is.na(put.reg$rad.loci),])/nrow(put.reg)*100`% of all of the annotations have RAD loci.
 
+
+
 ## Compare the Stacks outliers with putative genes
 
 ### What is the maximum distance of loci in LD?
@@ -335,7 +337,7 @@ for(i in 1:length(lgs)){
 }
 ```
 
-They look like they match up in some places, but do they really?
+Are outliers in putative gene regions?
 
 ```{r fst_compare}
 all.put.ssc<-as.character(put.reg$Scovelli_geneID)
@@ -347,6 +349,8 @@ print(dim(sig.put.match))
 fw.sig.reg$SNP<-paste(fw.sig.reg$Chr,as.character(fw.sig.reg$BP),sep=".")
 stacks.in<-outlier.in.region(fw.sig.reg,put.reg,oChrom="Chr")
 ```
+
+Of the `r nrow(fw.sig.reg)` shared outlier SNPs, `r nrow(fw.sig.reg[!is.na(fw.sig.reg$SSCID),])` are in coding regions of the genome. However, `r length(stacks.in[stacks.in!="NA"])` shared outliers are in putative gene regions.
 
 No, they don't overlap. Maybe they're in the same LD region?
 
@@ -689,6 +693,12 @@ gene.region.plot<-function(chrom,gene,put.reg,vcf,chrom.ld, fst.dfs,deltad=FALSE
 
 ```{r plot_putative_regions}
 
+par(oma=c(2,2,2,2),mar=c(2,2,2,2))
+arhgef3<-lapply(unique(put.reg[put.reg$Gene=="TNS1" & !is.na(put.reg$rad.loci),"Chrom"]),
+       gene.region.plot,gene="TNS1",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
+       fst.dfs=fst.dfs,deltad=deltad,D=jostd,colors=colors,alphas=alphas,ltys=ltys,
+       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst")
+
 par(mfrow=c(2,2),oma=c(2,2,2,2),mar=c(2,2,2,2))
 arhgef3<-lapply(unique(put.reg[put.reg$Gene=="ARHGEF3" & !is.na(put.reg$rad.loci),"Chrom"]),
        gene.region.plot,gene="ARHGEF3",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
@@ -732,9 +742,15 @@ pmca<-lapply(unique(put.reg[put.reg$Gene=="PMCA" & !is.na(put.reg$rad.loci),"Chr
 ```
 
 ```{r plot_lg8}
+#png("LG8.png",width=10,height=7,units="in",res=300)
 chrom<-"LG8"
-nf <- layout(matrix(c(1,1,1,2,2,3), 2,3, byrow=TRUE), respect=TRUE)
-
+  pchs<-c(rep(32,6),15,124,124)
+  cols<-c(grp.colors[1],grp.colors[2],grp.colors[3],grp.colors[6],
+          "#dfc27d","#a6611a","indianred","black","#08519c")
+  ltys=c(1,1,2,1,1,1,0,0,0)
+  lwds<-c(rep(2,6),0,0,0)
+nf <- layout(matrix(c(1,1,1,1,2,2,2,3), 2,4, byrow=TRUE))
+par(oma=c(1.5,2,1,1),mar=c(1.5,1,1.5,1))
 
 plot(fst.dfs[[1]]$BP[fst.dfs[[1]]$Chr %in% chrom],
      fst.dfs[[1]]$Smoothed.AMOVA.Fst[fst.dfs[[1]]$Chr %in% chrom],
@@ -746,27 +762,10 @@ starts<-as.numeric(put.reg[put.reg$Chrom %in% chrom,"StartBP"])
 stops<-as.numeric(put.reg[put.reg$Chrom %in% chrom,"StopBP"])
 rect(xleft=as.numeric(starts),xright=as.numeric(stops),
        ybottom=-0.04,ytop=1,col="indianred",border="indianred")
-text(x=put.reg[put.reg$Chrom %in% chrom,"StartBP"],y=1.1,cex=0.6,
-     labels=put.reg[put.reg$Chrom %in% chrom,"Gene"],
-     srt=90,xpd=T)
-#fav vs non fav
-# fav.genes<-c("ARHGEF3","RHOGTP8","ATP6V0A1","TRIM14","TNS1","SLC26A3")
-# starts<-as.numeric(put.reg[put.reg$Chrom %in% chrom & put.reg$Gene %in% fav.genes,"StartBP"])
-# stops<-as.numeric(put.reg[put.reg$Chrom %in% chrom & put.reg$Gene %in% fav.genes,"StopBP"])
-# rect(xleft=as.numeric(starts),xright=as.numeric(stops),
-#        ybottom=-0.04,ytop=1,col="indianred",border="indianred")
-# text(x=put.reg[put.reg$Chrom %in% chrom & put.reg$Gene %in% fav.genes,"StartBP"],y=1.1,cex=0.6,
-#      labels=put.reg[put.reg$Chrom %in% chrom & put.reg$Gene %in% fav.genes,"Gene"],
-#      srt=90,xpd=T)
-# print(chrom)
-# starts<-as.numeric(put.reg[put.reg$Chrom %in% chrom & !put.reg$Gene %in% fav.genes,"StartBP"])
-# stops<-as.numeric(put.reg[put.reg$Chrom %in% chrom & !put.reg$Gene %in% fav.genes,"StopBP"])
-# rect(xleft=as.numeric(starts),xright=as.numeric(stops),
-#        ybottom=-0.04,ytop=1,col=alpha("indianred",0.5),border=alpha("indianred",0.5))
 
 #add fsts
 mtext(paste("Position on ",chrom,sep=""),1,cex=0.75)
-for(i in 1:length(smooth.fsts)){
+for(i in 1:length(fst.dfs)){
   points(fst.dfs[[i]]$BP[fst.dfs[[i]]$Chr %in% chrom],
          fst.dfs[[i]]$Smoothed.AMOVA.Fst[fst.dfs[[i]]$Chr %in% chrom],
          col=alpha(colors[i],alphas[i]),type="l",lwd=lwds[i],lty=ltys[i])
@@ -792,69 +791,61 @@ gene.out<-data.frame(BP=c(as.numeric(fst.gene),as.numeric(sal.gene),as.numeric(s
    
 
   #add outlier loci
-  clip(x1=min(as.numeric(pstart)),x2=max(as.numeric(pstop)),y1=0.99,y2=1.06)
+  clip(x1=min(as.numeric(fst.dfs[[1]]$BP[fst.dfs[[1]]$Chr %in% chrom])),x2=max(as.numeric(fst.dfs[[1]]$BP[fst.dfs[[1]]$Chr %in% chrom])),y1=0.99,y2=1.06)
   abline(v=fst.gene,col="black")
   points(x=sal.gene,y=rep(1,length(sal.gene)),col="black",pch=25,cex=0.5)
   abline(v=nb.gene,col=alpha("black",0.5),lwd=1.5)
   abline(v=nj.gene,col="#08519c",lwd=1.5)
   
   ###Add zoom in
-  
-  
+plot(fst.dfs[[1]]$BP[fst.dfs[[1]]$Chr %in% chrom],
+     fst.dfs[[1]]$Smoothed.AMOVA.Fst[fst.dfs[[1]]$Chr %in% chrom],
+     type='n',ylim=c(0,1),bty="L",xlab="",ylab="",xaxt='n',yaxt='n',xlim=c(0,5000000))
+axis(2,las=1)  
+axis(1)
+#add putative gene
+g<-put.reg[put.reg$Chrom %in% chrom & put.reg$StartBP<5000000,]
+g$Gene<-as.character(g$Gene)
+g$Gene[grep("ATP6",g$Gene)]<-"ATP6V"
+starts<-as.numeric(g[,"StartBP"])
+stops<-as.numeric(g[,"StopBP"])
+rect(xleft=as.numeric(starts),xright=as.numeric(stops),
+       ybottom=-0.04,ytop=1,col="indianred",border="indianred")
+text(x=unique(g$StartBP),y=0.6,
+    labels=g$Gene[!duplicated(g$StartBP)],font=2,
+     srt=90,xpd=T)
+  mtext(paste("Position on ",chrom,sep=""),1,cex=0.75)
+for(i in 1:length(fst.dfs)){
+  points(fst.dfs[[i]]$BP[fst.dfs[[i]]$Chr %in% chrom],
+         fst.dfs[[i]]$Smoothed.AMOVA.Fst[fst.dfs[[i]]$Chr %in% chrom],
+         col=alpha(colors[i],alphas[i]),type="l",lwd=lwds[i],lty=ltys[i])
+}
+points(dd.smooth$x,dd.smooth$y,col="#dfc27d",type="l",lwd=2)
+points(dsmooth$x,dsmooth$y,type="l",col="#a6611a",lwd=2)
+clip(x1=min(as.numeric(0)),x2=max(as.numeric(5000000)),y1=0.99,y2=1.06)
+  abline(v=fst.gene,col="black")
+  points(x=sal.gene,y=rep(1,length(sal.gene)),col="black",pch=25,cex=0.5)
+  abline(v=nb.gene,col=alpha("black",0.5),lwd=1.5)
+  abline(v=nj.gene,col="#08519c",lwd=1.5)
+
   ###add legend
   
-```
-```{r lg8_lgnd}
-
-  if(is.data.frame(deltad)){
-    lgnd<-unlist(lapply(names(fst.dfs),function(n) { bquote(.(n)~italic(F[ST])) }))
-    lgnd<-c(lgnd,expression(delta~-divergence))
-  }else{
-    lgnd<-unlist(lapply(names(fst.dfs),function(n) { substitute(paste(name,italic(F[ST]),sep=""),list(name=n)) }))
-
-  }
-  
-  cols<-NULL
-  pchs<-rep(32,length(lwds))
-  for(i in 1:length(colors)){
-    cols<-c(cols,alpha(colors[i],alphas[i]))
-  }
-  if(is.data.frame(deltad)){
-    cols<-c(cols,"#dfc27d")
-    pchs<-c(pchs,32)
-    ltys<-c(ltys,1)
-    lwds<-c(lwds,2)
-  }
-  if(is.data.frame(D)){
-    cols<-c(cols,"#a6611a")
-    pchs<-c(pchs,32)
-    lgnd<-c(lgnd,"Jost's D")
-    ltys<-c(ltys,1)
-    lwds<-c(lwds,2)
-  }
-  
-  lgnd<-c(lgnd,substitute(italic(g),list(g=gene)),"Outlier RAD loci")
-  
-  cols<-c(cols,"indianred","black")
-  pchs<-c(pchs,15,124)
-  if(length(grep(TRUE,njs.eval))>0){
-    lgnd<-c(lgnd,"Monophyletic Gene Tree")
-    cols<-c(cols,"#08519c")
-    pchs<-c(pchs,124)
-  }
-  
-  if(length(sal.gene)>0){
-    lgnd<-c(lgnd,"Salinity-associated")
-    cols<-c(cols,"black")
-    pchs<-c(pchs,25)
-  }
-  if(legend==TRUE){
-  legend("topleft",
-         legend=lgnd,pch=pchs,
-         bty='n',lwd=c(lwds,0,0,0,0),lty=c(ltys,0,0,0,0),
+  lgnd<-unlist(lapply(names(fst.dfs),function(n) { bquote(.(n)~italic(F[ST])) }))
+  lgnd<-c(lgnd,expression(delta~-divergence),"Jost's D","putative gene regions",
+          "Outlier RAD loci","Monophyletic Gene Tree")
+  pchs<-c(rep(32,6),15,124,124)
+  cols<-c(grp.colors[1],grp.colors[2],grp.colors[3],grp.colors[6],
+          "#dfc27d","#a6611a","indianred","black","#08519c")
+  ltys=c(1,1,2,1,1,1,0,0,0)
+  lwds<-c(rep(2,6),0,0,0)
+  plot(c(0,1),c(0,1),bty='n',type='n',xlab="",ylab="",xaxt='n',yaxt='n')
+  legend("top",legend=lgnd,pch=pchs,
+         bty='n',lwd=lwds,lty=ltys,
          col=cols)
-  }
+#dev.off()
 ```
+
+
 
 ```{r old_plots,eval=FALSE,echo=FALSE}
 #ones that were important before but not anymore
