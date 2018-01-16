@@ -36,7 +36,7 @@ if(length(grep("gz",gff.name))>0){
 }
 colnames(gff)<-c("seqname","source","feature","start","end","score","strand","frame","attribute")
 #Stacks output
-vcf<-parse.vcf("stacks/fw-sw_populations/batch_2.vcf")
+vcf<-parse.vcf("stacks/p4.vcf")
 vcf$SNP<-paste(vcf$`#CHROM`,vcf$POS,sep=".")
 scaffs<-levels(as.factor(vcf[,1]))
 fwsw.tx<-read.delim("stacks/batch_2.fst_TXCC-TXFW.tsv")
@@ -44,12 +44,12 @@ fwsw.la<-read.delim("stacks/batch_2.fst_ALST-LAFW.tsv")
 fwsw.al<-read.delim("stacks/batch_2.fst_ALFW-ALST.tsv")
 fwsw.fl<-read.delim("stacks/batch_2.fst_FLCC-FLLG.tsv")
 #annotated Stacks outliers at 0.01
-fw.sig.reg<-read.csv("StacksFWSWOutliers_annotatedByGenome.csv")
+fw.sig.reg<-read.csv("p4.StacksFWSWOutliers_annotatedByGenome.csv")
 #deltad
-deltad<-read.delim("deltadivergence.txt")
-sdd.out<-read.delim("smoothed.deltad.out.txt",header=T,sep='\t')
+deltad<-read.delim("sep.deltadivergence.txt")
+sdd.out<-read.delim("sep.smoothedDD.out.txt",header=T,sep='\t')
 #josts d
-jostd<-read.delim("jostd.perlocus.txt",header=F)
+jostd<-read.delim("p4.jostd.perlocus.txt",header=F)
 colnames(jostd)<-c("locid","D")
 jostd$SNP<-vcf$SNP
 jostd$POS<-vcf$POS
@@ -58,7 +58,7 @@ jostd$ID<-vcf$ID
 #ld info
 ld<-read.delim("ld_info_fwsw.txt")
 #neighbor joining SNP trees
-fst.trees<-read.delim("ftrees.txt",sep=" ")
+fst.trees<-read.delim("p4.snp.ftrees.txt",sep=" ")
 #set up some helfpul things
 fw.list<-c("TXFW","LAFW","ALFW","FLLG")
 sw.list<-c("TXSP","TXCC","TXCB","ALST","FLSG","FLKB",
@@ -140,7 +140,7 @@ sig.region.ann<-function(fw.shared.chr,gff)
 
 ### Combine putative genes and genomic info
 
-```{r putative_regions}
+```{r putative_regions, eval=FALSE}
 #' extract the significant regions from the gff file
 put.reg<-do.call(rbind,apply(put.genes,1,function(gene){
   ssc.gene<-as.character(gene[[6]])
@@ -166,9 +166,12 @@ put.reg<-do.call(rbind,apply(put.genes,1,function(gene){
                   stringsAsFactors = FALSE)
   return(as.data.frame(new))
 }))
+write.table(put.reg,"putative.gene.regions.tsv",col.names=T,sep='\t')
 
 ```
-
+```{r read_putative,echo=FALSE}
+put.reg<-read.delim("putative.gene.regions.tsv",header=T)
+```
 Note that some genes will have multiple rows as they match multiple locations in the genome.
 
 ### Do the putative genes contain RAD loci?
@@ -276,7 +279,7 @@ new.dat$plot.max<-as.numeric(as.character(new.dat$plot.max))
 
 ### Plot the Fsts 
 
-```{r fst_plot, echo=FALSE, message=F,fig.cap="Outlined points are Stacks shared outliers. Black bars are putative genes"}
+```{r fst_plot, echo=FALSE,results='hide', message=F,fig.cap="Outlined points are Stacks shared outliers. Black bars are putative genes"}
 tx.sig<-fwsw.tx[fwsw.tx$Fisher.s.P<0.01,"Locus.ID"]
 la.sig<-fwsw.la[fwsw.la$Fisher.s.P<0.01,"Locus.ID"]
 al.sig<-fwsw.al[fwsw.al$Fisher.s.P<0.01,"Locus.ID"]
@@ -358,9 +361,9 @@ head(put.reg[put.reg$nearby.rad!="NA",])
 ```
 So of the `r nrow(put.reg)` gene annotations `r length(put.nearby.rad[put.nearby.rad!="NA"])` are within the mean LD range of an outlier, which represent `r length(unique(put.reg[put.reg$nearby.rad!="NA","Gene"]))` putative freshwater genes. Those genes are: `r unique(put.reg[put.reg$nearby.rad!="NA","Gene"])[order(unique(put.reg[put.reg$nearby.rad!="NA","Gene"]))]`
 
-## Compare \delta-divergence to putative regions
+## Compare $\delta$ -divergence to putative regions
 
-Now for \delta-divergence
+Now for $\delta$ -divergence
 
 ```{r dd_plot, echo=FALSE, results='hide',fig.keep='all'}
 par(mar=c(1,1,1,1),oma=c(1,2,1,1))
@@ -386,7 +389,7 @@ apply(new.dat,1,function(dat){
 })
 ```
 
-### Compare \delta-divergence and putative regions
+### Compare $\delta$ -divergence and putative regions
 
 ```{r dd_compare}
 #in the gene
@@ -394,14 +397,14 @@ sdd.in<-outlier.in.region(sdd.out,put.reg,oBP = "Pos")
 put.reg$sdd.in<-sdd.in
 ```
 
-The genes `r unique(put.reg[put.reg$sdd.in!="NA","Gene"])` contain delta divergence outlier regions.
+The genes `r unique(put.reg[put.reg$sdd.in!="NA","Gene"])` contain $\delta$-divergence outlier regions.
 
 ```{r dd_nearby}
 #in the gene
 sdd.nb<-outlier.nearby(sdd.out,put.reg,chrom.ld,oBP = "Pos")
 ```
 
-And of the `r nrow(sdd.out)` \delta-divergence outliers, `r length(sdd.nb[sdd.nb!="NA"])/nrow(put.reg)*100`% are in the LD region around putative freshwater genes.
+And of the `r nrow(sdd.out)` $\delta$-divergence outliers, `r length(sdd.nb[sdd.nb!="NA"])/nrow(put.reg)*100`% are in the LD region around putative freshwater genes.
 
 
 ## Compare Bayenv outliers to putative regions
@@ -466,7 +469,7 @@ put.reg$bfs.in<-bfs.in
 put.reg$bft.in<-bft.in
 put.reg$bfg.in<-bfg.in
 
-
+unique(put.reg[put.reg$bfs.in !="NA","Gene"])
 unique(put.reg[put.reg$bft.in !="NA","Gene"])
 unique(put.reg[put.reg$bfg.in !="NA","Gene"])
 ```
@@ -474,7 +477,7 @@ unique(put.reg[put.reg$bfg.in !="NA","Gene"])
 
 All three BayEnv tests identified outliers in the genes `r unique(put.reg[put.reg$bfs.in !="NA","Gene"])[unique(put.reg[put.reg$bfs.in !="NA","Gene"]) %in% unique(put.reg[put.reg$bft.in !="NA","Gene"]) & unique(put.reg[put.reg$bfs.in !="NA","Gene"]) %in% unique(put.reg[put.reg$bfg.in !="NA","Gene"])]`. The temperature and grass also share `r unique(put.reg[put.reg$bft.in !="NA","Gene"])[unique(put.reg[put.reg$bft.in !="NA","Gene"]) %in% unique(put.reg[put.reg$bfg.in !="NA","Gene"])][1]`, and temperature and salinity share `r unique(put.reg[put.reg$bfs.in !="NA","Gene"])[unique(put.reg[put.reg$bfs.in !="NA","Gene"]) %in% unique(put.reg[put.reg$bft.in !="NA","Gene"])][1]`. 
 
-Clearly, RHOGTP8 and TNS1 are showing up repeatedly (all Bayenv2 outliers, and \delta-divergence outliers).
+Clearly, RHOGTP8 and TNS1 are showing up repeatedly (all Bayenv2 outliers, and $\delta-divergence outliers).
 
 But looking at `put.reg[put.reg$Gene =="RHOGTP8","rad.loci"]`, it's obvious that Rho GTPase-activating proteins are distributed throughout the genome (on chromosomes `r unique(put.reg[put.reg$Gene=="RHOGTP8","Chrom"])`).
 
@@ -483,11 +486,12 @@ But looking at `put.reg[put.reg$Gene =="RHOGTP8","rad.loci"]`, it's obvious that
 Using `ape`, I calculated neighbor-joining trees and identified `r dim(fst.trees[fst.trees$Monophyletic==TRUE,])` loci with a monophyletic freshwater clade using `is.monophyletic()`. Are any of those SNPs within genes?
 
 ```{r nj_trees}
-ftmono<-fst.trees[fst.trees$Monophyletic == TRUE,]
+ftmono<-fst.trees[fst.trees$FWMonophyletic == TRUE & !is.na(fst.trees$FWMonophyletic),]
 
 nj.in<-outlier.in.region(ftmono,put.reg,oBP="Pos")
 nj.nb<-outlier.nearby(ftmono,put.reg,chrom.ld,oBP="Pos")
 put.reg$nj.nb<-nj.nb
+put.reg$nj.in<-nj.in
 ```
 
 So `r length(nj.in[nj.in!="NA"])` loci are located within putative freshwater genes, but `r length(nj.nb[nj.nb!="NA"])` are within the LD region of the putative genes, representing `r length(nj.nb[nj.nb!="NA"])/nrow(put.reg)*100` of the putative gene annotations and `r length(unique(put.reg[put.reg$nj.nb != "NA", "Gene"]))` genes
@@ -500,17 +504,26 @@ Jost's D measures the fraction of allelic differentiation between populations. A
 jost.in<-outlier.in.region(jostd,put.reg,oChrom="Chr",oBP="POS")
 jost.nb<-outlier.nearby(jostd,put.reg,chrom.ld,oChrom = "Chr",oBP="POS")
 put.reg$jostd.nb<-jost.nb
+put.reg$jostd.in<-jost.in
 ```
 So `r length(jost.in[jost.in!="NA"])` loci are located within putative freshwater genes, but `r length(jost.nb[jost.nb!="NA"])` are within the LD region of the putative genes, representing `r length(jost.nb[jost.nb!="NA"])/nrow(put.reg)*100` of the putative gene annotations and `r length(unique(put.reg[put.reg$jostd.nb != "NA", "Gene"]))` genes
 
 ## Combining all of those analyses
 
-Genes containing shared Fst outliers: `r unique(put.reg[put.reg$rad.loci != "NA","Gene"])`
-Genes containing delta divergence outliers: `r unique(put.reg[put.reg$sdd.in != "NA","Gene"])`
-Genes containing Salinity-associated outliers: `r unique(put.reg[put.reg$bfs.in != "NA","Gene"])`
-Genes near monophyletic FW gene trees: `r unique(put.reg[put.reg$nj.nb != "NA","Gene"])`
-Overlap:
-`r unique(put.reg[put.reg$rad.loci != "NA","Gene"])[unique(put.reg[put.reg$rad.loci != "NA","Gene"]) %in% unique(put.reg[put.reg$sdd.in != "NA","Gene"]) &unique(put.reg[put.reg$rad.loci != "NA","Gene"]) %in% unique(put.reg[put.reg$bfs.in != "NA","Gene"]) &unique(put.reg[put.reg$rad.loci != "NA","Gene"]) %in% unique(put.reg[put.reg$nj.nb != "NA","Gene"])]`
+*Genes containing shared Fst outliers: `r unique(put.reg[put.reg$rad.loci != "NA","Gene"])`
+
+*Genes containing $\delta$ -divergence outliers: `r unique(put.reg[put.reg$sdd.in != "NA","Gene"])`
+
+*Genes containing Salinity-associated outliers: `r unique(put.reg[put.reg$bfs.in != "NA","Gene"])`
+
+*Genes containing Jost D outliers: `r unique(put.reg[put.reg$jostd.in !="NA", "Gene"])`
+
+*Genes containing monophyletic FW gene trees: `r unique(put.reg[put.reg$nj.in != "NA","Gene"])`
+
+*Overlap:
+`r unique(put.reg[put.reg$rad.loci != "NA","Gene"])[unique(put.reg[put.reg$rad.loci != "NA","Gene"]) %in% unique(put.reg[put.reg$sdd.in != "NA","Gene"]) &unique(put.reg[put.reg$rad.loci != "NA","Gene"]) %in% unique(put.reg[put.reg$bfs.in != "NA","Gene"])&unique(put.reg[put.reg$rad.loci != "NA","Gene"]) %in% unique(put.reg[put.reg$nj.nb != "NA","Gene"])]` 
+
+*Ingoring Trees: `r unique(put.reg[put.reg$rad.loci != "NA","Gene"])[unique(put.reg[put.reg$rad.loci != "NA","Gene"]) %in% unique(put.reg[put.reg$sdd.in != "NA","Gene"]) &unique(put.reg[put.reg$rad.loci != "NA","Gene"]) %in% unique(put.reg[put.reg$bfs.in != "NA","Gene"])]`
 
 
 I'm highlighting a few of the putative genes that have a bunch of outliers nearby or in them. First is TNS1, which matched three genome annotations but only had one region, on LG1, that contained shared outlier Fsts, delta divergence, Bayenv salinity, were near monophyletic neighbor joining trees. 
@@ -524,8 +537,9 @@ ltys=c(1,1,2,1)
 ```
 
 ```{r plotting_function}
-gene.region.plot<-function(chrom,gene,put.reg,vcf,chrom.ld, fst.dfs,deltad=FALSE,
-                           colors="black",lwds=2,alphas=0.5,ltys=1,legend=TRUE){
+gene.region.plot<-function(chrom,gene,put.reg,vcf,chrom.ld, fst.dfs,deltad=FALSE,D=FALSE,
+                           colors="black",lwds=2,alphas=0.5,ltys=1,legend=TRUE, 
+                           smooth=TRUE, fst.name="Corrected.AMOVA.FST"){
   pstart<-min(as.numeric(as.character(put.reg[put.reg$Gene ==gene & 
                                                      put.reg$Chrom==chrom,"StartBP"])))-(chrom.ld[chrom]/2)
   pstop<-max(as.numeric(as.character(put.reg[put.reg$Gene ==gene & 
@@ -534,20 +548,30 @@ gene.region.plot<-function(chrom,gene,put.reg,vcf,chrom.ld, fst.dfs,deltad=FALSE
   if(pstop > max(vcf[vcf$`#CHROM`==chrom,"POS"])){ pstop <- max(vcf[vcf$`#CHROM`==chrom,"POS"]) }
   starts<-as.numeric(put.reg[put.reg$Chrom %in% chrom & put.reg$Gene == gene,"StartBP"])
   stops<-as.numeric(put.reg[put.reg$Chrom %in% chrom & put.reg$Gene == gene,"StopBP"])
-
-
-  #generate the dataframes
-  smooth.fsts<-lapply(fst.dfs,function(df){
-    this.df<-df[df$Chr %in% chrom,]
-    this.smooth<-do.call("rbind",lapply(seq(1,nrow(this.df),(nrow(this.df)*0.15)/5),sliding.avg,
-                                      dat=data.frame(Pos=this.df$BP,Fst=this.df$Corrected.AMOVA.Fst),
-                                      width=nrow(this.df)*0.15))
-    return(this.smooth)
-  })
+  
+  if(smooth==TRUE){
+    #generate the dataframes
+    smooth.fsts<-lapply(fst.dfs,function(df){
+      this.df<-df[df$Chr %in% chrom,]
+      this.smooth<-do.call("rbind",lapply(seq(1,nrow(this.df),(nrow(this.df)*0.15)/5),sliding.avg,
+                                        dat=data.frame(Pos=this.df$BP,Fst=this.df[,fst.name]),
+                                        width=nrow(this.df)*0.15))
+      return(this.smooth)
+    })
+  }  else{
+    smooth.fsts<-lapply(fst.dfs,function(df){
+      this.smooth<-df[df$Chr %in% chrom,c("BP",fst.name)]
+    })
+  }
   
   if(is.data.frame(deltad)){
     this.dd<-deltad[deltad$Chrom %in% chrom,]
     dd.smooth<-loess.smooth(this.dd$Pos,this.dd$deltad,span=0.1,degree=2)
+  }
+  
+  if(is.data.frame(D)){
+    this.d<-D[D$Chr %in% chrom,]
+    dsmooth<-loess.smooth(this.d$POS,this.d$D,span=0.1,degree=2) 
   }
   pr.gene<-put.reg[put.reg$Chrom==chrom & put.reg$Gene==gene,]
   fst.gene<- unlist(strsplit(gsub(paste(chrom,".",sep=""),"",pr.gene$rad.loci[pr.gene$rad.loci != "NA"]),","))
@@ -589,7 +613,12 @@ gene.region.plot<-function(chrom,gene,put.reg,vcf,chrom.ld, fst.dfs,deltad=FALSE
   
   #add delta divergence
   if(is.data.frame(deltad)){
-    points(dd.smooth$x,dd.smooth$y,col="cornflowerblue",type="l",lwd=2)
+    points(dd.smooth$x,dd.smooth$y,col="#dfc27d",type="l",lwd=2)
+  }
+  
+  #add Jost's D
+  if(is.data.frame(D)){
+    points(dsmooth$x,dsmooth$y,type="l",col="#a6611a",lwd=2)
   }
   
   
@@ -601,22 +630,32 @@ gene.region.plot<-function(chrom,gene,put.reg,vcf,chrom.ld, fst.dfs,deltad=FALSE
   })
   if(is.data.frame(deltad)){
     lgnd<-unlist(lapply(names(fst.dfs),function(n) { bquote(.(n)~italic(F[ST])) }))
-    lgnd<-c(lgnd,
-            expression(delta~-divergence),substitute(italic(g),list(g=gene)),"Outlier RAD loci")
+    lgnd<-c(lgnd,expression(delta~-divergence))
   }else{
     lgnd<-unlist(lapply(names(fst.dfs),function(n) { substitute(paste(name,italic(F[ST]),sep=""),list(name=n)) }))
-    lgnd<-c(lgnd,
-                  substitute(italic(g),list(g=gene)),"Outlier RAD loci")
+
   }
+  
   cols<-NULL
   pchs<-rep(32,length(lwds))
   for(i in 1:length(colors)){
     cols<-c(cols,alpha(colors[i],alphas[i]))
   }
   if(is.data.frame(deltad)){
-    cols<-c(cols,"cornflowerblue")
+    cols<-c(cols,"#dfc27d")
     pchs<-c(pchs,32)
+    ltys<-c(ltys,1)
+    lwds<-c(lwds,2)
   }
+  if(is.data.frame(D)){
+    cols<-c(cols,"#a6611a")
+    pchs<-c(pchs,32)
+    lgnd<-c(lgnd,"Jost's D")
+    ltys<-c(ltys,1)
+    lwds<-c(lwds,2)
+  }
+  
+  lgnd<-c(lgnd,substitute(italic(g),list(g=gene)),"Outlier RAD loci")
   
   cols<-c(cols,"indianred","black")
   pchs<-c(pchs,15,124)
@@ -634,59 +673,213 @@ gene.region.plot<-function(chrom,gene,put.reg,vcf,chrom.ld, fst.dfs,deltad=FALSE
   if(legend==TRUE){
   legend("topleft",
          legend=lgnd,pch=pchs,
-         bty='n',lwd=c(lwds,2,0,0,0,0),lty=c(ltys,1,0,0,0,0),
+         bty='n',lwd=c(lwds,0,0,0,0),lty=c(ltys,0,0,0,0),
          col=cols)
   }
   #add outlier loci
   clip(x1=min(as.numeric(pstart)),x2=max(as.numeric(pstop)),y1=1.01,y2=1.06)
   abline(v=fst.gene,col="black")
   points(x=sal.gene,y=rep(1.05,length(sal.gene)),col="black",pch=25,cex=0.5)
-  abline(v=nb.gene,col=alpha("black",0.5))
-  abline(v=nj.gene,col="#08519c")
+  abline(v=nb.gene,col=alpha("black",0.5),cex=2)
+  abline(v=nj.gene,col="#08519c",cex=2)
 }
 ```
 
-### Plot all genes - for supplement
+## Plot all genes - for supplement
 
 ```{r plot_putative_regions}
 
-par(mfrow=c(1,3),oma=c(2,2,2,2),mar=c(2,2,2,2))
+par(mfrow=c(2,2),oma=c(2,2,2,2),mar=c(2,2,2,2))
 arhgef3<-lapply(unique(put.reg[put.reg$Gene=="ARHGEF3" & !is.na(put.reg$rad.loci),"Chrom"]),
        gene.region.plot,gene="ARHGEF3",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
-       fst.dfs=fst.dfs,deltad=deltad,colors=colors,alphas=alphas,ltys=ltys)
+       fst.dfs=fst.dfs,deltad=deltad,D=jostd,colors=colors,alphas=alphas,ltys=ltys,
+       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst")
+
+par(mfrow=c(2,4),oma=c(2,2,2,2),mar=c(2,2,2,2))
+ca<-lapply(unique(put.reg[put.reg$Gene=="CA" & !is.na(put.reg$rad.loci),"Chrom"]),
+       gene.region.plot,gene="CA",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
+       fst.dfs=fst.dfs,deltad=deltad,colors=colors,alphas=alphas,ltys=ltys,
+       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst")
+ca2<-lapply(unique(put.reg[put.reg$Gene=="CAII" & !is.na(put.reg$rad.loci),"Chrom"]),
+       gene.region.plot,gene="CAII",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
+       fst.dfs=fst.dfs,deltad=deltad,colors=colors,alphas=alphas,ltys=ltys,
+       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst")
+
+par(mfrow=c(2,4),oma=c(2,2,2,2),mar=c(2,2,2,2))
+rhogtp8<-lapply(unique(put.reg[put.reg$Gene=="RHOGTP8" & !is.na(put.reg$rad.loci),"Chrom"]),
+       gene.region.plot,gene="RHOGTP8",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
+       fst.dfs=fst.dfs,deltad=deltad,D=jostd,colors=colors,alphas=alphas,ltys=ltys,
+       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst")
 
 
+par(oma=c(2,2,2,2),mar=c(2,2,2,2))
+slc26a3<-lapply(unique(put.reg[put.reg$Gene=="SLC26A3" & !is.na(put.reg$rad.loci),"Chrom"]),
+       gene.region.plot,gene="SLC26A3",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
+       fst.dfs=fst.dfs,deltad=deltad,D=jostd,colors=colors,alphas=alphas,ltys=ltys,
+       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst") #LG20 doesn't plot
+
+par(mfrow=c(2,3),oma=c(2,2,2,2),mar=c(2,2,2,2))
+trim14<-lapply(unique(put.reg[put.reg$Gene=="TRIM14" & !is.na(put.reg$rad.loci),"Chrom"]),
+       gene.region.plot,gene="TRIM14",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
+       fst.dfs=fst.dfs,deltad=deltad,D=jostd,colors=colors,alphas=alphas,ltys=ltys,
+       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst")
+
+par(oma=c(2,2,2,2),mar=c(2,2,2,2))
+pmca<-lapply(unique(put.reg[put.reg$Gene=="PMCA" & !is.na(put.reg$rad.loci),"Chrom"]),
+       gene.region.plot,gene="PMCA",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
+       fst.dfs=fst.dfs,deltad=deltad,D=jostd,colors=colors,alphas=alphas,ltys=ltys,
+       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst")
+```
+
+```{r plot_lg8}
+chrom<-"LG8"
+nf <- layout(matrix(c(1,1,1,2,2,3), 2,3, byrow=TRUE), respect=TRUE)
+
+
+plot(fst.dfs[[1]]$BP[fst.dfs[[1]]$Chr %in% chrom],
+     fst.dfs[[1]]$Smoothed.AMOVA.Fst[fst.dfs[[1]]$Chr %in% chrom],
+     type='n',ylim=c(0,1),bty="L",xlab="",ylab="",xaxt='n',yaxt='n')
+axis(2,las=1)  
+axis(1)
+#add putative gene
+starts<-as.numeric(put.reg[put.reg$Chrom %in% chrom,"StartBP"])
+stops<-as.numeric(put.reg[put.reg$Chrom %in% chrom,"StopBP"])
+rect(xleft=as.numeric(starts),xright=as.numeric(stops),
+       ybottom=-0.04,ytop=1,col="indianred",border="indianred")
+text(x=put.reg[put.reg$Chrom %in% chrom,"StartBP"],y=1.1,cex=0.6,
+     labels=put.reg[put.reg$Chrom %in% chrom,"Gene"],
+     srt=90,xpd=T)
+#fav vs non fav
+# fav.genes<-c("ARHGEF3","RHOGTP8","ATP6V0A1","TRIM14","TNS1","SLC26A3")
+# starts<-as.numeric(put.reg[put.reg$Chrom %in% chrom & put.reg$Gene %in% fav.genes,"StartBP"])
+# stops<-as.numeric(put.reg[put.reg$Chrom %in% chrom & put.reg$Gene %in% fav.genes,"StopBP"])
+# rect(xleft=as.numeric(starts),xright=as.numeric(stops),
+#        ybottom=-0.04,ytop=1,col="indianred",border="indianred")
+# text(x=put.reg[put.reg$Chrom %in% chrom & put.reg$Gene %in% fav.genes,"StartBP"],y=1.1,cex=0.6,
+#      labels=put.reg[put.reg$Chrom %in% chrom & put.reg$Gene %in% fav.genes,"Gene"],
+#      srt=90,xpd=T)
+# print(chrom)
+# starts<-as.numeric(put.reg[put.reg$Chrom %in% chrom & !put.reg$Gene %in% fav.genes,"StartBP"])
+# stops<-as.numeric(put.reg[put.reg$Chrom %in% chrom & !put.reg$Gene %in% fav.genes,"StopBP"])
+# rect(xleft=as.numeric(starts),xright=as.numeric(stops),
+#        ybottom=-0.04,ytop=1,col=alpha("indianred",0.5),border=alpha("indianred",0.5))
+
+#add fsts
+mtext(paste("Position on ",chrom,sep=""),1,cex=0.75)
+for(i in 1:length(smooth.fsts)){
+  points(fst.dfs[[i]]$BP[fst.dfs[[i]]$Chr %in% chrom],
+         fst.dfs[[i]]$Smoothed.AMOVA.Fst[fst.dfs[[i]]$Chr %in% chrom],
+         col=alpha(colors[i],alphas[i]),type="l",lwd=lwds[i],lty=ltys[i])
+}
+#add delta-d
+this.dd<-deltad[deltad$Chrom %in% chrom,]
+dd.smooth<-loess.smooth(this.dd$Pos,this.dd$deltad,span=0.1,degree=2)
+points(dd.smooth$x,dd.smooth$y,col="#dfc27d",type="l",lwd=2)
+#add Jost's D
+this.d<-jostd[jostd$Chr %in% chrom,]
+dsmooth<-loess.smooth(this.d$POS,this.d$D,span=0.1,degree=2) 
+points(dsmooth$x,dsmooth$y,type="l",col="#a6611a",lwd=2)
+#get the outliers
+pr.gene<-put.reg[put.reg$Chrom==chrom ,]
+fst.gene<- unlist(strsplit(gsub(paste(chrom,".",sep=""),"",pr.gene$rad.loci[pr.gene$rad.loci != "NA"]),","))
+sal.gene<- unlist(strsplit(gsub(paste(chrom,".",sep=""),"",pr.gene$bfs.in[pr.gene$bfs.in != "NA"]),","))
+jd.gene<-unlist(strsplit(gsub(paste(chrom,".",sep=""),"",pr.gene$jost.in[jost.in != "NA"]),","))
+sdd.gene<- unlist(strsplit(gsub(paste(chrom,".",sep=""),"",pr.gene$sdd.in[pr.gene$sdd.in != "NA"]),","))
+nj.gene<-as.numeric(unlist(strsplit(gsub(paste(chrom,".",sep=""),"",pr.gene$nj.nb[pr.gene$nj.nb != "NA"]),",")))
+nb.gene<-as.numeric(unlist(strsplit(gsub(paste(chrom,".",sep=""),"",pr.gene$nearby.rad[pr.gene$nearby.rad != "NA"]),",")))
+gene.out<-data.frame(BP=c(as.numeric(fst.gene),as.numeric(sal.gene),as.numeric(sdd.gene)),
+                     shape=c(rep(8,length(fst.gene)),rep(1,length(sal.gene)),rep(4,length(sdd.gene))))
+   
+
+  #add outlier loci
+  clip(x1=min(as.numeric(pstart)),x2=max(as.numeric(pstop)),y1=0.99,y2=1.06)
+  abline(v=fst.gene,col="black")
+  points(x=sal.gene,y=rep(1,length(sal.gene)),col="black",pch=25,cex=0.5)
+  abline(v=nb.gene,col=alpha("black",0.5),lwd=1.5)
+  abline(v=nj.gene,col="#08519c",lwd=1.5)
+  
+  ###Add zoom in
+  
+  
+  ###add legend
+  
+```
+```{r lg8_lgnd}
+
+  if(is.data.frame(deltad)){
+    lgnd<-unlist(lapply(names(fst.dfs),function(n) { bquote(.(n)~italic(F[ST])) }))
+    lgnd<-c(lgnd,expression(delta~-divergence))
+  }else{
+    lgnd<-unlist(lapply(names(fst.dfs),function(n) { substitute(paste(name,italic(F[ST]),sep=""),list(name=n)) }))
+
+  }
+  
+  cols<-NULL
+  pchs<-rep(32,length(lwds))
+  for(i in 1:length(colors)){
+    cols<-c(cols,alpha(colors[i],alphas[i]))
+  }
+  if(is.data.frame(deltad)){
+    cols<-c(cols,"#dfc27d")
+    pchs<-c(pchs,32)
+    ltys<-c(ltys,1)
+    lwds<-c(lwds,2)
+  }
+  if(is.data.frame(D)){
+    cols<-c(cols,"#a6611a")
+    pchs<-c(pchs,32)
+    lgnd<-c(lgnd,"Jost's D")
+    ltys<-c(ltys,1)
+    lwds<-c(lwds,2)
+  }
+  
+  lgnd<-c(lgnd,substitute(italic(g),list(g=gene)),"Outlier RAD loci")
+  
+  cols<-c(cols,"indianred","black")
+  pchs<-c(pchs,15,124)
+  if(length(grep(TRUE,njs.eval))>0){
+    lgnd<-c(lgnd,"Monophyletic Gene Tree")
+    cols<-c(cols,"#08519c")
+    pchs<-c(pchs,124)
+  }
+  
+  if(length(sal.gene)>0){
+    lgnd<-c(lgnd,"Salinity-associated")
+    cols<-c(cols,"black")
+    pchs<-c(pchs,25)
+  }
+  if(legend==TRUE){
+  legend("topleft",
+         legend=lgnd,pch=pchs,
+         bty='n',lwd=c(lwds,0,0,0,0),lty=c(ltys,0,0,0,0),
+         col=cols)
+  }
+```
+
+```{r old_plots,eval=FALSE,echo=FALSE}
+#ones that were important before but not anymore
 par(mfrow=c(1,2),oma=c(2,2,2,2),mar=c(2,2,2,2))
 nakatpase<-lapply(unique(put.reg[put.reg$Gene=="NAKATPase" & !is.na(put.reg$rad.loci),"Chrom"]),
        gene.region.plot,gene="NAKATPase",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
-       fst.dfs=fst.dfs,deltad=deltad,colors=colors,alphas=alphas,ltys=ltys)
+       fst.dfs=fst.dfs,deltad=deltad,D=jostd,colors=colors,alphas=alphas,ltys=ltys,
+       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst")
 
-par(mfrow=c(2,3),oma=c(2,2,2,2),mar=c(2,2,2,2))
-ca<-lapply(unique(put.reg[put.reg$Gene=="CA" & !is.na(put.reg$rad.loci),"Chrom"]),
-       gene.region.plot,gene="CA",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
-       fst.dfs=fst.dfs,deltad=deltad,colors=colors,alphas=alphas,ltys=ltys)
-ca2<-lapply(unique(put.reg[put.reg$Gene=="CAII" & !is.na(put.reg$rad.loci),"Chrom"]),
-       gene.region.plot,gene="CAII",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
-       fst.dfs=fst.dfs,deltad=deltad,colors=colors,alphas=alphas,ltys=ltys)
 
 par(mfrow=c(1,2),oma=c(2,2,2,2),mar=c(2,2,2,2))
 gene.region.plot("LG2","mucin",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
-                           colors=colors,alphas=alphas,ltys=ltys)
+                          D=jostd, colors=colors,alphas=alphas,ltys=ltys,
+       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst")
 gene.region.plot("LG8","mucin",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
-                           colors=colors,alphas=alphas,ltys=ltys)
+                        D=jostd,   colors=colors,alphas=alphas,ltys=ltys,
+       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst")
 
 par(mfrow=c(1,2),oma=c(2,2,2,2),mar=c(2,2,2,2))
 gene.region.plot("LG1","CAMKK1",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
-                           colors=colors,alphas=alphas,ltys=ltys)
+                         D=jostd,  colors=colors,alphas=alphas,ltys=ltys,
+       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst")
 gene.region.plot("LG11","CAMKK1",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
-                           colors=colors,alphas=alphas,ltys=ltys)
-
-
-par(mfrow=c(3,3),oma=c(2,2,2,2),mar=c(2,2,2,2))
-rhogtp8<-lapply(unique(put.reg[put.reg$Gene=="RHOGTP8" & !is.na(put.reg$rad.loci),"Chrom"]),
-       gene.region.plot,gene="RHOGTP8",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
-       fst.dfs=fst.dfs,deltad=deltad,colors=colors,alphas=alphas,ltys=ltys)
-
+                         D=jostd,  colors=colors,alphas=alphas,ltys=ltys,
+       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst")
 ```
 
 ### Create figures

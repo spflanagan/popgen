@@ -295,8 +295,14 @@ dd.name<-as.character("sep.deltadivergence.txt")
 sdd.name<-as.character("sep.smoothedDD.out.txt")
 afs.plot.name<-as.character("p4.All_AFS.png")
 stacks.sig.out<-"p4.stacks.sig.snps.txt"
+annotations.name<-"p4.StacksFWSWOutliers_annotatedByGenome.csv"
 ```
 ```{r StacksFsts}
+```
+```{r compare2ScovelliGenome}
+```
+```{r read_compare}
+fw.sig.reg<-read.csv(annotations.name)
 ```
 
 There are `r nrow(stacks.sig)` shared SNPs using the Fisher's P as a cutoff.
@@ -307,6 +313,8 @@ The bayes factors and Fsts are all in the following chunk.
 ```
 
 Figure 5 includes Fst data, Bayes Factors data, colors from Structure, and reciprocal monophyly data, plus smoothed Fst values (which I think I will leave out this round).
+
+#### Neighbor-joining trees
 
 I had originally calculated monophyletic trees using the regular vcf file with SNPs
 
@@ -328,11 +336,73 @@ ftrees.snp<-read.delim("p4.snp.ftrees.txt", sep=' ')
 ftrees.hap<-read.delim("p4.hap.ftrees.txt", sep=' ')
 ```
 ```{r id_monophyletic}
-ftsnp.mono<-ftrees.snp[ftrees.snp$FWMonophyletic == TRUE,]
-fthap.mono<-ftrees.hap[ftrees.hap$FWMonophyletic == TRUE,]
+ftsnp.mono<-ftrees.snp[ftrees.snp$FWMonophyletic == TRUE & !is.na(ftrees.snp$FWMonophyletic),]
+fthap.mono<-ftrees.hap[ftrees.hap$FWMonophyletic == TRUE & !is.na(ftrees.hap$FWMonophyletic),]
 ```
 
-There are `r nrow(ftrees.snp)` monophyletic SNP trees and `r nrow(ftrees.hap)` haplotype trees. The SNP data had `r nrow(ftrees.snp[is.na(ftrees.snp$FWMonophyletic),])` loci with data missing from at least population; thes were excluded. The haplotype data had `r nrow(ftrees.hap[is.na(ftrees.hap$FWMonophyletic),])` loci with data missing from at least one population, which were excluded. The SNP dataset has `r nrow(ftsnp.mono)` monophyletic SNPs and the haplotype dataset has `r nrow(fthap.mono)` monophyletic haplotypes.
+
+Compare the two:
+
+```{r compare_NJ}
+njcomp.table<-data.frame(SNP=c(nrow(ftrees.snp),nrow(ftrees.snp[is.na(ftrees.snp$FWMonophyletic),]),
+                             nrow(ftsnp.mono)),
+                       Haplotype=c(nrow(ftrees.hap),nrow(ftrees.hap[is.na(ftrees.hap$FWMonophyletic),]),
+                             nrow(fthap.mono)))
+rownames(njcomp.table)<-c("Number of Loci","Number w/ Missing Data", "Number with Monophyletic FW")
+kable(njcomp.table, format = "markdown")
+```
+
+The ones with missing data are those that had data missing from at least one population for that locus, and these were excluded.
+
+```{r get_hapvcf, echo=FALSE}
+if(!("hap.vcf" %in% ls())){
+  hap.vcf<-parse.vcf("stacks/batch_2.haplotypes.vcf")
+  hap.vcf$SNP<-paste(hap.vcf$`#CHROM`,hap.vcf$POS,sep=".")
+}
+```
+```{r compare_loci_NJ}
+hap.mono.ids<-hap.vcf[hap.vcf$SNP %in% fthap.mono$SNP,c("SNP","ID")]
+snp.mono.ids<-vcf[vcf$SNP %in% ftsnp.mono$SNP,c("SNP","ID")]
+```
+
+They share `r nrow(hap.mono.ids[hap.mono.ids$ID %in% snp.mono.ids$ID,])` RAD loci. I'll move forward with the haplotype analyses, since those are probably more informative.
+
+Let's compare the genome-wide locations
+```{r plottingFunctions, echo=FALSE}
+```
+```{r Fig5dataSetup}
+```
+```{r prepNJ_plotting, fig.keep='last'}
+ftsnp<-assign.plotpos(ftsnp.mono,plot.scaffs,bounds,df.bp="Pos")
+fthap<-assign.plotpos(fthap.mono,plot.scaffs,bounds,df.bp="Pos")
+
+par(mfrow=c(2,1), oma=c(1,1,1,1),mar=c(1,1,1,1))
+fwswt.fst<-fst.plot(fwsw.tx,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
+                    scaffs.to.plot=plot.scaffs, y.lim = c(0,1),scaffold.widths = bounds,pch=19,
+                    pt.cols = c(grp.colors[1],grp.colors[2]),pt.cex=1,axis.size = 0,type='n')
+abline(v=ftsnp$plot.pos) 
+mtext("SNP-based \nFW monophyletic trees",2)
+lgbreaks<-tapply(fwswt.fst$plot.pos,fwswt.fst$Chr,min)
+lgbreaks<-c(lgbreaks[lgs],lgbreaks[23])
+axis(1,lgbreaks,labels = FALSE)
+meds<-NULL
+for(i in 1:22){
+  meds[i]<-lgbreaks[i]+((lgbreaks[i+1]-lgbreaks[i])/2)
+}
+names(lglab)<-plot.scaffs
+axis(1,at=meds,labels = lgs,cex.axis=0.5,tck=0,las=2,hadj=0.5)
+
+plot(c(min(fwswt.fst$plot.pos),max(fwswt.fst$plot.pos)),c(0,1),bty='n',type = 'n',axes=FALSE,xlab="",ylab="")
+abline(v=fthap$plot.pos) 
+mtext("haplotype-based \nFW monophyletic trees",2)
+axis(1,lgbreaks,labels = FALSE)
+axis(1,at=meds,labels = lgs,cex.axis=0.5,tck=0,las=2,hadj=0.5)
+```
+
+I don't really trust the haplotype calculations, actually. Let me see about using BEAST with the fasta output...
+`populations -b 2 -W fwsw_results/subset.whitelist.txt -P fwsw_results/stacks -M fwsw_pops_map.txt --fasta`
+#### Plot Fig. 5
+
 
 Now I'm ready to plot Figure 5.
 ```{r plottingFunctions}
@@ -341,8 +411,8 @@ Now I'm ready to plot Figure 5.
 **still need to re-annotate the genome and do the swsw comparison plots. 
 **might be nice to include other aspects in this graph, esp the sw-associated SNPs.
 ```{r}
-ftmono<-ftsnp.mono
-fig5.name<-"p4_stacks_fsts_nj_fwsw_bf.png"
+ftmono<-fthap.mono
+fig5.name<-"p4_stacks_fsts_njhap_fwsw_bf.png"
 png(fig5.name,height=6,width=8,units="in",res=300)
 addLines<-FALSE
 addSmooth<-TRUE
@@ -350,17 +420,17 @@ addSmooth<-TRUE
 
 ```{r Fig5dataSetup}
 ```
-```{r Fig5plot, eval=FALSE}
+```{r Fig5plot}
 ```
 
-![Figure 5. Fsts](fwsw_results/p4_stacks_fsts_nj_fwsw_bf.png)
+![Figure 5. Fsts](fwsw_results/p4_stacks_fsts_njhap_fwsw_bf.png)
 
 ## Figure 6
 
 In Figure 6, we show different measures of diversity: pi (nucleotide diversity), heterozygosity, Jost's D, and delta-divergence. Additionally, we include the shared Fst outliers and putative loci, and highlight regions with high `pi` and \italic(H).
 
 ### Allele Frequency Spectrum
-```{r calcAFS}
+```{r calcAFS,eval=FALSE}
 ```
 ```{r plotAFS, echo=FALSE, eval=FALSE}
 ```
@@ -370,19 +440,39 @@ In Figure 6, we show different measures of diversity: pi (nucleotide diversity),
 ### Pi
 ```{r pi_setup}
 pi.file.name<-"p4.pi.txt"
+avgpi.file.name<-"p4.avgpi.txt"
 ```
-```{r pi, fig.keep='none', eval=FALSE}
+```{r pi, fig.keep='none'}
 ```
 ```{r pi_readin}
 all.pi<-read.table(pi.file.name,header=T)
+avg.pi.adj<-read.table(avgpi.file.name,header=T)
+```
+
+### Heterozygosity
+```{r het_names}
+all.het.name<-"p4.avg.het.txt"
+avg.het.adj.name<-"p4.avg.het.adj.txt"
+```
+```{r het}
+```
+```{r read_het}
+avg.het.adj<-read.delim(avg.het.adj.name,header=TRUE)
+all.het<-read.delim(all.het.name,header=TRUE)
 ```
 
 ### delta-divergence
 ```{r setupDeltaD,eval=FALSE}
 ```
 ```{r readDeltaD, echo=FALSE}
+dd.plot.name<-as.character("separate_delta-divergence.png")
+dd.name<-as.character("sep.deltadivergence.txt")
+sdd.name<-as.character("sep.smoothedDD.out.txt")
 deltad<-read.delim(dd.name, header=TRUE)
 ```
+```{r PlotDeltaD}
+```
+This plotting function also generates the smoothed \delta -divergence values.
 
 ### Jost's D
 
@@ -397,8 +487,46 @@ write.table(jostd$per.locus,"p4.jostd.perlocus.txt",sep='\t',col.names=FALSE,row
 ```
 Now this is done, so I don't need to evaluate it again -- I'll just need to read it in from a file when I want to use it.
 ```{r getJostsD, echo=FALSE}
-jostd<-read.delim("p4.jostd.perlocus.txt",header=FALSE)
+jostd.name<-"p4.jostd.perlocus.txt"
 ```
+```{r readJostD}
+```
+
+### Smooth the statistics
+```{r smooth_name}
+smoothed.name<-"p4_deltad_pi_het.png"
+```
+```{r smoothStats}
+```
+![Figure x. Smoothed variables](fwsw_results/p4_deltad_pi_het.png)
+
+
+### Find the ones with high \pi and low \delta-divergence
+
+```{r HighPIlowDD}
+```
+
+There are loci with high \pi and low \delta-divergence on `r length(unique(shared.upp$Chr))` chromosomes. 
+
+
+```{r hPi_setup}
+#also marine-fw fsts
+fwsw<-read.delim("stacks/fw-sw_populations/batch_2.fst_marine-freshwater.tsv")
+#and putative genes
+put.genes<-read.delim("putative_genes.txt",header=TRUE,sep='\t')
+#genome annotations
+put.reg<-read.delim("putative.gene.regions.tsv",header=T)
+#select genes of interest
+fav.genes<-c("AQP3","TNS1","CAMKK1","mucin","CAII","NAKATPase","ARHGEF3")
+genes2plot<-put.reg[put.reg$Gene %in% fav.genes,]
+#shared Fst outliers
+fw.sig.reg<-read.csv("p4.StacksFWSWOutliers_annotatedByGenome.csv")
+h.pi.name<-"HandPi_subgenes.png"
+row.settings<-c(4,4)
+```
+```{r plotHandPi}
+```
+![Figure 6. Low \delta-divergence and high \pi](fwsw_results/HandPi_subgenes.png)
 
 ## Figure 7
 

@@ -342,22 +342,29 @@ dd.par<-dd[dd$deltad <= quantile(dd$deltad,0.05),]
 ## ---- end
 #### Other Pop gen statistics ####
 pi.file.name<-"all.pi.txt"
+avgpi.file.name<-"avg.pi.txt"
 ## ---- pi
-avg.pi<-do.call("rbind",sliding.window(vcf,lgs))
+avg.pi<-do.call("rbind",sliding.window(vcf,lgs,width=10))
 avg.pi.adj<-fst.plot(avg.pi,scaffold.widths=scaff.starts,pch=19,
                     fst.name = "Avg.Stat",chrom.name = "Chr",bp.name = "Avg.Pos")
+write.table(avg.pi.adj,avgpi.file.name,sep='\t',col.names=TRUE,row.names=FALSE,
+            quote=FALSE)
 all.pi<-data.frame(Chrom=vcf$`#CHROM`,Pos=vcf$POS,Pi=unlist(apply(vcf,1,calc.pi)))
 all.pi$SNP<-paste(all.pi$Chrom,as.numeric(as.character(all.pi$Pos)),sep=".")
 write.table(all.pi,pi.file.name,col.names = TRUE,row.names=FALSE, quote=FALSE,sep='\t')
 ## ---- end
 all.pi<-read.table(pi.file.name,header=T)
+all.het.name<-"avg.het.txt"
+avg.het.adj.name<-"avg.het.adj.txt"
 ## ---- het
 #het
-avg.het<-do.call("rbind",sliding.window(vcf,lgs,stat="het"))
+avg.het<-do.call("rbind",sliding.window(vcf,lgs,stat="het",width=10))
 avg.het.adj<-fst.plot(avg.het,scaffold.widths=scaff.starts,pch=19,
                      fst.name = "Avg.Stat",chrom.name = "Chr",bp.name = "Avg.Pos")
 all.het<-data.frame(Chrom=vcf$`#CHROM`,Pos=vcf$POS,Het=unlist(apply(vcf,1,calc.het)))
 all.het$SNP<-paste(all.het$Chrom,as.numeric(as.character(all.het$Pos)),sep=".")
+write.table(avg.het.adj,avg.het.adj.name,sep='\t',col.names=TRUE)
+write.table(all.het,all.het.name,sep='\t',col.names=TRUE)
 ## ---- end
 ## ---- rho
 avg.rho<-do.call("rbind",sliding.window(vcf,scaffs,stat = "rho",pop.list=pop.list))
@@ -375,7 +382,9 @@ pi.plot<-fst.plot(all.pi,scaffold.widths=scaff.starts,y.lim=c(0,0.5),axis.size =
 points(x=avg.pi.adj$plot.pos,y=avg.pi.adj$Avg.Pi,col="cornflowerblue",type="l",lwd=2)
 dev.off()
 
-png("deltad_pi_het.png",height=7,width=5,units="in",res=300)
+smoothed.name<-"deltad_pi_het.png"
+## ---- smoothStats
+png(smoothed.name,height=7,width=5,units="in",res=300)
 par(mfrow=c(3,1),mar=c(1,1,1,1),oma=c(1,2,1,1),cex=0.75)
 dd<-fst.plot(fst.dat = deltad,fst.name = "deltad",bp.name = "Pos",axis=0.75,
              y.lim=c(-0.5,1),scaffold.widths=scaff.starts,pch=19,scaffs.to.plot = scaffs)
@@ -412,6 +421,7 @@ for(i in 1:length(lgs)){
   last<-max(het.plot[het.plot$Chrom ==lgs[i],"plot.pos"])
 }
 dev.off()
+## ---- end
 
 ## ---- HighPIlowDD
 #Do high pi and het have low deltad?
@@ -458,6 +468,7 @@ jostd$POS<-vcf$POS
 jostd$Chr<-vcf$`#CHROM`
 jostd$ID<-vcf$ID
 ## ---- end
+## ---- setupHandPi
 #also marine-fw fsts
 fwsw<-read.delim("stacks/fw-sw_populations/batch_2.fst_marine-freshwater.tsv")
 #and putative genes
@@ -470,11 +481,13 @@ genes2plot<-put.reg[put.reg$Gene %in% fav.genes,]
 #shared Fst outliers
 fw.sig.reg<-read.csv("StacksFWSWOutliers_annotatedByGenome.csv")
 h.pi.name<-"HandPi_subgenes.png"
+## ---- end
+row.settings<-c(3,2)
 ## ---- plotHandPi
 #colors
-comp.col<-c(Het="#a6611a",pi="#dfc27d",Fst="black",D="#80cdc1",deltad="#018571")
+comp.col<-c(Het="#80cdc1",pi="#018571",Fst="black",D="#a6611a",deltad="#dfc27d")
 png(h.pi.name,height=8,width=10,units="in",res=300)
-par(mfrow=c(3,2),oma=c(1,1,2,1),mar=c(1,2,1.5,1))
+par(mfrow=row.settings,oma=c(1,1,2,1),mar=c(1,2,1.5,1))
 for(i in 1:length(unique(shared.upp$Chr))){
   this.df<-fwsw[fwsw$Chr %in% unique(shared.upp$Chr)[i],]
   plot(this.df$BP,this.df$Corrected.AMOVA.Fst, ylim=c(-0.2,0.5),axes=F,ylab="",xlab="",type='n')
@@ -694,8 +707,8 @@ stacks.sig<-data.frame(cbind(fw.shared.chr,stacks.sig))
 stacks.sig$SNP<-paste(stacks.sig$Chr,stacks.sig$BP,sep=".")
 write.table(stacks.sig,stacks.sig.out,sep='\t',row.names=FALSE,col.names=TRUE)
 ## ---- end
-
-## compare to scovelli genome..
+annotations.name<-"StacksFWSWOutliers_annotatedByGenome.csv"
+## ---- compare2ScovelliGenome
 #+ annotations, eval=FALSE
 gff<-read.delim(gzfile("../../scovelli_genome/ssc_2016_12_20_chromlevel.gff.gz"),header=F)
 colnames(gff)<-c("seqname","source","feature","start","end","score","strand","frame","attribute")
@@ -726,8 +739,8 @@ fw.sig.reg<-do.call(rbind,apply(fw.shared.chr,1,function(sig){
   }
   return(as.data.frame(new))
 }))
-write.csv(fw.sig.reg,"StacksFWSWOutliers_annotatedByGenome.csv")
-
+write.csv(fw.sig.reg,annotations.name)
+## ---- end
 #+
 fw.sig.reg<-read.csv("StacksFWSWOutliers_annotatedByGenome.csv")
 
@@ -982,7 +995,10 @@ bs.sal<-fst.plot(bf,fst.name="logSal",chrom.name="scaffold",bp.name = "BP",scaff
                  scaffs.to.plot = plot.scaffs,pch=19,axis.size = 1,pt.cex = 1)
 points(bs.sal[bs.sal$SNP %in% sal.bf.sig$SNP,"plot.pos"],
         bs.sal[bs.sal$SNP %in% sal.bf.sig$SNP,"logSal"],
-        col="cornflowerblue",pch=19)
+        col="cornflowerblue",pch=19)#give the outliers a color
+points(bs.sal$plot.pos[bs.sal$SNP %in% sal.bf.sig$SNP],
+       rep(max(bs.sal$logSal),length(bs.sal$plot.pos[bs.sal$SNP %in% sal.bf.sig$SNP])),
+       pch=6,cex=1) #add salinity-associated ones
 clip(0,max(bs.sal$plot.pos),-3,241)
 abline(v=fwswf.fst$plot.pos[fwswf.fst$Locus.ID %in% all.shared],col="gray47")
 mtext("log(Salinity BF)",2,cex=0.75,line=2.1)
