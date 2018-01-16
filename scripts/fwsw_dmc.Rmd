@@ -1,0 +1,81 @@
+---
+title: "Run dmc"
+author: "Sarah P. Flanagan"
+date: "January 15, 2018"
+output: html_document
+---
+
+First I'll set up the working environment.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir='./fwsw_results/')
+```
+```{r source}
+source("../../gwscaR/R/gwscaR.R")
+source("../../gwscaR/R/gwscaR_plot.R")
+source("../../gwscaR/R/gwscaR_utility.R")
+source("../../gwscaR/R/gwscaR_fsts.R")
+source("../../gwscaR/R/gwscaR_popgen.R")
+library(knitr)
+```
+
+and load the necessary files
+```{r FWSWsetup, include=FALSE}
+```
+```{r read_vcf}
+vcf<-parse.vcf("stacks/p4.vcf") #this is the smaller dataset
+```
+```{r vcfSetup, echo=TRUE}
+```
+
+Now I'll go through the steps outline in https://github.com/kristinmlee/dmc/blob/master/dmc_example.md
+
+## Calculate neutral F matrix
+
+For this first step (calculating the neutral variance/covariance matrix, F), we need to (1) Calculate allele frequencies for each population, (2) specify a vector of sample sizes for each population, and (3) specify a string for filename for output. 
+
+```{r calc_af}
+allFreqs<-do.call(rbind,lapply(pop.list, function(pop){
+  this.vcf<-cbind(vcf[,1:9],vcf$SNP,vcf[,grep(pop,colnames(vcf))])
+  afs<-do.call(rbind,apply(this.vcf,1,calc.afs.vcf))
+  return(afs$RefFreq)
+}))
+colnames(allFreqs)<-vcf$SNP
+rownames(allFreqs)<-pop.labs
+
+sampleSizes<-unlist(lapply(pop.list,function(pop){
+  n<-length(grep(pop,colnames(vcf)))
+  return(2*n) }))
+
+neutralF_filename<-"./dmc/neutralF"
+
+source("../programs/dmc-master/calcNeutralF.R")
+```
+
+**Note: I had to use `r Sys.chmod('./dmc/')` to allow read/write in the scripts.**
+
+## Calculate F<sup>(S)</sup> matrix
+
+We generate matrices for the following five modes:
+1. All selected pops have independent mutations of beneficial allele
+2. All selected pops share beneficial allele via migration
+3. Beneficial allele was standing the ancestor of all selected pops
+4. First two selected pops share beneficial allele via migration, third selected pop has an independ mutation at the same locus.
+5. Beneficial allele was standing in the ancestor of the first two selected pops, third selected pop has an independent mutation at the same locus
+
+
+NOTE: I have four selected pops, what now?
+```{r calc_FS}
+rec <- 0.005 #per base pair recombination rate estimate for the region
+Ne <- 10000
+numPops <- 16
+selPops <- c(3,5,7,16)
+numBins <- 1000
+
+F_estimate <- readRDS("example_output/neutralF.RDS")
+
+#how do I get the positions?
+
+```
+
