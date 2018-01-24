@@ -1314,31 +1314,57 @@ abline(h=quantile(jp$D,probs = 0.05),lty=3)
 
 ##### POPTREE #####
 #create 10 sets of 1000 randomly-chosen loci
+gpop.name<-"poptree/fwsw.8141.genepop"
+sub.prefix<-"poptree/subset_"
+## ---- RemoveMissingData
+remove.missing.data<-function(vcf, pop.list){
+  exclude<-NULL
+  for(i in 1:nrow(vcf))
+  {
+    vcf.row<-vcf[i,colnames(vcf) != "SNP"]#remove this if it exists
+    missingness<-unlist(lapply(pop.list,function(pop){
+      pop.vcf<-vcf.row[,grep(pop,colnames(vcf.row))]
+      missing<-length(grep("\\.\\/\\.",pop.vcf))
+      prop.missing<-missing/length(pop.vcf)
+      return(prop.missing)
+    }))
+    if(length(missingness[missingness==1])>0){
+      print(paste("Row ", i, " is has no data for pop ", pop.list[which(missingness==1)]))
+      exclude<-c(exclude,i)
+    } 
+  }
+  if(!is.null(exclude)){
+    return(vcf[-exclude,])
+  }else{
+    return(vcf)
+  }
+}
+## ---- end
 ## ---- CreatePoptreeSubsets
 for(i in 1:10){
   rowsub<-sample(nrow(vcf),1000,replace = FALSE)
-  gpopsub<-vcf2gpop(vcf[rowsub,colnames(vcf)!="SNP"],pop.list,paste("poptree/subset_",i,".genepop",sep=""))
+  gpopsub<-vcf2gpop(vcf[rowsub,colnames(vcf)!="SNP"],pop.list,paste(sub.prefix,i,".genepop",sep=""))
 }
-gpop<-vcf2gpop(vcf[,colnames(vcf)!="SNP"],pop.list,"poptree/fwsw.8141.genepop")
+gpop<-vcf2gpop(vcf[,colnames(vcf)!="SNP"],pop.list,gpop.name)
 #then run poptree on all of them
 ## ---- end
 poptree.prefix<-"poptree/poptree."
 ## ---- AnalyzePoptree
-poptree.files<-list.files(path = "poptree",pattern="*.nwk")
+poptree.files<-list.files(path = poptree.dir,pattern=paste(poptree.prefix,".*.nwk",sep=""))
 poptree.files<-lapply(poptree.files,function(x){ paste("poptree",x,sep="/")})
 poptrees<-lapply(poptree.files,read.tree)
 con.poptree<-consensus(poptrees)
 con.poptree$tip.label[con.poptree$tip.label=="FLLG"]<-"FLFW"
 
 clcolr <- rep("black", dim(con.poptree$edge)[1])
-clcolr[c(12,13,14,24)]<-all.colors[3]
-png(paste(poptree.prefix,".consensus.png",sep=""),height=7,width=7,units="in",res=300)
+#clcolr[c(12,13,14,24)]<-all.colors[3]
+png(paste(poptree.dir,poptree.prefix,".consensus.png",sep=""),height=7,width=7,units="in",res=300)
 plot.phylo(con.poptree,tip.color = c(rep(grp.colors[6],4),grp.colors[5],
                                               rep(grp.colors[1],4),rep(grp.colors[2],3),
                                               rep(grp.colors[3],4)),
                     edge.color = clcolr,edge.width = 2)
 dev.off()
-png(paste(poptree.prefix,".png",sep=""),height=10,width=10,units="in",res=300)
+png(paste(poptree.dir,poptree.prefix,".png",sep=""),height=10,width=10,units="in",res=300)
 par(mfrow=c(3,4),oma=c(1,1,1,1),mar=c(1,1,1,1))
 for(i in 1:length(poptrees)){
   plot.phylo(poptrees[[i]],cex=1.5)

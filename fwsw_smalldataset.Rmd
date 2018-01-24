@@ -250,19 +250,31 @@ tm.tree<-"treemix/p4_k100bFLPBrm4"
 For the PopTree2 analysis, I need to convert the vcf file to genepop format. I did this using PGDSpider2. Then I ran PopTree2 on Windows10, using Da to calculate neighbor-joining trees and using 1000 bootstrap replicates.
 
 Or, if that doesn't work,
-
+```{r RemoveMissingData}
+```
+```{r poptree_names}
+gpop.name<-"poptree/p4.genepop"
+sub.prefix<-"poptree/p4_"
+vcf<-remove.missing.data(vcf, pop.list)
+```
 ```{r CreatePoptreeSubsets, eval=FALSE}
 ```
+
 
 And then run poptree
 
 ```{r poptree_prefix, eval=FALSE}
-poptree.prefix<-"poptree/p4."
+poptree.dir<-"poptree"
+poptree.prefix<-"p4"
 poptree.png<-"p4.poptree.png"
 ```
 ```{r AnalyzePoptree, eval=FALSE}
 ```
-```{r PlotFullPoptreeSubset, eval=FALSE}
+![All Trees](fwsw_results/poptree/p4.png)
+
+![Consensus Tree](fwsw_results/poptree/p4.consensus.png)
+
+```{r PlotFullPoptreeSubset, eval=FALSE,echo=FALSE}
 ```
 
 
@@ -289,6 +301,9 @@ I need to re-run `populations` because I don't seem to have the correct fst file
 
 And then I will identify the shared outliers among them. But first, let's define some names.
 
+```{r reset_vcf}
+vcf<-parse.vcf("stacks/p4.vcf")
+```
 ```{r define_fig5_names}
 dd.plot.name<-as.character("separate_delta-divergence.png")
 dd.name<-as.character("sep.deltadivergence.txt")
