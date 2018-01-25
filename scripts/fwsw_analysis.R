@@ -154,12 +154,13 @@ rownames(ibd.by.loc)<-sub.map$V2
 ## ---- end
 
 ####PLOT FSTS####
-## ---- pwiseFsts
+## ---- HeatmapCols
 colors<-c("blue","yellow","red")
 pal<-colorRampPalette(colors)
 ncol=80
 cols<-pal(ncol)
-
+## ---- end
+## ---- PlotpwiseFsts
 png("Fst_fig.png",height=7,width = 8,units="in",res=300)
 fst.lv<-levelplot(as.matrix(pwise.fst.all),col.regions=cols,alpha.regions=0.7,
           scales = list(x=list(rot=90),tck = 0),xlab="",ylab="")
@@ -1241,56 +1242,6 @@ jostpw[lower.tri(jostpw)]<-NA
 write.table(jostpw,"Subset.JostsD.tsv",sep='\t',col.names=TRUE,
             row.names=TRUE,quote=FALSE)
 ## ---- end
-####PLOT Heatmap Fig #####
-#get poptree distance matrix
-pt.dist<-as.matrix(read.table("poptree/fwsw.8141.distance.out",header=T,row.names=1,sep='\t'))
-dimnames(pt.dist)[[1]]<-dimnames(pt.dist)[[2]]<-pop.labs
-jostpw<-as.matrix(read.table("Subset.JostsD.tsv",header=T,sep='\t'))
-dimnames(jostpw)[[1]]<-dimnames(jostpw)[[2]]<-pop.labs
-
-#set conditions for plotting
-colors<-c("black","darkgrey","grey","lightgrey","cornflowerblue")
-pal<-colorRampPalette(colors)
-ncol=80
-cols<-pal(ncol)
-rev.colors<-c("cornflowerblue","lightgrey","grey","darkgrey","black")
-rev.pal<-colorRampPalette(rev.colors)
-rev.cols<-rev.pal(ncol)
-
-hm.height<-list(x=3.8,units="in")#2.2
-hm.width<-list(x=3.9,units="in")#2.4 in RStudio
-
-png("heatmaps.png",height=11,width=11,units="in",res=300)
-fst.lv<-levelplot(as.matrix(pwise.fst.sub),col.regions=cols,alpha.regions=0.7,
-                  scales = list(x=list(rot=90),tck = 0),xlab="",ylab="")
-print(fst.lv,split=c(1,1,2,2),more=TRUE,panel.width=hm.width,panel.height=hm.height)
-trellis.focus("legend", side="right", clipp.off=TRUE, highlight=FALSE)
-grid.text(expression(italic(F)[ST]), 0.2, 0, hjust=0.5, vjust=1.2,gp=gpar(cex=0.75))
-trellis.unfocus()
-
-cp.lv<-levelplot(cp,col.regions=rev.cols,alpha.regions=0.7,
-                 scales = list(x=list(rot=90),tck = 0),xlab="",ylab="")
-print(cp.lv,split=c(1,2,2,2),more=FALSE,newpage=FALSE,panel.width=hm.width,panel.height=hm.height)
-trellis.focus("legend", side="right", clipp.off=TRUE, highlight=FALSE)
-grid.text("covariance", 0.2, 0, hjust=0.5, vjust=1.2,gp=gpar(cex=0.75))
-trellis.unfocus()
-
-jost.lv<-levelplot(jostpw,col.regions=cols,alpha.regions=0.7,
-                   scales = list(x=list(rot=90),tck = 0),xlab="",ylab="")
-print(jost.lv,split=c(2,1,2,2),more=FALSE,newpage=FALSE,panel.width=hm.width,panel.height=hm.height)
-trellis.focus("legend", side="right", clipp.off=TRUE, highlight=FALSE)
-grid.text(expression("Jost's"~italic(D)), 0.2, 0, hjust=0.5, vjust=1.2,gp=gpar(cex=0.75))
-trellis.unfocus()
-
-ptdist.lv<-levelplot(pt.dist,col.regions=cols,alpha.regions=0.7,
-                     scales = list(x=list(rot=90),tck = 0),xlab="",ylab="")
-print(ptdist.lv,split=c(2,2,2,2),more=FALSE,newpage=FALSE,panel.width=hm.width,panel.height=hm.height)
-trellis.focus("legend", side="right", clipp.off=TRUE, highlight=FALSE)
-grid.text("PopTree2\nDistance", 0.2, 0, hjust=0.5, vjust=1.2,gp=gpar(cex=0.75))
-trellis.unfocus()
-
-dev.off()
-
 
 ##Read in the data
 jostd<-read.delim("jostd.perlocus.txt",header=F)
@@ -1358,36 +1309,38 @@ con.poptree$tip.label[con.poptree$tip.label=="FLLG"]<-"FLFW"
 
 clcolr <- rep("black", dim(con.poptree$edge)[1])
 #clcolr[c(12,13,14,24)]<-all.colors[3]
-png(paste(poptree.dir,poptree.prefix,".consensus.png",sep=""),height=7,width=7,units="in",res=300)
-plot.phylo(con.poptree,tip.color = c(rep(grp.colors[6],4),grp.colors[5],
-                                              rep(grp.colors[1],4),rep(grp.colors[2],3),
-                                              rep(grp.colors[3],4)),
-                    edge.color = clcolr,edge.width = 2)
-dev.off()
+#png(paste(poptree.dir,poptree.prefix,".consensus.png",sep=""),height=7,width=7,units="in",res=300)
+#dev.off()
 png(paste(poptree.dir,poptree.prefix,".png",sep=""),height=10,width=10,units="in",res=300)
 par(mfrow=c(3,4),oma=c(1,1,1,1),mar=c(1,1,1,1))
 for(i in 1:length(poptrees)){
   plot.phylo(poptrees[[i]],cex=1.5)
   mtext(poptree.files[i],3)
 }
+plot.phylo(con.poptree,tip.color = c(rep(grp.colors[6],4),grp.colors[5],
+                                     rep(grp.colors[1],4),rep(grp.colors[2],3),
+                                     rep(grp.colors[3],4)),
+           edge.color = clcolr,edge.width = 2,cex=1,font=1)
+mtext("Consensus")
 dev.off()
 ## ---- end-AnalyzePoptree
 poptree.png<-"poptree8141.png"
+clcolr <- rep("black", dim(pt.subtree$edge)[1])
+clcolr[c(6,20,21,22,23)]<-all.colors[3]
+
 ## ---- PlotFullPoptreeSubset
 #just the full subset tree
 pt.subtree<-poptrees[[1]]
 pt.subtree$tip.label[pt.subtree$tip.label=="FLLG"]<-"FLFW"
-colors<-pt.subtree$tip.label
-colors[colors %in% "FLFW"]<-grp.colors[6]
-colors[colors %in% c("FLPB","FLHB","FLCC")]<-grp.colors[6]
-colors[colors %in% c("FLAB")]<-grp.colors[5]
-colors[colors %in% c("FLSI","FLFD","FLKB","FLSG")]<-grp.colors[3]
-colors[colors %in% c("ALST","ALFW","LAFW")]<-grp.colors[2]
-colors[colors %in% c("TXSP","TXCC","TXFW","TXCB")]<-grp.colors[1]
-clcolr <- rep("black", dim(pt.subtree$edge)[1])
-clcolr[c(6,20,21,22,23)]<-all.colors[3]
+pt.colors<-pt.subtree$tip.label
+pt.colors[pt.colors %in% "FLFW"]<-grp.colors[6]
+pt.colors[pt.colors %in% c("FLPB","FLHB","FLCC")]<-grp.colors[6]
+pt.colors[pt.colors %in% c("FLAB")]<-grp.colors[5]
+pt.colors[pt.colors %in% c("FLSI","FLFD","FLKB","FLSG")]<-grp.colors[3]
+pt.colors[pt.colors %in% c("ALST","ALFW","LAFW")]<-grp.colors[2]
+pt.colors[pt.colors %in% c("TXSP","TXCC","TXFW","TXCB")]<-grp.colors[1]
 png(poptree.png,height=7,width=7,units="in",res=300)
-plot.phylo(pt.subtree,tip.color = colors,
+plot.phylo(pt.subtree,tip.color = pt.colors,
            edge.color = clcolr,edge.width = 2,label.offset = 0.0015)
 dev.off()
 ## ---- end-PlotFullPoptreeSubset
@@ -1540,12 +1493,15 @@ text(0.15, yma+0.03, lab = "weight", adj = 0 , cex = 0.6)
 
 plotName<-"trees.png"
 tm.tree<-"treemix/fwsw.k100bFLPBrm3"
-
+rect.start<-0.15
 ## ---- plotTreemixPoptree
+pt.subtree$node.label<-round(as.numeric(pt.subtree$node.label)*100)
+pt.subtree$tip.label[pt.subtree$tip.label=="FLLG"]<-"FLFW"
 png(plotName,height=5,width=10,units="in",res=300)
-par(mfrow=c(1,2),oma=c(1,1,1,0.1),mar=c(1,1,1,0.1))
-plot.phylo(pt.subtree,tip.color = colors,
-           edge.color = clcolr,edge.width = 2,label.offset = 0.0015)
+par(mfrow=c(1,2),oma=c(1,0,1,0),mar=c(1,1,1,0.1))
+plot.phylo(pt.subtree,tip.color = pt.colors,#align.tip.label = T,#show.node.label = TRUE,
+           edge.color = clcolr,edge.width = 2,label.offset = 0.0015,font=1)
+nodelabels(pt.subtree$node.label,cex=0.75,font=2,frame="none",adj=c(1,-0.2))
 mtext("PopTree2",3)
 t3<-plot_tree(tm.tree,"treemix/poporder",plus=0.05,scale=F,mbar=F,arrow=0.1,
               tip.order = tip.names,lwd = 2,branch.cols = branch.cols,xlab=F)
@@ -1553,16 +1509,74 @@ mtext("Treemix",3)
 ybar<-0.01
 mcols = rev( heat.colors(150) )
 mcols = mcols[50:length(mcols)]
-ymi = ybar+0.15
-yma = ybar+0.35
+ymi = ybar+rect.start
+yma = ybar+0.3
 l = 0.2
 w = l/100
 xma = max(t3$d$x/20)
-rect( rep(0.15, 100), ymi+(0:99)*w, rep(0.15+xma, 100), ymi+(1:100)*w, col = mcols, border = mcols)
-text(0.15+xma+0.001, ymi, lab = "0", adj = 0, cex = 0.7)
-text(0.15+xma+0.001, yma, lab = "0.5", adj = 0, cex =0.7)
-text(0.15, yma+0.06, lab = "Migration", adj = 0 , cex = 0.6)
-text(0.15, yma+0.03, lab = "weight", adj = 0 , cex = 0.6)
+rect( rep(rect.start, 100), ymi+(0:99)*w, rep(rect.start+xma, 100), ymi+(1:100)*w, col = mcols, border = mcols)
+text(rect.start+xma+0.001, ymi, lab = "0", adj = 0)
+text(rect.start+xma+0.001, yma, lab = "0.5", adj = 0)
+text(rect.start, yma+0.07, lab = "Migration", adj = 0 )
+text(rect.start, yma+0.04, lab = "weight", adj = 0 )
+dev.off()
+## ---- end
+
+####PLOT Heatmap Fig #####
+#get poptree distance matrix
+
+pt.dist<-as.matrix(read.table("poptree/fwsw.8141.distance.out",header=T,row.names=1,sep='\t'))
+
+jostpw<-as.matrix(read.table("Subset.JostsD.tsv",header=T,sep='\t'))
+
+
+#set conditions for plotting
+## ---- Fig3Setup
+dimnames(pt.dist)[[1]]<-dimnames(pt.dist)[[2]]<-pop.labs
+dimnames(jostpw)[[1]]<-dimnames(jostpw)[[2]]<-pop.labs
+colors<-c("black","darkgrey","grey","lightgrey","cornflowerblue")
+pal<-colorRampPalette(colors)
+ncol=80
+cols<-pal(ncol)
+rev.colors<-c("cornflowerblue","lightgrey","grey","darkgrey","black")
+rev.pal<-colorRampPalette(rev.colors)
+rev.cols<-rev.pal(ncol)
+
+hm.height<-list(x=3.8,units="in")#2.2
+hm.width<-list(x=3.9,units="in")#2.4 in RStudio
+## ---- end
+pwise.fst<-pwise.fst.sub
+heatmaps.name<-"heatmaps.png"
+## ---- PlotHeatmaps
+png(heatmaps.name,height=11,width=11,units="in",res=300)
+fst.lv<-levelplot(as.matrix(pwise.fst),col.regions=cols,alpha.regions=0.7,
+                  scales = list(x=list(rot=90),tck = 0),xlab="",ylab="")
+print(fst.lv,split=c(1,1,2,2),more=TRUE,panel.width=hm.width,panel.height=hm.height)
+trellis.focus("legend", side="right", clipp.off=TRUE, highlight=FALSE)
+grid.text(expression(italic(F)[ST]), 0.2, 0, hjust=0.5, vjust=1.2,gp=gpar(cex=0.75))
+trellis.unfocus()
+
+cp.lv<-levelplot(cp,col.regions=rev.cols,alpha.regions=0.7,
+                 scales = list(x=list(rot=90),tck = 0),xlab="",ylab="")
+print(cp.lv,split=c(1,2,2,2),more=FALSE,newpage=FALSE,panel.width=hm.width,panel.height=hm.height)
+trellis.focus("legend", side="right", clipp.off=TRUE, highlight=FALSE)
+grid.text("covariance", 0.2, 0, hjust=0.5, vjust=1.2,gp=gpar(cex=0.75))
+trellis.unfocus()
+
+jost.lv<-levelplot(jostpw,col.regions=cols,alpha.regions=0.7,
+                   scales = list(x=list(rot=90),tck = 0),xlab="",ylab="")
+print(jost.lv,split=c(2,1,2,2),more=FALSE,newpage=FALSE,panel.width=hm.width,panel.height=hm.height)
+trellis.focus("legend", side="right", clipp.off=TRUE, highlight=FALSE)
+grid.text(expression("Jost's"~italic(D)), 0.2, 0, hjust=0.5, vjust=1.2,gp=gpar(cex=0.75))
+trellis.unfocus()
+
+ptdist.lv<-levelplot(pt.dist,col.regions=cols,alpha.regions=0.7,
+                     scales = list(x=list(rot=90),tck = 0),xlab="",ylab="")
+print(ptdist.lv,split=c(2,2,2,2),more=FALSE,newpage=FALSE,panel.width=hm.width,panel.height=hm.height)
+trellis.focus("legend", side="right", clipp.off=TRUE, highlight=FALSE)
+grid.text("PopTree2\nDistance", 0.2, 0, hjust=0.5, vjust=1.2,gp=gpar(cex=0.75))
+trellis.unfocus()
+
 dev.off()
 ## ---- end
 
