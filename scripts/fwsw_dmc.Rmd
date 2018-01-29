@@ -18,6 +18,7 @@ source("../../gwscaR/R/gwscaR_utility.R")
 source("../../gwscaR/R/gwscaR_fsts.R")
 source("../../gwscaR/R/gwscaR_popgen.R")
 library(knitr)
+library(fields)
 ```
 
 and load the necessary files
@@ -36,24 +37,59 @@ Now I'll go through the steps outline in https://github.com/kristinmlee/dmc/blob
 For this first step (calculating the neutral variance/covariance matrix, F), we need to (1) Calculate allele frequencies for each population, (2) specify a vector of sample sizes for each population, and (3) specify a string for filename for output. 
 
 ```{r calc_af}
-allFreqs<-do.call(rbind,lapply(pop.list, function(pop){
-  this.vcf<-cbind(vcf[,1:9],vcf$SNP,vcf[,grep(pop,colnames(vcf))])
-  afs<-do.call(rbind,apply(this.vcf,1,calc.afs.vcf))
-  return(afs$RefFreq)
-}))
-colnames(allFreqs)<-vcf$SNP
-rownames(allFreqs)<-pop.labs
+calc.allFreqs<-function(vcf,pop.list, pop.labs){
+  allFreqs<-do.call(rbind,lapply(pop.list, function(pop){
+    this.vcf<-cbind(vcf[,1:9],vcf$SNP,vcf[,grep(pop,colnames(vcf))])
+    afs<-do.call(rbind,apply(this.vcf,1,calc.afs.vcf))
+    return(afs$RefFreq)
+  }))
+  colnames(allFreqs)<-vcf$SNP
+  rownames(allFreqs)<-pop.labs
+  return(allFreqs)
+}
+allFreqs<-calc.allFreqs(vcf[vcf$`#CHROM` == "LG8",],pop.list,pop.labs)
 
 sampleSizes<-unlist(lapply(pop.list,function(pop){
   n<-length(grep(pop,colnames(vcf)))
   return(2*n) }))
 
-neutralF_filename<-"./dmc/neutralF"
+neutralF_filename<-"./dmc/LG8neutralF"
 
 source("../programs/dmc-master/calcNeutralF.R")
 ```
 
 **Note: I had to use `r Sys.chmod('./dmc/')` to allow read/write in the scripts.**
+
+Let's look at the allele frequencies. This will help inform the hypotheses I test with dmc.
+
+
+```{r sig_alleleFreqs}
+stacks.sig<-read.delim("p4.stacks.sig.snps.txt")
+stacks.sig$SNP<-paste(stacks.sig$Chr,(stacks.sig$BP+1),sep=".")
+allFreqs[rownames(allFreqs) %in% c("FLFW","ALFW","LAFW","TXFW"),colnames(allFreqs) %in% stacks.sig$SNP]
+allFreqs[rownames(allFreqs) %in% c("FLFW","ALFW","LAFW","TXFW"),
+         which(colnames(allFreqs) %in% stacks.sig$SNP)[1]:
+           which(colnames(allFreqs) %in% stacks.sig$SNP)[length(which(colnames(allFreqs) %in% stacks.sig$SNP))]]
+grp.colors<-c('#762a83','#af8dc3','#e7d4e8','#d9f0d3','#7fbf7b','#1b7837')
+plot(allFreqs["TXFW",],col=grp.colors[1],pch="-",bty="L",lwd=2,cex=2)
+points(allFreqs["LAFW",],col=grp.colors[2],pch="-",bty="L",lwd=2,cex=2)
+points(allFreqs["ALFW",],col=grp.colors[3],pch="-",bty="L",lwd=2,cex=2)
+points(allFreqs["FLFW",],col=grp.colors[6],pch="-",bty="L",lwd=2,cex=2)
+
+cols<-colorRampPalette(t(brewer.pal(9,name="Blues")[3:7]))(100)
+
+fields::image.plot(t(allFreqs[rownames(allFreqs) %in% c("FLFW","ALFW","LAFW","TXFW"),]),col=cols,
+      axes=FALSE)
+text(x=-0.02,y=1,"FLFW",srt=90,xpd=TRUE)
+text(x=-0.02,y=0.67,"ALFW",srt=90,xpd=TRUE)
+text(x=-0.02,y=0.35,"LAFW",srt=90,xpd=TRUE)
+text(x=-0.02,y=0,"TXFW",srt=90,xpd=TRUE)
+mtext("Position on LG8",1)
+axis(3,at =t(allFreqs[rownames(allFreqs) %in% c("FLFW","ALFW","LAFW","TXFW"),colnames(allFreqs) %in% stacks.sig$SNP]),
+     labels = FALSE,lwd=0,lwd.ticks = 1.75,tck=-.05)
+```
+
+This shows that the FLFW site has somewhat different allele frequencies than the other sites. This suggests that I should test to see whether there was an independent mutation in the FLFW population nd the other three have a single sweep.
 
 ## Calculate F<sup>(S)</sup> matrix
 
@@ -61,11 +97,9 @@ We generate matrices for the following five modes:
 1. All selected pops have independent mutations of beneficial allele
 2. All selected pops share beneficial allele via migration
 3. Beneficial allele was standing the ancestor of all selected pops
-4. First two selected pops share beneficial allele via migration, third selected pop has an independ mutation at the same locus.
-5. Beneficial allele was standing in the ancestor of the first two selected pops, third selected pop has an independent mutation at the same locus
+4. There was an independent mutation in FLFW and the other three share a sweep.
 
 
-NOTE: I have four selected pops, what now?
 ```{r calc_FS}
 rec <- 0.005 #per base pair recombination rate estimate for the region
 Ne <- 10000
@@ -78,4 +112,5 @@ F_estimate <- readRDS("example_output/neutralF.RDS")
 #how do I get the positions?
 
 ```
+
 

@@ -543,7 +543,7 @@ ltys=c(1,1,2,1)
 ```{r plotting_function}
 gene.region.plot<-function(chrom,gene,put.reg,vcf,chrom.ld, fst.dfs,deltad=FALSE,D=FALSE,
                            colors="black",lwds=2,alphas=0.5,ltys=1,legend=TRUE, 
-                           smooth=TRUE, fst.name="Corrected.AMOVA.FST"){
+                           smooth=TRUE, fst.name="Corrected.AMOVA.FST",...){
   pstart<-min(as.numeric(as.character(put.reg[put.reg$Gene ==gene & 
                                                      put.reg$Chrom==chrom,"StartBP"])))-(chrom.ld[chrom]/2)
   pstop<-max(as.numeric(as.character(put.reg[put.reg$Gene ==gene & 
@@ -694,7 +694,7 @@ gene.region.plot<-function(chrom,gene,put.reg,vcf,chrom.ld, fst.dfs,deltad=FALSE
 ```{r plot_putative_regions}
 
 par(oma=c(2,2,2,2),mar=c(2,2,2,2))
-arhgef3<-lapply(unique(put.reg[put.reg$Gene=="TNS1" & !is.na(put.reg$rad.loci),"Chrom"]),
+tns1<-lapply(unique(put.reg[put.reg$Gene=="TNS1" & !is.na(put.reg$rad.loci),"Chrom"]),
        gene.region.plot,gene="TNS1",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
        fst.dfs=fst.dfs,deltad=deltad,D=jostd,colors=colors,alphas=alphas,ltys=ltys,
        smooth=FALSE,fst.name="Smoothed.AMOVA.Fst")
@@ -1050,54 +1050,71 @@ legend("top",c(expression(TX~FWSW~italic(F)[ST]),
 dev.off()
 ```
 
-```{r making_Fig7, eval=FALSE,echo=FALSE}
+```{r making_Fig7}
+colors=c(grp.colors[1],grp.colors[2],grp.colors[3],grp.colors[6])
+alphas=c(0.5,0.5,1,0.5)
+ltys=c(1,1,2,1)
 
 png("Fig7candidateGenes.png",height=10,width=10,units="in",res=300)
 
 
-par(mfrow=c(4,3),oma=c(2,2,4.5,2),mar=c(1,2,1,1))
-gene.region.plot("LG1","mucin",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
-                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE)
-text(x=8500000,y=0.8,expression(italic(mucin)),xpd=T)
-gene.region.plot("LG2","mucin",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
-                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE)
-text(x=1000000,y=0.8,expression(italic(mucin)),xpd=T)
-gene.region.plot("LG8","mucin",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
-                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE)
-text(x=7100000,y=0.8,expression(italic(mucin)),xpd=T)
-#row2
-gene.region.plot("LG1","RHOGTP8",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
-                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE)
-text(x=5000000,y=0.8,expression(italic(RhoGTPase)),xpd=T)
-gene.region.plot("LG5","RHOGTP8",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
-                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE)
-text(x=7500000,y=0.8,expression(italic(RhoGTPase)),xpd=T)
-gene.region.plot("LG20","RHOGTP8",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
-                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE)
-text(x=2000000,y=0.8,expression(italic(RhoGTPase)),xpd=T)
-#row3
+par(mfrow=c(4,4),oma=c(2,2,4.5,2),mar=c(1,2,1,1))
 gene.region.plot("LG1","TNS1",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
-                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE)
-text(x=17000000,y=0.8,expression(italic(TNS1)),xpd=T)
-gene.region.plot("LG1","AQP3",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
-                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE)
-text(x=6500000,y=0.8,expression(italic(Aquaporin3)),xpd=T)
-gene.region.plot("LG1","NAKATPase",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
-                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE)
-text(x=5500000,y=0.8,expression(italic(Na^'+'*K^'+'*ATPase)),xpd=T)
+                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst")
+text(x=18000000,y=0.8,expression(italic(TNS1)),xpd=T)
+gene.region.plot("LG1","PMCA",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
+                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst")
+text(x=12000000,y=0.8,expression(italic(PMCA)),xpd=T)
+gene.region.plot("LG1","SLC26A3",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
+                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst")
+text(x=7100000,y=0.8,expression(italic(SLC26A3)),xpd=T)
+gene.region.plot("LG2","TRIM14",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
+                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst")
+text(x=4000000,y=0.8,expression(italic(TRIM14)),xpd=T)
+#row2
+gene.region.plot("LG5","TRIM14",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
+                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst")
+text(x=7000000,y=0.8,expression(italic(TRIM14)),xpd=T)
+gene.region.plot("LG10","TRIM14",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
+                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst")
+text(x=6000000,y=0.8,expression(italic(TRIM14)),xpd=T)
+gene.region.plot("LG11","TRIM14",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
+                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst")
+text(x=2500000,y=0.8,expression(italic(TRIM14)),xpd=T)
+gene.region.plot("LG13","TRIM14",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
+                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst")
+text(x=1500000,y=0.8,expression(italic(TRIM14)),xpd=T)
+#row3
+gene.region.plot("LG1","ARHGEF3",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
+                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst")
+text(x=15000000,y=0.8,expression(italic(ARHGEF3)),xpd=T)
+gene.region.plot("LG9","ARHGEF3",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
+                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst")
+text(x=3500000,y=0.8,expression(italic(ARHGEF3)),xpd=T)
+gene.region.plot("LG14","ARHGEF3",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
+                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst")
+text(x=3000000,y=0.8,expression(italic(ARHGEF3)),xpd=T)
+gene.region.plot("LG20","ARHGEF3",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
+                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst")
+text(x=3000000,y=0.8,expression(italic(ARHGEF3)),xpd=T)
 #row4
-gene.region.plot("LG2","CAII",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
-                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE)
+gene.region.plot("LG1","CAII",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
+                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst")
 text(x=4500000,y=0.8,expression(italic(CAII)),xpd=T)
-gene.region.plot("LG2","CAMKK1",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
-                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE)
-text(x=6500000,y=0.8,expression(italic(CAMKK1)),xpd=T)
-gene.region.plot("LG13","ARHGEF3",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
-                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE)
-text(x=1750000,y=0.8,expression(italic(ARHGEF3)),xpd=T)
+gene.region.plot("LG2","CAII",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
+                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst")
+text(x=7500000,y=0.8,expression(italic(CAII)),xpd=T)
+gene.region.plot("LG10","CAII",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
+                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst")
+text(x=3000000,y=0.8,expression(italic(CAII)),xpd=T)
+gene.region.plot("LG21","CAII",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
+                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst")
+text(x=450000,y=0.8,expression(italic(CAII)),xpd=T)
+
+
+
 par(mfrow=c(1, 1), oma=rep(0, 4), mar=rep(0, 4), new=TRUE)
 plot(0:1, 0:1, type="n", xlab="", ylab="", axes=FALSE)
-
 legend("top",c(expression(TX~FWSW~italic(F)[ST]),
                 expression(LA~FWSW~italic(F)[ST]),
                 expression(AL~FWSW~italic(F)[ST]),
@@ -1108,10 +1125,11 @@ legend("top",c(expression(TX~FWSW~italic(F)[ST]),
                 "Monophyletic FW Gene Tree",
                 "FW Candidate Gene"),
        pch=c(rep(32,5),124,25,124,124),lty=c(1,1,1,1,1,0,0,0,0),lwd=2,
-       col=c(colors,"cornflowerblue","black","black","#08519c","indianred"),
+       col=c(grp.colors[1],grp.colors[2],grp.colors[3],grp.colors[6],
+          "#dfc27d","black","black","#08519c","indianred"),
        bty='n',ncol=3,cex=0.75,x.intersp=0)
 
 dev.off()
 ```
 
-
+![Fig. 7](../fwsw_results/Fig7candidateGenes.png)

@@ -1,12 +1,9 @@
 ---
 title: "FWSW with smallest dataset"
+output: html_document
 author: "Sarah P. Flanagan"
-date: "25 January 2018"
-output:
-  pdf_document: default
-  html_document: default
-description: Re-running the freshwater-saltwater analysis using only the dataset from
-  pairwise population comparisons
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+description: "Re-running the freshwater-saltwater analysis using only the dataset from pairwise population comparisons"
 ---
 
 In my initial analysis of the freshwater-saltwater dataset, I had three vcf files: 
@@ -595,6 +592,8 @@ genes2plot<-put.reg[put.reg$Gene %in% fav.genes,]
 fw.sig.reg<-read.csv("p4.StacksFWSWOutliers_annotatedByGenome.csv")
 h.pi.name<-"HandPi_subgenes.png"
 row.settings<-c(4,4)
+chroms2plot<-unique(shared.upp$Chr)
+chroms2plot<-chroms2plot[chroms2plot != "LG5"]
 ```
 ```{r plotHandPi}
 ```

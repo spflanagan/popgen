@@ -484,22 +484,23 @@ fw.sig.reg<-read.csv("StacksFWSWOutliers_annotatedByGenome.csv")
 h.pi.name<-"HandPi_subgenes.png"
 ## ---- end
 row.settings<-c(3,2)
+chroms2plot<-unique(shared.upp$Chr)
 ## ---- plotHandPi
 #colors
 comp.col<-c(Het="#80cdc1",pi="#018571",Fst="black",D="#a6611a",deltad="#dfc27d")
 png(h.pi.name,height=8,width=10,units="in",res=300)
 par(mfrow=row.settings,oma=c(1,1,2,1),mar=c(1,2,1.5,1))
-for(i in 1:length(unique(shared.upp$Chr))){
-  this.df<-fwsw[fwsw$Chr %in% unique(shared.upp$Chr)[i],]
+for(i in 1:length(chroms2plot)){
+  this.df<-fwsw[fwsw$Chr %in% chroms2plot[i],]
   plot(this.df$BP,this.df$Corrected.AMOVA.Fst, ylim=c(-0.2,0.5),axes=F,ylab="",xlab="",type='n')
   #the shared peaks
   points(y=c(-0.2,0.5),
-         x=c(shared.upp$Avg.Pos[shared.upp$Chr %in% unique(shared.upp$Chr)[i]],
-             shared.upp$Avg.Pos[shared.upp$Chr %in% unique(shared.upp$Chr)[i]]),
+         x=c(shared.upp$Avg.Pos[shared.upp$Chr %in% chroms2plot[i]],
+             shared.upp$Avg.Pos[shared.upp$Chr %in% chroms2plot[i]]),
          type="l",col=alpha("#543005",0.75),cex=2,lwd=4)
   #putative gene regions
-  g<-genes2plot[genes2plot$Chrom %in% unique(shared.upp$Chr)[i],]
-  a<-put.reg[put.reg$Chrom %in% unique(shared.upp$Chr)[i]& !(put.reg$Gene %in% fav.genes),]
+  g<-genes2plot[genes2plot$Chrom %in% chroms2plot[i],]
+  a<-put.reg[put.reg$Chrom %in% chroms2plot[i] & !(put.reg$Gene %in% fav.genes),]
   #rect(xleft=as.numeric(a$StartBP),xright=as.numeric(a$StopBP),
   #     ybottom=-0.2,ytop=0.44,col=alpha("gray35",0.5),border=alpha("gray35",0.5))
   rect(xleft=as.numeric(g$StartBP),xright=as.numeric(g$StopBP),
@@ -508,30 +509,30 @@ for(i in 1:length(unique(shared.upp$Chr))){
   #Fst
   points(this.df$BP,this.df$Corrected.AMOVA.Fst,pch=19,cex=0.5,col=alpha(col=comp.col["Fst"],0.25))
   #Pi
-  points(avg.pi.adj[avg.pi.adj$Chr%in%unique(shared.upp$Chr)[i],c("Avg.Pos","Avg.Stat")],
+  points(avg.pi.adj[avg.pi.adj$Chr%in% chroms2plot[i],c("Avg.Pos","Avg.Stat")],
        type="l",lwd=2,col=comp.col["pi"])
   #Het
-  points(avg.het.adj[avg.het.adj$Chr %in% unique(shared.upp$Chr)[i],c("Avg.Pos","Avg.Stat")],
+  points(avg.het.adj[avg.het.adj$Chr %in% chroms2plot[i],c("Avg.Pos","Avg.Stat")],
          type="l",col=comp.col["Het"],lwd=2)
   #deltad
-  this.chrom<-dd[dd$Chrom %in% unique(shared.upp$Chr)[i],]
+  this.chrom<-dd[dd$Chrom %in% chroms2plot[i],]
   this.smooth<-loess.smooth(this.chrom$Pos,this.chrom$deltad,span=0.1,degree=2) 
   points(this.smooth$x,this.smooth$y,type="l",col=comp.col["deltad"],lwd=2)
   #Josts D
-  dsmooth<-loess.smooth(jostd$POS[jostd$Chr %in% unique(shared.upp$Chr)[i]],
-                        jostd$D[jostd$Chr %in% unique(shared.upp$Chr)[i]],span=0.1,degree=2) 
+  dsmooth<-loess.smooth(jostd$POS[jostd$Chr %in% chroms2plot[i]],
+                        jostd$D[jostd$Chr %in% chroms2plot[i]],span=0.1,degree=2) 
   points(dsmooth$x,dsmooth$y,type="l",col=comp.col["D"],lwd=2)
   #shared Fst outliers
   points(this.df$BP[this.df$BP %in% fw.sig.reg$BP],
          this.df$Corrected.AMOVA.Fst[this.df$BP %in% fw.sig.reg$BP],
          pch=8,cex=1,col="orchid4")
   #axes etc
-  axis(1,pos=-0.2,padj = -1,seq(min(pi.plot$Pos[pi.plot$Chrom%in%unique(shared.upp$Chr)[i]]),
-                             max(pi.plot$Pos[pi.plot$Chrom%in%unique(shared.upp$Chr)[i]]),
-                             (max(pi.plot$Pos[pi.plot$Chrom%in%unique(shared.upp$Chr)[i]])-
-                                min(pi.plot$Pos[pi.plot$Chrom%in%unique(shared.upp$Chr)[i]]))/4))
+  axis(1,pos=-0.2,padj = -1,seq(min(pi.plot$Pos[pi.plot$Chrom%in%chroms2plot[i]]),
+                             max(pi.plot$Pos[pi.plot$Chrom%in%chroms2plot[i]]),
+                             (max(pi.plot$Pos[pi.plot$Chrom%in%chroms2plot[i]])-
+                                min(pi.plot$Pos[pi.plot$Chrom%in%chroms2plot[i]]))/4))
   axis(2,las=1,hadj=0.75)
-  mtext(paste("Position on ",unique(shared.upp$Chr)[i],sep=""),1,cex=0.75,line=1)
+  mtext(paste("Position on ",chroms2plot[i],sep=""),1,cex=0.75,line=1)
 }
 par(fig=c(0, 1, 0, 1), oma=c(0, 0, 0, 0), 
     mar=c(0, 0, 0, 0), new=TRUE)
