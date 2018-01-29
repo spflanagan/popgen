@@ -109,7 +109,11 @@ numBins <- 1000
 
 F_estimate <- readRDS("example_output/neutralF.RDS")
 
-#how do I get the positions?
+#generate position data
+pos.data<-vcf[vcf$`#CHROM`=="LG8",1:7]
+put.reg<-read.delim("putative.gene.regions.tsv",header=T)
+prl<-put.genes[put.genes$Gene=="PRL",]
+positions = readRDS("../programs/dmc-master/example/selectedRegionPositions_example.RDS")
 
 ```
 
