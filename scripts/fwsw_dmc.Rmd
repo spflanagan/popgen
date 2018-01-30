@@ -9,8 +9,9 @@ First I'll set up the working environment.
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir='./fwsw_results/')
+knitr::opts_knit$set(root.dir='../fwsw_results/')
 ```
+
 ```{r source}
 source("../../gwscaR/R/gwscaR.R")
 source("../../gwscaR/R/gwscaR_plot.R")
@@ -19,6 +20,7 @@ source("../../gwscaR/R/gwscaR_fsts.R")
 source("../../gwscaR/R/gwscaR_popgen.R")
 library(knitr)
 library(fields)
+library(MASS)
 ```
 
 and load the necessary files
@@ -53,13 +55,31 @@ sampleSizes<-unlist(lapply(pop.list,function(pop){
   n<-length(grep(pop,colnames(vcf)))
   return(2*n) }))
 
-neutralF_filename<-"./dmc/LG8neutralF"
+neutralF_filename<-"./dmc/neutralF_p4LG8"
 
 source("../programs/dmc-master/calcNeutralF.R")
 ```
 
 **Note: I had to use `r Sys.chmod('./dmc/')` to allow read/write in the scripts.**
 
+and I will need the determinants and inverses too
+```{r neutral_inv}
+numPops = 16
+M = numPops
+Tmatrix = matrix(data = rep(-1 / M, (M - 1) * M), nrow = M - 1, ncol = M)
+diag(Tmatrix) = (M - 1) / M 
+
+sampleErrorMatrix = diag(1/sampleSizes, nrow = numPops, ncol = numPops)
+
+F_estimate = readRDS("dmc/neutralF_p4LG8.RDS")
+
+det_FOmegas_neutral = det(Tmatrix %*% (F_estimate + sampleErrorMatrix) %*% t(Tmatrix))
+saveRDS(det_FOmegas_neutral, "dmc/det_FOmegas_neutral_p4LG8.RDS")
+
+inv_FOmegas_neutral = ginv(Tmatrix %*% (F_estimate + sampleErrorMatrix) %*% t(Tmatrix))
+saveRDS(inv_FOmegas_neutral, "dmc/inv_FOmegas_neutral_p4LG8.RDS")
+
+```
 Let's look at the allele frequencies. This will help inform the hypotheses I test with dmc.
 
 
@@ -91,7 +111,7 @@ axis(3,at =t(allFreqs[rownames(allFreqs) %in% c("FLFW","ALFW","LAFW","TXFW"),col
 
 This shows that the FLFW site has somewhat different allele frequencies than the other sites. This suggests that I should test to see whether there was an independent mutation in the FLFW population nd the other three have a single sweep.
 
-## Calculate F<sup>(S)</sup> matrix
+## Calculate F<sup>(S)</sup> matrices
 
 We generate matrices for the following five modes:
 1. All selected pops have independent mutations of beneficial allele
@@ -99,6 +119,13 @@ We generate matrices for the following five modes:
 3. Beneficial allele was standing the ancestor of all selected pops
 4. There was an independent mutation in FLFW and the other three share a sweep.
 
+```{r pinpoint_prl,echo=FALSE,eval=FALSE}
+#generate position data
+
+put.reg<-read.delim("putative.gene.regions.tsv",header=T)
+prl<-put.reg[put.reg$Gene=="PRL" & put.reg$Chrom=="LG8",]
+prl.loc<-as.numeric(prl$StartBP[2])+((as.numeric(prl$StopBP[2])-as.numeric(prl$StartBP[2]))/2)
+```
 
 ```{r calc_FS}
 rec <- 0.005 #per base pair recombination rate estimate for the region
@@ -107,14 +134,235 @@ numPops <- 16
 selPops <- c(3,5,7,16)
 numBins <- 1000
 
-F_estimate <- readRDS("example_output/neutralF.RDS")
+F_estimate <- readRDS("./dmc/LG8neutralF.RDS")
 
-#generate position data
-pos.data<-vcf[vcf$`#CHROM`=="LG8",1:7]
-put.reg<-read.delim("putative.gene.regions.tsv",header=T)
-prl<-put.genes[put.genes$Gene=="PRL",]
-positions = readRDS("../programs/dmc-master/example/selectedRegionPositions_example.RDS")
+positions <-vcf[vcf$`#CHROM`=="LG8","POS"]
+
+selSite = seq(min(positions), max(positions), length.out = 10)
+sels = c(1e-4, 1e-3, 0.01, seq(0.02, 0.14, by = 0.01), seq(0.15, 0.3, by = 0.05), 
+         seq(0.4, 0.6, by = 0.1))
+times = c(0, 5, 25, 50, 100, 500, 1000, 1e4, 1e6)
+gs = c(1/(2*Ne), 10^-(4:1))
+migs = c(10^-(seq(5, 1, by = -2)), 0.5, 1)
+sources = selPops
+
+source("../programs/dmc-master/genSelMatrices_individualModes.R")
 
 ```
 
+### Model 1: all selected populations have independent mutations
 
+```{r model_1}
+FOmegas_ind = lapply(sels, function(sel) {
+  calcFOmegas_indSweeps(sel)
+})
+
+saveRDS(FOmegas_ind, "dmc/FOmegas_ind_p4LG8.RDS")
+#determinant
+det_FOmegas_ind = lapply(FOmegas_ind, function(sel) {
+    lapply(sel, function(dist) {
+        det(dist)
+    })
+})
+saveRDS(det_FOmegas_ind, "dmc/det_FOmegas_ind_p4LG8.RDS")
+#inverse
+inv_FOmegas_ind = lapply(FOmegas_ind, function(sel) {
+    lapply(sel, function(dist) {
+        ginv(dist)
+    })
+})
+saveRDS(inv_FOmegas_ind, "dmc/inv_FOmegas_ind_p4LG8.RDS")
+
+
+```
+
+### Model 2: all selected populations share a beneficial allele via migration
+
+```{r model_2}
+FOmegas_mig = lapply(sels ,function(sel) {
+  lapply(migs, function(mig) {
+    lapply(sources, function(my.source) {
+      calcFOmegas_mig(sel, mig, my.source)
+    })
+  })
+})
+
+saveRDS(FOmegas_mig, "dmc/FOmegas_mig_p4LG8.RDS")
+#determinant
+det_FOmegas_mig = lapply(FOmegas_mig, function(sel) {
+    lapply(sel, function(mig) {
+        lapply(mig, function(source) {
+            lapply(source, function(dist) {
+                det(dist)
+            })
+        })
+    })
+})
+saveRDS(det_FOmegas_mig_output, "dmc/det_FOmegas_mig_p4LG8.RDS")
+#inverse
+inv_FOmegas_mig = lapply(FOmegas_mig, function(sel) {
+    lapply(sel, function(mig) {
+        lapply(mig, function(source) {
+            lapply(source, function(dist) {
+                ginv(dist)
+            })
+        })
+    })
+})
+saveRDS(inv_FOmegas_mig_output, "dmc/inv_FOmegas_mig_p4LG8.RDS")
+
+```
+
+### Model 3: beneficial allele was standing in the ancestor of all selected populations
+
+```{r model_3}
+FOmegas_sv = lapply(sels, function(sel) {
+  lapply(gs, function(g) {
+    lapply(times, function(time) {
+      lapply(sources, function(my.source) {
+        calcFOmegas_stdVar.source(sel, g, time, my.source)
+      })
+    })
+  })
+})
+
+saveRDS(FOmegas_sv, "dmc/FOmegas_sv_p4LG8.RDS")
+#determinant
+det_FOmegas_sv = lapply(FOmegas_sv, function(sel) {
+    lapply(sel, function(g) {
+        lapply(g, function(time) {
+            lapply(time, function(my.source) {
+                lapply(my.source, function(dist) {
+                    det(dist)
+                })
+            })
+        })
+    })
+})
+saveRDS(det_FOmegas_sv, "dmc/det_FOmegas_sv_p4LG8.RDS")
+#inverse
+inv_FOmegas_sv = lapply(FOmegas_sv, function(sel) {
+    lapply(sel, function(g) {
+        lapply(g, function(time) {
+            lapply(time, function(my.source) {
+                lapply(my.source, function(dist) {
+                    ginv(dist)
+                })
+            })
+        })
+    })
+})
+saveRDS(inv_FOmegas_sv, "dmc/inv_FOmegas_sv_p4LG8.RDS")
+```
+
+### Model 4: FLFW has an independent mutation but the others share a beneficial allele via migration
+
+```{r model_4}
+sets<-list(c(3,5,7),16)
+source("../programs/dmc-master/genSelMatrices_multipleModes.R")
+
+my.modes_migInd=c("mig","ind")
+
+#the parameters time and g are not involved in the migration model so we only loop over
+## the first element of these vectors
+FOmegas_mixed_migInd = lapply(sels ,function(sel) {
+    lapply(gs[1], function(g) {
+        lapply(times[1], function(time) {
+            lapply(migs, function(mig) {
+                lapply(sources, function(my.source) {
+                    calcFOmegas_mixed(sel, g, time, mig, my.source, my.modes_migInd)
+                })
+            })
+        })
+    })
+})
+
+saveRDS(FOmegas_mixed_migInd, "dmc/FOmegas_mixed_migInd_p4LG8.RDS")
+
+detFOmegas_mixed_migInd = lapply(FOmegas_mixed_migInd, function(sel) {
+    lapply(sel, function(g) {
+        lapply(g, function(time) {
+            lapply(time, function(mig) {
+                lapply(mig, function(source) {
+                    lapply(source, function(dist) {
+                        det(dist)
+                    })
+                })  
+            })
+        })
+    })
+})
+saveRDS(detFOmegas_mixed_migInd, "dmc/det_FOmegas_mixed_migInd_p4LG8.RDS")
+
+invFOmegas_mixed_migInd = lapply(FOmegas_mixed_migInd, function(sel) {
+    lapply(sel, function(g) {
+        lapply(g, function(time) {
+            lapply(time, function(mig) {
+                lapply(mig, function(source) {
+                    lapply(source, function(dist) {
+                        ginv(dist)
+                    })
+                })  
+            })
+        })
+    })
+})
+saveRDS(invFOmegas_mixed_migInd, "dmc/inv_FOmegas_mixed_migInd_p4LG8.RDS")
+```
+
+### Model 5: FLFW has an independent mutation and the others share a beneficial allele via standing variation
+
+```{r model_5}
+my.modes_svInd = c("sv", "ind")
+
+#the parameter mig is not involved in the standing variant model so we only loop over
+## the first element of this vector
+FOmegas_mixed_svInd = lapply(sels ,function(sel) {
+    lapply(gs, function(g) {
+        lapply(times, function(time) {
+            lapply(migs[1], function(mig) {
+                lapply(sources, function(my.source) {
+                    calcFOmegas_mixed(sel, g, time, mig, my.source, my.modes_svInd)
+                })
+            })
+        })
+    })
+})
+
+saveRDS(FOmegas_mixed_svInd, "dmc/FOmegas_mixed_svInd_p4LG8.RDS")
+
+detFOmegas_mixed_svInd = lapply(FOmegas_mixed_svInd, function(sel) {
+    lapply(sel, function(g) {
+        lapply(g, function(time) {
+            lapply(time, function(mig) {
+                lapply(mig, function(source) {
+                    lapply(source, function(dist) {
+                        det(dist)
+                    })
+                })  
+            })
+        })
+    })
+})
+saveRDS(detFOmegas_mixed_svInd, "dmc/det_FOmegas_mixed_svInd_p4LG8.RDS")
+
+invFOmegas_mixed_svInd = lapply(FOmegas_mixed_svInd, function(sel) {
+    lapply(sel, function(g) {
+        lapply(g, function(time) {
+            lapply(time, function(mig) {
+                lapply(mig, function(source) {
+                    lapply(source, function(dist) {
+                        ginv(dist)
+                    })
+                })  
+            })
+        })
+    })
+})
+saveRDS(invFOmegas_mixed_svInd, "dmc/inv_FOmegas_mixed_svInd_p4LG8.RDS")
+
+```
+
+## Calculate composite likelihoods
+
+Now we need to calculate composite likelihoods, which includes knowing how far away we are from the proposed selected site.
