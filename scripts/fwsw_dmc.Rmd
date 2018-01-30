@@ -24,6 +24,9 @@ library(MASS)
 ```
 
 and load the necessary files
+```{r access_analysis, echo=FALSE}
+knitr::read_chunk("../scripts/fwsw_analysis.R")
+```
 ```{r FWSWsetup, include=FALSE}
 ```
 ```{r read_vcf}
