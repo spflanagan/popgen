@@ -201,7 +201,7 @@ det_FOmegas_mig = lapply(FOmegas_mig, function(sel) {
         })
     })
 })
-saveRDS(det_FOmegas_mig_output, "dmc/det_FOmegas_mig_p4LG8.RDS")
+saveRDS(det_FOmegas_mig, "dmc/det_FOmegas_mig_p4LG8.RDS")
 #inverse
 inv_FOmegas_mig = lapply(FOmegas_mig, function(sel) {
     lapply(sel, function(mig) {
@@ -212,7 +212,7 @@ inv_FOmegas_mig = lapply(FOmegas_mig, function(sel) {
         })
     })
 })
-saveRDS(inv_FOmegas_mig_output, "dmc/inv_FOmegas_mig_p4LG8.RDS")
+saveRDS(inv_FOmegas_mig, "dmc/inv_FOmegas_mig_p4LG8.RDS")
 
 ```
 

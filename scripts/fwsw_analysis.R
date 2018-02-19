@@ -238,13 +238,13 @@ for(i in 1:length(pop.labs)){
   }
   hist(all.afs[[pop.labs[i]]]$RefFreq,ylab="",xlab="",main="",
        xlim=c(0,1),ylim=c(0,10000),axes=F,col=color)
-  axis(1,pos=0)
+  axis(1,pos=0,cex.axis=2)
   if(i %in% c(1,5,9,13)){
-    axis(2,pos=0,las=1)
+    axis(2,pos=0,las=1,cex.axis=2)
   }else{
-    axis(2,pos=0,las=1,labels = FALSE)
+    axis(2,pos=0,las=1,labels = FALSE,cex.axis=2)
     }
-  mtext(pop.labs[i],3,col=color,cex=0.75,line=-1)
+  mtext(pop.labs[i],3,col=color,cex=2*0.75,line=-1)
 }
 mtext("Reference Allele Frequency",1,outer=TRUE,cex=0.75)
 mtext("Number of SNPs",2,outer = TRUE,cex=0.75,line=1)
@@ -485,29 +485,32 @@ h.pi.name<-"HandPi_subgenes.png"
 ## ---- end
 row.settings<-c(3,2)
 chroms2plot<-unique(shared.upp$Chr)
+fst.points<-TRUE
 ## ---- plotHandPi
 #colors
 comp.col<-c(Het="#80cdc1",pi="#018571",Fst="black",D="#a6611a",deltad="#dfc27d")
 png(h.pi.name,height=8,width=10,units="in",res=300)
-par(mfrow=row.settings,oma=c(1,1,2,1),mar=c(1,2,1.5,1))
+par(mfrow=row.settings,oma=c(1,1,3.5,1),mar=c(1,2,2,1))
 for(i in 1:length(chroms2plot)){
   this.df<-fwsw[fwsw$Chr %in% chroms2plot[i],]
   plot(this.df$BP,this.df$Corrected.AMOVA.Fst, ylim=c(-0.2,0.5),axes=F,ylab="",xlab="",type='n')
-  #the shared peaks
-  points(y=c(-0.2,0.5),
-         x=c(shared.upp$Avg.Pos[shared.upp$Chr %in% chroms2plot[i]],
-             shared.upp$Avg.Pos[shared.upp$Chr %in% chroms2plot[i]]),
-         type="l",col=alpha("#543005",0.75),cex=2,lwd=4)
+  xmin<-min(pi.plot$Pos[pi.plot$Chrom%in%chroms2plot[i]])
+  xmax<-max(pi.plot$Pos[pi.plot$Chrom%in%chroms2plot[i]])
+  
   #putative gene regions
-  g<-genes2plot[genes2plot$Chrom %in% chroms2plot[i],]
+  g<-genes2plot[genes2plot$Chrom %in% chroms2plot[i] & 
+                  genes2plot$StartBP >= xmin & genes2plot$StartBP <= xmax,]
   a<-put.reg[put.reg$Chrom %in% chroms2plot[i] & !(put.reg$Gene %in% fav.genes),]
   #rect(xleft=as.numeric(a$StartBP),xright=as.numeric(a$StopBP),
   #     ybottom=-0.2,ytop=0.44,col=alpha("gray35",0.5),border=alpha("gray35",0.5))
   rect(xleft=as.numeric(g$StartBP),xright=as.numeric(g$StopBP),
        ybottom=-0.2,ytop=0.44,col="indianred",border="indianred")
-  text(x=unique(g$StartBP),y=0.5,cex=0.6,labels=g$Gene[!duplicated(g$StartBP)],srt=90,xpd=T)
+  
   #Fst
-  points(this.df$BP,this.df$Corrected.AMOVA.Fst,pch=19,cex=0.5,col=alpha(col=comp.col["Fst"],0.25))
+  if(fst.points==TRUE){
+    points(this.df$BP,this.df$Corrected.AMOVA.Fst,pch=19,cex=1.5,
+           col=alpha(col=comp.col["Fst"],0.25),bg=alpha(col=comp.col["Fst"],0.25))
+  }
   #Pi
   points(avg.pi.adj[avg.pi.adj$Chr%in% chroms2plot[i],c("Avg.Pos","Avg.Stat")],
        type="l",lwd=2,col=comp.col["pi"])
@@ -522,17 +525,42 @@ for(i in 1:length(chroms2plot)){
   dsmooth<-loess.smooth(jostd$POS[jostd$Chr %in% chroms2plot[i]],
                         jostd$D[jostd$Chr %in% chroms2plot[i]],span=0.1,degree=2) 
   points(dsmooth$x,dsmooth$y,type="l",col=comp.col["D"],lwd=2)
+  
+  #the shared peaks
+  points(y=c(-0.2,0.5),
+         x=c(shared.upp$Avg.Pos[shared.upp$Chr %in% chroms2plot[i]],
+             shared.upp$Avg.Pos[shared.upp$Chr %in% chroms2plot[i]]),
+         type="l",col=alpha("#543005",0.75),cex=2,lwd=4)
   #shared Fst outliers
   points(this.df$BP[this.df$BP %in% fw.sig.reg$BP],
          this.df$Corrected.AMOVA.Fst[this.df$BP %in% fw.sig.reg$BP],
-         pch=8,cex=1,col="orchid4")
+         pch=8,cex=2,col="orchid4",lwd=3)
+  if(i == 1){
+    txt.locs<-data.frame(starts=unique(g$StartBP),name=g$Gene[!duplicated(g$StartBP)])
+    txt.locs<-txt.locs[order(txt.locs$starts),]
+    txt.locs[3,"starts"]<-txt.locs[3,"starts"]-500000
+    txt.locs[4,"starts"]<-txt.locs[4,"starts"]+500000
+    txt.locs[6,"starts"]<-txt.locs[6,"starts"]-500000
+    txt.locs[7,"starts"]<-txt.locs[7,"starts"]+500000
+    txt.locs<-txt.locs[-5,]
+    text(x=txt.locs$starts,y=0.35,cex=2,labels=txt.locs$name,srt=90,xpd=T)  
+  }
+  if(i == 4){
+    txt.locs<-data.frame(starts=unique(g$StartBP),name=g$Gene[!duplicated(g$StartBP)])
+    txt.locs<-txt.locs[order(txt.locs$starts),]
+    txt.locs<-txt.locs[-4,]
+    text(x=txt.locs$starts,y=0.35,cex=2,labels=txt.locs$name,srt=90,xpd=T) 
+  }
+  if(!i %in% c(1,4)){
+    txt.locs<-data.frame(starts=unique(g$StartBP),name=g$Gene[!duplicated(g$StartBP)])
+    txt.locs<-txt.locs[order(txt.locs$starts),]
+    text(x=txt.locs$starts,y=0.35,cex=2,labels=txt.locs$name,srt=90,xpd=T)
+  }
   #axes etc
-  axis(1,pos=-0.2,padj = -1,seq(min(pi.plot$Pos[pi.plot$Chrom%in%chroms2plot[i]]),
-                             max(pi.plot$Pos[pi.plot$Chrom%in%chroms2plot[i]]),
-                             (max(pi.plot$Pos[pi.plot$Chrom%in%chroms2plot[i]])-
-                                min(pi.plot$Pos[pi.plot$Chrom%in%chroms2plot[i]]))/4))
-  axis(2,las=1,hadj=0.75)
-  mtext(paste("Position on ",chroms2plot[i],sep=""),1,cex=0.75,line=1)
+   axis(1,pos=-0.2,c(xmin,xmax),
+       labels = c(round((xmin/1000000),2),round((xmax/1000000),2)),cex.axis=2)
+  axis(2,las=1,hadj=0.75,cex.axis=2,pos=xmin,at=c(-0.25,0,0.25,0.5))
+  mtext(chroms2plot[i],1,cex=2*0.75,line=1)
 }
 par(fig=c(0, 1, 0, 1), oma=c(0, 0, 0, 0), 
     mar=c(0, 0, 0, 0), new=TRUE)
@@ -542,12 +570,13 @@ legend("top",
                 expression(Shared~italic(F)[ST]~Outlier),
                 expression(Large~pi~and~italic(H)),
                 expression(italic(H)),
-                expression(pi),expression(FW-SW~italic(F)[ST]),
+                expression(pi),#expression(FW-SW~italic(F)[ST]),
                 expression("Jost's"~italic(D)),
                 expression(delta~-divergence)),
-       bty='n',lwd=c(2,1,4,2,2,0,2,2),pch=c(32,8,32,32,32,19,32,32),
-       lty=c(1,0,1,1,1,0,1,1),
-       col=c("indianred","orchid4",alpha("#543005",0.75),comp.col),ncol=4)
+       bty='n',pch=c(15,8,15,15,15,15,15),#lwd=c(2,1,4,2,2,0,2,2),lty=c(1,0,1,1,1,0,1,1),
+       cex = 2,x.intersp = 0.5,y.intersp = 0.75,text.width=0.45,
+       col=c("indianred","orchid4",alpha("#543005",0.75),comp.col[1:2],#alpha(col=comp.col["Fst"],0.25)
+             comp.col[4:5]),ncol=4)
 dev.off()
 ## ---- end
 
@@ -998,9 +1027,6 @@ bs.sal<-fst.plot(bf,fst.name="logSal",chrom.name="scaffold",bp.name = "BP",scaff
 points(bs.sal[bs.sal$SNP %in% sal.bf.sig$SNP,"plot.pos"],
         bs.sal[bs.sal$SNP %in% sal.bf.sig$SNP,"logSal"],
         col="cornflowerblue",pch=19)#give the outliers a color
-points(bs.sal$plot.pos[bs.sal$SNP %in% sal.bf.sig$SNP],
-       rep(max(bs.sal$logSal),length(bs.sal$plot.pos[bs.sal$SNP %in% sal.bf.sig$SNP])),
-       pch=6,cex=1) #add salinity-associated ones
 clip(0,max(bs.sal$plot.pos),-3,241)
 abline(v=fwswf.fst$plot.pos[fwswf.fst$Locus.ID %in% all.shared],col="gray47")
 mtext("log(Salinity BF)",2,cex=0.75,line=2.1)
@@ -1552,28 +1578,32 @@ heatmaps.name<-"heatmaps.png"
 png(heatmaps.name,height=11,width=11,units="in",res=300)
 fst.lv<-levelplot(as.matrix(pwise.fst),col.regions=cols,alpha.regions=0.7,
                   scales = list(x=list(rot=90),tck = 0),xlab="",ylab="")
-print(fst.lv,split=c(1,1,2,2),more=TRUE,panel.width=hm.width,panel.height=hm.height)
+print(fst.lv,split=c(1,1,2,2),more=TRUE,panel.width=hm.width,
+      panel.height=hm.height,cex=2)
 trellis.focus("legend", side="right", clipp.off=TRUE, highlight=FALSE)
 grid.text(expression(italic(F)[ST]), 0.2, 0, hjust=0.5, vjust=1.2,gp=gpar(cex=0.75))
 trellis.unfocus()
 
 cp.lv<-levelplot(cp,col.regions=rev.cols,alpha.regions=0.7,
                  scales = list(x=list(rot=90),tck = 0),xlab="",ylab="")
-print(cp.lv,split=c(1,2,2,2),more=FALSE,newpage=FALSE,panel.width=hm.width,panel.height=hm.height)
+print(cp.lv,split=c(1,2,2,2),more=FALSE,newpage=FALSE,panel.width=hm.width,
+      panel.height=hm.height,cex=2)
 trellis.focus("legend", side="right", clipp.off=TRUE, highlight=FALSE)
 grid.text("covariance", 0.2, 0, hjust=0.5, vjust=1.2,gp=gpar(cex=0.75))
 trellis.unfocus()
 
 jost.lv<-levelplot(jostpw,col.regions=cols,alpha.regions=0.7,
                    scales = list(x=list(rot=90),tck = 0),xlab="",ylab="")
-print(jost.lv,split=c(2,1,2,2),more=FALSE,newpage=FALSE,panel.width=hm.width,panel.height=hm.height)
+print(jost.lv,split=c(2,1,2,2),more=FALSE,newpage=FALSE,panel.width=hm.width,
+      panel.height=hm.height,cex=2)
 trellis.focus("legend", side="right", clipp.off=TRUE, highlight=FALSE)
 grid.text(expression("Jost's"~italic(D)), 0.2, 0, hjust=0.5, vjust=1.2,gp=gpar(cex=0.75))
 trellis.unfocus()
 
 ptdist.lv<-levelplot(pt.dist,col.regions=cols,alpha.regions=0.7,
                      scales = list(x=list(rot=90),tck = 0),xlab="",ylab="")
-print(ptdist.lv,split=c(2,2,2,2),more=FALSE,newpage=FALSE,panel.width=hm.width,panel.height=hm.height)
+print(ptdist.lv,split=c(2,2,2,2),more=FALSE,newpage=FALSE,panel.width=hm.width,
+      panel.height=hm.height,cex=2)
 trellis.focus("legend", side="right", clipp.off=TRUE, highlight=FALSE)
 grid.text("PopTree2\nDistance", 0.2, 0, hjust=0.5, vjust=1.2,gp=gpar(cex=0.75))
 trellis.unfocus()

@@ -525,9 +525,11 @@ So `r length(jost.in[jost.in!="NA"])` loci are located within putative freshwate
 *Genes containing monophyletic FW gene trees: `r unique(put.reg[put.reg$nj.in != "NA","Gene"])`
 
 *Overlap:
-`r unique(put.reg[put.reg$rad.loci != "NA","Gene"])[unique(put.reg[put.reg$rad.loci != "NA","Gene"]) %in% unique(put.reg[put.reg$sdd.in != "NA","Gene"]) &unique(put.reg[put.reg$rad.loci != "NA","Gene"]) %in% unique(put.reg[put.reg$bfs.in != "NA","Gene"])&unique(put.reg[put.reg$rad.loci != "NA","Gene"]) %in% unique(put.reg[put.reg$nj.nb != "NA","Gene"])]` 
+`r unique(put.reg[put.reg$rad.loci != "NA","Gene"])[unique(put.reg[put.reg$rad.loci != "NA","Gene"]) %in% unique(put.reg[put.reg$sdd.in != "NA","Gene"]) &unique(put.reg[put.reg$rad.loci != "NA","Gene"]) %in% unique(put.reg[put.reg$bfs.in != "NA","Gene"])&unique(put.reg[put.reg$rad.loci != "NA","Gene"]) %in% unique(put.reg[put.reg$nj.nb != "NA","Gene"])&unique(put.reg[put.reg$rad.loci != "NA","Gene"]) %in% unique(put.reg[put.reg$jostd.in != "NA","Gene"])]` 
 
 *Ingoring Trees: `r unique(put.reg[put.reg$rad.loci != "NA","Gene"])[unique(put.reg[put.reg$rad.loci != "NA","Gene"]) %in% unique(put.reg[put.reg$sdd.in != "NA","Gene"]) &unique(put.reg[put.reg$rad.loci != "NA","Gene"]) %in% unique(put.reg[put.reg$bfs.in != "NA","Gene"])]`
+
+*Divergence analyses: `r unique(put.reg[put.reg$rad.loci != "NA","Gene"])[unique(put.reg[put.reg$rad.loci != "NA","Gene"]) %in% unique(put.reg[put.reg$sdd.in != "NA","Gene"]) &unique(put.reg[put.reg$rad.loci != "NA","Gene"]) %in% unique(put.reg[put.reg$jostd.in != "NA","Gene"])]` 
 
 
 I'm highlighting a few of the putative genes that have a bunch of outliers nearby or in them. First is TNS1, which matched three genome annotations but only had one region, on LG1, that contained shared outlier Fsts, delta divergence, Bayenv salinity, were near monophyletic neighbor joining trees. 
@@ -540,10 +542,14 @@ alphas=c(0.5,0.5,1,0.5)
 ltys=c(1,1,2,1)
 ```
 
+### Plotting function
+
+The plotting function `gene.region.plot` accpets a number of parameters.
+
 ```{r plotting_function}
 gene.region.plot<-function(chrom,gene,put.reg,vcf,chrom.ld, fst.dfs,deltad=FALSE,D=FALSE,
-                           colors="black",lwds=2,alphas=0.5,ltys=1,legend=TRUE, 
-                           smooth=TRUE, fst.name="Corrected.AMOVA.FST",...){
+                           colors="black",lwds=2,alphas=0.5,ltys=1,legend=TRUE,bases="bp", 
+                           smooth=FALSE, fst.name="Corrected.AMOVA.FST",txt.cex=1,y.lim=c(0,1),...){
   pstart<-min(as.numeric(as.character(put.reg[put.reg$Gene ==gene & 
                                                      put.reg$Chrom==chrom,"StartBP"])))-(chrom.ld[chrom]/2)
   pstop<-max(as.numeric(as.character(put.reg[put.reg$Gene ==gene & 
@@ -602,15 +608,18 @@ gene.region.plot<-function(chrom,gene,put.reg,vcf,chrom.ld, fst.dfs,deltad=FALSE
     ltys<-rep(ltys,length(smooth.fsts)/length(ltys))
   }
   
-  plot(smooth.fsts[[1]],type='n',ylim=c(0,1),
+  plot(smooth.fsts[[1]],type='n',ylim=c(y.lim[1],y.lim[2]+0.02),
        bty="L",xlab="",ylab="",xaxt='n',yaxt='n',xlim=c(pstart,pstop))
-  axis(2,las=1)  
-  axis(1,at=c(pstart,pstop))
+  axis(2,las=1,cex.axis=txt.cex)  
+  xlabs<-c(pstart,pstop)
+  if(bases %in% c("mb","MB","Mb")) xlabs<-c(round((pstart/1000000),2),round((pstop/1000000),2))
+  if(bases %in% c("kb","KB","Kb")) xlabs<-c(round((pstart/1000),2),round((pstop/1000),2))
+  axis(1,at=c(pstart,pstop),cex.axis=txt.cex,labels = xlabs)
   #add putative gene
   rect(xleft=as.numeric(starts),xright=as.numeric(stops),
-         ybottom=-0.04,ytop=1,col="indianred",border="indianred")
+         ybottom=y.lim[1]-0.04,ytop=y.lim[2],col="indianred",border="indianred")
   #add fsts
-  mtext(paste("Position on ",chrom,sep=""),1,cex=0.75)
+  mtext(chrom,1,cex=0.75*txt.cex,line = 1)
   for(i in 1:length(smooth.fsts)){
     points(smooth.fsts[[i]],col=alpha(colors[i],alphas[i]),type="l",lwd=lwds[i],lty=ltys[i])
   }
@@ -678,12 +687,12 @@ gene.region.plot<-function(chrom,gene,put.reg,vcf,chrom.ld, fst.dfs,deltad=FALSE
   legend("topleft",
          legend=lgnd,pch=pchs,
          bty='n',lwd=c(lwds,0,0,0,0),lty=c(ltys,0,0,0,0),
-         col=cols)
+         col=cols,cex = txt.cex)
   }
   #add outlier loci
-  clip(x1=min(as.numeric(pstart)),x2=max(as.numeric(pstop)),y1=1.01,y2=1.06)
+  clip(x1=min(as.numeric(pstart)),x2=max(as.numeric(pstop)),y1=y.lim[2]+.01,y2=y.lim[2]+0.2)
   abline(v=fst.gene,col="black")
-  points(x=sal.gene,y=rep(1.05,length(sal.gene)),col="black",pch=25,cex=0.5)
+  points(x=sal.gene,y=rep(y.lim[2]+0.05,length(sal.gene)),col="black",pch=25,cex=0.5*txt.cex)
   abline(v=nb.gene,col=alpha("black",0.5),cex=2)
   abline(v=nj.gene,col="#08519c",cex=2)
 }
@@ -697,7 +706,7 @@ par(oma=c(2,2,2,2),mar=c(2,2,2,2))
 tns1<-lapply(unique(put.reg[put.reg$Gene=="TNS1" & !is.na(put.reg$rad.loci),"Chrom"]),
        gene.region.plot,gene="TNS1",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
        fst.dfs=fst.dfs,deltad=deltad,D=jostd,colors=colors,alphas=alphas,ltys=ltys,
-       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst")
+       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst",txt.cex=1.3)
 
 par(mfrow=c(2,2),oma=c(2,2,2,2),mar=c(2,2,2,2))
 arhgef3<-lapply(unique(put.reg[put.reg$Gene=="ARHGEF3" & !is.na(put.reg$rad.loci),"Chrom"]),
@@ -739,112 +748,13 @@ pmca<-lapply(unique(put.reg[put.reg$Gene=="PMCA" & !is.na(put.reg$rad.loci),"Chr
        gene.region.plot,gene="PMCA",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
        fst.dfs=fst.dfs,deltad=deltad,D=jostd,colors=colors,alphas=alphas,ltys=ltys,
        smooth=FALSE,fst.name="Smoothed.AMOVA.Fst")
+
+par(mfrow=c(1,3),oma=c(2,2,2,2),mar=c(2,2,2,2))
+vatpase<-lapply(unique(put.reg[put.reg$Gene=="VATPase" & !is.na(put.reg$rad.loci),"Chrom"]),
+       gene.region.plot,gene="VATPase",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
+       fst.dfs=fst.dfs,deltad=deltad,D=jostd,colors=colors,alphas=alphas,ltys=ltys,
+       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst",txt.cex=1.3)
 ```
-
-```{r plot_lg8}
-#png("LG8.png",width=10,height=7,units="in",res=300)
-chrom<-"LG8"
-  pchs<-c(rep(32,6),15,124,124)
-  cols<-c(grp.colors[1],grp.colors[2],grp.colors[3],grp.colors[6],
-          "#dfc27d","#a6611a","indianred","black","#08519c")
-  ltys=c(1,1,2,1,1,1,0,0,0)
-  lwds<-c(rep(2,6),0,0,0)
-nf <- layout(matrix(c(1,1,1,1,2,2,2,3), 2,4, byrow=TRUE))
-par(oma=c(1.5,2,1,1),mar=c(1.5,1,1.5,1))
-
-plot(fst.dfs[[1]]$BP[fst.dfs[[1]]$Chr %in% chrom],
-     fst.dfs[[1]]$Smoothed.AMOVA.Fst[fst.dfs[[1]]$Chr %in% chrom],
-     type='n',ylim=c(0,1),bty="L",xlab="",ylab="",xaxt='n',yaxt='n')
-axis(2,las=1)  
-axis(1)
-#add putative gene
-starts<-as.numeric(put.reg[put.reg$Chrom %in% chrom,"StartBP"])
-stops<-as.numeric(put.reg[put.reg$Chrom %in% chrom,"StopBP"])
-rect(xleft=as.numeric(starts),xright=as.numeric(stops),
-       ybottom=-0.04,ytop=1,col="indianred",border="indianred")
-
-#add fsts
-mtext(paste("Position on ",chrom,sep=""),1,cex=0.75)
-for(i in 1:length(fst.dfs)){
-  points(fst.dfs[[i]]$BP[fst.dfs[[i]]$Chr %in% chrom],
-         fst.dfs[[i]]$Smoothed.AMOVA.Fst[fst.dfs[[i]]$Chr %in% chrom],
-         col=alpha(colors[i],alphas[i]),type="l",lwd=lwds[i],lty=ltys[i])
-}
-#add delta-d
-this.dd<-deltad[deltad$Chrom %in% chrom,]
-dd.smooth<-loess.smooth(this.dd$Pos,this.dd$deltad,span=0.1,degree=2)
-points(dd.smooth$x,dd.smooth$y,col="#dfc27d",type="l",lwd=2)
-#add Jost's D
-this.d<-jostd[jostd$Chr %in% chrom,]
-dsmooth<-loess.smooth(this.d$POS,this.d$D,span=0.1,degree=2) 
-points(dsmooth$x,dsmooth$y,type="l",col="#a6611a",lwd=2)
-#get the outliers
-pr.gene<-put.reg[put.reg$Chrom==chrom ,]
-fst.gene<- unlist(strsplit(gsub(paste(chrom,".",sep=""),"",pr.gene$rad.loci[pr.gene$rad.loci != "NA"]),","))
-sal.gene<- unlist(strsplit(gsub(paste(chrom,".",sep=""),"",pr.gene$bfs.in[pr.gene$bfs.in != "NA"]),","))
-jd.gene<-unlist(strsplit(gsub(paste(chrom,".",sep=""),"",pr.gene$jost.in[jost.in != "NA"]),","))
-sdd.gene<- unlist(strsplit(gsub(paste(chrom,".",sep=""),"",pr.gene$sdd.in[pr.gene$sdd.in != "NA"]),","))
-nj.gene<-as.numeric(unlist(strsplit(gsub(paste(chrom,".",sep=""),"",pr.gene$nj.nb[pr.gene$nj.nb != "NA"]),",")))
-nb.gene<-as.numeric(unlist(strsplit(gsub(paste(chrom,".",sep=""),"",pr.gene$nearby.rad[pr.gene$nearby.rad != "NA"]),",")))
-gene.out<-data.frame(BP=c(as.numeric(fst.gene),as.numeric(sal.gene),as.numeric(sdd.gene)),
-                     shape=c(rep(8,length(fst.gene)),rep(1,length(sal.gene)),rep(4,length(sdd.gene))))
-   
-
-  #add outlier loci
-  clip(x1=min(as.numeric(fst.dfs[[1]]$BP[fst.dfs[[1]]$Chr %in% chrom])),x2=max(as.numeric(fst.dfs[[1]]$BP[fst.dfs[[1]]$Chr %in% chrom])),y1=0.99,y2=1.06)
-  abline(v=fst.gene,col="black")
-  points(x=sal.gene,y=rep(1,length(sal.gene)),col="black",pch=25,cex=0.5)
-  abline(v=nb.gene,col=alpha("black",0.5),lwd=1.5)
-  abline(v=nj.gene,col="#08519c",lwd=1.5)
-  
-  ###Add zoom in
-plot(fst.dfs[[1]]$BP[fst.dfs[[1]]$Chr %in% chrom],
-     fst.dfs[[1]]$Smoothed.AMOVA.Fst[fst.dfs[[1]]$Chr %in% chrom],
-     type='n',ylim=c(0,1),bty="L",xlab="",ylab="",xaxt='n',yaxt='n',xlim=c(0,5000000))
-axis(2,las=1)  
-axis(1)
-#add putative gene
-g<-put.reg[put.reg$Chrom %in% chrom & put.reg$StartBP<5000000,]
-g$Gene<-as.character(g$Gene)
-g$Gene[grep("ATP6",g$Gene)]<-"ATP6V"
-starts<-as.numeric(g[,"StartBP"])
-stops<-as.numeric(g[,"StopBP"])
-rect(xleft=as.numeric(starts),xright=as.numeric(stops),
-       ybottom=-0.04,ytop=1,col="indianred",border="indianred")
-text(x=unique(g$StartBP),y=0.6,
-    labels=g$Gene[!duplicated(g$StartBP)],font=2,
-     srt=90,xpd=T)
-  mtext(paste("Position on ",chrom,sep=""),1,cex=0.75)
-for(i in 1:length(fst.dfs)){
-  points(fst.dfs[[i]]$BP[fst.dfs[[i]]$Chr %in% chrom],
-         fst.dfs[[i]]$Smoothed.AMOVA.Fst[fst.dfs[[i]]$Chr %in% chrom],
-         col=alpha(colors[i],alphas[i]),type="l",lwd=lwds[i],lty=ltys[i])
-}
-points(dd.smooth$x,dd.smooth$y,col="#dfc27d",type="l",lwd=2)
-points(dsmooth$x,dsmooth$y,type="l",col="#a6611a",lwd=2)
-clip(x1=min(as.numeric(0)),x2=max(as.numeric(5000000)),y1=0.99,y2=1.06)
-  abline(v=fst.gene,col="black")
-  points(x=sal.gene,y=rep(1,length(sal.gene)),col="black",pch=25,cex=0.5)
-  abline(v=nb.gene,col=alpha("black",0.5),lwd=1.5)
-  abline(v=nj.gene,col="#08519c",lwd=1.5)
-
-  ###add legend
-  
-  lgnd<-unlist(lapply(names(fst.dfs),function(n) { bquote(.(n)~italic(F[ST])) }))
-  lgnd<-c(lgnd,expression(delta~-divergence),"Jost's D","putative gene regions",
-          "Outlier RAD loci","Monophyletic Gene Tree")
-  pchs<-c(rep(32,6),15,124,124)
-  cols<-c(grp.colors[1],grp.colors[2],grp.colors[3],grp.colors[6],
-          "#dfc27d","#a6611a","indianred","black","#08519c")
-  ltys=c(1,1,2,1,1,1,0,0,0)
-  lwds<-c(rep(2,6),0,0,0)
-  plot(c(0,1),c(0,1),bty='n',type='n',xlab="",ylab="",xaxt='n',yaxt='n')
-  legend("top",legend=lgnd,pch=pchs,
-         bty='n',lwd=lwds,lty=ltys,
-         col=cols)
-#dev.off()
-```
-
 
 
 ```{r old_plots,eval=FALSE,echo=FALSE}
@@ -1058,78 +968,210 @@ ltys=c(1,1,2,1)
 png("Fig7candidateGenes.png",height=10,width=10,units="in",res=300)
 
 
-par(mfrow=c(4,4),oma=c(2,2,4.5,2),mar=c(1,2,1,1))
-gene.region.plot("LG1","TNS1",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
-                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst")
-text(x=18000000,y=0.8,expression(italic(TNS1)),xpd=T)
-gene.region.plot("LG1","PMCA",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
-                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst")
-text(x=12000000,y=0.8,expression(italic(PMCA)),xpd=T)
-gene.region.plot("LG1","SLC26A3",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
-                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst")
-text(x=7100000,y=0.8,expression(italic(SLC26A3)),xpd=T)
-gene.region.plot("LG2","TRIM14",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
-                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst")
-text(x=4000000,y=0.8,expression(italic(TRIM14)),xpd=T)
+par(mfrow=c(4,4),oma=c(2,2,4.5,2),mar=c(1,3,2,1))
+#row1
+gene.region.plot("LG1","TNS1",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,txt.cex=2,
+                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst",
+                 bases = "MB",y.lim = c(0,0.5))
+text(x=18000000,y=0.4,expression(italic(TNS1)),xpd=T,cex=2)
+gene.region.plot("LG1","PMCA",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,txt.cex=2,
+                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst",
+                 bases = "MB",y.lim = c(0,0.5))
+text(x=12000000,y=0.4,expression(italic(PMCA)),xpd=T,cex=2)
+gene.region.plot("LG1","CAII",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,txt.cex=2,
+                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst",
+                 bases = "MB",y.lim = c(0,0.5))
+text(x=4500000,y=0.4,expression(italic(CAII)),xpd=T,cex=2)
+gene.region.plot("LG2","CAII",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,txt.cex=2,
+                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst",
+                 bases = "MB",y.lim = c(0,0.5))
+text(x=7500000,y=0.4,expression(italic(CAII)),xpd=T,cex=2)
 #row2
-gene.region.plot("LG5","TRIM14",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
-                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst")
-text(x=7000000,y=0.8,expression(italic(TRIM14)),xpd=T)
-gene.region.plot("LG10","TRIM14",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
-                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst")
-text(x=6000000,y=0.8,expression(italic(TRIM14)),xpd=T)
-gene.region.plot("LG11","TRIM14",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
-                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst")
-text(x=2500000,y=0.8,expression(italic(TRIM14)),xpd=T)
-gene.region.plot("LG13","TRIM14",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
-                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst")
-text(x=1500000,y=0.8,expression(italic(TRIM14)),xpd=T)
+gene.region.plot("LG10","CAII",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,txt.cex=2,
+                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst",
+                 bases = "MB",y.lim = c(0,0.5))
+text(x=3000000,y=0.4,expression(italic(CAII)),xpd=T,cex=2)
+gene.region.plot("LG21","CAII",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,txt.cex=2,
+                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst",
+                 bases = "MB",y.lim = c(0,0.5))
+text(x=450000,y=0.4,expression(italic(CAII)),xpd=T,cex=2)
+gene.region.plot("LG2","TRIM14",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,txt.cex=2,
+                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst",
+                 bases = "MB",y.lim = c(0,0.5))
+text(x=4000000,y=0.4,expression(italic(TRIM14)),xpd=T,cex=2)
+gene.region.plot("LG5","TRIM14",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,txt.cex=2,
+                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst",
+                 bases = "MB",y.lim = c(0,0.5))
+text(x=7000000,y=0.4,expression(italic(TRIM14)),xpd=T,cex=2)
 #row3
-gene.region.plot("LG1","ARHGEF3",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
-                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst")
-text(x=15000000,y=0.8,expression(italic(ARHGEF3)),xpd=T)
-gene.region.plot("LG9","ARHGEF3",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
-                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst")
-text(x=3500000,y=0.8,expression(italic(ARHGEF3)),xpd=T)
-gene.region.plot("LG14","ARHGEF3",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
-                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst")
-text(x=3000000,y=0.8,expression(italic(ARHGEF3)),xpd=T)
-gene.region.plot("LG20","ARHGEF3",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
-                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst")
-text(x=3000000,y=0.8,expression(italic(ARHGEF3)),xpd=T)
+gene.region.plot("LG10","TRIM14",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,txt.cex=2,
+                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst",
+                 bases = "MB",y.lim = c(0,0.5))
+text(x=6000000,y=0.4,expression(italic(TRIM14)),xpd=T,cex=2)
+gene.region.plot("LG11","TRIM14",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,txt.cex=2,
+                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst",
+                 bases = "MB",y.lim = c(0,0.5))
+text(x=2500000,y=0.4,expression(italic(TRIM14)),xpd=T,cex=2)
+gene.region.plot("LG13","TRIM14",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,txt.cex=2,
+                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst",
+                 bases = "MB",y.lim = c(0,0.5))
+text(x=1500000,y=0.4,expression(italic(TRIM14)),xpd=T,cex=2)
+gene.region.plot("LG1","VATPase",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,txt.cex=2,
+                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst",
+                 bases = "MB",y.lim = c(0,0.5))
+text(x=6500000,y=0.4,expression(italic(VATPase)),xpd=T,cex=2)
 #row4
-gene.region.plot("LG1","CAII",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
-                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst")
-text(x=4500000,y=0.8,expression(italic(CAII)),xpd=T)
-gene.region.plot("LG2","CAII",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
-                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst")
-text(x=7500000,y=0.8,expression(italic(CAII)),xpd=T)
-gene.region.plot("LG10","CAII",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
-                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst")
-text(x=3000000,y=0.8,expression(italic(CAII)),xpd=T)
-gene.region.plot("LG21","CAII",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
-                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst")
-text(x=450000,y=0.8,expression(italic(CAII)),xpd=T)
+gene.region.plot("LG6","VATPase",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,txt.cex=2,
+                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst",
+                 bases = "MB",y.lim = c(0,0.5))
+text(x=4500000,y=0.4,expression(italic(VATPase)),xpd=T,cex=2)
+gene.region.plot("LG8","VATPase",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,txt.cex=2,
+                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst",
+                 bases = "MB",y.lim = c(0,0.6))
+text(x=4500000,y=0.5,expression(italic(VATPase)),xpd=T,cex=2)
 
 
 
-par(mfrow=c(1, 1), oma=rep(0, 4), mar=rep(0, 4), new=TRUE)
+
+par(fig = c(0, 1, 0, 1),oma=rep(0, 4), mar=rep(0, 4), new=TRUE)
+plot(0:1.5, 0:1.5, type="n", xlab="", ylab="", axes=FALSE)
+legend(x=0.5,y=0.22,c(expression(Shared~italic(F)[ST]~Outliers),
+                "Salinity-associated SNPs",
+                "Monophyletic FW Gene Tree",
+                "FW Candidate Gene"),
+       pch=c(124,25,124,124),lty=c(0,0,0,0),lwd=2,
+       col=c("black","black","#08519c","indianred"),
+       bty='n',ncol=1,cex=2,x.intersp=-0.5,xpd=T)
+
+
+#add lines to the top
+par(fig = c(0, 1, 0, 1),oma=rep(0, 4), mar=rep(0, 4), new=TRUE)
 plot(0:1, 0:1, type="n", xlab="", ylab="", axes=FALSE)
 legend("top",c(expression(TX~FWSW~italic(F)[ST]),
                 expression(LA~FWSW~italic(F)[ST]),
                 expression(AL~FWSW~italic(F)[ST]),
                 expression(FL~FWSW~italic(F)[ST]),
-                expression(delta~-divergence),
-                expression(Shared~italic(F)[ST]~Outliers),
-                "Salinity-associated SNPs",
-                "Monophyletic FW Gene Tree",
-                "FW Candidate Gene"),
-       pch=c(rep(32,5),124,25,124,124),lty=c(1,1,1,1,1,0,0,0,0),lwd=2,
+                expression(delta~-divergence)),
+       pch=rep(32,5),lty=c(1,1,1,1,1),lwd=2,text.width=0.16,
        col=c(grp.colors[1],grp.colors[2],grp.colors[3],grp.colors[6],
-          "#dfc27d","black","black","#08519c","indianred"),
-       bty='n',ncol=3,cex=0.75,x.intersp=0)
-
+          "#dfc27d"),
+       bty='n',ncol=3,cex=2,x.intersp=0.5,y.intersp=0.75,xpd=T)
 dev.off()
 ```
 
 ![Fig. 7](../fwsw_results/Fig7candidateGenes.png)
+
+### Plot LG8
+
+```{r plot_lg8}
+png("LG8.png",width=10,height=7,units="in",res=300)
+chrom<-"LG8"
+  pchs<-c(rep(32,6),15,124,124)
+  cols<-c(grp.colors[1],grp.colors[2],grp.colors[3],grp.colors[6],
+          "#dfc27d","#a6611a","indianred","black","#08519c")
+  ltys=c(1,1,2,1,1,1,0,0,0)
+  lwds<-c(rep(2,6),0,0,0)
+nf <- layout(matrix(c(1,1,1,1,2,2,2,3), 2,4, byrow=TRUE))
+par(oma=c(1.5,2.5,1,1),mar=c(1.5,1,2,1))
+
+plot(fst.dfs[[1]]$BP[fst.dfs[[1]]$Chr %in% chrom],
+     fst.dfs[[1]]$Smoothed.AMOVA.Fst[fst.dfs[[1]]$Chr %in% chrom],
+     type='n',ylim=c(0,1),bty="L",xlab="",ylab="",xaxt='n',yaxt='n')
+axis(2,las=1,cex.axis=2)  
+axis(1,cex.axis=2,at=c(0,5000000,10000000,15000000),labels = c(0,5,10,15))
+#add putative gene
+starts<-as.numeric(put.reg[put.reg$Chrom %in% chrom,"StartBP"])
+stops<-as.numeric(put.reg[put.reg$Chrom %in% chrom,"StopBP"])
+rect(xleft=as.numeric(starts),xright=as.numeric(stops),
+       ybottom=-0.04,ytop=1,col="indianred",border="indianred")
+
+#add fsts
+mtext(chrom,1,cex=2*0.75,line=2.5)
+for(i in 1:length(fst.dfs)){
+  points(fst.dfs[[i]]$BP[fst.dfs[[i]]$Chr %in% chrom],
+         fst.dfs[[i]]$Smoothed.AMOVA.Fst[fst.dfs[[i]]$Chr %in% chrom],
+         col=alpha(colors[i],alphas[i]),type="l",lwd=lwds[i],lty=ltys[i])
+}
+#add delta-d
+this.dd<-deltad[deltad$Chrom %in% chrom,]
+dd.smooth<-loess.smooth(this.dd$Pos,this.dd$deltad,span=0.1,degree=2)
+points(dd.smooth$x,dd.smooth$y,col="#dfc27d",type="l",lwd=2)
+#add Jost's D
+this.d<-jostd[jostd$Chr %in% chrom,]
+dsmooth<-loess.smooth(this.d$POS,this.d$D,span=0.1,degree=2) 
+points(dsmooth$x,dsmooth$y,type="l",col="#a6611a",lwd=2)
+#get the outliers
+pr.gene<-put.reg[put.reg$Chrom==chrom ,]
+fst.gene<- unlist(strsplit(gsub(paste(chrom,".",sep=""),"",pr.gene$rad.loci[pr.gene$rad.loci != "NA"]),","))
+sal.gene<- unlist(strsplit(gsub(paste(chrom,".",sep=""),"",pr.gene$bfs.in[pr.gene$bfs.in != "NA"]),","))
+jd.gene<-unlist(strsplit(gsub(paste(chrom,".",sep=""),"",pr.gene$jost.in[jost.in != "NA"]),","))
+sdd.gene<- unlist(strsplit(gsub(paste(chrom,".",sep=""),"",pr.gene$sdd.in[pr.gene$sdd.in != "NA"]),","))
+nj.gene<-as.numeric(unlist(strsplit(gsub(paste(chrom,".",sep=""),"",pr.gene$nj.nb[pr.gene$nj.nb != "NA"]),",")))
+nb.gene<-as.numeric(unlist(strsplit(gsub(paste(chrom,".",sep=""),"",pr.gene$nearby.rad[pr.gene$nearby.rad != "NA"]),",")))
+gene.out<-data.frame(BP=c(as.numeric(fst.gene),as.numeric(sal.gene),as.numeric(sdd.gene)),
+                     shape=c(rep(8,length(fst.gene)),rep(1,length(sal.gene)),rep(4,length(sdd.gene))))
+   
+
+  #add outlier loci
+  clip(x1=min(as.numeric(fst.dfs[[1]]$BP[fst.dfs[[1]]$Chr %in% chrom])),x2=max(as.numeric(fst.dfs[[1]]$BP[fst.dfs[[1]]$Chr %in% chrom])),y1=0.99,y2=1.06)
+  abline(v=fst.gene,col="black")
+  points(x=sal.gene,y=rep(1,length(sal.gene)),col="black",pch=25,cex=0.5)
+  abline(v=nb.gene,col=alpha("black",0.5),lwd=1.5)
+  abline(v=nj.gene,col="#08519c",lwd=1.5)
+  
+  ###Add zoom in
+plot(fst.dfs[[1]]$BP[fst.dfs[[1]]$Chr %in% chrom],
+     fst.dfs[[1]]$Smoothed.AMOVA.Fst[fst.dfs[[1]]$Chr %in% chrom],
+     type='n',ylim=c(0,1),bty="L",xlab="",ylab="",xaxt='n',yaxt='n',xlim=c(1000000,3500000))
+axis(2,las=1,cex.axis=2)  
+axis(1,cex.axis=2,at=c(1000000,3500000),labels=c(1,3.5))
+#add putative gene
+g<-put.reg[put.reg$Chrom %in% chrom & put.reg$StartBP<5000000,]
+g$Gene<-as.character(g$Gene)
+g$Gene[grep("ATP6",g$Gene)]<-"ATP6V" #standardize the names
+g<-g[,c("Gene","StartBP","StopBP")]
+g<-g[!duplicated(g$StartBP),]
+g<-g[order(g$StartBP),]
+starts<-as.numeric(g[,"StartBP"])
+stops<-as.numeric(g[,"StopBP"])
+rect(xleft=as.numeric(starts),xright=as.numeric(stops),
+       ybottom=-0.04,ytop=1,col="indianred",border="indianred")
+ text(x=g$StartBP,y=0.6,labels=g$Gene,font=2,srt=90,xpd=T,cex=1.75)
+# text(x=g$StartBP[1]-20000,y=0.6,labels=g$Gene[1],font=2,srt=90,xpd=T,cex=1.75)
+# text(x=g$StartBP[2]-20000,y=0.6,labels=g$Gene[2],font=2,srt=90,xpd=T,cex=1.75)
+# text(x=g$StartBP[3]-10000,y=0.6,labels=g$Gene[3],font=2,srt=90,xpd=T,cex=1.75)
+# text(x=g$StartBP[4]+10000,y=0.6,labels=g$Gene[4],font=2,srt=90,xpd=T,cex=1.75)
+# text(x=g$StartBP[5],y=0.6,labels=g$Gene[5],font=2,srt=90,xpd=T,cex=1.75)
+
+mtext(chrom,1,cex=2*0.75,line=2)
+for(i in 1:length(fst.dfs)){
+  points(fst.dfs[[i]]$BP[fst.dfs[[i]]$Chr %in% chrom],
+         fst.dfs[[i]]$Smoothed.AMOVA.Fst[fst.dfs[[i]]$Chr %in% chrom],
+         col=alpha(colors[i],alphas[i]),type="l",lwd=lwds[i],lty=ltys[i])
+}
+points(dd.smooth$x,dd.smooth$y,col="#dfc27d",type="l",lwd=2)
+points(dsmooth$x,dsmooth$y,type="l",col="#a6611a",lwd=2)
+clip(x1=min(as.numeric(0)),x2=max(as.numeric(3500000)),y1=0.99,y2=1.06)
+  abline(v=fst.gene,col="black")
+  points(x=sal.gene,y=rep(1,length(sal.gene)),col="black",pch=25,cex=0.5)
+  abline(v=nb.gene,col=alpha("black",0.5),lwd=1.5)
+  abline(v=nj.gene,col="#08519c",lwd=1.5)
+
+  ###add legend
+  
+  lgnd<-unlist(lapply(names(fst.dfs),function(n) { bquote(.(n)~italic(F[ST])) }))
+  lgnd<-c(lgnd,expression(delta~-divergence),"Jost's D","gene regions",
+          expression("Shared"~italic(F[ST])~"outlier"),"Monophyletic Gene Tree")
+  pchs<-c(rep(32,6),15,124,124)
+  cols<-c(grp.colors[1],grp.colors[2],grp.colors[3],grp.colors[6],
+          "#dfc27d","#a6611a","indianred","black","#08519c")
+  ltys=c(1,1,2,1,1,1,0,0,0)
+  lwds<-c(rep(2,6),0,0,0)
+  plot(c(0,1),c(0,1),bty='n',type='n',xlab="",ylab="",xaxt='n',yaxt='n')
+  legend("topright",legend=lgnd,pch=pchs,
+         bty='n',lwd=lwds,lty=ltys,
+         col=cols,xpd=TRUE,cex=1.5)
+dev.off()
+```
+
+![LG 8 Figure](../fwsw_results/LG8.png)

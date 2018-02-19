@@ -530,6 +530,8 @@ avg.het.adj<-read.delim(avg.het.adj.name,header=TRUE)
 all.het<-read.delim(all.het.name,header=TRUE)
 ```
 
+Look for regions of reduced diversity as evidence of selective sweeps.
+
 ### delta-divergence
 ```{r setupDeltaD,eval=FALSE}
 ```
@@ -577,23 +579,45 @@ smoothed.name<-"p4_deltad_pi_het.png"
 
 There are loci with high \pi and low \delta-divergence on `r length(unique(shared.upp$Chr))` chromosomes. 
 
+Instead of the lumped marine-freshwater $F_{ST}$ values that I used originally, I'm gonna plot the average of pairwise $F_{ST}$ values.
+
+```{r avg_fsts}
+fst.means<-fwsw.al
+for(i in 1:nrow(fst.means)){
+  if(fst.means$Locus.ID[i] %in% fwsw.fl$Locus.ID &
+     fst.means$Locus.ID[i] %in% fwsw.la$Locus.ID &
+     fst.means$Locus.ID[i] %in% fwsw.tx$Locus.ID){
+      mu<-mean(fwsw.fl$Corrected.AMOVA.Fst[fwsw.fl$Locus.ID==fst.means$Locus.ID[i]],
+               fwsw.la$Corrected.AMOVA.Fst[fwsw.la$Locus.ID==fst.means$Locus.ID[i]],
+               fwsw.al$Corrected.AMOVA.Fst[fwsw.al$Locus.ID==fst.means$Locus.ID[i]],
+               fwsw.tx$Corrected.AMOVA.Fst[fwsw.tx$Locus.ID==fst.means$Locus.ID[i]])
+      fst.means$Corrected.AMOVA.Fst[i]<-mu
+  }
+  else{
+    fst.means$Corrected.AMOVA.Fst[i]<-NA
+  }
+}
+fst.means<-fst.means[!is.na(fst.means$Corrected.AMOVA.Fst),]
+fwsw<-fst.means
+```
+
 
 ```{r hPi_setup}
-#also marine-fw fsts
-fwsw<-read.delim("stacks/fw-sw_populations/batch_2.fst_marine-freshwater.tsv")
+fst.points<-FALSE
 #and putative genes
 put.genes<-read.delim("putative_genes.txt",header=TRUE,sep='\t')
 #genome annotations
 put.reg<-read.delim("putative.gene.regions.tsv",header=T)
 #select genes of interest
-fav.genes<-c("AQP3","TNS1","CAMKK1","mucin","CAII","NAKATPase","ARHGEF3")
+#fav.genes<-c("AQP3","TNS1","CAMKK1","mucin","CAII","NAKATPase","ARHGEF3")
+fav.genes<-c("TNS1","CAII","TRIM14","VATPase")
 genes2plot<-put.reg[put.reg$Gene %in% fav.genes,]
 #shared Fst outliers
 fw.sig.reg<-read.csv("p4.StacksFWSWOutliers_annotatedByGenome.csv")
 h.pi.name<-"HandPi_subgenes.png"
-row.settings<-c(4,4)
+row.settings<-c(4,3)
 chroms2plot<-unique(shared.upp$Chr)
-chroms2plot<-chroms2plot[chroms2plot != "LG5"]
+chroms2plot<-chroms2plot[chroms2plot != "LG19"]
 ```
 ```{r plotHandPi}
 ```
