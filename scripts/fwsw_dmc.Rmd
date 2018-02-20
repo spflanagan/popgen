@@ -155,7 +155,7 @@ source("../programs/dmc-master/genSelMatrices_individualModes.R")
 
 ### Model 1: all selected populations have independent mutations
 
-```{r model_1}
+```{r model_1,eval=FALSE}
 FOmegas_ind = lapply(sels, function(sel) {
   calcFOmegas_indSweeps(sel)
 })
@@ -181,7 +181,7 @@ saveRDS(inv_FOmegas_ind, "dmc/inv_FOmegas_ind_p4LG8.RDS")
 
 ### Model 2: all selected populations share a beneficial allele via migration
 
-```{r model_2}
+```{r model_2,eval=FALSE}
 FOmegas_mig = lapply(sels ,function(sel) {
   lapply(migs, function(mig) {
     lapply(sources, function(my.source) {
@@ -218,7 +218,7 @@ saveRDS(inv_FOmegas_mig, "dmc/inv_FOmegas_mig_p4LG8.RDS")
 
 ### Model 3: beneficial allele was standing in the ancestor of all selected populations
 
-```{r model_3}
+```{r model_3,eval=FALSE}
 FOmegas_sv = lapply(sels, function(sel) {
   lapply(gs, function(g) {
     lapply(times, function(time) {
@@ -260,7 +260,7 @@ saveRDS(inv_FOmegas_sv, "dmc/inv_FOmegas_sv_p4LG8.RDS")
 
 ### Model 4: FLFW has an independent mutation but the others share a beneficial allele via migration
 
-```{r model_4}
+```{r model_4,eval=FALSE}
 sets<-list(c(3,5,7),16)
 source("../programs/dmc-master/genSelMatrices_multipleModes.R")
 
@@ -314,6 +314,8 @@ saveRDS(invFOmegas_mixed_migInd, "dmc/inv_FOmegas_mixed_migInd_p4LG8.RDS")
 ```
 
 ### Model 5: FLFW has an independent mutation and the others share a beneficial allele via standing variation
+
+I'm running this one on abies using `nohup Rscript ~/Projects/popgen/scripts/dmc_model5.R > ~/Projects/popgen/dmc5.log 2>&1 &`. It's process 54368 (finished on Feb 19).
 
 ```{r model_5}
 my.modes_svInd = c("sv", "ind")
@@ -369,3 +371,4 @@ saveRDS(invFOmegas_mixed_svInd, "dmc/inv_FOmegas_mixed_svInd_p4LG8.RDS")
 ## Calculate composite likelihoods
 
 Now we need to calculate composite likelihoods, which includes knowing how far away we are from the proposed selected site.
+
