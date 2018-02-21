@@ -22,6 +22,10 @@ DATE STARTED: 5 June 2016
 11. calculate_global_fst
 
 ###############################################################################################
+#####Wednesday, 21 February 2018
+Rendering fwsw_dmc.Rmd on abies using Rscript -e 'Sys.setenv(RSTUDIO_PANDOC="/usr/lib/rstudio/bin/pandoc"); library(rmarkdown); rmarkdown::render("fwsw_dmc.Rmd", "html_document")' to run the models.
+
+
 #####Wednesday, 9 August 2017
 Most of my notes are in a notebook...
 but I want to run populations with a whitelist -- needs LocID and column
