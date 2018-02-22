@@ -519,7 +519,7 @@ for(j in 1 : length(selSite)) {
 }
 ```
 
-Combine files for modles 4 and 5 that are separated by proposed selected site.
+Combine files for models 4 and 5 that are separated by proposed selected site.
 
 ```{r combine_files}
 positions = readRDS("dmc/selectedRegionPositions_p4LG8.RDS")
@@ -535,7 +535,7 @@ saveRDS(compLikelihood_mixed_migInd_all, "dmc/compLikelihood_mixed_migInd_p4LG8.
 
 ## Model 5
 compLikelihood_mixed_svInd_all = lapply(1: length(selSite), function(i) {
-  readRDS(paste("dmc/compLikelihood_mixed_svInd_ep4LG8_selSite", i, ".RDS",
+  readRDS(paste("dmc/compLikelihood_mixed_svInd_p4LG8_selSite", i, ".RDS",
                 sep = ""))
 })
 
