@@ -339,6 +339,9 @@ And then I will identify the shared outliers among them. But first, let's define
 ```{r reset_vcf}
 vcf<-parse.vcf("stacks/p4.vcf")
 ```
+```{r vcfSetup, echo=TRUE}
+```
+
 ```{r define_fig5_names}
 dd.plot.name<-as.character("separate_delta-divergence.png")
 dd.name<-as.character("sep.deltadivergence.txt")
@@ -364,99 +367,7 @@ The bayes factors and Fsts are all in the following chunk.
 
 Figure 5 includes Fst data, Bayes Factors data, colors from Structure, and reciprocal monophyly data, plus smoothed Fst values (which I think I will leave out this round).
 
-#### Neighbor-joining trees
 
-I had originally calculated monophyletic trees using the regular vcf file with SNPs
-
-```{r NJTrees}
-```
-```{r recalc_trees, eval=FALSE}
-ftrees.snp<-calc.ftrees(vcf,mono.tips = c("TXFW","ALFW","LAFW","FLLG"),
-                        other.tips = pop.list[!pop.list %in% c("TXFW","ALFW","LAFW","FLLG")],out.file="p4.snp.ftrees.txt")
-
-
-hap.vcf<-parse.vcf("stacks/batch_2.haplotypes.vcf")
-hap.vcf$SNP<-paste(hap.vcf$`#CHROM`,hap.vcf$POS,sep=".")
-ftrees.hap<-calc.ftrees(hap.vcf,mono.tips = c("TXFW","ALFW","LAFW","FLLG"),
-                        other.tips = pop.list[!pop.list %in% c("TXFW","ALFW","LAFW","FLLG")],out.file="p4.hap.ftrees.txt")
-
-```
-```{r read_trees, echo=FALSE}
-ftrees.snp<-read.delim("p4.snp.ftrees.txt", sep=' ')
-ftrees.hap<-read.delim("p4.hap.ftrees.txt", sep=' ')
-```
-```{r id_monophyletic}
-ftsnp.mono<-ftrees.snp[ftrees.snp$FWMonophyletic == TRUE & !is.na(ftrees.snp$FWMonophyletic),]
-fthap.mono<-ftrees.hap[ftrees.hap$FWMonophyletic == TRUE & !is.na(ftrees.hap$FWMonophyletic),]
-```
-
-
-Compare the two:
-
-```{r compare_NJ}
-njcomp.table<-data.frame(SNP=c(nrow(ftrees.snp),nrow(ftrees.snp[is.na(ftrees.snp$FWMonophyletic),]),
-                             nrow(ftsnp.mono)),
-                       Haplotype=c(nrow(ftrees.hap),nrow(ftrees.hap[is.na(ftrees.hap$FWMonophyletic),]),
-                             nrow(fthap.mono)))
-rownames(njcomp.table)<-c("Number of Loci","Number w/ Missing Data", "Number with Monophyletic FW")
-kable(njcomp.table, format = "markdown")
-```
-
-The ones with missing data are those that had data missing from at least one population for that locus, and these were excluded.
-
-```{r get_hapvcf, echo=FALSE}
-if(!("hap.vcf" %in% ls())){
-  hap.vcf<-parse.vcf("stacks/batch_2.haplotypes.vcf")
-  hap.vcf$SNP<-paste(hap.vcf$`#CHROM`,hap.vcf$POS,sep=".")
-}
-if(length(grep("SNP",colnames(vcf)))==0){
-  vcf$SNP<-paste(vcf$`#CHROM`,vcf$POS,sep=".")
-}
-```
-```{r compare_loci_NJ}
-hap.mono.ids<-hap.vcf[hap.vcf$SNP %in% fthap.mono$SNP,c("SNP","ID")]
-snp.mono.ids<-vcf[vcf$SNP %in% ftsnp.mono$SNP,c("SNP","ID")]
-```
-
-They share `r nrow(hap.mono.ids[hap.mono.ids$ID %in% snp.mono.ids$ID,])` RAD loci. However, I don't really trust how the data are treated in the vcf haplotype format, so I'll just use the SNPs for now (and I'm analyzing the data with BEAST).
-
-Let's compare the genome-wide locations
-```{r echo=FALSE}
-ftmono<-ftsnp.mono
-```
-```{r plottingFunctions, echo=FALSE}
-```
-```{r Fig5dataSetup}
-```
-```{r prepNJ_plotting}
-ftsnp<-assign.plotpos(ftsnp.mono,plot.scaffs,bounds,df.bp="Pos")
-fthap<-assign.plotpos(fthap.mono,plot.scaffs,bounds,df.bp="Pos")
-
-par(mfrow=c(2,1), oma=c(1,1,1,1),mar=c(1,1,1,1))
-fwswt.fst<-fst.plot(fwsw.tx,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
-                    scaffs.to.plot=plot.scaffs, y.lim = c(0,1),scaffold.widths = bounds,pch=19,
-                    pt.cols = c(grp.colors[1],grp.colors[2]),pt.cex=1,axis.size = 0,type='n')
-abline(v=ftsnp$plot.pos) 
-mtext("SNP-based \nFW monophyletic trees",2)
-lgbreaks<-tapply(fwswt.fst$plot.pos,fwswt.fst$Chr,min)
-lgbreaks<-c(lgbreaks[lgs],lgbreaks[23])
-axis(1,lgbreaks,labels = FALSE)
-meds<-NULL
-for(i in 1:22){
-  meds[i]<-lgbreaks[i]+((lgbreaks[i+1]-lgbreaks[i])/2)
-}
-#names(meds)<-plot.scaffs
-axis(1,at=meds,labels = lgs,cex.axis=0.5,tck=0,las=2,hadj=0.5)
-
-plot(c(min(fwswt.fst$plot.pos),max(fwswt.fst$plot.pos)),c(0,1),bty='n',type = 'n',axes=FALSE,xlab="",ylab="")
-abline(v=fthap$plot.pos) 
-mtext("haplotype-based \nFW monophyletic trees",2)
-axis(1,lgbreaks,labels = FALSE)
-axis(1,at=meds,labels = lgs,cex.axis=0.5,tck=0,las=2,hadj=0.5)
-```
-
-I don't really trust the haplotype calculations, actually. Let me see about using BEAST with the fasta output...
-`populations -b 2 -W fwsw_results/subset.whitelist.txt -P fwsw_results/stacks -M fwsw_pops_map.txt --fasta`
 #### Plot Fig. 5
 
 
@@ -464,19 +375,20 @@ Now I'm ready to plot Figure 5.
 
 **still need to re-annotate the genome and do the swsw comparison plots. 
 **might be nice to include other aspects in this graph, esp the sw-associated SNPs.
+
 ```{r}
-ftmono<-fthap.mono
-fig5.name<-"p4_stacks_fsts_njhap_fwsw_bf.png"
+fig5.name<-"p4_stacks_fsts_fwsw_bf.png"
 addLines<-FALSE
 addSmooth<-TRUE
 ```
-
+```{r plottingFunctions,echo=FALSE}
+```
 ```{r Fig5dataSetup}
 ```
-```{r Fig5plot}
+```{r FstBayenvPlot}
 ```
 
-![Figure 5. Fsts](fwsw_results/p4_stacks_fsts_njhap_fwsw_bf.png)
+![Figure 5. Fsts](fwsw_results/p4_stacks_fsts_fwsw_bf.png)
 
 There seems to be an overabundance of shared outliers on LG8. I can test this using the multinomial distribution. 
 ```{r overrep_chrom}
@@ -493,6 +405,16 @@ obs.perchrom[is.na(obs.perchrom)]<-0
 obs.perchrom
 dmultinom(x = obs.perchrom,prob = exp.perchrom)
 ```
+
+
+I can also look for overlapping loci in pairwise saltwater-saltwater comparisons.
+
+```{r swsw_name}
+swsw.name<-"p4_stacks_swsw.png"
+```
+```{r SWSWneighbors}
+```
+![SWSW Fsts](fwsw_results/p4_stacks_swsw.png)
 
 ## Figure 6
 

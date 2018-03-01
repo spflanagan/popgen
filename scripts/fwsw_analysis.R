@@ -658,6 +658,11 @@ ftmono<-fst.trees[fst.trees$FWMonophyletic == TRUE,]
 ## ---- end
 ftmono[ftmono$SNP %in% fw.sig.reg$SNP,]
 
+####### BEAST #######
+mcc<-read.nexus("BEAST/p4.MCC.tree")
+plot(mcc)
+
+
 ####### Fsts with gwscaR code #####
 ## ---- myFsts
 loci.info<-c(colnames(vcf[1:9]),"SNP")
@@ -808,6 +813,8 @@ for(i in 1:length(lgs)){
   last<-max(fwswf.fst[fwswf.fst$Chr ==lgs[i],"plot.pos"])
 }
 #dev.off()
+swsw.name<-"stacks_fsts_swsw.png"
+## ---- SWSWneighbors
 ###### SW-SW neighbors ######
 swsw.tx<-read.delim("stacks/batch_2.fst_TXCB-TXCC.tsv")
 swsw.al<-read.delim("stacks/batch_2.fst_ALST-FLSG.tsv")
@@ -820,17 +827,8 @@ length(tx.sw.sig[(tx.sw.sig %in% c(al.sw.sig,fl.sw.sig))])
 length(al.sw.sig[(al.sw.sig %in% c(tx.sw.sig,fl.sw.sig))])
 length(fl.sw.sig[(fl.sw.sig %in% c(tx.sw.sig,al.sw.sig))])
 sw.shared<-fl.sw.sig[fl.sw.sig %in% al.sw.sig & fl.sw.sig %in% tx.sw.sig]
-fw.shared.chr<-fwsw.tx[fwsw.tx$Locus.ID %in% all.shared,c("Locus.ID","Chr","BP","Column")]
-tapply(fw.shared.chr$Locus.ID,factor(fw.shared.chr$Chr),function(x){ length(unique(x)) })
 
-swswt.fst<-fst.plot(swsw.tx,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
-                    scaffs.to.plot = scaffs,scaffold.widths = bounds,pt.cex = 1,pch=19)
-swswa.fst<-fst.plot(swsw.al,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
-                    scaffs.to.plot = scaffs,scaffold.widths = bounds,pt.cex = 1,pch=19)
-swswf.fst<-fst.plot(swsw.fl,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
-                    scaffs.to.plot = scaffs,scaffold.widths = bounds,pt.cex = 1,pch=19)
-
-png("stacks_fsts_swsw.png",height=6,width=7.5,units="in",res=300)
+png(swsw.name,height=6,width=7.5,units="in",res=300)
 par(mfrow=c(3,1),mar=c(0.85,2,0,0.5),oma=c(1,1,1,0.5))
 swswt.fst<-fst.plot(swsw.tx,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
                     scaffs.to.plot=plot.scaffs, y.lim = c(0,1),scaffold.widths = bounds,axis.size = 1,
@@ -854,6 +852,7 @@ for(i in 1:length(lgs)){
   last<-max(swswf.fst[swswf.fst$Chr ==lgs[i],"plot.pos"])
 }
 dev.off()
+## ---- end
 
 #### PLOT FIG. 5 ####
 ## ---- plottingFunctions
@@ -921,6 +920,7 @@ stacks.sig<-read.delim(stacks.sig.out)
 ## ---- readNJtrees
 fst.trees<-read.delim("ftrees.txt",sep=" ")
 ftmono<-fst.trees[fst.trees$FWMonophyletic == TRUE,]
+ft.mono<-assign.plotpos(ftmono,plot.scaffs,bounds,df.bp="Pos")
 ## ---- end
 
 fig5.name<-"stacks_fsts_nj_fwsw_bf.png"
@@ -937,12 +937,98 @@ plot.scaffs<-scaffs[scaffs %in% bounds$Chr]
 plot.scaffs[1:22]<-lgs
 bounds<-bounds[match(plot.scaffs,bounds$Chrom),]
 #generate info
-ft.mono<-assign.plotpos(ftmono,plot.scaffs,bounds,df.bp="Pos")
+
 fwsw.plot<-assign.plotpos(fwsw,plot.scaffs,bounds,df.bp="BP",df.chrom = "Chr")
 addLines<-TRUE
 addLines<-FALSE
+addSmooth<-TRUE
 ## ---- end
-## ---- Fig5plot
+## ---- FstBayenvPlot
+#' plot with the outlier regions
+#' Does NOT include monophyletic neighborjoining trees.
+png(fig5.name,height=6,width=8,units="in",res=300)
+par(mfrow=c(5,1),mar=c(0.85,2,0,0.5),oma=c(1,1,1,0.5))
+#par(fig=c(0,1,0.9-0.9/5,0.9))
+
+fwswt.fst<-fst.plot(fwsw.tx,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
+                    scaffs.to.plot=plot.scaffs, y.lim = c(0,1),scaffold.widths = bounds,pch=19,
+                    pt.cols = c(grp.colors[1],grp.colors[2]),pt.cex=1,axis.size = 1)
+if(addLines==TRUE){ perlg.add.lines(fwsw.plot,lgs) }
+if(addSmooth==TRUE){ points(fwswt.fst$plot.pos,fwswt.fst$Smoothed.Fst,col="cornflowerblue",type="l") }
+#points(fwswt.fst$BP,fwswt.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[1])
+#points(fwswt.fst$plot.pos[fwswt.fst$Locus.ID %in% all.shared],fwswt.fst$Corrected.AMOVA.Fst[fwswt.fst$Locus.ID %in% all.shared],
+#       pch=1,col="black",cex=1.3)
+clip(0,max(fwswt.fst$plot.pos),0,1)
+abline(v=fwswt.fst$plot.pos[fwswt.fst$Locus.ID %in% all.shared],col="gray47")
+mtext("TXFW vs. TXCC",2,cex=0.75)#,line=-1)
+labs<-tapply(fwswt.fst$plot.pos,fwswt.fst$Chr,median)
+text(x=labs[lgs],y=-0.1,labels=lgn,xpd=TRUE)
+
+fwswl.fst<-fst.plot(fwsw.la,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
+                    scaffs.to.plot=plot.scaffs, y.lim = c(0,1),scaffold.widths = bounds,pch=19,
+                    pt.cols=c(grp.colors[2],grp.colors[3]),pt.cex=1,axis.size=1)
+if(addLines==TRUE){ perlg.add.lines(fwsw.plot,lgs) }
+if(addSmooth==TRUE){ points(fwswl.fst$plot.pos,fwswl.fst$Smoothed.Fst,col="cornflowerblue",type="l") }
+#points(fwswl.fst$BP,fwswl.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[3])
+#points(fwswl.fst$plot.pos[fwswl.fst$Locus.ID %in% all.shared],fwswl.fst$Corrected.AMOVA.Fst[fwswl.fst$Locus.ID %in% all.shared],
+#       pch=1,col="black",cex=1.3)
+clip(0,max(fwswl.fst$plot.pos),0,1)
+abline(v=fwswl.fst$plot.pos[fwswl.fst$Locus.ID %in% all.shared],col="gray47")
+mtext("LAFW vs. ALST",2,cex=0.75)#,line=-1)
+labs<-tapply(fwswl.fst$plot.pos,fwswl.fst$Chr,median)
+text(x=labs[lgs],y=-0.1,labels=lgn,xpd=TRUE)
+
+fwswa.fst<-fst.plot(fwsw.al,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
+                    scaffs.to.plot=plot.scaffs, y.lim = c(0,1),scaffold.widths = bounds,pch=19,
+                    pt.cols=c(grp.colors[3],grp.colors[2]),pt.cex=1,axis.size = 1)
+if(addLines==TRUE){ perlg.add.lines(fwsw.plot,lgs) }
+if(addSmooth==TRUE){ points(fwswa.fst$plot.pos,fwswa.fst$Smoothed.Fst,col="cornflowerblue",type="l") }
+#points(fwswa.fst$BP,fwswa.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[4])
+#points(fwswa.fst$plot.pos[fwswa.fst$Locus.ID %in% all.shared],fwswa.fst$Corrected.AMOVA.Fst[fwswa.fst$Locus.ID %in% all.shared],
+#       pch=1,col="black",cex=1.3)
+clip(0,max(fwswa.fst$plot.pos),0,1)
+abline(v=fwswa.fst$plot.pos[fwswa.fst$Locus.ID %in% all.shared],col="gray47")
+mtext("ALFW vs. ALST",2,cex=0.75)#,line=-1)
+labs<-tapply(fwswa.fst$plot.pos,fwswa.fst$Chr,median)
+text(x=labs[lgs],y=-0.1,labels=lgn,xpd=TRUE)
+
+fwswf.fst<-fst.plot(fwsw.fl,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
+                    scaffs.to.plot=plot.scaffs, y.lim = c(0,1),scaffold.widths = bounds,pch=19,
+                    pt.cols=c(grp.colors[6],grp.colors[5]),pt.cex=1,axis.size=1)
+if(addLines==TRUE){ perlg.add.lines(fwsw.plot,lgs) }
+if(addSmooth==TRUE){ points(fwswf.fst$plot.pos,fwswf.fst$Smoothed.Fst,col="cornflowerblue",type="l") }
+#points(fwswf.fst$BP,fwswf.fst$Corrected.AMOVA.Fst,pch=21,bg=grp.colors[6])
+#points(fwswf.fst$plot.pos[fwswf.fst$Locus.ID %in% all.shared],fwswf.fst$Corrected.AMOVA.Fst[fwswf.fst$Locus.ID %in% all.shared],
+#       pch=1,col="black",cex=1.3)
+clip(0,max(fwswf.fst$plot.pos),0,1)
+abline(v=fwswf.fst$plot.pos[fwswf.fst$Locus.ID %in% all.shared],col="gray47")
+mtext("FLFW vs. FLCC",2,cex=0.75)#,line=-1)
+mtext(expression(bold(italic(F)[ST])),2,outer=T,line=-1,cex=0.75)
+labs<-tapply(fwswf.fst$plot.pos,fwswf.fst$Chr,median)
+text(x=labs[lgs],y=-0.1,labels=lgn,xpd=TRUE)
+#BF
+bs.sal<-fst.plot(bf,fst.name="logSal",chrom.name="scaffold",bp.name = "BP",scaffold.widths=bounds,
+                 scaffs.to.plot = plot.scaffs,pch=19,axis.size = 1,pt.cex = 1)
+points(bs.sal[bs.sal$SNP %in% sal.bf.sig$SNP,"plot.pos"],
+       bs.sal[bs.sal$SNP %in% sal.bf.sig$SNP,"logSal"],
+       col="cornflowerblue",pch=19)#give the outliers a color
+clip(0,max(bs.sal$plot.pos),-3,241)
+abline(v=fwswf.fst$plot.pos[fwswf.fst$Locus.ID %in% all.shared],col="gray47")
+mtext("log(Salinity BF)",2,cex=0.75,line=2.1)
+#points(bs.sal[bs.sal$SNP %in% stacks.sig$SNP,"plot.pos"],
+#       bs.sal[bs.sal$SNP %in% stacks.sig$SNP,"logSal"],
+#       col="cornflowerblue",cex=1.3)
+#clip(min(bs.sal$plot.pos),max(bs.sal$plot.pos),
+#     min(bs.sal$logSal),max(bs.sal$logSal))
+#abline(h=log(bf.co["Salinity_BF"]),col="cornflowerblue",lwd=2)
+
+#add chromosome labels
+labs<-tapply(bs.sal$plot.pos,bs.sal$scaffold,median)
+text(x=labs[lgs],y=-25,labels=lgn,xpd=TRUE)
+dev.off()
+## ---- end
+
+## ---- Fig5plotNJTrees
 #' plot with the outlier regions
 png(fig5.name,height=6,width=8,units="in",res=300)
 par(mfrow=c(5,1),mar=c(0.85,2,0,0.5),oma=c(1,1,1,0.5))
