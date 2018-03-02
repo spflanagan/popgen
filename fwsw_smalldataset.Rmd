@@ -591,7 +591,7 @@ To look for selective sweeps, I'm going to use the FLK R code by Bonhomme et al,
 
 The mandatory input is a matrix of allele frequencies for each population.
 
-```{r FLK,eval=FALSE}
+```{r FLK_freqs,eval=FALSE}
 calc.allFreqs<-function(vcf,pop.list, pop.labs){
   allFreqs<-do.call(rbind,lapply(pop.list, function(pop){
     this.vcf<-cbind(vcf[,1:9],vcf$SNP,vcf[,grep(pop,colnames(vcf))])
@@ -604,9 +604,12 @@ calc.allFreqs<-function(vcf,pop.list, pop.labs){
 }
 
 freqs<-calc.allFreqs(remove.missing.data(vcf, pop.list),pop.list,pop.labs)
-
+write.table(freqs,"flk.freqs",row.names = TRUE)
+```
+```{r FLK}
 source("../scripts/FLK.R")
 library(ape); library(phangorn)
+freqs<-read.table(freqs,row.names=1)
 ## estimate the population tree using Reynolds distances
 ## computed on the SNP data, without specifying an outgroup
 Fsnp<-Fij(freqs)
@@ -620,7 +623,6 @@ Then I run the `programs/FLKnull.py` program on the output to estimate the empir
 
 ```{r plotNull}
 null<-read.table('envelope.txt',head=T)
-tests<-read.delim("tree.txt")
 plot(tests$Ht,tests$F.LK,pch=19,col="gray",xlab='Heterozygosity',ylab='FLK statistic',xlim=c(0,0.5))
 lines(null$Ht,null$q0.005,type='l',col='navy')
 lines(null$Ht,null$q0.995,type='l',col='navy')
