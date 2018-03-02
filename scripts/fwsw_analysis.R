@@ -503,8 +503,10 @@ for(i in 1:length(chroms2plot)){
   a<-put.reg[put.reg$Chrom %in% chroms2plot[i] & !(put.reg$Gene %in% fav.genes),]
   #rect(xleft=as.numeric(a$StartBP),xright=as.numeric(a$StopBP),
   #     ybottom=-0.2,ytop=0.44,col=alpha("gray35",0.5),border=alpha("gray35",0.5))
-  rect(xleft=as.numeric(g$StartBP),xright=as.numeric(g$StopBP),
+  if(nrow(g) > 0){
+    rect(xleft=as.numeric(g$StartBP),xright=as.numeric(g$StopBP),
        ybottom=-0.2,ytop=0.44,col="indianred",border="indianred")
+  }
   
   #Fst
   if(fst.points==TRUE){
@@ -546,15 +548,19 @@ for(i in 1:length(chroms2plot)){
     text(x=txt.locs$starts,y=0.35,cex=2,labels=txt.locs$name,srt=90,xpd=T)  
   }
   if(i == 4){
+    if(nrow(g)>0){
     txt.locs<-data.frame(starts=unique(g$StartBP),name=g$Gene[!duplicated(g$StartBP)])
     txt.locs<-txt.locs[order(txt.locs$starts),]
     txt.locs<-txt.locs[-4,]
     text(x=txt.locs$starts,y=0.35,cex=2,labels=txt.locs$name,srt=90,xpd=T) 
+    }
   }
   if(!i %in% c(1,4)){
+    if(nrow(g)>0){
     txt.locs<-data.frame(starts=unique(g$StartBP),name=g$Gene[!duplicated(g$StartBP)])
     txt.locs<-txt.locs[order(txt.locs$starts),]
     text(x=txt.locs$starts,y=0.35,cex=2,labels=txt.locs$name,srt=90,xpd=T)
+    }
   }
   #axes etc
    axis(1,pos=-0.2,c(xmin,xmax),

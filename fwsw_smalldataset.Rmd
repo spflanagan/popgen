@@ -373,9 +373,6 @@ Figure 5 includes Fst data, Bayes Factors data, colors from Structure, and recip
 
 Now I'm ready to plot Figure 5.
 
-**still need to re-annotate the genome and do the swsw comparison plots. 
-**might be nice to include other aspects in this graph, esp the sw-associated SNPs.
-
 ```{r}
 fig5.name<-"p4_stacks_fsts_fwsw_bf.png"
 addLines<-FALSE
@@ -452,7 +449,7 @@ avg.het.adj<-read.delim(avg.het.adj.name,header=TRUE)
 all.het<-read.delim(all.het.name,header=TRUE)
 ```
 
-Look for regions of reduced diversity as evidence of selective sweeps.
+
 
 ### delta-divergence
 ```{r setupDeltaD,eval=FALSE}
@@ -494,12 +491,12 @@ smoothed.name<-"p4_deltad_pi_het.png"
 ![Figure x. Smoothed variables](fwsw_results/p4_deltad_pi_het.png)
 
 
-### Find the ones with high \pi and low \delta-divergence
+### Find the ones with high $\pi$ and low $\delta$-divergence
 
 ```{r HighPIlowDD}
 ```
 
-There are loci with high \pi and low \delta-divergence on `r length(unique(shared.upp$Chr))` chromosomes. 
+There are loci with high $\pi$ and low $\delta$-divergence on `r length(unique(shared.upp$Chr))` chromosomes. 
 
 Instead of the lumped marine-freshwater $F_{ST}$ values that I used originally, I'm gonna plot the average of pairwise $F_{ST}$ values.
 
@@ -545,7 +542,100 @@ chroms2plot<-chroms2plot[chroms2plot != "LG19"]
 ```
 ![Figure 6. Low \delta-divergence and high \pi](fwsw_results/HandPi_subgenes.png)
 
+
+### Look for regions of reduced diversity as evidence of selective sweeps.
+
+```{r low_diversity}
+upp.pi<-NULL
+low.pi<-NULL
+upp.het<-NULL
+low.het<-NULL
+upp.dd<-NULL
+low.dd<-NULL
+for(i in 1:length(lgs)){
+  upp.pi<-rbind(upp.pi,avg.pi.adj[avg.pi.adj$Avg.Stat >= 
+                     quantile(avg.pi.adj$Avg.Stat[avg.pi.adj$Chr %in% lgs[i]],0.95) &
+                     avg.pi.adj$Chr %in% lgs[i],])
+  low.pi<-rbind(low.pi,avg.pi.adj[avg.pi.adj$Avg.Stat <= 
+                     quantile(avg.pi.adj$Avg.Stat[avg.pi.adj$Chr %in% lgs[i]],0.05) &
+                     avg.pi.adj$Chr %in% lgs[i],])
+
+  upp.het<-rbind(upp.het,avg.het.adj[avg.het.adj$Avg.Stat >= 
+                       quantile(avg.het.adj$Avg.Stat[avg.het.adj$Chr %in% lgs[i]],0.95) &
+                       avg.het.adj$Chr %in% lgs[i],])
+  low.het<-rbind(low.het,avg.het.adj[avg.het.adj$Avg.Stat <= 
+                       quantile(avg.het.adj$Avg.Stat[avg.het.adj$Chr %in% lgs[i]],0.05) &
+                       avg.het.adj$Chr %in% lgs[i],])
+
+  
+}
+shared.low<-low.pi[low.pi$plot.pos %in% low.het$plot.pos,]
+shared.low$plot.min<-shared.low$Avg.Pos-250000
+shared.low$plot.max<-shared.low$Avg.Pos+250000
+
+h.pi.name<-"lowdiv_subgenes.png"
+row.settings<-c(4,3)
+chroms2plot<-unique(shared.low$Chr)
+shared.upp<-shared.low
+fst.points<-FALSE
+```
+```{r plotHandPi}
+```
+
+![Low pi and low het](fwsw_results/lowdiv_subgenes.png)
+
+
+#### Test for selective sweeps
+
+To look for selective sweeps, I'm going to use the FLK R code by Bonhomme et al, downloaded from https://qgsp.jouy.inra.fr/index.php?option=com_content&view=article&id=50&Itemid=55
+
+The mandatory input is a matrix of allele frequencies for each population.
+
+```{r FLK,eval=FALSE}
+calc.allFreqs<-function(vcf,pop.list, pop.labs){
+  allFreqs<-do.call(rbind,lapply(pop.list, function(pop){
+    this.vcf<-cbind(vcf[,1:9],vcf$SNP,vcf[,grep(pop,colnames(vcf))])
+    afs<-do.call(rbind,apply(this.vcf,1,calc.afs.vcf))
+    return(afs$RefFreq)
+  }))
+  colnames(allFreqs)<-vcf$SNP
+  rownames(allFreqs)<-pop.labs
+  return(allFreqs)
+}
+
+freqs<-calc.allFreqs(remove.missing.data(vcf, pop.list),pop.list,pop.labs)
+
+source("../scripts/FLK.R")
+library(ape); library(phangorn)
+## estimate the population tree using Reynolds distances
+## computed on the SNP data, without specifying an outgroup
+Fsnp<-Fij(freqs)
+
+## Now compute the FLK and LK tests
+tests<-FLK(freqs,Fsnp) 
+
+```
+
+Then I run the `programs/FLKnull.py` program on the output to estimate the empirical null distribution. Once that has run, we use the following code provided by Bonhomme et al to plot the null distribution
+
+```{r plotNull}
+null<-read.table('envelope.txt',head=T)
+tests<-read.delim("tree.txt")
+plot(tests$Ht,tests$F.LK,pch=19,col="gray",xlab='Heterozygosity',ylab='FLK statistic',xlim=c(0,0.5))
+lines(null$Ht,null$q0.005,type='l',col='navy')
+lines(null$Ht,null$q0.995,type='l',col='navy')
+lines(null$Ht,null$q0.025,type='l',col='navy')
+lines(null$Ht,null$q0.975,type='l',col='navy')
+lines(null$Ht,null$q0.5,type='l',col='navy')
+lines(smooth.spline(null$Ht,null$q0.995))
+lines(smooth.spline(null$Ht,null$q0.005))
+lines(smooth.spline(null$Ht,null$q0.025),lty=2)
+lines(smooth.spline(null$Ht,null$q0.975),lty=2)
+lines(smooth.spline(null$Ht,null$q0.5),lty=3)
+```
+
 ## Figure 7
 
 Figure 7 shows some example putative genes with smoothed Fsts, delta-divergence, shared Fst outliers, reciprocal monophyly, and saltwater-associated SNPs from Bayenv. This analysis is in another notebook.
+
 
