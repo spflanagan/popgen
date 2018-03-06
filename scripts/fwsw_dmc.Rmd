@@ -1,8 +1,10 @@
 ---
 title: "Run dmc"
 author: "Sarah P. Flanagan"
-date: "February 21, 2018"
-output: html_document
+date: "March 5, 2018"
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 First I'll set up the working environment.
@@ -62,7 +64,13 @@ LG11<-calc.allFreqs(vcf[vcf$`#CHROM` == "LG11",],pop.list,pop.labs)
 LG16<-calc.allFreqs(vcf[vcf$`#CHROM` == "LG16",],pop.list,pop.labs)
 LG20<-calc.allFreqs(vcf[vcf$`#CHROM` == "LG20",],pop.list,pop.labs)
 allFreqs <- cbind(LG6, LG11, LG16, LG20) #combine the neutral chroms
+```
 
+### Set parameters
+
+```{r set_params}
+positions <-vcf[vcf$`#CHROM`=="LG8","POS"]
+#This is necessary for multiple steps in this process.
 sampleSizes<-unlist(lapply(pop.list,function(pop){
   n<-length(grep(pop,colnames(vcf)))
   return(2*n) }))
@@ -74,11 +82,24 @@ Tmatrix = matrix(data = rep(-1 / M, (M - 1) * M), nrow = M - 1, ncol = M)
 diag(Tmatrix) = (M - 1) / M 
 
 sampleErrorMatrix = diag(1/sampleSizes, nrow = numPops, ncol = numPops)
+rec <- 2.17*10^-8 #per base pair recombination rate estimate for the region
+Ne <- 8.3*10^6
+numPops <- 16
+selPops <- c(3,5,7,16)
+numBins <- 1000
+
+selSite = seq(min(positions), max(positions), length.out = 10)
+sels = c(1e-4, 1e-3, 0.01, seq(0.02, 0.14, by = 0.01), seq(0.15, 0.3, by = 0.05), 
+         seq(0.4, 0.6, by = 0.1))
+times = c(0, 5, 25, 50, 100, 500, 1000, 1e4, 1e6)
+gs = c(1/(2*Ne), 10^-(4:1))
+migs = c(10^-(seq(5, 1, by = -2)), 0.5, 1)
+sources = selPops
 ```
 
 Once those are specified, I can calculate the neutral F matrix, in addition to its determinant and inverse.
 
-```{r calc_neutralF,eval=FALSE}
+```{r calc_neutralF}
 neutralF_filename<-"./dmc/neutralF_p4LG8"
 source("../programs/dmc-master/calcNeutralF.R")
 det_FOmegas_neutral = det(Tmatrix %*% (F_estimate + sampleErrorMatrix) %*% t(Tmatrix))
@@ -131,26 +152,9 @@ We generate matrices for the following five models:
 *4. There was an independent mutation in FLFW and the other three share a sweep.
 *5. FLFW has an independent mutation and the others share a beneficial allele via standing variation
 
-```{r calc_FS,eval=FALSE}
-rec <- 0.005 #per base pair recombination rate estimate for the region
-Ne <- 10000
-numPops <- 16
-selPops <- c(3,5,7,16)
-numBins <- 1000
-
-F_estimate <- readRDS("./dmc/LG8neutralF.RDS")
-
-positions <-vcf[vcf$`#CHROM`=="LG8","POS"]
+```{r calc_FS}
+F_estimate <- readRDS("./dmc/neutralF_p4LG8.RDS")
 saveRDS(positions,"dmc/selectedRegionPositions_p4LG8.RDS")
-
-selSite = seq(min(positions), max(positions), length.out = 10)
-sels = c(1e-4, 1e-3, 0.01, seq(0.02, 0.14, by = 0.01), seq(0.15, 0.3, by = 0.05), 
-         seq(0.4, 0.6, by = 0.1))
-times = c(0, 5, 25, 50, 100, 500, 1000, 1e4, 1e6)
-gs = c(1/(2*Ne), 10^-(4:1))
-migs = c(10^-(seq(5, 1, by = -2)), 0.5, 1)
-sources = selPops
-
 source("../programs/dmc-master/genSelMatrices_individualModes.R")
 
 ```
@@ -317,7 +321,7 @@ saveRDS(invFOmegas_mixed_migInd, "dmc/inv_FOmegas_mixed_migInd_p4LG8.RDS")
 
 ### Model 5: FLFW has an independent mutation and the others share a beneficial allele via standing variation
 
-I'm running this one on abies using `nohup Rscript ~/Projects/popgen/scripts/dmc_model5.R > ~/Projects/popgen/dmc5.log 2>&1 &`. It's process 54368 (finished on Feb 19).
+I'm running this one on abies using `nohup Rscript ~/Projects/popgen/scripts/dmc_model5.R > ~/Projects/popgen/dmc5.log 2>&1 &`. It's process 54368 (finished on Feb 19). Now 37092 on Mar 6
 
 ```{r model_5,eval=FALSE}
 my.modes_svInd = c("sv", "ind")
@@ -376,9 +380,9 @@ Now we need to calculate composite likelihoods, which includes knowing how far a
 
 The inverses and determinants generated above  can be used to calculate the log-likelihood of a site a given distance away from a proposed selected site. To do this, we sum the log-likelihoods across all SNPs in the window to obtain a ocmposite log-likelihood under a given convergence model with a set of parameters for a proposed selected site. 
 
-First, we randomize with respect to the reference allele. [where did these selected region allele freqs come from?]
+First, we randomize with respect to the reference allele. 
 
-```{r randomize_afs,eval=FALSE}
+```{r randomize_afs}
 freqs_notRand = readRDS("dmc/selectedRegionAlleleFreqs_p4LG8.RDS")
 
 randFreqs = apply(freqs_notRand, 2, function(my.freqs) {
@@ -394,23 +398,6 @@ saveRDS(randFreqs, "dmc/selectedRegionAlleleFreqsRand_p4LG8.RDS")
 ```{r set_complike_params}
 freqs<-readRDS("dmc/selectedRegionAlleleFreqsRand_p4LG8.RDS")
 positions<-readRDS("dmc/selectedRegionPositions_p4LG8.RDS")
-
-#these are the same as above
-numPops <- 16
-numBins <- 1000
-
-
-rec <- 0.005 #per base pair recombination rate estimate for the region
-
-selSite = seq(min(positions), max(positions), length.out = 10)
-sels = c(1e-4, 1e-3, 0.01, seq(0.02, 0.14, by = 0.01), seq(0.15, 0.3, by = 0.05), 
-         seq(0.4, 0.6, by = 0.1)) #possible selection coefficients
-times = c(0, 5, 25, 50, 100, 500, 1000, 1e4, 1e6)
-Ne <- 10000
-gs = c(1/(2*Ne), 10^-(4:1))
-migs = c(10^-(seq(5, 1, by = -2)), 0.5, 1)
-selPops <- c(3,5,7,16)
-sources = selPops
 ```
 ```{r composite_likelihood}
 source("../programs/dmc-master/calcCompositeLike.R")
@@ -542,6 +529,8 @@ compLikelihood_mixed_svInd_all = lapply(1: length(selSite), function(i) {
 saveRDS(compLikelihood_mixed_svInd_all, "dmc/compLikelihood_mixed_svInd_p4LG8.RDS")
 ```
 
+Running these on abies with nohup, process 39388 (6 March 2018).
+
 ##Plot maximum composite likelihood ratios for models over proposed selected sites
 
 ```{r plot_likelihoods}
@@ -630,15 +619,15 @@ getMCLEmixed(compLikelihood_mixed_svInd, selSite, sels, gs, times, migs[1], sour
 
 ### Plot profile likelihood surfaces
 
-Plot the profile likelihood surfaces for the parameter of time the beneficial allele has been standing independently in the selecte dpopulations for the models with the highest composite log-likelihoods.
+Plot the profile likelihood surfaces for the parameter of time the beneficial allele has been standing independently in the selected populations for the models with the highest composite log-likelihoods.
 
-## Finding prolactin
+<!-- ## Finding prolactin -->
 
-```{r pinpoint_prl,echo=FALSE,eval=FALSE}
-#generate position data near prolactin
+<!-- ```{r pinpoint_prl,echo=FALSE,eval=FALSE} -->
+<!-- #generate position data near prolactin -->
 
-put.reg<-read.delim("putative.gene.regions.tsv",header=T)
-prl<-put.reg[put.reg$Gene=="PRL" & put.reg$Chrom=="LG8",]
-prl.loc<-as.numeric(prl$StartBP[2])+((as.numeric(prl$StopBP[2])-as.numeric(prl$StartBP[2]))/2)
-```
+<!-- put.reg<-read.delim("putative.gene.regions.tsv",header=T) -->
+<!-- prl<-put.reg[put.reg$Gene=="PRL" & put.reg$Chrom=="LG8",] -->
+<!-- prl.loc<-as.numeric(prl$StartBP[2])+((as.numeric(prl$StopBP[2])-as.numeric(prl$StartBP[2]))/2) -->
+<!-- ``` -->
 
