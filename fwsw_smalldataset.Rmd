@@ -609,7 +609,7 @@ write.table(freqs,"flk.freqs",row.names = TRUE)
 ```{r FLK}
 source("../scripts/FLK.R")
 library(ape); library(phangorn)
-freqs<-read.table(freqs,row.names=1)
+freqs<-read.table("flk.freqs",row.names=1)
 ## estimate the population tree using Reynolds distances
 ## computed on the SNP data, without specifying an outgroup
 Fsnp<-Fij(freqs)
