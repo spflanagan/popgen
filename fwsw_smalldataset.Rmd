@@ -33,7 +33,9 @@ library(knitr)
 knitr::read_chunk("../scripts/fwsw_analysis.R")
 ```
 
-```{r FWSWsetup, include=FALSE}
+```{r LoadFWSWpackages, include=FALSE}
+```
+```{r FWSWsetup}
 ```
 
 ```{r pwiseFstsFiles,eval=FALSE}

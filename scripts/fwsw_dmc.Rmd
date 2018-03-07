@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_knit$set(root.dir='../fwsw_results/')
 ```
 
-```{r source}
+```{r source, include=FALSE}
 source("../../gwscaR/R/gwscaR.R")
 source("../../gwscaR/R/gwscaR_plot.R")
 source("../../gwscaR/R/gwscaR_utility.R")
@@ -23,11 +23,13 @@ source("../../gwscaR/R/gwscaR_popgen.R")
 library(knitr)
 library(fields)
 library(MASS)
+library(RColorBrewer)
 ```
 
 and load the necessary files
 ```{r access_analysis, echo=FALSE}
 knitr::read_chunk("../scripts/fwsw_analysis.R")
+knitr::read_chunk("../scripts/run_dmc.R")
 ```
 ```{r FWSWsetup, include=FALSE}
 ```
@@ -41,7 +43,7 @@ Now I'll go through the steps outline in https://github.com/kristinmlee/dmc/blob
 
 ## Calculate neutral F matrix
 
-For this first step (calculating the neutral variance/covariance matrix, F), I'll use LG6, LG11, LG16, and LG20, which have no or few shared outlier loci. I need to (1) Calculate allele frequencies for each population, (2) specify a vector of sample sizes for each population, and (3) specify a string for filename for output. 
+For this first step (calculating the neutral variance/covariance matrix, F), I'll use linkage groups that have no or few shared outlier loci. I need to (1) Calculate allele frequencies for each population, (2) specify a vector of sample sizes for each population, and (3) specify a string for filename for output. This step is baseline for all parameter sensitivity analyses.
 
 ```{r calc_af}
 calc.allFreqs<-function(vcf,pop.list, pop.labs){
@@ -57,51 +59,24 @@ calc.allFreqs<-function(vcf,pop.list, pop.labs){
 #calculate selected allele frequencies
 LG8<-calc.allFreqs(vcf[vcf$`#CHROM` == "LG8",],pop.list,pop.labs)
 saveRDS(LG8,"dmc/selectedRegionAlleleFreqs_p4LG8.RDS")
+saveRDS(vcf[vcf$`#CHROM`=="LG8","POS"],"dmc/selectedRegionPositions_p4LG8.RDS")
 
 #calculate neutral allele frequencies
-LG6<-calc.allFreqs(vcf[vcf$`#CHROM` == "LG6",],pop.list,pop.labs)
-LG11<-calc.allFreqs(vcf[vcf$`#CHROM` == "LG11",],pop.list,pop.labs)
-LG16<-calc.allFreqs(vcf[vcf$`#CHROM` == "LG16",],pop.list,pop.labs)
-LG20<-calc.allFreqs(vcf[vcf$`#CHROM` == "LG20",],pop.list,pop.labs)
-allFreqs <- cbind(LG6, LG11, LG16, LG20) #combine the neutral chroms
+allFreqs<-calc.allFreqs(vcf[vcf$`#CHROM` %in% c("LG6","LG9","LG10","LG11","LG13","LG14","LG16","LG18","LG20"),],
+                   pop.list,pop.labs)
+
 ```
 
-### Set parameters
+Once those are calculated, I can calculate the neutral F matrix, in addition to its determinant and inverse.
 
-```{r set_params}
-positions <-vcf[vcf$`#CHROM`=="LG8","POS"]
-#This is necessary for multiple steps in this process.
+```{r calc_neutralF}
 sampleSizes<-unlist(lapply(pop.list,function(pop){
   n<-length(grep(pop,colnames(vcf)))
   return(2*n) }))
-
-#other parameters that will be necessarily later on
-numPops = 16
-M = numPops
-Tmatrix = matrix(data = rep(-1 / M, (M - 1) * M), nrow = M - 1, ncol = M)
-diag(Tmatrix) = (M - 1) / M 
-
-sampleErrorMatrix = diag(1/sampleSizes, nrow = numPops, ncol = numPops)
-rec <- 2.17*10^-8 #per base pair recombination rate estimate for the region
-Ne <- 8.3*10^6
-numPops <- 16
-selPops <- c(3,5,7,16)
-numBins <- 1000
-
-selSite = seq(min(positions), max(positions), length.out = 10)
-sels = c(1e-4, 1e-3, 0.01, seq(0.02, 0.14, by = 0.01), seq(0.15, 0.3, by = 0.05), 
-         seq(0.4, 0.6, by = 0.1))
-times = c(0, 5, 25, 50, 100, 500, 1000, 1e4, 1e6)
-gs = c(1/(2*Ne), 10^-(4:1))
-migs = c(10^-(seq(5, 1, by = -2)), 0.5, 1)
-sources = selPops
-```
-
-Once those are specified, I can calculate the neutral F matrix, in addition to its determinant and inverse.
-
-```{r calc_neutralF}
-neutralF_filename<-"./dmc/neutralF_p4LG8"
+saveRDS(sampleSizes,"dmc/sampleSizes.RDS")
+neutralF_filename<-"dmc/neutralF_p4LG8"
 source("../programs/dmc-master/calcNeutralF.R")
+F_estimate<-readRDS("dmc/neutralF_p4LG8.RDS")
 det_FOmegas_neutral = det(Tmatrix %*% (F_estimate + sampleErrorMatrix) %*% t(Tmatrix))
 saveRDS(det_FOmegas_neutral, "dmc/det_FOmegas_neutral_p4LG8.RDS")
 
@@ -118,10 +93,10 @@ Let's look at the allele frequencies on LG8. This will help inform the hypothese
 ```{r sig_alleleFreqs}
 stacks.sig<-read.delim("p4.stacks.sig.snps.txt")
 stacks.sig$SNP<-paste(stacks.sig$Chr,(stacks.sig$BP+1),sep=".")
-LG8[rownames(LG8) %in% c("FLFW","ALFW","LAFW","TXFW"),colnames(LG8) %in% stacks.sig$SNP]
-LG8[rownames(LG8) %in% c("FLFW","ALFW","LAFW","TXFW"),
-         which(colnames(LG8) %in% stacks.sig$SNP)[1]:
-           which(colnames(LG8) %in% stacks.sig$SNP)[length(which(colnames(LG8) %in% stacks.sig$SNP))]]
+# LG8[rownames(LG8) %in% c("FLFW","ALFW","LAFW","TXFW"),colnames(LG8) %in% stacks.sig$SNP]
+# LG8[rownames(LG8) %in% c("FLFW","ALFW","LAFW","TXFW"),
+#          which(colnames(LG8) %in% stacks.sig$SNP)[1]:
+#            which(colnames(LG8) %in% stacks.sig$SNP)[length(which(colnames(LG8) %in% stacks.sig$SNP))]]
 grp.colors<-c('#762a83','#af8dc3','#e7d4e8','#d9f0d3','#7fbf7b','#1b7837')
 plot(LG8["TXFW",],col=grp.colors[1],pch="-",bty="L",lwd=2,cex=2)
 points(LG8["LAFW",],col=grp.colors[2],pch="-",bty="L",lwd=2,cex=2)
@@ -152,390 +127,29 @@ We generate matrices for the following five models:
 *4. There was an independent mutation in FLFW and the other three share a sweep.
 *5. FLFW has an independent mutation and the others share a beneficial allele via standing variation
 
-```{r calc_FS}
-F_estimate <- readRDS("./dmc/neutralF_p4LG8.RDS")
-saveRDS(positions,"dmc/selectedRegionPositions_p4LG8.RDS")
-source("../programs/dmc-master/genSelMatrices_individualModes.R")
+I've written a giant function to run all five models and calculate their composite likelihoods. The composite likelihoods include knowing how far away we are from the proposed selected site. Therefore, the first step for calculating them is to randomize with respect to the reference allele.  
 
+The inverses and determinants generated can be used to calculate the log-likelihood of a site a given distance away from a proposed selected site. To do this, we sum the log-likelihoods across all SNPs in the window to obtain a composite log-likelihood under a given convergence model with a set of parameters for a proposed selected site. 
+
+```{r runDMC,echo=TRUE}
 ```
 
-### Model 1: all selected populations have independent mutations
+I have to set some parameters before running the function, including the sets of parameters I want to try different settings for.
 
-```{r model_1,eval=FALSE}
-FOmegas_ind = lapply(sels, function(sel) {
-  calcFOmegas_indSweeps(sel)
-})
-
-saveRDS(FOmegas_ind, "dmc/FOmegas_ind_p4LG8.RDS")
-#determinant
-det_FOmegas_ind = lapply(FOmegas_ind, function(sel) {
-    lapply(sel, function(dist) {
-        det(dist)
-    })
-})
-saveRDS(det_FOmegas_ind, "dmc/det_FOmegas_ind_p4LG8.RDS")
-#inverse
-inv_FOmegas_ind = lapply(FOmegas_ind, function(sel) {
-    lapply(sel, function(dist) {
-        ginv(dist)
-    })
-})
-saveRDS(inv_FOmegas_ind, "dmc/inv_FOmegas_ind_p4LG8.RDS")
-
-
+```{r setParameters}
 ```
 
-### Model 2: all selected populations share a beneficial allele via migration
+And I'm going to run it with a variety of effective population sizes to see how robust the models are to that parameter.
 
-```{r model_2,eval=FALSE}
-FOmegas_mig = lapply(sels ,function(sel) {
-  lapply(migs, function(mig) {
-    lapply(sources, function(my.source) {
-      calcFOmegas_mig(sel, mig, my.source)
-    })
-  })
-})
-
-saveRDS(FOmegas_mig, "dmc/FOmegas_mig_p4LG8.RDS")
-#determinant
-det_FOmegas_mig = lapply(FOmegas_mig, function(sel) {
-    lapply(sel, function(mig) {
-        lapply(mig, function(source) {
-            lapply(source, function(dist) {
-                det(dist)
-            })
-        })
-    })
-})
-saveRDS(det_FOmegas_mig, "dmc/det_FOmegas_mig_p4LG8.RDS")
-#inverse
-inv_FOmegas_mig = lapply(FOmegas_mig, function(sel) {
-    lapply(sel, function(mig) {
-        lapply(mig, function(source) {
-            lapply(source, function(dist) {
-                ginv(dist)
-            })
-        })
-    })
-})
-saveRDS(inv_FOmegas_mig, "dmc/inv_FOmegas_mig_p4LG8.RDS")
-
+```{r dmcNe, eval=FALSE}
 ```
 
-### Model 3: beneficial allele was standing in the ancestor of all selected populations
+I'm running this one on abies using `nohup Rscript ~/Projects/popgen/scripts/run_dmc.R > ~/Projects/popgen/dmc_ne.log 2>&1 &`. Process 1539 on 7 March 2018
 
-```{r model_3,eval=FALSE}
-FOmegas_sv = lapply(sels, function(sel) {
-  lapply(gs, function(g) {
-    lapply(times, function(time) {
-      lapply(sources, function(my.source) {
-        calcFOmegas_stdVar.source(sel, g, time, my.source)
-      })
-    })
-  })
-})
-
-saveRDS(FOmegas_sv, "dmc/FOmegas_sv_p4LG8.RDS")
-#determinant
-det_FOmegas_sv = lapply(FOmegas_sv, function(sel) {
-    lapply(sel, function(g) {
-        lapply(g, function(time) {
-            lapply(time, function(my.source) {
-                lapply(my.source, function(dist) {
-                    det(dist)
-                })
-            })
-        })
-    })
-})
-saveRDS(det_FOmegas_sv, "dmc/det_FOmegas_sv_p4LG8.RDS")
-#inverse
-inv_FOmegas_sv = lapply(FOmegas_sv, function(sel) {
-    lapply(sel, function(g) {
-        lapply(g, function(time) {
-            lapply(time, function(my.source) {
-                lapply(my.source, function(dist) {
-                    ginv(dist)
-                })
-            })
-        })
-    })
-})
-saveRDS(inv_FOmegas_sv, "dmc/inv_FOmegas_sv_p4LG8.RDS")
-```
-
-### Model 4: FLFW has an independent mutation but the others share a beneficial allele via migration
-
-```{r model_4,eval=FALSE}
-sets<-list(c(3,5,7),16)
-source("../programs/dmc-master/genSelMatrices_multipleModes.R")
-
-my.modes_migInd=c("mig","ind")
-
-#the parameters time and g are not involved in the migration model so we only loop over
-## the first element of these vectors
-FOmegas_mixed_migInd = lapply(sels ,function(sel) {
-    lapply(gs[1], function(g) {
-        lapply(times[1], function(time) {
-            lapply(migs, function(mig) {
-                lapply(sources, function(my.source) {
-                    calcFOmegas_mixed(sel, g, time, mig, my.source, my.modes_migInd)
-                })
-            })
-        })
-    })
-})
-
-saveRDS(FOmegas_mixed_migInd, "dmc/FOmegas_mixed_migInd_p4LG8.RDS")
-
-detFOmegas_mixed_migInd = lapply(FOmegas_mixed_migInd, function(sel) {
-    lapply(sel, function(g) {
-        lapply(g, function(time) {
-            lapply(time, function(mig) {
-                lapply(mig, function(source) {
-                    lapply(source, function(dist) {
-                        det(dist)
-                    })
-                })  
-            })
-        })
-    })
-})
-saveRDS(detFOmegas_mixed_migInd, "dmc/det_FOmegas_mixed_migInd_p4LG8.RDS")
-
-invFOmegas_mixed_migInd = lapply(FOmegas_mixed_migInd, function(sel) {
-    lapply(sel, function(g) {
-        lapply(g, function(time) {
-            lapply(time, function(mig) {
-                lapply(mig, function(source) {
-                    lapply(source, function(dist) {
-                        ginv(dist)
-                    })
-                })  
-            })
-        })
-    })
-})
-saveRDS(invFOmegas_mixed_migInd, "dmc/inv_FOmegas_mixed_migInd_p4LG8.RDS")
-```
-
-### Model 5: FLFW has an independent mutation and the others share a beneficial allele via standing variation
-
-I'm running this one on abies using `nohup Rscript ~/Projects/popgen/scripts/dmc_model5.R > ~/Projects/popgen/dmc5.log 2>&1 &`. It's process 54368 (finished on Feb 19). Now 37092 on Mar 6
-
-```{r model_5,eval=FALSE}
-my.modes_svInd = c("sv", "ind")
-
-#the parameter mig is not involved in the standing variant model so we only loop over
-## the first element of this vector
-FOmegas_mixed_svInd = lapply(sels ,function(sel) {
-    lapply(gs, function(g) {
-        lapply(times, function(time) {
-            lapply(migs[1], function(mig) {
-                lapply(sources, function(my.source) {
-                    calcFOmegas_mixed(sel, g, time, mig, my.source, my.modes_svInd)
-                })
-            })
-        })
-    })
-})
-
-saveRDS(FOmegas_mixed_svInd, "dmc/FOmegas_mixed_svInd_p4LG8.RDS")
-
-detFOmegas_mixed_svInd = lapply(FOmegas_mixed_svInd, function(sel) {
-    lapply(sel, function(g) {
-        lapply(g, function(time) {
-            lapply(time, function(mig) {
-                lapply(mig, function(source) {
-                    lapply(source, function(dist) {
-                        det(dist)
-                    })
-                })  
-            })
-        })
-    })
-})
-saveRDS(detFOmegas_mixed_svInd, "dmc/det_FOmegas_mixed_svInd_p4LG8.RDS")
-
-invFOmegas_mixed_svInd = lapply(FOmegas_mixed_svInd, function(sel) {
-    lapply(sel, function(g) {
-        lapply(g, function(time) {
-            lapply(time, function(mig) {
-                lapply(mig, function(source) {
-                    lapply(source, function(dist) {
-                        ginv(dist)
-                    })
-                })  
-            })
-        })
-    })
-})
-saveRDS(invFOmegas_mixed_svInd, "dmc/inv_FOmegas_mixed_svInd_p4LG8.RDS")
-
-```
-
-## Calculate composite likelihoods
-
-Now we need to calculate composite likelihoods, which includes knowing how far away we are from the proposed selected site.
-
-The inverses and determinants generated above  can be used to calculate the log-likelihood of a site a given distance away from a proposed selected site. To do this, we sum the log-likelihoods across all SNPs in the window to obtain a ocmposite log-likelihood under a given convergence model with a set of parameters for a proposed selected site. 
-
-First, we randomize with respect to the reference allele. 
-
-```{r randomize_afs}
-freqs_notRand = readRDS("dmc/selectedRegionAlleleFreqs_p4LG8.RDS")
-
-randFreqs = apply(freqs_notRand, 2, function(my.freqs) {
-    if(runif(1) < 0.5) {
-        my.freqs = 1 - my.freqs
-    }
-    my.freqs
-})
-
-saveRDS(randFreqs, "dmc/selectedRegionAlleleFreqsRand_p4LG8.RDS")
-```
-
-```{r set_complike_params}
-freqs<-readRDS("dmc/selectedRegionAlleleFreqsRand_p4LG8.RDS")
-positions<-readRDS("dmc/selectedRegionPositions_p4LG8.RDS")
-```
-```{r composite_likelihood}
-source("../programs/dmc-master/calcCompositeLike.R")
-
-## Neutral model
-det_FOmegas_neutral = readRDS("dmc/det_FOmegas_neutral_p4LG8.RDS")
-inv_FOmegas_neutral = readRDS("dmc/inv_FOmegas_neutral_p4LG8.RDS")
-compLikelihood_neutral = lapply(1 : length(selSite), function(j) {
-  calcCompLikelihood_neutral(j, det_FOmegas_neutral, inv_FOmegas_neutral)
-})
-saveRDS(compLikelihood_neutral, "dmc/compLikelihood_neutral_p4LG8.RDS")
-
-## Model 1
-det_FOmegas_ind = readRDS("dmc/det_FOmegas_ind_p4LG8.RDS")
-inv_FOmegas_ind = readRDS("dmc/inv_FOmegas_ind_p4LG8.RDS")
-compLikelihood_ind = lapply(1 : length(selSite), function(j) {
-  lapply(1 : length(sels), function(sel) calcCompLikelihood_1par(j, det_FOmegas_ind,
-                                                                 inv_FOmegas_ind, sel))
-})
-saveRDS(compLikelihood_ind, "dmc/compLikelihood_ind_p4LG8.RDS")
-
-## Model 2
-det_FOmegas_mig = readRDS("dmc/det_FOmegas_mig_p4LG8.RDS")
-inv_FOmegas_mig = readRDS("dmc/inv_FOmegas_mig_p4LG8.RDS")
-compLikelihood_mig = lapply(1 : length(selSite), function(j) {
-    lapply(1 : length(sels), function(sel) {
-        lapply(1 : length(migs), function(mig) {
-            lapply(1 : length(sources), function(my.source) {
-                calcCompLikelihood_3par(j, det_FOmegas_mig, inv_FOmegas_mig, sel, mig,
-                                        my.source)
-            })
-        })
-    })
-})
-saveRDS(compLikelihood_mig, "dmc/compLikelihood_mig_p4LG8.RDS")
-
-## Model 3
-det_FOmegas_sv = readRDS("dmc/det_FOmegas_sv_p4LG8.RDS")
-inv_FOmegas_sv = readRDS("dmc/inv_FOmegas_sv_p4LG8.RDS")
-compLikelihood_sv = lapply(1 : length(selSite), function(j) {
-    lapply(1 : length(sels), function(sel) {
-        lapply(1 : length(gs), function(g) {
-            lapply(1 : length(times), function(t) {
-                lapply(1: length(sources), function(my.source) {
-                calcCompLikelihood_4par(j, det_FOmegas_sv, inv_FOmegas_sv, sel, g, t,
-                                        my.source)
-                })
-            })
-        })
-    })
-})
-saveRDS(compLikelihood_sv, "dmc/compLikelihood_sv_p4LG8.RDS")
-
-## Model 4
-det_FOmegas_mixed_migInd = readRDS("dmc/det_FOmegas_mixed_migInd_p4LG8.RDS")
-inv_FOmegas_mixed_migInd = readRDS("dmc/inv_FOmegas_mixed_migInd_p4LG8.RDS")
-
-# same trick as above (the parameters time and g are not involved in the migration
-## model so we only loop over the first element of these vectors)
-# now save lists for each proposed selected site (may want to do this for other 
-## models/more elegantly depending on density of parameter space)
-for(j in 1 : length(selSite)) {
-    compLikelihood_mixed_migInd = lapply(1 : length(sels), function(sel) {
-        lapply(1 : length(gs[1]), function(g) {
-            lapply(1 : length(times[1]), function(t) {
-              lapply(1 : length(migs), function (mig) {
-                  lapply(1: length(sources), function(my.source) {
-                    calcCompLikelihood_5par(j, det_FOmegas_mixed_migInd,
-                                            inv_FOmegas_mixed_migInd, sel, g, t, mig,
-                                            my.source)
-                  })
-                })
-            })
-        })
-    })
-  saveRDS(compLikelihood_mixed_migInd,
-          paste("dmc/compLikelihood_mixed_migInd_p4LG8_selSite", j, ".RDS",
-                sep = ""))
-}
-
-## Model 5
-det_FOmegas_mixed_svInd = readRDS("dmc/det_FOmegas_mixed_svInd_p4LG8.RDS")
-inv_FOmegas_mixed_svInd = readRDS("dmc/inv_FOmegas_mixed_svInd_p4LG8.RDS")
-
-#same trick as above (the parameter mig is not involved in the migration model so we
-##only loop over the first element of this vector)
-# now save lists for each proposed selected site (may want to do this for other
-## models/more elegantly depending on density of parameter space)
-for(j in 1 : length(selSite)) {
-    compLikelihood_mixed_svInd = lapply(1 : length(sels), function(sel) {
-        lapply(1 : length(gs), function(g) {
-            lapply(1 : length(times), function(t) {
-              lapply(1 : length(migs[1]), function (mig) {
-                  lapply(1: length(sources), function(my.source) {
-                    calcCompLikelihood_5par(j, det_FOmegas_mixed_svInd,
-                                            inv_FOmegas_mixed_svInd, sel, g, t, mig,
-                                            my.source)
-                  })
-                })
-            })
-        })
-    })
-  saveRDS(compLikelihood_mixed_svInd,
-          paste("dmc/compLikelihood_mixed_svInd_p4LG8_selSite", j, ".RDS",
-                sep = ""))
-}
-```
-
-Combine files for models 4 and 5 that are separated by proposed selected site.
-
-```{r combine_files}
-positions = readRDS("dmc/selectedRegionPositions_p4LG8.RDS")
-selSite = seq(min(positions), max(positions), length.out = 10)
-
-## Model 4
-compLikelihood_mixed_migInd_all = lapply(1: length(selSite), function(i) {
-  readRDS(paste("dmc/compLikelihood_mixed_migInd_p4LG8_selSite", i, ".RDS",
-                sep = ""))
-})
-
-saveRDS(compLikelihood_mixed_migInd_all, "dmc/compLikelihood_mixed_migInd_p4LG8.RDS")
-
-## Model 5
-compLikelihood_mixed_svInd_all = lapply(1: length(selSite), function(i) {
-  readRDS(paste("dmc/compLikelihood_mixed_svInd_p4LG8_selSite", i, ".RDS",
-                sep = ""))
-})
-
-saveRDS(compLikelihood_mixed_svInd_all, "dmc/compLikelihood_mixed_svInd_p4LG8.RDS")
-```
-
-Running these on abies with nohup, process 39388 (6 March 2018).
 
 ##Plot maximum composite likelihood ratios for models over proposed selected sites
 
 ```{r plot_likelihoods}
-positions = readRDS("dmc/selectedRegionPositions_p4LG8.RDS")
-selSite = seq(min(positions), max(positions), length.out = 10)
 
 #read in composite likelihood files and calculate max for all proposed selected sites
 compLikelihood_neutral = readRDS("dmc/compLikelihood_neutral_p4LG8.RDS")

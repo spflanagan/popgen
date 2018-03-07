@@ -15,7 +15,7 @@ source("../../gwscaR/R/gwscaR_utility.R")
 source("../../gwscaR/R/gwscaR_fsts.R")
 source("../../gwscaR/R/gwscaR_popgen.R")
 
-## ---- FWSWsetup
+## ---- LoadFWSWpackages
 library(ade4)
 library(lme4)
 library(maps);library(gplots)
@@ -29,6 +29,8 @@ library(ape)
 library(lattice); library(RColorBrewer); library(grid)
 library(devtools)
 library(mmod)
+## ---- end-of-LoadFWSWpackages
+## ---- FWSWsetup
 pop.list<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
 	"FLFD","FLSI","FLAB","FLPB","FLHB","FLCC","FLLG")
 pop.labs<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
