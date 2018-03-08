@@ -144,7 +144,46 @@ And I'm going to run it with a variety of effective population sizes to see how 
 ```{r dmcNe, eval=FALSE}
 ```
 
-I'm running this one on abies using `nohup Rscript ~/Projects/popgen/scripts/run_dmc.R > ~/Projects/popgen/dmc_ne.log 2>&1 &`. Process 1539 on 7 March 2018
+I'm running this one on abies using `nohup Rscript ~/Projects/popgen/scripts/run_dmc.R >> ~/Projects/popgen/dmc_ne.log 2>&1 &`. Process 1539 on 7 March 2018 and 34744 on 8 March 2018.
+
+```{r rec_est}
+ssc.map<-read.delim("~/Projects/SSC_linkage_map_20160701.txt",header=T)
+colnames(ssc.map)<-c("map","mkr","gen","scaffold","scaffold_orientation","scaffold.bp","phys","node")
+ssc.map$set<-"Syngnathus.scovelli"
+map<-ssc.map[,c("set","map","mkr","phys","gen")]
+write.table(map,"~/Projects/ssc_map.txt",sep=" ",row.names=FALSE, col.names = TRUE)
+library(MareyMap)
+startMareyMapGUI()
+#using the GUI, I ran all three types of recombination rate estimators and saved the MapSet
+```
+```{r estimate_rec}
+ssc.map<-read.delim("~/Projects/ssc_MareyMap.txt",comment.char = "#",sep=" ")
+#genome-wide
+r<-data.frame(Genome_wide=c(mean(ssc.map$slidingwindow,na.rm = TRUE)/1000000,
+                            mean(ssc.map$spline,na.rm = TRUE)/1000000,
+                            mean(ssc.map$loess,na.rm = TRUE)/1000000),
+              LG8=c(mean(ssc.map$slidingwindow[ssc.map$map=="LG8"],na.rm = TRUE)/1000000,
+                            mean(ssc.map$spline[ssc.map$map=="LG8"],na.rm = TRUE)/1000000,
+                            mean(ssc.map$loess[ssc.map$map=="LG8"],na.rm = TRUE)/1000000),
+              row.names = c("Sliding Window","Spline","Loess"))
+kable(r,caption="Recombination rate estimates")
+```
+```{r plot_recLG8}
+load("~/Projects/ssc_map.rda")
+#plot LG8
+plot(set[["LG8"]]@interpolations$slidingwindow@physicalPositions,
+     set[["LG8"]]@interpolations$slidingwindow@rates,type="l",
+     ylim=c(-5,25),xlab="",ylab="",xaxt='n',lwd=2)
+abline(h=0,lty=2)
+axis(1,at=seq(0,1*10^7,2*10^6),labels = seq(0,10,2))
+mtext("Position on LG8 (Mb)",1,line=2)
+mtext("Recombination Rate (cM/Mb)",2,line=2)
+lines(set[["LG8"]]@interpolations$spline@physicalPositions,
+      set[["LG8"]]@interpolations$spline@rates,type="l",col="blue",lwd=2)
+lines(set[["LG8"]]@interpolations$loess@physicalPositions,
+      set[["LG8"]]@interpolations$loess@rates,type="l",lwd=2,col="forestgreen")
+legend("topleft",bty='n',col=c("black","blue","forestgreen"),lwd=2,c("Sliding Window","Spline","Loess"))
+```
 
 
 ##Plot maximum composite likelihood ratios for models over proposed selected sites

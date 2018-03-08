@@ -17,14 +17,27 @@ run.dmc<-function(F_estimate,out_name,positions, sampleSizes,selSite=NA,nselsite
                Ne,selPops,numBins,numPops,sels,times,gs,migs,mod4_sets)
   names(params)<-c("F_estimate","out_name","positions", "sampleSizes","selSite","nselsites","rec",
                    "Ne","selPops","numBins","numPops","sels","times","gs","migs","mod4_sets")
+  #make all the parameters global
+  F_estimate<<-F_estimate
+  positions<<-positions
+  sampleSizes<<-sampleSizes
   Ne<<-Ne
+  rec<<-rec
+  selPops<<-selPops
+  numBins<<-numBins
+  numPops<<-numPops
+  sels<<-sels
+  times<<-times
+  gs<<-gs
+  migs<<-migs
   #set up parameters
-  M = numPops
-  Tmatrix = matrix(data = rep(-1 / M, (M - 1) * M), nrow = M - 1, ncol = M)
+  M <<- numPops
+  Tmatrix <<- matrix(data = rep(-1 / M, (M - 1) * M), nrow = M - 1, ncol = M)
   diag(Tmatrix) = (M - 1) / M 
-  sampleErrorMatrix = diag(1/sampleSizes, nrow = numPops, ncol = numPops)
+  sampleErrorMatrix <<- diag(1/sampleSizes, nrow = numPops, ncol = numPops)
   if(is.na(selSite[1])) selSite=seq(min(positions), max(positions), length.out = nselsites)
-  sources = selPops
+  selSite<<-selSite
+  sources <<- selPops
   sets<<-mod4_sets
   ############### calculate F(S) ###############
   source("../programs/dmc-master/genSelMatrices_individualModes.R")
@@ -240,18 +253,18 @@ run.dmc<-function(F_estimate,out_name,positions, sampleSizes,selSite=NA,nselsite
       my.freqs
     })
     saveRDS(randFreqs, paste("dmc/selectedRegionAlleleFreqsRand_",out_name,".RDS",sep=""))
-    freqs<-randFreqs
+    freqs<<-randFreqs
     
     #calc the likelihoods
     source("../programs/dmc-master/calcCompositeLike.R")
     
     ## Neutral model
-    det_FOmegas_neutral = readRDS(paste("dmc/det_FOmegas_neutral_",out_name,".RDS",sep=""))
+    det_FOmegas_neutral = readRDS("dmc/det_FOmegas_neutral_p4LG8.RDS")
     inv_FOmegas_neutral = readRDS("dmc/inv_FOmegas_neutral_p4LG8.RDS")
     compLikelihood_neutral = lapply(1 : length(selSite), function(j) {
       calcCompLikelihood_neutral(j, det_FOmegas_neutral, inv_FOmegas_neutral)
     })
-    saveRDS(compLikelihood_neutral, paste("dmc/compLikelihood_neutral_",out_name,".RDS",sep=""))
+    saveRDS(compLikelihood_neutral, paste("dmc/compLikelihood_neutral_p4LG8.RDS",sep=""))
     
     ## Model 1
     det_FOmegas_ind = readRDS(paste("dmc/det_FOmegas_ind_",out_name,".RDS",sep=""))
@@ -392,21 +405,16 @@ mod4_sets=list(c(3,5,7),16)
 ## ---- end-setParameters
 
 ## ---- dmcNe
-Nes <- c(8.3*10^3,8.3*10^4,8.3*10^5,8.3*10^6)
-p<-run.dmc(F_estimate = F_estimate,out_name = "p4LG8_8300",positions = positions,sampleSizes = sampleSizes,
-           selSite=selSite,rec =rec,
-           Ne = Nes[1],selPops = selPops,numBins = numBins,numPops = numPops,
-           sels = sels, times = times,gs = gs,
-           migs = migs,mod4_sets=mod4_sets,mod1=FALSE,mod2=FALSE,mod3=FALSE,mod4=TRUE,mod5=TRUE,complike=TRUE)
-# dmc.ne<-lapply(Ne, function(ne){
-#   out_name<-paste("p4LG8_",ne,sep="")
-#   dir<-getwd()
-#   print(paste("running",out_name,"in",dir,sep=" "))
-#   p<-run.dmc(F_estimate = F_estimate,out_name = out_name,positions = positions,sampleSizes = sampleSizes,
-#              selSite=selSite,rec =rec,
-#              Ne = ne,selPops = selPops,numBins = numBins,numPops = numPops,
-#              sels = sels, times = times,gs = gs,
-#              migs = migs,mod4_sets=mod4_sets)
-#   return(p)
-# })
+Nes <- c(8.3*10^4,8.3*10^5,8.3*10^6)#deleted 8.3*10^3
+dmc.ne<-lapply(Ne, function(ne){
+  out_name<-paste("p4LG8_",ne,sep="")
+  dir<-getwd()
+  print(paste("running",out_name,"in",dir,sep=" "))
+  p<-run.dmc(F_estimate = F_estimate,out_name = out_name,positions = positions,sampleSizes = sampleSizes,
+             selSite=selSite,rec =rec,
+             Ne = ne,selPops = selPops,numBins = numBins,numPops = numPops,
+             sels = sels, times = times,gs = gs,
+             migs = migs,mod4_sets=mod4_sets)
+  return(p)
+})
 ## ---- end-dmcNe
