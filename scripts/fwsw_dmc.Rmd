@@ -144,7 +144,7 @@ And I'm going to run it with a variety of effective population sizes to see how 
 ```{r dmcNe, eval=FALSE}
 ```
 
-I'm running this one on abies using `nohup Rscript ~/Projects/popgen/scripts/run_dmc.R >> ~/Projects/popgen/dmc_ne.log 2>&1 &`. Process 1539 on 7 March 2018 and 34744 on 8 March 2018.
+I'm running this one on abies using `nohup Rscript ~/Projects/popgen/scripts/run_dmc.R >> ~/Projects/popgen/dmc_ne.log 2>&1 &`. Process 30566 on 8 March 2018.
 
 ```{r rec_est}
 ssc.map<-read.delim("~/Projects/SSC_linkage_map_20160701.txt",header=T)
@@ -188,86 +188,112 @@ legend("topleft",bty='n',col=c("black","blue","forestgreen"),lwd=2,c("Sliding Wi
 
 ##Plot maximum composite likelihood ratios for models over proposed selected sites
 
-```{r plot_likelihoods}
+```{r plot_likelihoods_fxns}
+calc.max.complike<-function(pattern){
+  #read in composite likelihood files and calculate max for all proposed selected sites
+  compLikelihood_neutral = readRDS("dmc/compLikelihood_neutral_p4LG8.RDS")
+  compLikelihood_neutral_site = sapply(1 : length(selSite), function(i) {
+    max(unlist(compLikelihood_neutral[[i]]))
+  })
+  
+  compLikelihood_ind = readRDS(paste("dmc/compLikelihood_ind_",pattern,".RDS",sep=""))
+  compLikelihood_ind_site = sapply(1 : length(selSite), function(i) {
+    max(unlist(compLikelihood_ind[[i]]))
+  })
+  
+  compLikelihood_mig = readRDS(paste("dmc/compLikelihood_mig_",pattern,".RDS",sep=""))
+  compLikelihood_mig_site = sapply(1 : length(selSite), function(i) {
+    max(unlist(compLikelihood_mig[[i]]))
+  })
+  
+  compLikelihood_sv = readRDS(paste("dmc/compLikelihood_sv_",pattern,".RDS",sep=""))
+  compLikelihood_sv_site = sapply(1 : length(selSite), function(i) {  
+    max(unlist(compLikelihood_sv[[i]]))
+  })
+  
+  compLikelihood_mixed_migInd = readRDS(paste("dmc/compLikelihood_mixed_migInd_",pattern,".RDS",sep=""))
+  compLikelihood_mixed_migInd_site = sapply(1 : length(selSite), function(i) {
+    max(unlist(compLikelihood_mixed_migInd[[i]]))
+  })
+  
+  compLikelihood_mixed_svInd = readRDS(paste("dmc/compLikelihood_mixed_svInd_",pattern,".RDS",sep=""))
+  compLikelihood_mixed_svInd_site = sapply(1 : length(selSite), function(i) {
+    max(unlist(compLikelihood_mixed_svInd[[i]]))
+  })
+  return(c(ind=(compLikelihood_ind_site - compLikelihood_neutral_site),
+           mig=(compLikelihood_mig_site - compLikelihood_neutral_site), 
+           sv=(compLikelihood_sv_site - compLikelihood_neutral_site),
+           migInd=(compLikelihood_mixed_migInd_site - compLikelihood_neutral_site),
+           svInd=(compLikelihood_mixed_svInd_site - compLikelihood_neutral_site)))
+}
 
-#read in composite likelihood files and calculate max for all proposed selected sites
-compLikelihood_neutral = readRDS("dmc/compLikelihood_neutral_p4LG8.RDS")
-compLikelihood_neutral_site = sapply(1 : length(selSite), function(i) {
-  max(unlist(compLikelihood_neutral[[i]]))
-})
-
-compLikelihood_ind = readRDS("dmc/compLikelihood_ind_p4LG8.RDS")
-compLikelihood_ind_site = sapply(1 : length(selSite), function(i) {
-  max(unlist(compLikelihood_ind[[i]]))
-})
-
-compLikelihood_mig = readRDS("dmc/compLikelihood_mig_p4LG8.RDS")
-compLikelihood_mig_site = sapply(1 : length(selSite), function(i) {
-  max(unlist(compLikelihood_mig[[i]]))
-})
-
-compLikelihood_sv = readRDS("dmc/compLikelihood_sv_p4LG8.RDS")
-compLikelihood_sv_site = sapply(1 : length(selSite), function(i) {  
-  max(unlist(compLikelihood_sv[[i]]))
-})
-
-compLikelihood_mixed_migInd = readRDS("dmc/compLikelihood_mixed_migInd_p4LG8.RDS")
-compLikelihood_mixed_migInd_site = sapply(1 : length(selSite), function(i) {
-  max(unlist(compLikelihood_mixed_migInd[[i]]))
-})
-
-compLikelihood_mixed_svInd = readRDS("dmc/compLikelihood_mixed_svInd_p4LG8.RDS")
-compLikelihood_mixed_svInd_site = sapply(1 : length(selSite), function(i) {
-  max(unlist(compLikelihood_mixed_svInd[[i]]))
-})
-
-plot_range = range(c((compLikelihood_ind_site - compLikelihood_neutral_site),
-                     (compLikelihood_mig_site - compLikelihood_neutral_site), 
-                     (compLikelihood_sv_site - compLikelihood_neutral_site), 
-                     (compLikelihood_mixed_migInd_site - compLikelihood_neutral_site),
-                     (compLikelihood_mixed_svInd_site - compLikelihood_neutral_site)))
-
-plot(selSite, compLikelihood_ind_site - compLikelihood_neutral_site, type = "b",
-     ylim = c(plot_range[1] - 50, plot_range[2] + 50),
-     xlab = "Proposed position selected site",
-     ylab = "Composite log-likelihood (model - neutral)")
-lines(selSite, compLikelihood_mig_site - compLikelihood_neutral_site, col = "red",
-      type = "b")
-lines(selSite, compLikelihood_sv_site - compLikelihood_neutral_site, col = "blue",
-      type = "b")
-lines(selSite, compLikelihood_mixed_migInd_site - compLikelihood_neutral_site,
-      col = "orange", lty = 2, type = "b")
-lines(selSite, compLikelihood_mixed_svInd_site - compLikelihood_neutral_site,
-      col = "green", lty = 2, type = "b")
-legend("topright", col = c("black", "red", "blue", "orange", "green"),
-       lty = c(rep(1, 3), rep(2, 2)), sapply(1 : 5, function(i) paste("Model", i)),
-       cex = 0.5)
-
+plot.complike<-function(pattern){
+  max.likes<-calc.max.complike(pattern)
+  
+  plot_range = range(max.likes)
+  
+  plot(selSite, max.likes[grep("ind",names(max.likes))], type = "b",
+       ylim = c(plot_range[1] - 50, plot_range[2] + 50),
+       xlab = "Proposed position selected site",
+       ylab = "Composite log-likelihood (model - neutral)")
+  lines(selSite, max.likes[grep("mig\\d+",names(max.likes))], col = "red",
+        type = "b")
+  lines(selSite, max.likes[grep("sv\\d+",names(max.likes))], col = "blue",
+        type = "b")
+  lines(selSite, max.likes[grep("migInd",names(max.likes))],
+        col = "orange", lty = 2, type = "b")
+  lines(selSite, max.likes[grep("svInd",names(max.likes))],
+        col = "green", lty = 2, type = "b")
+  legend("topright", col = c("black", "red", "blue", "orange", "green"),
+         lty = c(rep(1, 3), rep(2, 2)), sapply(1 : 5, function(i) paste("Model", i)))
+  return(list(max.likes,pattern))
+}
 
 ```
 
+```{r plot_ne}
+par(mfrow=c(2,2),mar=c(4,3,0.5,0.5),oma=c(2,2,2,2))
+patterns<-c("p4LG8_8300","p4LG8_83000","p4LG8_830000","p4LG8_8300000")
+ne.complikes<-lapply(patterns,plot.complike)
+```
 ### Get maximum composite likelihood estimates
 
-```{r mcle}
-source("../programs/dmc-master/getMCLE.R")
-
+```{r get_mcle_fxn}
 #These won't work if the parameters aren't specified as above
+get.mcle<-function(max.complikes,Ne,selSite= positions[seq(1, length(positions), length.out = 50)],
+                   sels = c(1e-4, 1e-3, 0.01, seq(0.02, 0.14, by = 0.01), seq(0.15, 0.3, by = 0.05), 
+                            seq(0.4, 0.6, by = 0.1)),
+                   times = c(0, 5, 25, 50, 100, 500, 1000, 1e4, 1e6),
+                   migs = c(10^-(seq(5, 1, by = -2)), 0.5, 1),sources=c(3,5,7,16)){
+  gs = c(1/(2*Ne), 10^-(4:1))
+  source("../programs/dmc-master/getMCLE.R")
 
-## Model 1
-getMCLEind(compLikelihood_ind, selSite, sels)
+  ## Model 1
+  m1<-getMCLEind(max.complikes[grep("ind",names(max.complikes))], selSite, sels)
+  kable(m1,caption="model1")
+  ## Model 2
+  m2<-getMCLEmig(max.complikes[grep("mig\\d+",names(max.complikes))], selSite, sels, migs, sources)
+  kable(m2,caption="model2")
+  ## Model 3
+  m3<-getMCLEsv_source(max.complikes[grep("sv\\d+",names(max.complikes))], selSite, sels, gs, times, sources)
+  
+  ## Model 4
+  m4<-getMCLEmixed(max.complikes[grep("migInd",names(max.complikes))], selSite, sels, gs[1], times[1], migs, sources)
+  
+  ## Model 5
+  m5<-getMCLEmixed(max.complikes[grep("svInd",names(max.complikes))], selSite, sels, gs, times, migs[1], sources)
+  kable(rbind(m3,m4,m5),caption="models 3, 4, and 5")
+  return(list(m1,m2,m3,m4,m5))
+}
+```
 
-## Model 2
-getMCLEmig(compLikelihood_mig, selSite, sels, migs, sources)
-
-## Model 3
-getMCLEsv_source(compLikelihood_sv, selSite, sels, gs, times, sources)
-
-## Model 4
-getMCLEmixed(compLikelihood_mixed_migInd, selSite, sels, gs[1], times[1], migs, sources)
-
-## Model 5
-getMCLEmixed(compLikelihood_mixed_svInd, selSite, sels, gs, times, migs[1], sources)
-
+```{r get_mcle}
+ne.mcles<-lapply(ne.complikes, function(max.complikes){
+  pattern<-max.complikes[[2]]
+  Ne<-as.numeric(gsub(".*_(\\d+)","\\1",pattern))
+  max.complikes<-max.complikes[[1]]
+  get.mcle(max.complikes,Ne)
+})
 ```
 
 ### Plot profile likelihood surfaces

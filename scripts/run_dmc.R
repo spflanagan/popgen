@@ -8,7 +8,6 @@ run.dmc<-function(F_estimate,out_name,positions, sampleSizes,selSite=NA,nselsite
                   sels = c(1e-4, 1e-3, 0.01, seq(0.02, 0.14, by = 0.01), seq(0.15, 0.3, by = 0.05), 
                            seq(0.4, 0.6, by = 0.1)),
                   times = c(0, 5, 25, 50, 100, 500, 1000, 1e4, 1e6),
-                  gs = c(1/(2*Ne), 10^-(4:1)),
                   migs = c(10^-(seq(5, 1, by = -2)), 0.5, 1),mod4_sets=list(c(3,5,7),16),
                   mod1=TRUE,mod2=TRUE,mod3=TRUE,mod4=TRUE,mod5=TRUE,complike=TRUE){
   
@@ -28,12 +27,12 @@ run.dmc<-function(F_estimate,out_name,positions, sampleSizes,selSite=NA,nselsite
   numPops<<-numPops
   sels<<-sels
   times<<-times
-  gs<<-gs
   migs<<-migs
   #set up parameters
   M <<- numPops
   Tmatrix <<- matrix(data = rep(-1 / M, (M - 1) * M), nrow = M - 1, ncol = M)
   diag(Tmatrix) = (M - 1) / M 
+  gs<<-c(1/(2*Ne), 10^-(4:1))
   sampleErrorMatrix <<- diag(1/sampleSizes, nrow = numPops, ncol = numPops)
   if(is.na(selSite[1])) selSite=seq(min(positions), max(positions), length.out = nselsites)
   selSite<<-selSite
@@ -405,8 +404,8 @@ mod4_sets=list(c(3,5,7),16)
 ## ---- end-setParameters
 
 ## ---- dmcNe
-Nes <- c(8.3*10^4,8.3*10^5,8.3*10^6)#deleted 8.3*10^3
-dmc.ne<-lapply(Ne, function(ne){
+Nes <- c(8.3*10^4,8.3*10^5)#deleted 8.3*10^3,8.3*10^6
+dmc.ne<-lapply(Nes, function(ne){
   out_name<-paste("p4LG8_",ne,sep="")
   dir<-getwd()
   print(paste("running",out_name,"in",dir,sep=" "))
