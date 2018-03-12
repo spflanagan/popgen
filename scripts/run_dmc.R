@@ -2,6 +2,9 @@ setwd("~/Projects/popgen/fwsw_results/")
 library(fields)
 library(MASS)
 
+initial_runs<-FALSE
+
+
 ## ---- runDMC
 run.dmc<-function(F_estimate,out_name,positions, sampleSizes,selSite=NA,nselsites=50,rec =2.17*10^-8,
                   Ne = 8.3*10^6,selPops = c(3,5,7,16),numBins = 1000,numPops = 16,
@@ -10,12 +13,6 @@ run.dmc<-function(F_estimate,out_name,positions, sampleSizes,selSite=NA,nselsite
                   times = c(0, 5, 25, 50, 100, 500, 1000, 1e4, 1e6),
                   migs = c(10^-(seq(5, 1, by = -2)), 0.5, 1),mod4_sets=list(c(3,5,7),16),
                   mod1=TRUE,mod2=TRUE,mod3=TRUE,mod4=TRUE,mod5=TRUE,complike=TRUE){
-  
-  #save params
-  params<-list(F_estimate,out_name,positions, sampleSizes,selSite,nselsites,rec,
-               Ne,selPops,numBins,numPops,sels,times,gs,migs,mod4_sets)
-  names(params)<-c("F_estimate","out_name","positions", "sampleSizes","selSite","nselsites","rec",
-                   "Ne","selPops","numBins","numPops","sels","times","gs","migs","mod4_sets")
   #make all the parameters global
   F_estimate<<-F_estimate
   positions<<-positions
@@ -38,6 +35,12 @@ run.dmc<-function(F_estimate,out_name,positions, sampleSizes,selSite=NA,nselsite
   selSite<<-selSite
   sources <<- selPops
   sets<<-mod4_sets
+  #save params
+  params<-list(F_estimate,out_name,positions, sampleSizes,selSite,rec,
+               Ne,selPops,numBins,numPops,sels,times,gs,migs,mod4_sets)
+  names(params)<-c("F_estimate","out_name","positions", "sampleSizes","selSite","rec",
+                   "Ne","selPops","numBins","numPops","sels","times","gs","migs","mod4_sets")
+  print(params)
   ############### calculate F(S) ###############
   source("../programs/dmc-master/genSelMatrices_individualModes.R")
   
@@ -383,13 +386,12 @@ run.dmc<-function(F_estimate,out_name,positions, sampleSizes,selSite=NA,nselsite
 ## ---- end-runDMC
 
 ## ---- setParameters
+############### Set parameters ###############
 positions<-readRDS("dmc/selectedRegionPositions_p4LG8.RDS")
 F_estimate<-readRDS("dmc/neutralF_p4LG8.RDS")
 sampleSizes<-readRDS("dmc/sampleSizes.RDS")
 
 numPops = 16
-rec <- 2.17*10^-8 #per base pair recombination rate estimate for the region
-Ne <- 8.3*10^6
 numPops <- 16
 selPops <- c(3,5,7,16)
 numBins <- 1000
@@ -398,22 +400,39 @@ selSite = positions[seq(1, length(positions), length.out = 50)]
 sels = c(1e-4, 1e-3, 0.01, seq(0.02, 0.14, by = 0.01), seq(0.15, 0.3, by = 0.05), 
          seq(0.4, 0.6, by = 0.1))
 times = c(0, 5, 25, 50, 100, 500, 1000, 1e4, 1e6)
-gs = c(1/(2*Ne), 10^-(4:1))
 migs = c(10^-(seq(5, 1, by = -2)), 0.5, 1)
 mod4_sets=list(c(3,5,7),16)
 ## ---- end-setParameters
 
+if(initial_runs==TRUE){
 ## ---- dmcNe
-Nes <- c(8.3*10^4,8.3*10^5)#deleted 8.3*10^3,8.3*10^6
-dmc.ne<-lapply(Nes, function(ne){
-  out_name<-paste("p4LG8_",ne,sep="")
-  dir<-getwd()
-  print(paste("running",out_name,"in",dir,sep=" "))
-  p<-run.dmc(F_estimate = F_estimate,out_name = out_name,positions = positions,sampleSizes = sampleSizes,
-             selSite=selSite,rec =rec,
-             Ne = ne,selPops = selPops,numBins = numBins,numPops = numPops,
-             sels = sels, times = times,gs = gs,
-             migs = migs,mod4_sets=mod4_sets)
-  return(p)
+############### Run the program ###############
+Nes <- c(8.3*10^3,8.3*10^4,8.3*10^5,8.3*10^6)
+rs<-c(2.17*10^-8,2*10^-7,6*10^-6,5.6*10^-6)
+dmc.out<-lapply(rs,function(r){
+  rec<-r
+  rname<-gsub("(\\d).*(\\d)$","\\1_\\2",as.character(r))
+  lapply(Nes, function(ne){
+    out_name<-paste("p4LG8_",ne,"_",rname,sep="")
+    dir<-getwd()
+    print(paste("running",out_name,"in",dir,sep=" "))
+    p<-run.dmc(F_estimate = F_estimate,out_name = out_name,positions = positions,sampleSizes = sampleSizes,
+               selSite=selSite,rec =rec,
+               Ne = ne,selPops = selPops,numBins = numBins,numPops = numPops,
+               sels = sels, times = times,
+               migs = migs,mod4_sets=mod4_sets)
+    return(p)
+  })
 })
 ## ---- end-dmcNe
+} else
+{
+## ---- dmcForReal
+  selSite = positions[seq(1, length(positions[positions<10000000]), length.out = 100)]
+  p<-run.dmc(F_estimate = F_estimate,out_name = "p4LG8_5000r2",positions = positions,sampleSizes = sampleSizes,
+          selSite=selSite,rec =2*10^-7,
+          Ne = 5000,selPops = selPops,numBins = numBins,numPops = numPops,
+          sels = sels, times = times,
+          migs = migs,mod4_sets=mod4_sets)
+## ---- end-dmcForReal
+}
