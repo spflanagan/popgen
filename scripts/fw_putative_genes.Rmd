@@ -36,7 +36,7 @@ if(length(grep("gz",gff.name))>0){
 }
 colnames(gff)<-c("seqname","source","feature","start","end","score","strand","frame","attribute")
 #Stacks output
-vcf<-parse.vcf("stacks/p4.vcf")
+vcf<-parse.vcf("p4.upd.vcf")
 vcf$SNP<-paste(vcf$`#CHROM`,vcf$POS,sep=".")
 scaffs<-levels(as.factor(vcf[,1]))
 fwsw.tx<-read.delim("stacks/batch_2.fst_TXCC-TXFW.tsv")
@@ -415,7 +415,7 @@ And of the `r nrow(sdd.out)` $\delta$-divergence outliers, `r length(sdd.nb[sdd.
 
 ```{r bayenv}
 #taken directly from fwsw_analysis.R
-bf<-read.delim("bayenv/bf.txt",header=T)
+bf<-read.delim("bayenv/p4.bf.txt",header=T)
 bf$SNP<-paste(bf$scaffold,as.numeric(as.character(bf$BP))+1,sep=".")
 bf.co<-apply(bf[,5:7],2,quantile,0.99) #focus on Bayes Factors, because of Lotterhos & Whitlock (2015)
 temp.bf.sig<-bf[bf$Temp_BF>bf.co["Temp_BF"],c(1,2,4,8,5,9)]

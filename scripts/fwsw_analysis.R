@@ -905,6 +905,7 @@ perlg.add.lines<-function(fwsw.plot,lgs,width=NULL,lwds=4,color="cornflowerblue"
 
 #' files to read in if they're not already
 stacks.sig.out<-"p4.stacks.sig.snps.txt"
+bf.file<-"bayenv/bf.txt" #57250
 ## ---- Fig5Files
 fwsw<-read.delim("stacks/fw-sw_populations/batch_2.fst_marine-freshwater.tsv")
 #Compare neighboring pops.
@@ -920,7 +921,7 @@ length(tx.sig[(tx.sig %in% c(la.sig,al.sig,fl.sig))])
 length(la.sig[(la.sig %in% c(tx.sig,al.sig,fl.sig))])
 length(al.sig[(al.sig %in% c(la.sig,tx.sig,fl.sig))])
 all.shared<-fl.sig[fl.sig %in% la.sig & fl.sig %in% al.sig & fl.sig %in% tx.sig]
-bf<-read.delim("bayenv/bf.txt") #57250
+bf<-read.delim(bf.file)
 bf.co<-apply(bf[,5:7],2,quantile,0.99) #focus on Bayes Factors, because of Lotterhos & Whitlock (2015)
 sal.bf.sig<-bf[bf$Salinity_BF>bf.co["Salinity_BF"],c(1,2,4,8,9,6)]
 stacks.sig<-read.delim(stacks.sig.out)

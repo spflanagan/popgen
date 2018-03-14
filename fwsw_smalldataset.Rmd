@@ -351,6 +351,7 @@ sdd.name<-as.character("sep.smoothedDD.out.txt")
 afs.plot.name<-as.character("p4.All_AFS.png")
 stacks.sig.out<-"p4.stacks.sig.snps.txt"
 annotations.name<-"p4.StacksFWSWOutliers_annotatedByGenome.csv"
+bf.file<-"bayenv/p4.bf.txt"
 ```
 ```{r StacksFsts}
 ```
@@ -432,7 +433,7 @@ In Figure 6, we show different measures of diversity: pi (nucleotide diversity),
 pi.file.name<-"p4.pi.txt"
 avgpi.file.name<-"p4.avgpi.txt"
 ```
-```{r pi, fig.keep='none'}
+```{r pi, fig.keep='none',eval=TRUE}
 ```
 ```{r pi_readin}
 all.pi<-read.table(pi.file.name,header=T)
@@ -444,7 +445,7 @@ avg.pi.adj<-read.table(avgpi.file.name,header=T)
 all.het.name<-"p4.avg.het.txt"
 avg.het.adj.name<-"p4.avg.het.adj.txt"
 ```
-```{r het}
+```{r het,eval=TRUE}
 ```
 ```{r read_het}
 avg.het.adj<-read.delim(avg.het.adj.name,header=TRUE)
@@ -469,7 +470,7 @@ This plotting function also generates the smoothed \delta -divergence values.
 ### Jost's D
 
 First, I must calculate Jost's D on each locus in the p4 dataset
-```{r JostD, eval=FALSE}
+```{r JostD, eval=TRUE}
 sub.genind<-read.structure("stacks/subset.structure.stru",n.ind=698,
                            n.loc=9638,col.lab=1,col.pop=2,sep='\t',
                            row.marknames = 2,onerowperind=FALSE,ask=FALSE)
