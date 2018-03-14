@@ -1313,7 +1313,7 @@ str.name<-"stacks/fw-sw_populations/fwsw.structure.str"
 stru.name<-"stacks/fw-sw_populations/fwsw.stru"
 ## ---- str2genind
 #can use mmod but needs to be a genind object
-stru<-read.delim(str,skip=1,sep="")
+stru<-read.delim(str.name,skip=1,sep="")
 stru[,2]<-as.numeric(as.factor(gsub("sample_(\\w{4}).*","\\1",stru[,1])))
 header<-scan(str.name,nlines = 1,sep="",quiet = TRUE)
 colnames(stru)<-c("","",header)
