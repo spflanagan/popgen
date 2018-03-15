@@ -39,10 +39,11 @@ colnames(gff)<-c("seqname","source","feature","start","end","score","strand","fr
 vcf<-parse.vcf("p4.upd.vcf")
 vcf$SNP<-paste(vcf$`#CHROM`,vcf$POS,sep=".")
 scaffs<-levels(as.factor(vcf[,1]))
-fwsw.tx<-read.delim("stacks/batch_2.fst_TXCC-TXFW.tsv")
-fwsw.la<-read.delim("stacks/batch_2.fst_ALST-LAFW.tsv")
-fwsw.al<-read.delim("stacks/batch_2.fst_ALFW-ALST.tsv")
-fwsw.fl<-read.delim("stacks/batch_2.fst_FLCC-FLLG.tsv")
+fwsw.tx<-read.delim("stacks/p4.fst_TXCC-TXFW.txt")
+fwsw.la<-read.delim("stacks/p4.fst_ALST-LAFW.txt")
+fwsw.al<-read.delim("stacks/p4.fst_ALFW-ALST.txt")
+fwsw.fl<-read.delim("stacks/p4.fst_FLCC-FLLG.txt")
+stacks.sig<-read.delim("p4.stacks.sig.snps.txt")
 #annotated Stacks outliers at 0.01
 fw.sig.reg<-read.csv("p4.StacksFWSWOutliers_annotatedByGenome.csv")
 #deltad
@@ -140,7 +141,7 @@ sig.region.ann<-function(fw.shared.chr,gff)
 
 ### Combine putative genes and genomic info
 
-```{r putative_regions, eval=FALSE}
+```{r putative_regions, eval=TRUE}
 #' extract the significant regions from the gff file
 put.reg<-do.call(rbind,apply(put.genes,1,function(gene){
   ssc.gene<-as.character(gene[[6]])
@@ -1062,18 +1063,18 @@ dev.off()
 
 ![Fig. 7](../fwsw_results/Fig7candidateGenes.png)
 
-### Plot LG8
+### Plot LG4
 
 ```{r plot_lg8}
 #define a few things
-chrom<-"LG8"
+chrom<-"LG4"
 pchs<-c(rep(32,6),15,124,124)
 cols<-c(grp.colors[1],grp.colors[2],grp.colors[3],grp.colors[6],
         "#dfc27d","#a6611a","indianred","black","#08519c")
 ltys=c(1,1,2,1,1,1,0,0,0)
 lwds<-c(rep(2,6),0,0,0)
 
-#put together the data for LG8
+#put together the data for LG4
 this.dd<-deltad[deltad$Chrom %in% chrom,]
 dd.smooth<-loess.smooth(this.dd$Pos,this.dd$deltad,span=0.1,degree=2)
 #add Jost's D
@@ -1082,8 +1083,7 @@ dsmooth<-loess.smooth(this.d$POS,this.d$D,span=0.1,degree=2)
 #get the outliers
 pr.gene<-put.reg[put.reg$Chrom==chrom ,]
 #rad loci 
-fst.gene<- unlist(strsplit(gsub(paste(chrom,".",sep=""),"",pr.gene$rad.loci[pr.gene$rad.loci != "NA"]),","))
-nb.gene<-as.numeric(unlist(strsplit(gsub(paste(chrom,".",sep=""),"",pr.gene$nearby.rad[pr.gene$nearby.rad != "NA"]),",")))
+fst.gene<- stacks.sig[stacks.sig$Chr==chrom,"BP"]
 #none of the salinity-associated RAD loci are in or near genes on LG8, but we could plot them all anyway
 sal.gene<-sal.bf.sig[sal.bf.sig$scaffold=="LG8","BP"]
 #jost's d - none are in the putative genes
@@ -1094,7 +1094,7 @@ sdd.gene<- unlist(strsplit(gsub(paste(chrom,".",sep=""),"",pr.gene$sdd.in[pr.gen
 gene.out<-data.frame(BP=c(as.numeric(fst.gene),as.numeric(sal.gene),as.numeric(sdd.gene)),
                      shape=c(rep(8,length(fst.gene)),rep(1,length(sal.gene)),rep(4,length(sdd.gene))))
 
-png("LG8.png",width=10,height=7,units="in",res=300)
+png("LG4.png",width=10,height=7,units="in",res=300)
 
 nf <- layout(matrix(c(1,1,1,1,2,2,2,3), 2,4, byrow=TRUE))
 par(oma=c(1.5,2.5,1,1),mar=c(1.5,1,2,1))
@@ -1105,10 +1105,23 @@ plot(fst.dfs[[1]]$BP[fst.dfs[[1]]$Chr %in% chrom],
   axis(2,las=1,cex.axis=2)  
   axis(1,cex.axis=2,at=c(0,5000000,10000000,15000000),labels = c(0,5,10,15))
   #add putative gene
-  starts<-as.numeric(put.reg[put.reg$Chrom %in% chrom,"StartBP"])
-  stops<-as.numeric(put.reg[put.reg$Chrom %in% chrom,"StopBP"])
+  g<-put.reg[put.reg$Chrom %in% chrom,]
+  g$Gene<-as.character(g$Gene)
+  g$Gene[grep("ATP6",g$Gene)]<-"ATP6V" #standardize the names
+  g<-g[,c("Gene","StartBP","StopBP")]
+  g<-g[!duplicated(g$StartBP),]
+  g<-g[order(g$StartBP),]
+  starts<-as.numeric(g[,"StartBP"])
+  stops<-as.numeric(g[,"StopBP"])
   rect(xleft=as.numeric(starts),xright=as.numeric(stops),
          ybottom=-0.04,ytop=1,col="indianred",border="indianred")
+  #ad the ones that are spaced out
+  text(x=g$StartBP[!g$Gene %in% c("SCUBE1","TRIM14")],y=0.5,
+       labels=g$Gene[!g$Gene %in% c("SCUBE1","TRIM14")],font=2,srt=90,xpd=T,cex=1.75)
+  text(x=g$StartBP[g$Gene == "SCUBE1"]-50000,y=0.8,
+       labels=g$Gene[g$Gene =="SCUBE1"],font=2,srt=90,xpd=T,cex=1.75)
+  text(x=g$StartBP[g$Gene == "TRIM14"]+50000,y=0.2,
+       labels=g$Gene[g$Gene =="TRIM14"],font=2,srt=90,xpd=T,cex=1.75)
   #add fsts
   mtext(chrom,1,cex=2*0.75,line=2.5)
   for(i in 1:length(fst.dfs)){
@@ -1122,20 +1135,20 @@ plot(fst.dfs[[1]]$BP[fst.dfs[[1]]$Chr %in% chrom],
   #add outlier loci
   clip(x1=min(as.numeric(fst.dfs[[1]]$BP[fst.dfs[[1]]$Chr %in% chrom])),
        x2=max(as.numeric(fst.dfs[[1]]$BP[fst.dfs[[1]]$Chr %in% chrom])),y1=0.99,y2=1.06)
-  abline(v=fst.gene,col="black")
+  abline(v=fst.gene,col="black",lwd=1.5)
   points(x=sal.gene,y=rep(1.05,length(sal.gene)),col="black",pch=25,cex=1)
-  abline(v=nb.gene,col=alpha("black",0.5),lwd=1.5)
+  
 
   
 ###Zoom-in plot
 plot(fst.dfs[[1]]$BP[fst.dfs[[1]]$Chr %in% chrom],
      fst.dfs[[1]]$Smoothed.AMOVA.Fst[fst.dfs[[1]]$Chr %in% chrom],
-     type='n',ylim=c(0,1),bty="L",xlab="",ylab="",xaxt='n',yaxt='n',xlim=c(1000000,3500000))
+     type='n',ylim=c(0,1),bty="L",xlab="",ylab="",xaxt='n',yaxt='n',xlim=c(5000000,10000000))
   axis(2,las=1,cex.axis=2)  
-  axis(1,cex.axis=2,at=c(1000000,3500000),labels=c(1,3.5))
+  axis(1,cex.axis=2,at=c(5000000,10000000),labels=c(5,10))
   
   #add putative gene
-  g<-put.reg[put.reg$Chrom %in% chrom & put.reg$StartBP<5000000,]
+  g<-put.reg[put.reg$Chrom %in% chrom & put.reg$StartBP<10000000,]
   g$Gene<-as.character(g$Gene)
   g$Gene[grep("ATP6",g$Gene)]<-"ATP6V" #standardize the names
   g<-g[,c("Gene","StartBP","StopBP")]
@@ -1182,4 +1195,4 @@ legend("topright",legend=lgnd,pch=pchs,
 dev.off()
 ```
 
-![LG 8 Figure](../fwsw_results/LG8.png)
+![LG 4 Figure](../fwsw_results/LG4.png)
