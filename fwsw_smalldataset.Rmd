@@ -649,7 +649,7 @@ Use PopGenome to do the CLR method
 
 ```{r popgenome}
 library(PopGenome)
-genvcf <- readVCF("p4.upd.vcf",approx=FALSE, out="", parallel=FALSE, gffpath=FALSE)
+genvcf <- readData("popgenome",format="VCF",big.data = TRUE)
 TXSP<-grep("TXSP",colnames(vcf),value = TRUE)
 TXCC<-grep("TXCC",colnames(vcf),value = TRUE)
 TXFW<-grep("TXFW",colnames(vcf),value = TRUE)

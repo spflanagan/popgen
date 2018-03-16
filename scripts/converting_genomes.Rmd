@@ -1,0 +1,323 @@
+---
+title: "R Notebook"
+output:
+  html_document: default
+  html_notebook: default
+---
+
+```{r setup}
+knitr::opts_knit$set(root.dir='../fwsw_results/')
+source("../../gwscaR/R/gwscaR.R")
+source("../../gwscaR/R/gwscaR_plot.R")
+source("../../gwscaR/R/gwscaR_utility.R")
+source("../../gwscaR/R/gwscaR_fsts.R")
+source("../../gwscaR/R/gwscaR_popgen.R")
+```
+
+```{r files}
+put.genes<-read.delim("putative_genes.txt",header=TRUE,sep='\t')
+#genome annotations
+gff.name<-list.files(path = "../../scovelli_genome/",pattern="ssc_\\d+.*_chromlevel.gff")
+if(length(grep("gz",gff.name))>0){
+  gff<-read.delim(gzfile(paste("../../scovelli_genome/",gff.name,sep="")),header=F)
+} else{
+  gff<-read.delim(paste("../../scovelli_genome/",gff.name,sep=""),header=F)
+}
+colnames(gff)<-c("seqname","source","feature","start","end","score","strand","frame","attribute")
+
+lgs<-c("LG1","LG2","LG3","LG4","LG5","LG6","LG7","LG8","LG9","LG10","LG11",
+	"LG12","LG13","LG14","LG15","LG16","LG17","LG18","LG19","LG20","LG21",
+	"LG22")
+```
+```{r read_old_vcf}
+#Stacks output
+vcf<-parse.vcf("stacks/p4.vcf")
+vcf$SNP<-paste(vcf$`#CHROM`,vcf$POS,sep=".")
+scaffs<-levels(as.factor(vcf[,1]))
+```
+
+## How many LGs are affected?
+
+```{r comparing_sizes}
+gff.mb<-by(gff,gff$seqname,function(chr){ return(max(chr$end)/1000000) })
+vcf.mb<-by(vcf,vcf$`#CHROM`,function(chr){ return(max(chr$POS)/1000000) })
+comp.mb<-data.frame(Genome=gff.mb[lgs],VCF=vcf.mb[lgs])
+```
+
+The vcf file has `r nrow(comp.mb[comp.mb$VCF > comp.mb$Genome,])` of `r nrow(comp.mb)` chromosomes with positions beyond those found in the genome.
+
+## Where does the problem originate?
+
+### Is the same problem in the stacks populations output?
+
+```{r pop_sumstats}
+pop.sum<-read.delim("stacks/p4.sumstats.tsv",skip=16,header=T)
+pop.mb<-by(pop.sum,pop.sum$Chr,function(chr){ return(max(chr$BP)/1000000) })
+comp.mb$Pop.Sum<-pop.mb[lgs]
+```
+
+```{r plink_map}
+map<-read.delim("stacks/batch_2.p4.plink.map",comment.char="#",header=FALSE)
+map.mb<-by(map,map$V1,function(chr){ return(max(chr$V4)/1000000) })
+comp.mb$plink<-map.mb[lgs]
+```
+
+So this must have originated in the mapping stage. I mapped to SSC_integrated.fa
+
+```{r ssc_genome}
+ssc.agp<-read.delim("../../scovelli_genome/SSC_genome.agp",comment.char="#",header=FALSE)
+colnames(ssc.agp)<-c("object","object_beg","object_end","part_number","W","component_id","component_beg","component_end","orientation")
+agp.mb<-by(ssc.agp,ssc.agp$object,function(chr){ return(max(chr$object_end)/1000000) })
+comp.mb$ssc_agp<-agp.mb[lgs]
+```
+
+OK, so at least this makes sense: `SSC_integrated.fa` is the penultimate genome version, which I received from Clay in 2016 and used to map my reads. The genome paper further refined it to `ssc_2016_12_20_chromlevel.fa`, which has slightly different chromosomes. 
+
+## How to resolve this issue?
+
+I can see three paths forward: 
+1. Use agp files for the penultimate and final genomes to translate between the two
+2. Blast or map the sequences from the stacks catalog to the new genome to find the correct locations
+3. Re-run the whole pipeline from the start.
+
+I'll start with number 1.
+
+### Translate between agp files
+
+```{r gen_agp_lgs}
+# old scaffold level agp
+sscf.agp<-read.delim("../../scovelli_genome/SSC_scaffolds.agp",comment.char="#",header=FALSE)
+colnames(sscf.agp)<-c("object","object_beg","object_end","part_number","W","component_id","component_beg","component_end","orientation")
+# new scaffold and chrom level agps
+scf.agp<-read.delim(gzfile("../../scovelli_genome/ssc_2016_12_20_scafflevel.agp.gz"),comment.char="#",header=FALSE)
+chr.agp<-read.delim(gzfile("../../scovelli_genome/ssc_2016_12_20_chromlevel.agp.gz"),comment.char="#",header=FALSE)
+colnames(scf.agp)<-c("object","object_beg","object_end","part_number","W","component_id","component_beg","component_end","orientation")
+colnames(chr.agp)<-c("object","object_beg","object_end","part_number","W","component_id","component_beg","component_end","orientation")
+
+
+convert.agp<-function(locus=NULL,old.agp,old.scf,new.agp,scf.agp,
+                      chr=NULL,bp=NULL,id=NULL){
+  if(!is.null(locus)){
+    chr<-locus$`#CHROM`
+    bp<-locus$POS
+    id<-locus$ID
+  }else{
+    bp<-as.numeric(unlist(bp))
+    chr<-as.character(chr)
+    id<-as.character(id)
+  }
+  component<-as.data.frame(old.agp[old.agp$object == chr & old.agp$object_beg <= bp & old.agp$object_end >= bp,],stringsAsFactors=FALSE)
+  if(nrow(component)>0){
+    # it's found on one of the LGs
+    comp.id<-component$component_id
+    if(comp.id != 100){
+      #make sure it's an actual scaffold as a component
+      comp.bp<-as.numeric(as.character(component$component_beg))+(bp-as.numeric(as.character(component$object_beg)))-1
+      if(comp.bp<as.numeric(as.character(component$component_end))){ #sanity check - is it a reasonable size?
+        updated<-new.agp[new.agp$component_id%in%comp.id & 
+                  as.numeric(as.character(new.agp$component_beg)) <=comp.bp & 
+                  as.numeric(as.character(new.agp$component_end)) >= comp.bp,]
+        if(nrow(updated)==0){ #if you didn't find it, check scaffold
+          updated<-scf.agp[scf.agp$object%in%comp.id & 
+                  as.numeric(as.character(scf.agp$object_beg)) <=comp.bp & 
+                  as.numeric(as.character(scf.agp$object_end)) >= comp.bp,]
+          updated.bp<-comp.bp
+          updated.chr<-as.character(comp.id)
+        } else{
+          updated.bp<-updated$object_beg+comp.bp
+          updated.chr<-as.character(updated$object)  
+        }
+      }else {
+        print("WARNING: position in component larger than component")
+        updated.bp<-comp.id
+        updated.chr<-as.character(comp.id)
+      }
+    }else{
+      print(paste("WARNING: locus ",id, " is not on a scaffold",sep=""))
+      updated.bp<-bp
+      updated.chr<-NA
+    }
+    out<-data.frame(Locus=id,OrigChr=chr,OrigBP=bp,NewChr=updated.chr,NewBP=updated.bp,stringsAsFactors = FALSE)
+  }else{
+    #it's not on an LG - let's check the scaffolds
+    component<-as.data.frame(old.scf[old.scf$object == chr & old.scf$object_beg <= bp & old.scf$object_end >= bp,],stringsAsFactors=FALSE)
+    if(nrow(component)>0){
+      #then we found it
+      #check to make sure my bp makes sense
+      if(bp < max(old.scf[old.scf$object==chr,"object_end"])){
+        comp.bp<-bp
+        comp.id<-as.character(chr)
+        #look for it in the new assembly
+        updated<-new.agp[new.agp$component_id%in%comp.id & 
+                  as.numeric(as.character(new.agp$component_beg)) <=comp.bp & 
+                  as.numeric(as.character(new.agp$component_end)) >= comp.bp,]
+        if(nrow(updated)==0){ #if you didn't find it, check scaffold
+          updated<-scf.agp[scf.agp$object%in%comp.id & 
+                  as.numeric(as.character(scf.agp$object_beg)) <=comp.bp & 
+                  as.numeric(as.character(scf.agp$object_end)) >= comp.bp,]
+          updated.bp<-comp.bp
+          updated.chr<-as.character(comp.id)
+        } else{
+          updated.bp<-updated$object_beg+comp.bp
+          updated.chr<-as.character(updated$object)  
+        }
+      } else {
+          print("WARNING: position in scaffold larger than scaffold")
+          updated.bp<-NA
+          updated.chr<-NA
+      }
+      out<-data.frame(Locus=id,OrigChr=chr,OrigBP=bp,NewChr=updated.chr,NewBP=updated.bp,stringsAsFactors = FALSE)
+    }else{
+      out<-data.frame(Locus=id,OrigChr=chr,OrigBP=bp,NewChr=NA,NewBP=NA,stringsAsFactors = FALSE)
+      print(paste("WARNING: locus ", id, " not found",sep=""))
+    }
+  }
+  
+  return(out)
+}
+```
+```{r convert_vcf,eval=FALSE}
+converted<-data.frame(Locus=integer(),OrigChr=character(),OrigBP=integer(),NewChr=character(),NewBP=integer(),stringsAsFactors = FALSE)
+for(i in 1:nrow(vcf)){
+  converted[i,]<-convert.agp(locus=vcf[i,],old.agp=ssc.agp,old.scf=sscf.agp,new.agp=chr.agp[chr.agp$W=="W",],scf.agp = scf.agp)
+}
+write.table(converted,"vcf.converted.txt",col.names=TRUE,row.names=FALSE,quote=FALSE,sep='\t')
+```
+```{r read_converted}
+converted<-read.delim("vcf.converted.txt",header=TRUE)
+```
+
+Ok, so this works with the ones not on scaffolds (I'll get back to those), changing the positions for `r nrow(converted[converted$OrigBP!=converted$NewBP,])` loci. But did this fix the mismatch?
+
+```{r converted_mb}
+converted<-read.delim("vcf.converted.txt",header=TRUE)
+conv.mb<-by(converted,converted$NewChr,function(chr){ return(max(chr$NewBP)/1000000) })
+comp.mb$converted<-conv.mb[lgs]
+comp.mb
+```
+
+Great, this worked! `r nrow(comp.mb[comp.mb$converted <= comp.mb$Genome,])` of the `r length(lgs)` chromosomes now have positions that fit on the genome's chromosomes. Yay!
+
+### Create new fiels with the updated ones
+
+Now, I just need to replace these in the vcf and map files and re-run most of the analyses.
+
+#### VCF
+
+```{r replace_vcf,eval=FALSE}
+#write a new vcf file
+new.vcf<-vcf
+for(i in 1:nrow(vcf)){
+  new.vcf$POS[i]<-converted$NewBP[i]
+  new.vcf$`#CHROM`[i]<-converted$NewChr[i]
+}
+scaffs<-levels(new.vcf$`#CHROM`)
+scaffs[1:22]<-lgs #force 1-22
+
+
+upd.vcf<-do.call(rbind,lapply(scaffs,function(lg){
+  this.chr<-new.vcf[new.vcf$`#CHROM`==lg,]
+  this.chr<-this.chr[order(this.chr$POS),]
+  return(this.chr)
+}))
+#save it
+write.table(upd.vcf,"p4.upd.vcf",sep='\t',quote=FALSE,col.names = TRUE,row.names = FALSE)
+```
+```{r read_new_vcf}
+#read in the new one
+vcf<-parse.vcf("p4.upd.vcf")
+scaffs<-levels(vcf$`#CHROM`)
+scaffs[1:22]<-lgs #force 1-22
+
+```
+
+#### PLINK maps
+
+```{r replace_map,eval=FALSE}
+map[,1]<-as.character(map[,1])
+map[,2]<-as.character(map[,2])
+map.convert<-data.frame(Locus=character(),OrigChr=character(),OrigBP=integer(),NewChr=character(),NewBP=integer(),stringsAsFactors = FALSE)
+for(i in 1:nrow(map)){
+  map.convert[i,]<-convert.agp(old.agp=ssc.agp,old.scf=sscf.agp,new.agp=chr.agp[chr.agp$W=="W",],scf.agp = scf.agp,
+                               chr=as.character(map[i,1]),bp=map[i,4],id=as.character(map[i,2]))
+  map[i,1]<-map.convert[i,"NewChr"]
+  map[i,4]<-map.convert[i,"NewBP"]
+}
+upd.map<-do.call(rbind,lapply(scaffs,function(lg){
+  this.chr<-map[map$V1==lg,]
+  this.chr<-this.chr[order(this.chr$V4),]
+  return(this.chr)
+}))
+#save it
+write.table(upd.map,"stacks/p4.upd.map",sep='\t',quote=FALSE,col.names = TRUE,row.names = FALSE)
+```
+```{r read_newmap}
+upd.map<-read.delim("stacks/p4.upd.map",header=TRUE)
+map.mb<-by(upd.map,upd.map$V1,function(chr){ return(max(chr$V4)/1000000) })
+map.mb[lgs]
+```
+
+#### Bayenv output
+
+```{r replace_bayenv,eval=FALSE}
+bf<-read.delim("bayenv/bf.txt") #57250
+bf$locus<-as.character(bf$locus)
+bf$scaffold<-as.character(bf$scaffold)
+for(i in 1:nrow(bf)){
+  convert<-convert.agp(old.agp=ssc.agp,old.scf=sscf.agp,new.agp=chr.agp[chr.agp$W=="W",],scf.agp = scf.agp,
+                               chr=as.character(bf$scaffold[i]),bp=bf$BP[i],id=as.character(bf$locus[i]))
+  bf[i,"scaffold"]<-convert["NewChr"]
+  bf[i,"BP"]<-convert["NewBP"]
+}
+# keep only those in p4 set (those that match vcf)
+bf$ID<-gsub("(\\d+)_\\d+","\\1",bf$locus)
+bf$ID_BP<-paste(bf$ID,as.numeric(bf$BP)+1,sep="_")
+vcf.ids<-paste(vcf$ID,vcf$POS,sep="_")
+p4.bf<-bf[bf$ID_BP %in% vcf.ids,]
+# reorder by chrom
+upd.bf<-do.call(rbind,lapply(scaffs,function(lg){
+  this.chr<-p4.bf[p4.bf$scaffold==lg,]
+  this.chr<-this.chr[order(as.numeric(this.chr$BP)),]
+  return(this.chr)
+}))
+write.table(upd.bf,"bayenv/p4.bf.txt",col.names = TRUE,row.names = FALSE,quote=FALSE,sep='\t')
+```
+```{r read_newbf}
+upd.bf<-read.delim("bayenv/p4.bf.txt",header=TRUE)
+bf.mb<-by(upd.bf,upd.bf$scaffold,function(chr){ return(max(chr$BP)/1000000) })
+bf.mb[lgs]
+```
+
+#### Stacks output
+
+```{r replace_stacks}
+fwsw.tx<-read.delim("stacks/batch_2.fst_TXCC-TXFW.tsv",stringsAsFactors = FALSE)
+fwsw.la<-read.delim("stacks/batch_2.fst_ALST-LAFW.tsv",stringsAsFactors = FALSE)
+fwsw.al<-read.delim("stacks/batch_2.fst_ALFW-ALST.tsv",stringsAsFactors = FALSE)
+fwsw.fl<-read.delim("stacks/batch_2.fst_FLCC-FLLG.tsv",stringsAsFactors = FALSE)
+
+convert.stacks<-function(stacks.fst,outname,lgs,ssc.agp,sscf.agp,chr.agp,scf.agp){
+  for(i in 1:nrow(stacks.fst)){
+     convert<-convert.agp(old.agp=ssc.agp,old.scf=sscf.agp,new.agp=chr.agp[chr.agp$W=="W",],scf.agp = scf.agp,
+                                 chr=as.character(stacks.fst$Chr[i]),bp=stacks.fst$BP[i],id=as.character(stacks.fst$Locus.ID[i]))
+    stacks.fst[i,"Chr"]<-convert["NewChr"]
+    stacks.fst[i,"BP"]<-convert["NewBP"]
+  }
+  # reorder by chrom
+  scaffs<-levels(stacks.fst$Chr)
+  scaffs[1:22]<-lgs
+  upd.fst<-do.call(rbind,lapply(scaffs,function(lg){
+    this.chr<-stacks.fst[stacks.fst$Chr==lg,]
+    this.chr<-this.chr[order(as.numeric(this.chr$BP)),]
+    return(this.chr)
+  }))
+  write.table(upd.fst,outname,col.names = TRUE,row.names = FALSE,quote=FALSE,sep='\t')
+  print(by(upd.fst,upd.fst$Chr,function(chr){ return(max(chr$BP)/1000000) })[lgs])
+  return(upd.fst)
+}
+
+upd.tx<-convert.stacks(fwsw.tx,"stacks/p4.fst_TXCC-TXFW.txt",lgs,ssc.agp,sscf.agp,chr.agp,scf.agp)
+upd.la<-convert.stacks(fwsw.la,"stacks/p4.fst_ALST-LAFW.txt",lgs,ssc.agp,sscf.agp,chr.agp,scf.agp)
+upd.al<-convert.stacks(fwsw.al,"stacks/p4.fst_ALFW-ALST.txt",lgs,ssc.agp,sscf.agp,chr.agp,scf.agp)
+upd.fl<-convert.stacks(fwsw.fl,"stacks/p4.fst_FLCC-FLLG.txt",lgs,ssc.agp,sscf.agp,chr.agp,scf.agp)
+```

@@ -62,9 +62,13 @@ saveRDS(LG4,"dmc/selectedRegionAlleleFreqs_p4LG4.RDS")
 saveRDS(vcf[vcf$`#CHROM`=="LG4","POS"],"dmc/selectedRegionPositions_p4LG4.RDS")
 
 #calculate neutral allele frequencies
-allFreqs<-calc.allFreqs(vcf[vcf$`#CHROM` %in% c("LG6","LG9","LG10","LG11","LG13","LG14","LG16","LG18","LG20"),],
+allFreqs<-calc.allFreqs(vcf[vcf$`#CHROM` %in%
+                              c("LG3","LG5","LG6","LG7","LG8","LG9","LG11","LG15","LG16","LG17","LG19","LG21","LG22"),],
                    pop.list,pop.labs)
 saveRDS(allFreqs,"dmc/neutralAlleleFreqs_p4LG4.RDS")
+```
+```{r read_allFreqs}
+allFreqs<-readRDS("dmc/neutralAlleleFreqs_p4LG4.RDS")
 ```
 
 Once those are calculated, I can calculate the neutral F matrix, in addition to its determinant and inverse.
@@ -169,7 +173,7 @@ library(MareyMap)
 startMareyMapGUI()
 #using the GUI, I ran all three types of recombination rate estimators and saved the MapSet
 ```
-```{r estimate_rec}
+```{r estimate_rec,eval=FALSE}
 ssc.map<-read.delim("~/Projects/ssc_MareyMap.txt",comment.char = "#",sep=" ")
 #genome-wide
 r<-data.frame(Genome_wide=c(mean(ssc.map$slidingwindow,na.rm = TRUE)/1000000,
@@ -184,7 +188,7 @@ r<-data.frame(Genome_wide=c(mean(ssc.map$slidingwindow,na.rm = TRUE)/1000000,
               row.names = c("Sliding Window","Spline","Loess"))
 kable(r,caption="Recombination rate estimates")
 ```
-```{r plot_recLG4}
+```{r plot_recLG4,eval=FALSE}
 load("~/Projects/ssc_map.rda")
 #plot LG4
 plot(set[["LG4"]]@interpolations$slidingwindow@physicalPositions,
