@@ -471,6 +471,8 @@ jostd$POS<-vcf$POS
 jostd$Chr<-vcf$`#CHROM`
 jostd$ID<-vcf$ID
 ## ---- end
+#select genes of interest
+fav.genes<-c("AQP3","TNS1","CAMKK1","mucin","CAII","NAKATPase","ARHGEF3")
 ## ---- setupHandPi
 #also marine-fw fsts
 fwsw<-read.delim("stacks/fw-sw_populations/batch_2.fst_marine-freshwater.tsv")
@@ -478,8 +480,7 @@ fwsw<-read.delim("stacks/fw-sw_populations/batch_2.fst_marine-freshwater.tsv")
 put.genes<-read.delim("putative_genes.txt",header=TRUE,sep='\t')
 #genome annotations
 put.reg<-read.delim("putative.gene.regions.tsv",header=T)
-#select genes of interest
-fav.genes<-c("AQP3","TNS1","CAMKK1","mucin","CAII","NAKATPase","ARHGEF3")
+
 genes2plot<-put.reg[put.reg$Gene %in% fav.genes,]
 #shared Fst outliers
 fw.sig.reg<-read.csv("StacksFWSWOutliers_annotatedByGenome.csv")
@@ -491,8 +492,8 @@ fst.points<-TRUE
 ## ---- plotHandPi
 #colors
 comp.col<-c(Het="#80cdc1",pi="#018571",Fst="black",D="#a6611a",deltad="#dfc27d")
-png(h.pi.name,height=8,width=10,units="in",res=300)
-par(mfrow=row.settings,oma=c(1,1,3.5,1),mar=c(1,2,2,1))
+png(h.pi.name,height=8,width=14,units="in",res=300)
+par(mfrow=row.settings,oma=c(1,1,1,1),mar=c(1,2,2,1))
 for(i in 1:length(chroms2plot)){
   this.df<-fwsw[fwsw$Chr %in% chroms2plot[i],]
   plot(this.df$BP,this.df$Corrected.AMOVA.Fst, ylim=c(-0.2,0.5),axes=F,ylab="",xlab="",type='n')
@@ -570,21 +571,25 @@ for(i in 1:length(chroms2plot)){
   axis(2,las=1,hadj=0.75,cex.axis=2,pos=xmin,at=c(-0.25,0,0.25,0.5))
   mtext(chroms2plot[i],1,cex=2*0.75,line=1)
 }
-par(fig=c(0, 1, 0, 1), oma=c(0, 0, 0, 0), 
-    mar=c(0, 0, 0, 0), new=TRUE)
+#par(fig=c(0, 1, 0, 1), oma=c(0, 0, 0, 0),mar=c(0, 0, 0, 0), new=TRUE)
 plot(0, 0, type='n', bty='n', xaxt='n', yaxt='n')
-legend("top",
-       legend=c("Shared Putative Gene",
+legend("topleft",xpd=TRUE,
+       legend=c("Putative Gene",
                 expression(Shared~italic(F)[ST]~Outlier),
-                expression(Large~pi~and~italic(H)),
-                expression(italic(H)),
+                expression(Large~pi~and~italic(H))),
+       bty='n',pch=c(15,8,15),#lwd=c(2,1,4,2,2,0,2,2),lty=c(1,0,1,1,1,0,1,1),
+       cex = 2,x.intersp = 0.5,y.intersp = 0.75,text.width=0.45,
+       col=c("indianred","orchid4",alpha("#543005",0.75)))
+plot(0, 0, type='n', bty='n', xaxt='n', yaxt='n')
+legend("topleft",xpd=TRUE,
+       legend=c(expression(italic(H)),
                 expression(pi),#expression(FW-SW~italic(F)[ST]),
                 expression("Jost's"~italic(D)),
                 expression(delta~-divergence)),
-       bty='n',pch=c(15,8,15,15,15,15,15),#lwd=c(2,1,4,2,2,0,2,2),lty=c(1,0,1,1,1,0,1,1),
+       bty='n',pch=c(15,15,15,15),#lwd=c(2,1,4,2,2,0,2,2),lty=c(1,0,1,1,1,0,1,1),
        cex = 2,x.intersp = 0.5,y.intersp = 0.75,text.width=0.45,
-       col=c("indianred","orchid4",alpha("#543005",0.75),comp.col[1:2],#alpha(col=comp.col["Fst"],0.25)
-             comp.col[4:5]),ncol=4)
+       col=c(comp.col[1:2],#alpha(col=comp.col["Fst"],0.25)
+             comp.col[4:5]))
 dev.off()
 ## ---- end
 
@@ -716,13 +721,14 @@ ffs.sig[ffs.sig %in% tss.sig & ffs.sig %in% ass.sig] #14
 ## ---- end
 #### Stacks Fsts ####
 stacks.sig.out<-"stacks.sig.snps.txt"
-## ---- StacksFsts
-fwsw<-read.delim("stacks/fw-sw_populations/batch_2.fst_marine-freshwater.tsv")
-#Compare neighboring pops.
 fwsw.tx<-read.delim("stacks/batch_2.fst_TXCC-TXFW.tsv")
 fwsw.la<-read.delim("stacks/batch_2.fst_ALST-LAFW.tsv")
 fwsw.al<-read.delim("stacks/batch_2.fst_ALFW-ALST.tsv")
 fwsw.fl<-read.delim("stacks/batch_2.fst_FLCC-FLLG.tsv")
+
+## ---- StacksFsts
+fwsw<-read.delim("stacks/fw-sw_populations/batch_2.fst_marine-freshwater.tsv")
+#Compare neighboring pops.
 
 tx.sig<-fwsw.tx[fwsw.tx$Fisher.s.P<0.01,"Locus.ID"]
 la.sig<-fwsw.la[fwsw.la$Fisher.s.P<0.01,"Locus.ID"]
@@ -906,13 +912,14 @@ perlg.add.lines<-function(fwsw.plot,lgs,width=NULL,lwds=4,color="cornflowerblue"
 #' files to read in if they're not already
 stacks.sig.out<-"p4.stacks.sig.snps.txt"
 bf.file<-"bayenv/bf.txt" #57250
-## ---- Fig5Files
-fwsw<-read.delim("stacks/fw-sw_populations/batch_2.fst_marine-freshwater.tsv")
-#Compare neighboring pops.
 fwsw.tx<-read.delim("stacks/batch_2.fst_TXCC-TXFW.tsv")
 fwsw.la<-read.delim("stacks/batch_2.fst_ALST-LAFW.tsv")
 fwsw.al<-read.delim("stacks/batch_2.fst_ALFW-ALST.tsv")
 fwsw.fl<-read.delim("stacks/batch_2.fst_FLCC-FLLG.tsv")
+## ---- Fig5Files
+fwsw<-read.delim("stacks/fw-sw_populations/batch_2.fst_marine-freshwater.tsv")
+#Compare neighboring pops.
+
 tx.sig<-fwsw.tx[fwsw.tx$Fisher.s.P<0.01,"Locus.ID"]
 la.sig<-fwsw.la[fwsw.la$Fisher.s.P<0.01,"Locus.ID"]
 al.sig<-fwsw.al[fwsw.al$Fisher.s.P<0.01,"Locus.ID"]
@@ -939,9 +946,9 @@ all.chr<-data.frame(Chr=c(as.character(fwsw.tx$Chr),as.character(fwsw.la$Chr),
                           as.character(fwsw.al$Chr),as.character(fwsw.fl$Chr),
                           as.character(bf$scaffold)),
   BP=c(fwsw.tx$BP,fwsw.la$BP,fwsw.al$BP,fwsw.fl$BP,bf$BP),stringsAsFactors = F)
-bounds<-data.frame(Chrom=unique(as.factor(all.chr$Chr)),
-                   End=tapply(as.numeric(as.character(all.chr$BP)),
-                          all.chr$Chr,max))
+bounds<-tapply(as.numeric(as.character(all.chr$BP)), all.chr$Chr,max)
+bounds<-data.frame(Chrom=dimnames(bounds),End=bounds)
+colnames(bounds)<-c("Chrom","End")
 plot.scaffs<-scaffs[scaffs %in% bounds$Chr]
 plot.scaffs[1:22]<-lgs
 bounds<-bounds[match(plot.scaffs,bounds$Chrom),]

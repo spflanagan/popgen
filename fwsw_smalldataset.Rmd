@@ -352,10 +352,15 @@ afs.plot.name<-as.character("p4.All_AFS.png")
 stacks.sig.out<-"p4.stacks.sig.snps.txt"
 annotations.name<-"p4.StacksFWSWOutliers_annotatedByGenome.csv"
 bf.file<-"bayenv/p4.bf.txt"
+fwsw.tx<-read.delim("stacks/p4.fst_TXCC-TXFW.txt")
+fwsw.la<-read.delim("stacks/p4.fst_ALST-LAFW.txt")
+fwsw.al<-read.delim("stacks/p4.fst_ALFW-ALST.txt")
+fwsw.fl<-read.delim("stacks/p4.fst_FLCC-FLLG.txt")
+
 ```
 ```{r StacksFsts}
 ```
-```{r compare2ScovelliGenome}
+```{r compare2ScovelliGenome,eval=FALSE}
 ```
 ```{r read_compare}
 fw.sig.reg<-read.csv(annotations.name)
@@ -421,9 +426,9 @@ swsw.name<-"p4_stacks_swsw.png"
 In Figure 6, we show different measures of diversity: pi (nucleotide diversity), heterozygosity, Jost's D, and delta-divergence. Additionally, we include the shared Fst outliers and putative loci, and highlight regions with high `pi` and \italic(H).
 
 ### Allele Frequency Spectrum
-```{r calcAFS}
+```{r calcAFS,eval=FALSE}
 ```
-```{r plotAFS, echo=FALSE}
+```{r plotAFS, echo=FALSE,eval=FALSE}
 ```
 
 ![Figure S1. Fsts](fwsw_results/p4.All_AFS.png)
@@ -433,7 +438,7 @@ In Figure 6, we show different measures of diversity: pi (nucleotide diversity),
 pi.file.name<-"p4.pi.txt"
 avgpi.file.name<-"p4.avgpi.txt"
 ```
-```{r pi, fig.keep='none',eval=TRUE}
+```{r pi, fig.keep='none',eval=FALSE}
 ```
 ```{r pi_readin}
 all.pi<-read.table(pi.file.name,header=T)
@@ -445,7 +450,7 @@ avg.pi.adj<-read.table(avgpi.file.name,header=T)
 all.het.name<-"p4.avg.het.txt"
 avg.het.adj.name<-"p4.avg.het.adj.txt"
 ```
-```{r het,eval=TRUE}
+```{r het,eval=FALSE}
 ```
 ```{r read_het}
 avg.het.adj<-read.delim(avg.het.adj.name,header=TRUE)
@@ -455,7 +460,7 @@ all.het<-read.delim(all.het.name,header=TRUE)
 
 
 ### delta-divergence
-```{r setupDeltaD}
+```{r setupDeltaD,eval=FALSE}
 ```
 ```{r readDeltaD, echo=FALSE}
 dd.plot.name<-as.character("separate_delta-divergence.png")
@@ -463,14 +468,14 @@ dd.name<-as.character("sep.deltadivergence.txt")
 sdd.name<-as.character("sep.smoothedDD.out.txt")
 deltad<-read.delim(dd.name, header=TRUE)
 ```
-```{r PlotDeltaD}
+```{r PlotDeltaD,results="hide"}
 ```
 This plotting function also generates the smoothed \delta -divergence values.
 
 ### Jost's D
 
 First, I must calculate Jost's D on each locus in the p4 dataset
-```{r JostD, eval=TRUE}
+```{r JostD, eval=FALSE}
 sub.genind<-read.structure("stacks/subset.structure.stru",n.ind=698,
                            n.loc=9638,col.lab=1,col.pop=2,sep='\t',
                            row.marknames = 2,onerowperind=FALSE,ask=FALSE)
@@ -532,12 +537,13 @@ put.genes<-read.delim("putative_genes.txt",header=TRUE,sep='\t')
 put.reg<-read.delim("putative.gene.regions.tsv",header=T)
 #select genes of interest
 #fav.genes<-c("AQP3","TNS1","CAMKK1","mucin","CAII","NAKATPase","ARHGEF3")
-fav.genes<-c("TNS1","CAII","TRIM14","VATPase")
+#fav.genes<-c("TNS1","CAII","TRIM14","VATPase")
+fav.genes<-c("ARHGEF3", "ATP6V0A1", "ATP6V1A", "FLT4", "OSBPL8", "RHOGTP8", "SLC2A13", "SPG1", "STAT3", "TIMP3", "VATPase")
 genes2plot<-put.reg[put.reg$Gene %in% fav.genes,]
 #shared Fst outliers
 fw.sig.reg<-read.csv("p4.StacksFWSWOutliers_annotatedByGenome.csv")
 h.pi.name<-"HandPi_subgenes.png"
-row.settings<-c(4,3)
+row.settings<-c(4,4)
 chroms2plot<-unique(shared.upp$Chr)
 chroms2plot<-chroms2plot[chroms2plot != "LG19"]
 ```
@@ -609,7 +615,7 @@ calc.allFreqs<-function(vcf,pop.list, pop.labs){
 freqs<-calc.allFreqs(remove.missing.data(vcf, pop.list),pop.list,pop.labs)
 write.table(freqs,"flk.freqs",row.names = TRUE)
 ```
-```{r FLK,eval=FALSE}
+```{r FLK}
 source("../scripts/FLK.R")
 library(ape); library(phangorn)
 freqs<-read.table("flk.freqs",row.names=1)
@@ -637,6 +643,33 @@ lines(smooth.spline(null$Ht,null$q0.005))
 lines(smooth.spline(null$Ht,null$q0.025),lty=2)
 lines(smooth.spline(null$Ht,null$q0.975),lty=2)
 lines(smooth.spline(null$Ht,null$q0.5),lty=3)
+```
+
+Use PopGenome to do the CLR method
+
+```{r popgenome}
+library(PopGenome)
+genvcf <- readVCF("p4.upd.vcf",approx=FALSE, out="", parallel=FALSE, gffpath=FALSE)
+TXSP<-grep("TXSP",colnames(vcf),value = TRUE)
+TXCC<-grep("TXCC",colnames(vcf),value = TRUE)
+TXFW<-grep("TXFW",colnames(vcf),value = TRUE)
+TXCB<-grep("TXCB",colnames(vcf),value = TRUE)
+LAFW<-grep("LAFW",colnames(vcf),value = TRUE)
+ALST<-grep("ALST",colnames(vcf),value = TRUE)
+ALFW<-grep("ALFW",colnames(vcf),value = TRUE)
+FLSG<-grep("FLSG",colnames(vcf),value = TRUE)
+FLKB<-grep("FLKB",colnames(vcf),value = TRUE)
+FLFD<-grep("FLFD",colnames(vcf),value = TRUE)
+FLSI<-grep("FLSI",colnames(vcf),value = TRUE)
+FLAB<-grep("FLAB",colnames(vcf),value = TRUE)
+FLPB<-grep("FLPB",colnames(vcf),value = TRUE)
+FLHB<-grep("FLHB",colnames(vcf),value = TRUE)
+FLCC<-grep("FLCC",colnames(vcf),value = TRUE)
+FLFW<-grep("FLFW",colnames(vcf),value = TRUE)
+genvcf<-set.populations(genvcf,
+                        list(TXSP,TXCC,TXFW,TXCB,LAFW,ALST,ALFW,FLSG,FLKB,FLFD,FLSI,FLAB,FLPB,FLHB,FLCC,FLFW),
+                        diploid=TRUE)
+
 ```
 
 ## Figure 7
