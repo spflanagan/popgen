@@ -34,7 +34,7 @@ knitr::read_chunk("../scripts/run_dmc.R")
 ```{r FWSWsetup, include=FALSE}
 ```
 ```{r read_vcf}
-vcf<-parse.vcf("stacks/p4.vcf") #this is the smaller dataset
+vcf<-parse.vcf("p4.upd.vcf") #this is the smaller dataset
 ```
 ```{r vcfSetup, echo=TRUE}
 ```
@@ -57,14 +57,14 @@ calc.allFreqs<-function(vcf,pop.list, pop.labs){
   return(allFreqs)
 }
 #calculate selected allele frequencies
-LG8<-calc.allFreqs(vcf[vcf$`#CHROM` == "LG8",],pop.list,pop.labs)
-saveRDS(LG8,"dmc/selectedRegionAlleleFreqs_p4LG8.RDS")
-saveRDS(vcf[vcf$`#CHROM`=="LG8","POS"],"dmc/selectedRegionPositions_p4LG8.RDS")
+LG4<-calc.allFreqs(vcf[vcf$`#CHROM` == "LG4",],pop.list,pop.labs)
+saveRDS(LG4,"dmc/selectedRegionAlleleFreqs_p4LG4.RDS")
+saveRDS(vcf[vcf$`#CHROM`=="LG4","POS"],"dmc/selectedRegionPositions_p4LG4.RDS")
 
 #calculate neutral allele frequencies
 allFreqs<-calc.allFreqs(vcf[vcf$`#CHROM` %in% c("LG6","LG9","LG10","LG11","LG13","LG14","LG16","LG18","LG20"),],
                    pop.list,pop.labs)
-saveRDS(allFreqs,"dmc/neutralAlleleFreqs_p4LG8.RDS")
+saveRDS(allFreqs,"dmc/neutralAlleleFreqs_p4LG4.RDS")
 ```
 
 Once those are calculated, I can calculate the neutral F matrix, in addition to its determinant and inverse.
@@ -77,9 +77,9 @@ numPops<-16
 
 #calculate the neutral F matrix
 saveRDS(sampleSizes,"dmc/sampleSizes.RDS")
-neutralF_filename<-"dmc/neutralF_p4LG8"
+neutralF_filename<-"dmc/neutralF_p4LG4"
 source("../programs/dmc-master/calcNeutralF.R")
-F_estimate<-readRDS("dmc/neutralF_p4LG8.RDS")
+F_estimate<-readRDS("dmc/neutralF_p4LG4.RDS")
 
 #calculate the determinant and inverse of the neutral F matrix
 M <- numPops
@@ -87,32 +87,32 @@ Tmatrix <- matrix(data = rep(-1 / M, (M - 1) * M), nrow = M - 1, ncol = M)
 diag(Tmatrix) = (M - 1) / M 
 sampleErrorMatrix = diag(1/sampleSizes, nrow = numPops, ncol = numPops)
 det_FOmegas_neutral = det(Tmatrix %*% (F_estimate + sampleErrorMatrix) %*% t(Tmatrix))
-saveRDS(det_FOmegas_neutral, "dmc/det_FOmegas_neutral_p4LG8.RDS")
+saveRDS(det_FOmegas_neutral, "dmc/det_FOmegas_neutral_p4LG4.RDS")
 
 inv_FOmegas_neutral = ginv(Tmatrix %*% (F_estimate + sampleErrorMatrix) %*% t(Tmatrix))
-saveRDS(inv_FOmegas_neutral, "dmc/inv_FOmegas_neutral_p4LG8.RDS")
+saveRDS(inv_FOmegas_neutral, "dmc/inv_FOmegas_neutral_p4LG4.RDS")
 
 ```
 
 *Note: I had to use `r Sys.chmod('./dmc/')` to allow read/write in the scripts.*
 
-Let's look at the allele frequencies on LG8. This will help inform the hypotheses I test with dmc.
+Let's look at the allele frequencies on LG4. This will help inform the hypotheses I test with dmc.
 
 
 ```{r sig_alleleFreqs}
 stacks.sig<-read.delim("p4.stacks.sig.snps.txt")
 stacks.sig$SNP<-paste(stacks.sig$Chr,(stacks.sig$BP+1),sep=".")
-LG8<-readRDS("dmc/selectedRegionAlleleFreqs_p4LG8.RDS")
-allFreqs<-readRDS("dmc/neutralAlleleFreqs_p4LG8.RDS")
-# LG8[rownames(LG8) %in% c("FLFW","ALFW","LAFW","TXFW"),colnames(LG8) %in% stacks.sig$SNP]
-# LG8[rownames(LG8) %in% c("FLFW","ALFW","LAFW","TXFW"),
-#          which(colnames(LG8) %in% stacks.sig$SNP)[1]:
-#            which(colnames(LG8) %in% stacks.sig$SNP)[length(which(colnames(LG8) %in% stacks.sig$SNP))]]
+LG4<-readRDS("dmc/selectedRegionAlleleFreqs_p4LG4.RDS")
+allFreqs<-readRDS("dmc/neutralAlleleFreqs_p4LG4.RDS")
+# LG4[rownames(LG4) %in% c("FLFW","ALFW","LAFW","TXFW"),colnames(LG4) %in% stacks.sig$SNP]
+# LG4[rownames(LG4) %in% c("FLFW","ALFW","LAFW","TXFW"),
+#          which(colnames(LG4) %in% stacks.sig$SNP)[1]:
+#            which(colnames(LG4) %in% stacks.sig$SNP)[length(which(colnames(LG4) %in% stacks.sig$SNP))]]
 grp.colors<-c('#762a83','#af8dc3','#e7d4e8','#d9f0d3','#7fbf7b','#1b7837')
-plot(LG8["TXFW",],col=grp.colors[1],pch="-",bty="L",lwd=2,cex=2)
-points(LG8["LAFW",],col=grp.colors[2],pch="-",bty="L",lwd=2,cex=2)
-points(LG8["ALFW",],col=grp.colors[3],pch="-",bty="L",lwd=2,cex=2)
-points(LG8["FLFW",],col=grp.colors[6],pch="-",bty="L",lwd=2,cex=2)
+plot(LG4["TXFW",],col=grp.colors[1],pch="-",bty="L",lwd=2,cex=2)
+points(LG4["LAFW",],col=grp.colors[2],pch="-",bty="L",lwd=2,cex=2)
+points(LG4["ALFW",],col=grp.colors[3],pch="-",bty="L",lwd=2,cex=2)
+points(LG4["FLFW",],col=grp.colors[6],pch="-",bty="L",lwd=2,cex=2)
 
 cols<-colorRampPalette(t(brewer.pal(9,name="Blues")[3:7]))(100)
 
@@ -122,8 +122,8 @@ text(x=-0.02,y=1,"FLFW",srt=90,xpd=TRUE)
 text(x=-0.02,y=0.67,"ALFW",srt=90,xpd=TRUE)
 text(x=-0.02,y=0.35,"LAFW",srt=90,xpd=TRUE)
 text(x=-0.02,y=0,"TXFW",srt=90,xpd=TRUE)
-mtext("Position on LG8",1)
-axis(3,at =t(LG8[rownames(LG8) %in% c("FLFW","ALFW","LAFW","TXFW"),colnames(LG8) %in% stacks.sig$SNP]),
+mtext("Position on LG4",1)
+axis(3,at =t(LG4[rownames(LG4) %in% c("FLFW","ALFW","LAFW","TXFW"),colnames(LG4) %in% stacks.sig$SNP]),
      labels = FALSE,lwd=0,lwd.ticks = 1.75,tck=-.05)
 ```
 
@@ -175,29 +175,29 @@ ssc.map<-read.delim("~/Projects/ssc_MareyMap.txt",comment.char = "#",sep=" ")
 r<-data.frame(Genome_wide=c(mean(ssc.map$slidingwindow,na.rm = TRUE)/1000000,
                             mean(ssc.map$spline,na.rm = TRUE)/1000000,
                             mean(ssc.map$loess,na.rm = TRUE)/1000000),
-              LG8=c(mean(ssc.map$slidingwindow[ssc.map$map=="LG8"],na.rm = TRUE)/1000000,
-                            mean(ssc.map$spline[ssc.map$map=="LG8"],na.rm = TRUE)/1000000,
-                            mean(ssc.map$loess[ssc.map$map=="LG8"],na.rm = TRUE)/1000000),
-              LG8_first4Mb=c(mean(ssc.map$slidingwindow[ssc.map$map=="LG8" & ssc.map$phys<4*10^6],na.rm = TRUE)/1000000,
-                            mean(ssc.map$spline[ssc.map$map=="LG8"& ssc.map$phys<4*10^6],na.rm = TRUE)/1000000,
-                            mean(ssc.map$loess[ssc.map$map=="LG8"& ssc.map$phys<4*10^6],na.rm = TRUE)/1000000),
+              LG4=c(mean(ssc.map$slidingwindow[ssc.map$map=="LG4"],na.rm = TRUE)/1000000,
+                            mean(ssc.map$spline[ssc.map$map=="LG4"],na.rm = TRUE)/1000000,
+                            mean(ssc.map$loess[ssc.map$map=="LG4"],na.rm = TRUE)/1000000),
+              LG4_first4Mb=c(mean(ssc.map$slidingwindow[ssc.map$map=="LG4" & ssc.map$phys<4*10^6],na.rm = TRUE)/1000000,
+                            mean(ssc.map$spline[ssc.map$map=="LG4"& ssc.map$phys<4*10^6],na.rm = TRUE)/1000000,
+                            mean(ssc.map$loess[ssc.map$map=="LG4"& ssc.map$phys<4*10^6],na.rm = TRUE)/1000000),
               row.names = c("Sliding Window","Spline","Loess"))
 kable(r,caption="Recombination rate estimates")
 ```
-```{r plot_recLG8}
+```{r plot_recLG4}
 load("~/Projects/ssc_map.rda")
-#plot LG8
-plot(set[["LG8"]]@interpolations$slidingwindow@physicalPositions,
-     set[["LG8"]]@interpolations$slidingwindow@rates,type="l",
+#plot LG4
+plot(set[["LG4"]]@interpolations$slidingwindow@physicalPositions,
+     set[["LG4"]]@interpolations$slidingwindow@rates,type="l",
      ylim=c(-5,25),xlab="",ylab="",xaxt='n',lwd=2)
 abline(h=0,lty=2)
 axis(1,at=seq(0,1*10^7,2*10^6),labels = seq(0,10,2))
-mtext("Position on LG8 (Mb)",1,line=2)
+mtext("Position on LG4 (Mb)",1,line=2)
 mtext("Recombination Rate (cM/Mb)",2,line=2)
-lines(set[["LG8"]]@interpolations$spline@physicalPositions,
-      set[["LG8"]]@interpolations$spline@rates,type="l",col="blue",lwd=2)
-lines(set[["LG8"]]@interpolations$loess@physicalPositions,
-      set[["LG8"]]@interpolations$loess@rates,type="l",lwd=2,col="forestgreen")
+lines(set[["LG4"]]@interpolations$spline@physicalPositions,
+      set[["LG4"]]@interpolations$spline@rates,type="l",col="blue",lwd=2)
+lines(set[["LG4"]]@interpolations$loess@physicalPositions,
+      set[["LG4"]]@interpolations$loess@rates,type="l",lwd=2,col="forestgreen")
 legend("topleft",bty='n',col=c("black","blue","forestgreen"),lwd=2,c("Sliding Window","Spline","Loess"))
 ```
 
@@ -209,7 +209,7 @@ legend("topleft",bty='n',col=c("black","blue","forestgreen"),lwd=2,c("Sliding Wi
 ```{r plot_likelihoods_fxns}
 calc.max.complike<-function(pattern){
   #read in composite likelihood files and calculate max for all proposed selected sites
-  compLikelihood_neutral = readRDS("dmc/compLikelihood_neutral_p4LG8.RDS")
+  compLikelihood_neutral = readRDS("dmc/compLikelihood_neutral_p4LG4.RDS")
   compLikelihood_neutral_site = sapply(1 : length(selSite), function(i) {
     max(unlist(compLikelihood_neutral[[i]]))
   })
@@ -280,13 +280,13 @@ plot.complike<-function(pattern,leg=TRUE,lab=TRUE){
 ```
 
 ```{r plot_ne,fig.width=8,fig.height=8}
-patterns<-c("p4LG8_8300_2_8","p4LG8_83000_2_8","p4LG8_830000_2_8","p4LG8_8300000_2_8",
-            "p4LG8_8300_2_7","p4LG8_83000_2_7","p4LG8_830000_2_7","p4LG8_8300000_2_7",
-            "p4LG8_8300_6_6","p4LG8_83000_6_6","p4LG8_830000_6_6","p4LG8_8300000_6_6",
-            "p4LG8_8300_5_6","p4LG8_83000_5_6","p4LG8_830000_5_6","p4LG8_8300000_5_6")
+patterns<-c("p4LG4_8300_2_8","p4LG4_83000_2_8","p4LG4_830000_2_8","p4LG4_8300000_2_8",
+            "p4LG4_8300_2_7","p4LG4_83000_2_7","p4LG4_830000_2_7","p4LG4_8300000_2_7",
+            "p4LG4_8300_6_6","p4LG4_83000_6_6","p4LG4_830000_6_6","p4LG4_8300000_6_6",
+            "p4LG4_8300_5_6","p4LG4_83000_5_6","p4LG4_830000_5_6","p4LG4_8300000_5_6")
 par(mfrow=c(4,4),mar=c(1.5,1.5,0.5,0.5),oma=c(2,2,2,2))
 ne.complikes<-lapply(patterns,plot.complike,leg=FALSE,lab=FALSE)
-mtext("Position on LG8",1,outer=TRUE,cex=0.8,line=.5)
+mtext("Position on LG4",1,outer=TRUE,cex=0.8,line=.5)
 mtext("Composite log likelihood (model - neutral)",2,outer=T,cex=0.8,line=.5)
 par(fig=c(0,1,0,1),oma=c(0,0,0,0),mar=c(0,0,0,0),new=TRUE)
 plot(0,0,type='n',bty='n',xaxt='n',yaxt='n')
@@ -334,8 +334,8 @@ get.mcle<-function(max.complikes,Ne,rec,selSite= positions[seq(1, length(positio
 rs<-c("2_8"=2.17*10^-8,"2_7"=2*10^-7,"6_6"=6*10^-6,"5_6"=5.6*10^-6)
 ne.mcles<-lapply(ne.complikes, function(max.complikes){
   pattern<-max.complikes[[2]]
-  Ne<-as.numeric(gsub("p4LG8_(\\d+)_.*","\\1",pattern))
-  r<-gsub("p4LG8_\\d+_(\\d_\\d)","\\1",pattern)
+  Ne<-as.numeric(gsub("p4LG4_(\\d+)_.*","\\1",pattern))
+  r<-gsub("p4LG4_\\d+_(\\d_\\d)","\\1",pattern)
   rec<-rs[r]
   max.complikes<-max.complikes[[1]]
   mcle<-get.mcle(max.complikes,Ne=Ne,rec=rec)
@@ -352,7 +352,7 @@ lapply(ne.mcles,function(mcle){ kable(mcle[[1]]) })
 
 ```{r plot_chosen}
 selSite = positions[seq(1, length(positions[positions<10000000]), length.out = 100)]
-max.complikes<-plot.complike("p4LG8_10000r2",leg=FALSE)
+max.complikes<-plot.complike("p4LG4_10000r2",leg=FALSE)
 mcle<-get.mcle(max.complikes[[1]],Ne=5000,rec=2*10^-7)
 kable(mcle)
 ```
@@ -367,7 +367,7 @@ Plot the profile likelihood surfaces for the parameter of time the beneficial al
 <!-- #generate position data near prolactin -->
 
 <!-- put.reg<-read.delim("putative.gene.regions.tsv",header=T) -->
-<!-- prl<-put.reg[put.reg$Gene=="PRL" & put.reg$Chrom=="LG8",] -->
+<!-- prl<-put.reg[put.reg$Gene=="PRL" & put.reg$Chrom=="LG4",] -->
 <!-- prl.loc<-as.numeric(prl$StartBP[2])+((as.numeric(prl$StopBP[2])-as.numeric(prl$StartBP[2]))/2) -->
 <!-- ``` -->
 
