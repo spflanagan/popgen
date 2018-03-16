@@ -191,7 +191,7 @@ plot(set[["LG4"]]@interpolations$slidingwindow@physicalPositions,
      set[["LG4"]]@interpolations$slidingwindow@rates,type="l",
      ylim=c(-5,25),xlab="",ylab="",xaxt='n',lwd=2)
 abline(h=0,lty=2)
-axis(1,at=seq(0,1*10^7,2*10^6),labels = seq(0,10,2))
+axis(1,at=seq(0,1.8*10^7,3*10^6),labels = seq(0,18,3))
 mtext("Position on LG4 (Mb)",1,line=2)
 mtext("Recombination Rate (cM/Mb)",2,line=2)
 lines(set[["LG4"]]@interpolations$spline@physicalPositions,

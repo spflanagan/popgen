@@ -247,7 +247,7 @@ run.dmc<-function(F_estimate,out_name,positions, sampleSizes,selSite=NA,nselsite
   ############### calculate composite likelihoods ###############
   if(complike==TRUE){
     #randomize allele freqs
-    freqs_notRand = readRDS("dmc/selectedRegionAlleleFreqs_p4LG8.RDS")
+    freqs_notRand = readRDS("dmc/selectedRegionAlleleFreqs_p4LG4.RDS")
     randFreqs = apply(freqs_notRand, 2, function(my.freqs) {
       if(runif(1) < 0.5) {
         my.freqs = 1 - my.freqs
@@ -261,12 +261,12 @@ run.dmc<-function(F_estimate,out_name,positions, sampleSizes,selSite=NA,nselsite
     source("../programs/dmc-master/calcCompositeLike.R")
     
     ## Neutral model
-    det_FOmegas_neutral = readRDS("dmc/det_FOmegas_neutral_p4LG8.RDS")
-    inv_FOmegas_neutral = readRDS("dmc/inv_FOmegas_neutral_p4LG8.RDS")
+    det_FOmegas_neutral = readRDS("dmc/det_FOmegas_neutral_p4LG4.RDS")
+    inv_FOmegas_neutral = readRDS("dmc/inv_FOmegas_neutral_p4LG4.RDS")
     compLikelihood_neutral = lapply(1 : length(selSite), function(j) {
       calcCompLikelihood_neutral(j, det_FOmegas_neutral, inv_FOmegas_neutral)
     })
-    saveRDS(compLikelihood_neutral, paste("dmc/compLikelihood_neutral_p4LG8.RDS",sep=""))
+    saveRDS(compLikelihood_neutral, paste("dmc/compLikelihood_neutral_p4LG4.RDS",sep=""))
     
     ## Model 1
     det_FOmegas_ind = readRDS(paste("dmc/det_FOmegas_ind_",out_name,".RDS",sep=""))
@@ -387,8 +387,8 @@ run.dmc<-function(F_estimate,out_name,positions, sampleSizes,selSite=NA,nselsite
 
 ## ---- setParameters
 ############### Set parameters ###############
-positions<-readRDS("dmc/selectedRegionPositions_p4LG8.RDS")
-F_estimate<-readRDS("dmc/neutralF_p4LG8.RDS")
+positions<-readRDS("dmc/selectedRegionPositions_p4LG4.RDS")
+F_estimate<-readRDS("dmc/neutralF_p4LG4.RDS")
 sampleSizes<-readRDS("dmc/sampleSizes.RDS")
 
 numPops = 16
@@ -413,7 +413,7 @@ dmc.out<-lapply(rs,function(r){
   rec<-r
   rname<-gsub("(\\d).*(\\d)$","\\1_\\2",as.character(r))
   lapply(Nes, function(ne){
-    out_name<-paste("p4LG8_",ne,"_",rname,sep="")
+    out_name<-paste("p4LG4_",ne,"_",rname,sep="")
     dir<-getwd()
     print(paste("running",out_name,"in",dir,sep=" "))
     p<-run.dmc(F_estimate = F_estimate,out_name = out_name,positions = positions,sampleSizes = sampleSizes,
@@ -429,7 +429,7 @@ dmc.out<-lapply(rs,function(r){
 {
 ## ---- dmcForReal
   selSite = positions[seq(1, length(positions[positions<10000000]), length.out = 100)]
-  p<-run.dmc(F_estimate = F_estimate,out_name = "p4LG8_10000r2",positions = positions,sampleSizes = sampleSizes,
+  p<-run.dmc(F_estimate = F_estimate,out_name = "p4LG4_10000r2",positions = positions,sampleSizes = sampleSizes,
           selSite=selSite,rec =2*10^-7,
           Ne = 10000,selPops = selPops,numBins = numBins,numPops = numPops,
           sels = sels, times = times,

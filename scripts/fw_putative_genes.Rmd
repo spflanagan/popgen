@@ -1096,7 +1096,9 @@ gene.out<-data.frame(BP=c(as.numeric(fst.gene),as.numeric(sal.gene),as.numeric(s
 
 png("LG4.png",width=10,height=7,units="in",res=300)
 
-nf <- layout(matrix(c(1,1,1,1,2,2,2,3), 2,4, byrow=TRUE))
+nf <- layout(matrix(c(1,1,1,1,
+                      2,2,2,2,
+                      3,3,3,4), nrow=3, byrow=TRUE))
 par(oma=c(1.5,2.5,1,1),mar=c(1.5,1,2,1))
 
 plot(fst.dfs[[1]]$BP[fst.dfs[[1]]$Chr %in% chrom],
@@ -1177,6 +1179,22 @@ plot(fst.dfs[[1]]$BP[fst.dfs[[1]]$Chr %in% chrom],
     abline(v=fst.gene,col="black")
     points(x=sal.gene,y=rep(1.05,length(sal.gene)),col="black",pch=25,cex=1)
     abline(v=nb.gene,col=alpha("black",0.5),lwd=1.5)
+
+###Recombination rate
+load("~/Projects/ssc_map.rda")
+#plot LG4
+plot(set[["LG4"]]@interpolations$slidingwindow@physicalPositions,
+     set[["LG4"]]@interpolations$slidingwindow@rates,type="l",
+     ylim=c(-5,25),xlab="",ylab="",xaxt='n',lwd=2)
+abline(h=0,lty=2)
+axis(1,at=seq(0,1.8*10^7,3*10^6),labels = seq(0,18,3))
+mtext("Position on LG4 (Mb)",1,line=2)
+mtext("Recombination Rate (cM/Mb)",2,line=2)
+lines(set[["LG4"]]@interpolations$spline@physicalPositions,
+      set[["LG4"]]@interpolations$spline@rates,type="l",col="blue",lwd=2)
+lines(set[["LG4"]]@interpolations$loess@physicalPositions,
+      set[["LG4"]]@interpolations$loess@rates,type="l",lwd=2,col="forestgreen")
+legend("topleft",bty='n',col=c("black","blue","forestgreen"),lwd=2,c("Sliding Window","Spline","Loess"))
 
 ###add legend
 
