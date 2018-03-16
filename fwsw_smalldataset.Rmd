@@ -52,7 +52,7 @@ The first thing to do is to create a vcf file using the subset parameters. I've 
 
 
 ```{r read_vcf,cache=TRUE}
-vcf<-parse.vcf("stacks/p4.upd.vcf") #this is the smaller dataset
+vcf<-parse.vcf("p4.upd.vcf") #this is the smaller dataset
 ```
 ```{r vcfSetup, echo=TRUE}
 ```
@@ -339,7 +339,7 @@ I need to re-run `populations` because I don't seem to have the correct fst file
 And then I will identify the shared outliers among them. But first, let's define some names.
 
 ```{r reset_vcf}
-vcf<-parse.vcf("stacks/p4.upd.vcf")
+vcf<-parse.vcf("p4.upd.vcf")
 ```
 ```{r vcfSetup, echo=TRUE}
 ```

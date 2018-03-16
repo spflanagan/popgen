@@ -345,6 +345,18 @@ names(ne.mcles)<-patterns
 lapply(ne.mcles,function(mcle){ kable(mcle[[1]]) })
 ```
 
+## Model with chosen parameters
+
+```{r dmcForReal, eval=FALSE}
+```
+
+```{r plot_chosen}
+selSite = positions[seq(1, length(positions[positions<10000000]), length.out = 100)]
+max.complikes<-plot.complike("p4LG8_10000r2",leg=FALSE)
+mcle<-get.mcle(max.complikes[[1]],Ne=5000,rec=2*10^-7)
+kable(mcle)
+```
+
 ### Plot profile likelihood surfaces
 
 Plot the profile likelihood surfaces for the parameter of time the beneficial allele has been standing independently in the selected populations for the models with the highest composite log-likelihoods.

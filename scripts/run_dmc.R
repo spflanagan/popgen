@@ -429,9 +429,9 @@ dmc.out<-lapply(rs,function(r){
 {
 ## ---- dmcForReal
   selSite = positions[seq(1, length(positions[positions<10000000]), length.out = 100)]
-  p<-run.dmc(F_estimate = F_estimate,out_name = "p4LG8_5000r2",positions = positions,sampleSizes = sampleSizes,
+  p<-run.dmc(F_estimate = F_estimate,out_name = "p4LG8_10000r2",positions = positions,sampleSizes = sampleSizes,
           selSite=selSite,rec =2*10^-7,
-          Ne = 5000,selPops = selPops,numBins = numBins,numPops = numPops,
+          Ne = 10000,selPops = selPops,numBins = numBins,numPops = numPops,
           sels = sels, times = times,
           migs = migs,mod4_sets=mod4_sets)
 ## ---- end-dmcForReal
