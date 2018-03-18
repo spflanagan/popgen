@@ -1,5 +1,5 @@
 #setwd("~/Projects/popgen/fwsw_results/")
-setwd("B://sf_ubuntushare/popgen/fwsw_results")
+setwd("~/sf_ubuntushare/popgen/fwsw_results/")
 library(fields)
 library(MASS)
 
