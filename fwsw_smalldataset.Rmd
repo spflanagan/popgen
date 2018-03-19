@@ -645,11 +645,16 @@ lines(smooth.spline(null$Ht,null$q0.975),lty=2)
 lines(smooth.spline(null$Ht,null$q0.5),lty=3)
 ```
 
-Use PopGenome to do the CLR method
+Use PopGenome to do the CLR method. First I need to convert my vcf file to a tabix-ed vcf file, using `bgzip p4.upd.vcf` followed by `tabix -p vcf p4.upd.vcf.gz`, and saved these in the popgenome/ directory.
 
-```{r popgenome}
+```{r popgenome,eval=FALSE}
+mins<-tapply(X = vcf$POS,INDEX = vcf$`#CHROM`,min)[scaffs]
+maxs<-tapply(X = vcf$POS,INDEX = vcf$`#CHROM`,max)[scaffs]
+snps<-tapply(X = vcf$POS,INDEX = vcf$`#CHROM`,length)[scaffs]
 library(PopGenome)
-genvcf <- readData("popgenome",format="VCF",big.data = TRUE)
+GENOME.class <- readVCF("popgenome/p4.upd.vcf.gz",numcols=snps["LG1"],tid="LG1",
+                  frompos=mins["LG1"],topos=maxs["LG1"],
+                  include.unknown = TRUE)
 TXSP<-grep("TXSP",colnames(vcf),value = TRUE)
 TXCC<-grep("TXCC",colnames(vcf),value = TRUE)
 TXFW<-grep("TXFW",colnames(vcf),value = TRUE)
@@ -670,6 +675,36 @@ genvcf<-set.populations(genvcf,
                         list(TXSP,TXCC,TXFW,TXCB,LAFW,ALST,ALFW,FLSG,FLKB,FLFD,FLSI,FLAB,FLPB,FLHB,FLCC,FLFW),
                         diploid=TRUE)
 
+```
+
+Convert to sweepfinder2 format:
+
+```{r convert_SF2}
+#one file for each chromosome
+#first column is position
+#second column is count of derived alleles
+#third column is the total number of observed alleles
+#fourth column indicates whether it's derived or ancestral. 
+
+vcf2sfaf<-function(vcf,lgs){
+  chrs<-lapply(lgs,function(lg){
+    gts<-extract.gt.vcf(vcf[vcf$`#CHROM` == lg,])
+    sf.af<-do.call(rbind,apply(gts,1,function(row){
+      gt<-row[10:length(row)]
+      ref<-(length(gt[gt=="0/0"])*2)+
+        length(gt[gt=="0/1"])+length(gt[gt=="1/0"])
+      alt<-(length(gt[gt=="1/1"])*2)+
+        length(gt[gt=="0/1"])+length(gt[gt=="1/0"])
+      return(data.frame(position=row["POS"],x=ref,n=alt))
+    }))
+    write.table(sf.af,paste("SF2/",lg,".AF.txt",sep=""),
+                col.names = TRUE,row.names=FALSE,sep='\t',
+                quote=FALSE,eol='\n')
+    print(paste("Writing to file: SF2/",lg,".AF.txt",sep=""))
+    return(sf.af)
+  })
+}
+af<-vcf2sfaf(vcf,lgs)
 ```
 
 ## Figure 7
