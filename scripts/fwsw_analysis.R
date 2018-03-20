@@ -828,11 +828,12 @@ for(i in 1:length(lgs)){
 }
 #dev.off()
 swsw.name<-"stacks_fsts_swsw.png"
-## ---- SWSWneighbors
-###### SW-SW neighbors ######
 swsw.tx<-read.delim("stacks/batch_2.fst_TXCB-TXCC.tsv")
 swsw.al<-read.delim("stacks/batch_2.fst_ALST-FLSG.tsv")
 swsw.fl<-read.delim("stacks/batch_2.fst_FLCC-FLHB.tsv")
+
+## ---- SWSWneighbors
+###### SW-SW neighbors ######
 
 tx.sw.sig<-swsw.tx[swsw.tx$Fisher.s.P<0.01,"Locus.ID"]
 al.sw.sig<-swsw.al[swsw.al$Fisher.s.P<0.01,"Locus.ID"]

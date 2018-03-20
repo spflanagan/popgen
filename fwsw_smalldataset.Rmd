@@ -121,26 +121,26 @@ treemix.prefix<-"treemix/p4_"
 poporder.file<-"treemix/poporder"
 fst.tree.name<-as.character("ALLfst_cov_heatmap.png")
 ```
-```{r generateTreemix, eval=FALSE}
+```{r generateTreemix, eval=TRUE}
 ```
 
 Then, in unix, I need to run `gzip -c treemix/p4_treemix > treemix/p4_treemix.gz`. Now I can run `scripts/run_treemix.sh`, which implements steps 1 and 2, and which I need to run in Ubuntu. *Note that there are a lot of "no counts" warnings from treemix. Also, that it runs very quickly*
 
 After that, I can evaluate the different outcomes.
 
-```{r TreemixSetup,eval=FALSE}
+```{r TreemixSetup,eval=TRUE}
 ```
-```{r FLPBoutgroup, results="hide",fig.keep="high",eval=FALSE}
+```{r FLPBoutgroup, results="hide",fig.keep="high",eval=TRUE}
 ```
 
 Population pairs that are 'too far apart' on the tree (have high error estimates) are ones that are likely candidates for gene flow - and these are the squares with dark greens, blues, and black. These are LAFW-TXFW and ALFW-TXFW in almost all of the SE graphs
 
-```{r FLPBmigration, results="hide",fig.keep="high",eval=FALSE}
+```{r FLPBmigration, results="hide",fig.keep="high",eval=TRUE}
 ```
 
 Look at the p-values: do migration events always improve the fit of the data?
 
-```{r FLPBpvals,eval=FALSE}
+```{r FLPBpvals,eval=TRUE}
 ```
 
 All of the added migration edges improve the fit. Evaluating both the residual and migration edge plots, we can see that four migration edges reduces the error between LAFW & TXFW and ALFW & TXFW. The largest SE is between FLFW (FLLG) and itself, and secondarily between LAFW and itself. This means that those branches are surprisingly long, which I am comfortable accepting. The strongest migration edge, between the branch from the Atlantic Florida to Gulf Florida populations -> FLAB, is unsurprising because that is an intermediate location between the Atlantic and Gulf coasts. In some of the structure analyses it clusters with the Gulf coast and in others it is its own admixed group - supporting the tree structure here.
@@ -151,7 +151,7 @@ The other migration events are somewhat more surprising. We will evaluate those 
 
 First, let's read in the three and four population analysis results. These tested all possible three- and four-population tree groups to see whether they pass a test of 'treeness'. If not, their p-value will be small, and they don't form a nice tree.
 
-```{r f3f4,eval=FALSE}
+```{r f3f4,eval=TRUE}
 f3.name<-"treemix/p4_threepop.txt"
 f4.name<-"treemix/p4_fourpop.txt"
 
@@ -178,7 +178,7 @@ Now we can investigate the migration edges added to the trees.
 
 This least surprising migration edge would be expected to show a signature of admixture. I'll check the treeness of FLHB;FLSI,FLAB and FLHB,FLCC;FLSI,FLAB. For comparison, I can look at FLHB;FLSI,FLFD and FLHB,FLCC;FLSI,FLFD
 
-```{r FL,eval=FALSE}
+```{r FL,eval=TRUE}
 checks3<-c("FLHB;FLSI,FLAB","FLHB;FLFD,FLSI")
 f3[f3$pops %in% checks3,]
 checks4<-c("FLSI,FLAB;FLHB,FLCC","FLFD,FLSI;FLHB,FLCC")
@@ -190,7 +190,7 @@ They pass the three-population tests but not the four-population tests.
 
 To investigate this migration edge, I need to evaluate whether a [TXFW[TXCB,TXCC]] or [TXFW[TXCB,TXSP]] topology is an appropriate tree. 
 
-```{r TX_f3,eval=FALSE}
+```{r TX_f3,eval=TRUE}
 checks<-c("TXFW;TXCC,TXCB",
           "TXFW;TXSP,TXCB")
 f3[f3$pops %in% checks,]
@@ -198,7 +198,7 @@ f3[f3$pops %in% checks,]
 
 Neither of these fail the treeness test, so TXFW is essentially functioning as an effective outgroup/more ancestral population. Let's check if a four population tree also makes sense.
 
-```{r TX_f4,eval=FALSE}
+```{r TX_f4,eval=TRUE}
 f4[f4$pops %in% "TXSP,TXCC;TXFW,TXCB",]
 ```
 
@@ -207,7 +207,7 @@ This also passes the treeness test - so this isn't an actual admixture event, mo
 ##### TXFW->LAFW/ALFW
 
 This migration edge would suggest a three-population structure of [TXFW[ALFW,LAFW]] or a four-population structure of [TXFW,TXCB[LAFW,ALFW]] or [TXFW,ALST[LAFW,ALFW]]
-```{r TXFW_ALLAFW,eval=FALSE}
+```{r TXFW_ALLAFW,eval=TRUE}
 
 checks<-c("TXFW,TXCB;LAFW,ALFW",
           "TXFW,ALST;LAFW,ALFW")#to get the correct order of populations I had to
@@ -223,7 +223,7 @@ The three-population test does not fail the treeness test but the four-populatio
 
 FLLG is actually FLFW, and there's a migration edge from it to the Alabama/Louisiana clade and the Texas clade. So, we can test FLLG;ALST,TXFW, FLLG;ALFW,TXCB, FLLG;ALFW,TXFW or FLLG;ALST,TXCC - see if the migration is specifically to freshwater populations or not.
 
-```{r FLFW_f3,eval=FALSE}
+```{r FLFW_f3,eval=TRUE}
 checks<-c("FLLG;TXFW,ALST","FLLG;TXCB,ALFW","FLLG;TXCB,LAFW",#mix of freshwater
           "FLLG;TXFW,ALFW","FLLG;TXFW,LAFW",                 #all freshwater
           "FLLG;TXCC,ALST")                                  #no freshwater
@@ -233,13 +233,13 @@ These all pass the treeness test.
 
 #### Plot the chosen tree
 
-```{r treemix_define,eval=FALSE}
+```{r treemix_define,eval=TRUE}
 treemix.file<-as.character("treemix/p4_k100bFLPBr.cov.gz")
 tm.vertices<-"treemix/p4_k100bFLPBrm4.vertices.gz"
 tm.plot<-"treemix/p4_treemix_m4_FLPB.png"
 tm.tree<-"treemix/p4_k100bFLPBrm4"
 ```
-```{r TreemixFavorite, echo=FALSE,results="hide",fig.keep="high",eval=FALSE}
+```{r TreemixFavorite, echo=FALSE,results="hide",fig.keep="high",eval=TRUE}
 ```
 
 ### PopTree2
@@ -260,7 +260,7 @@ vcf<-remove.missing.data(vcf, pop.list)
 
 And then run poptree. Poptree ran on the full dataset as well as the subsets of 1000 SNPs. Did they all provide similar results? What does the consensus tree look like?
 
-```{r poptree_prefix, eval=FALSE}
+```{r poptree_prefix, eval=TRUE}
 poptree.dir<-"poptree/"
 poptree.prefix<-"p4"
 poptree.png<-"p4.poptree.png"
@@ -271,11 +271,11 @@ poptree.png<-"p4.poptree.png"
 
 Based on this, I'm going to move forward just with the full dataset (which includes bootstrap values).
 
-```{r poptree_prelimplot,eval=FALSE,echo=FALSE}
+```{r poptree_prelimplot,eval=TRUE,echo=FALSE}
 #do this to test which branches are which using the colors below
 plot.phylo(pt.subtree)
 ```
-```{r poptree_definecols,eval=FALSE}
+```{r poptree_definecols,eval=TRUE}
 clcolr <- rep("black", dim(pt.subtree$edge)[1])
 clcolr[c(6,19,20,21,22)]<-all.colors[3]
 ```
@@ -287,7 +287,7 @@ clcolr[c(6,19,20,21,22)]<-all.colors[3]
 
 To get the Poptree distance matrix, I copied and pasted the distance matrix in the `p4.out` file into a new file and saved it as `p4.distance.out`. I had to first save each part of the matrix as text files, open them in Excel to standardize the spacings, merge them, and then save them.
 
-```{r fig3_setup,eval=FALSE}
+```{r fig3_setup,eval=TRUE}
 pt.dist<-as.matrix(read.table("poptree/p4.distance.out",header=T,row.names=1,sep='\t'))
 jostpw<-as.matrix(read.table("Subset.JostsD.tsv",header=T,sep='\t'))
 pwise.fst.raw<-read.table("stacks/p4_fst_summary.txt",header=T,row.names=1,sep='\t')
@@ -305,11 +305,11 @@ dimnames(pwise.fst)[[1]]<-dimnames(pwise.fst)[[2]]<-pop.labs
 pwise.fst[lower.tri(pwise.fst)]<-NA
 heatmaps.name<-"p4.heatmap.png"
 ```
-```{r HeatmapCols,eval=FALSE}
+```{r HeatmapCols,eval=TRUE}
 ```
 ```{r treemix,eval=FALSE}
 ```
-```{r Fig3Setup,eval=FALSE}
+```{r Fig3Setup,eval=TRUE}
 ```
 ```{r PlotHeatmaps,eval=FALSE}
 ```
@@ -319,7 +319,7 @@ heatmaps.name<-"p4.heatmap.png"
 
 Figure 4 is the Poptree2 and Treemix trees next to each other
 
-```{r tree_files,eval=FALSE}
+```{r tree_files,eval=TRUE}
 plotName<-"p4.trees.png"
 tm.tree<-"treemix/p4_k100bFLPBrm4"
 pt.subtree<-read.tree("poptree/p4.nwk")
@@ -417,6 +417,9 @@ I can also look for overlapping loci in pairwise saltwater-saltwater comparisons
 
 ```{r swsw_name}
 swsw.name<-"p4_stacks_swsw.png"
+swsw.tx<-read.delim("stacks/p4.fst_TXCB-TXCC.tsv")
+swsw.al<-read.delim("stacks/p4.fst_ALST-FLSG.tsv")
+swsw.fl<-read.delim("stacks/p4.fst_FLCC-FLHB.tsv")
 ```
 ```{r SWSWneighbors}
 ```
@@ -427,9 +430,9 @@ swsw.name<-"p4_stacks_swsw.png"
 In Figure 6, we show different measures of diversity: pi (nucleotide diversity), heterozygosity, Jost's D, and delta-divergence. Additionally, we include the shared Fst outliers and putative loci, and highlight regions with high `pi` and \italic(H).
 
 ### Allele Frequency Spectrum
-```{r calcAFS,eval=TRUE,results="hide"}
+```{r calcAFS,eval=FALSE,results="hide"}
 ```
-```{r plotAFS, echo=FALSE,eval=TRUE}
+```{r plotAFS, echo=FALS,eval=FALSE}
 ```
 
 ![Figure S1. Fsts](fwsw_results/p4.All_AFS.png)
@@ -439,7 +442,7 @@ In Figure 6, we show different measures of diversity: pi (nucleotide diversity),
 pi.file.name<-"p4.pi.txt"
 avgpi.file.name<-"p4.avgpi.txt"
 ```
-```{r pi, fig.keep='none',eval=TRUE}
+```{r pi, fig.keep='none',eval=FALSE}
 ```
 ```{r pi_readin}
 all.pi<-read.table(pi.file.name,header=T)
@@ -451,7 +454,7 @@ avg.pi.adj<-read.table(avgpi.file.name,header=T)
 all.het.name<-"p4.avg.het.txt"
 avg.het.adj.name<-"p4.avg.het.adj.txt"
 ```
-```{r het,eval=TRUE}
+```{r het,eval=FALSE}
 ```
 ```{r read_het}
 avg.het.adj<-read.delim(avg.het.adj.name,header=TRUE)
@@ -461,7 +464,7 @@ all.het<-read.delim(all.het.name,header=TRUE)
 
 
 ### delta-divergence
-```{r setupDeltaD,eval=TRUE}
+```{r setupDeltaD,eval=FALSE}
 ```
 ```{r readDeltaD, echo=FALSE}
 dd.plot.name<-as.character("separate_delta-divergence.png")
@@ -476,7 +479,7 @@ This plotting function also generates the smoothed \delta -divergence values.
 ### Jost's D
 
 First, I must calculate Jost's D on each locus in the p4 dataset
-```{r JostD, eval=TRUE}
+```{r JostD, eval=FALSE}
 sub.genind<-read.structure("stacks/subset.structure.stru",n.ind=698,
                            n.loc=9638,col.lab=1,col.pop=2,sep='\t',
                            row.marknames = 2,onerowperind=FALSE,ask=FALSE)
