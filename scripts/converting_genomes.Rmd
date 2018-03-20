@@ -56,7 +56,7 @@ pop.mb<-by(pop.sum,pop.sum$Chr,function(chr){ return(max(chr$BP)/1000000) })
 comp.mb$Pop.Sum<-pop.mb[lgs]
 ```
 
-```{r plink_map}
+```{r plink_map,eval=FALSE}
 map<-read.delim("stacks/batch_2.p4.plink.map",comment.char="#",header=FALSE)
 map.mb<-by(map,map$V1,function(chr){ return(max(chr$V4)/1000000) })
 comp.mb$plink<-map.mb[lgs]
@@ -251,7 +251,7 @@ upd.map<-do.call(rbind,lapply(scaffs,function(lg){
 #save it
 write.table(upd.map,"stacks/p4.upd.map",sep='\t',quote=FALSE,col.names = TRUE,row.names = FALSE)
 ```
-```{r read_newmap}
+```{r read_newmap,eval=FALSE}
 upd.map<-read.delim("stacks/p4.upd.map",header=TRUE)
 map.mb<-by(upd.map,upd.map$V1,function(chr){ return(max(chr$V4)/1000000) })
 map.mb[lgs]
@@ -259,7 +259,7 @@ map.mb[lgs]
 
 #### Bayenv output
 
-```{r replace_bayenv,eval=FALSE}
+```{r replace_bayenv,eval=TRUE}
 bf<-read.delim("bayenv/bf.txt") #57250
 bf$locus<-as.character(bf$locus)
 bf$scaffold<-as.character(bf$scaffold)
@@ -290,7 +290,7 @@ bf.mb[lgs]
 
 #### Stacks output
 
-```{r replace_stacks}
+```{r replace_stacks,eval=TRUE}
 fwsw.tx<-read.delim("stacks/batch_2.fst_TXCC-TXFW.tsv",stringsAsFactors = FALSE)
 fwsw.la<-read.delim("stacks/batch_2.fst_ALST-LAFW.tsv",stringsAsFactors = FALSE)
 fwsw.al<-read.delim("stacks/batch_2.fst_ALFW-ALST.tsv",stringsAsFactors = FALSE)

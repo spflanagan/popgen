@@ -4,7 +4,7 @@
 #first column is position
 #second column is count of derived alleles
 #third column is the total number of observed alleles
-#fourth column indicates whether it's derived or ancestral. 
+#fourth column is optional and indicates whether it's derived or ancestral. 
 
 parse.vcf<-function(filename){
   #if(substr(filename,nchar(filename)-3,nchar(filename)) != ".vcf") { filename<-paste(filename,"vcf",sep=".") }
@@ -39,7 +39,7 @@ vcf2sfaf<-function(vcf,lgs){
         length(gt[gt=="0/1"])+length(gt[gt=="1/0"])
       alt<-(length(gt[gt=="1/1"])*2)+
         length(gt[gt=="0/1"])+length(gt[gt=="1/0"])
-      return(data.frame(position=row["POS"],x=ref,n=alt))
+      return(data.frame(position=row["POS"],x=ref,n=(alt+ref)))
     }))
     write.table(sf.af,paste("SF2/",lg,".AF.txt",sep=""),
                 col.names = TRUE,row.names=FALSE,sep='\t',
@@ -51,4 +51,4 @@ vcf2sfaf<-function(vcf,lgs){
 
 vcf<-parse.vcf("p4.upd.vcf")
 lgs<-unique(vcf$`#CHROM`)
-af<-vcf2sfaf(vcf,lgs)
+af<-vcf2sfaf(vcf,lgs[1:22])

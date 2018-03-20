@@ -1,6 +1,9 @@
 #!/bin/bash
 
-cd ~/sf_ubuntushare/popgen/fwsw_results
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+OUTDIR="../fwsw_results"
+cd $DIR
+cd $OUTDIR
 #Running SweepFinder2
 
 #first, convert vcf to sweepfinder
@@ -8,9 +11,10 @@ cd ~/sf_ubuntushare/popgen/fwsw_results
 Rscript ../scripts/vcf2sf.R
 
 #then for each lg run SweepFinder
-cd ~/Programs/SF2/
-for i in fwsw_results/sf2/*AF.txt
-do
-	./SweepFinder2 -s 50 ${i} ${i}.out.txt
 
+for i in SF2/*AF.txt
+do
+	filename=$(echo $i | sed -e 's/txt/out/g')
+	echo "~/Programs/SF2/SweepFinder2 -s 50 ${i} ${filename}"
+	~/Programs/SF2/SweepFinder2 -s 50 ${i} ${filename}
 done
