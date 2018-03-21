@@ -259,7 +259,7 @@ map.mb[lgs]
 
 #### Bayenv output
 
-```{r replace_bayenv,eval=TRUE}
+```{r replace_bayenv,eval=FALSE}
 bf<-read.delim("bayenv/bf.txt") #57250
 bf$locus<-as.character(bf$locus)
 bf$scaffold<-as.character(bf$scaffold)
@@ -295,6 +295,10 @@ fwsw.tx<-read.delim("stacks/batch_2.fst_TXCC-TXFW.tsv",stringsAsFactors = FALSE)
 fwsw.la<-read.delim("stacks/batch_2.fst_ALST-LAFW.tsv",stringsAsFactors = FALSE)
 fwsw.al<-read.delim("stacks/batch_2.fst_ALFW-ALST.tsv",stringsAsFactors = FALSE)
 fwsw.fl<-read.delim("stacks/batch_2.fst_FLCC-FLLG.tsv",stringsAsFactors = FALSE)
+swsw.tx<-read.delim("stacks/batch_2.fst_TXCB-TXCC.tsv",stringsAsFactors = FALSE)
+swsw.al<-read.delim("stacks/batch_2.fst_ALST-FLSG.tsv",stringsAsFactors = FALSE)
+swsw.fl<-read.delim("stacks/batch_2.fst_FLCC-FLHB.tsv",stringsAsFactors = FALSE)
+
 
 convert.stacks<-function(stacks.fst,outname,lgs,ssc.agp,sscf.agp,chr.agp,scf.agp){
   for(i in 1:nrow(stacks.fst)){
@@ -320,4 +324,7 @@ upd.tx<-convert.stacks(fwsw.tx,"stacks/p4.fst_TXCC-TXFW.txt",lgs,ssc.agp,sscf.ag
 upd.la<-convert.stacks(fwsw.la,"stacks/p4.fst_ALST-LAFW.txt",lgs,ssc.agp,sscf.agp,chr.agp,scf.agp)
 upd.al<-convert.stacks(fwsw.al,"stacks/p4.fst_ALFW-ALST.txt",lgs,ssc.agp,sscf.agp,chr.agp,scf.agp)
 upd.fl<-convert.stacks(fwsw.fl,"stacks/p4.fst_FLCC-FLLG.txt",lgs,ssc.agp,sscf.agp,chr.agp,scf.agp)
+upd.st<-convert.stacks(swsw.tx,"stacks/p4.fst_TXCB-TXCC.txt",lgs,ssc.agp,sscf.agp,chr.agp,scf.agp)
+upd.sa<-convert.stacks(swsw.al,"stacks/p4.fst_ALST-FLSG.txt",lgs,ssc.agp,sscf.agp,chr.agp,scf.agp)
+upd.sf<-convert.stacks(swsw.fl,"stacks/p4.fst_FLCC-FLHB.txt",lgs,ssc.agp,sscf.agp,chr.agp,scf.agp)
 ```

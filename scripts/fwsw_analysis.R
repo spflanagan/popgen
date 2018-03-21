@@ -325,8 +325,7 @@ dim(smooth.par[smooth.par$SNP %in% stacks.sig$SNP,])
 sdd.out<-rbind(smooth.par,smooth.div)
 write.table(sdd.out,sdd.name,col.names=T,row.names=F,quote=F,sep='\t')
 
-dd<-read.delim(dd.name)
-sdd.out<-read.delim(sdd.name)
+
 ## ---- end
 ## ---- DDoutVstacksOut
 #' Compare to Stacks Fsts
@@ -489,6 +488,12 @@ h.pi.name<-"HandPi_subgenes.png"
 row.settings<-c(3,2)
 chroms2plot<-unique(shared.upp$Chr)
 fst.points<-TRUE
+xlims<-lapply(chroms2plot,function(lg,vcf){
+  xs<-c(min(vcf$POS[vcf$`#CHROM`==lg]),
+        max(vcf$POS[vcf$`#CHROM`==lg]))
+  return(xs)
+},vcf=vcf)
+names(xlims)<-chroms2plot
 ## ---- plotHandPi
 #colors
 comp.col<-c(Het="#80cdc1",pi="#018571",Fst="black",D="#a6611a",deltad="#dfc27d")
@@ -496,9 +501,10 @@ png(h.pi.name,height=8,width=14,units="in",res=300)
 par(mfrow=row.settings,oma=c(1,1,1,1),mar=c(1,2,2,1))
 for(i in 1:length(chroms2plot)){
   this.df<-fwsw[fwsw$Chr %in% chroms2plot[i],]
-  plot(this.df$BP,this.df$Corrected.AMOVA.Fst, ylim=c(-0.2,0.5),axes=F,ylab="",xlab="",type='n')
-  xmin<-min(pi.plot$Pos[pi.plot$Chrom%in%chroms2plot[i]])
-  xmax<-max(pi.plot$Pos[pi.plot$Chrom%in%chroms2plot[i]])
+  this.xlim<-xlims[[as.character(chroms2plot[i])]]
+  plot(this.df$BP,this.df$Corrected.AMOVA.Fst, xlim<-this.xlim,ylim=c(-0.2,0.5),axes=F,ylab="",xlab="",type='n')
+  xmin<-this.xlim[1]#min(pi.plot$Pos[pi.plot$Chrom%in%chroms2plot[i]])
+  xmax<-this.xlim[2]#max(pi.plot$Pos[pi.plot$Chrom%in%chroms2plot[i]])
   
   #putative gene regions
   g<-genes2plot[genes2plot$Chrom %in% chroms2plot[i] & 
@@ -828,11 +834,12 @@ for(i in 1:length(lgs)){
 }
 #dev.off()
 swsw.name<-"stacks_fsts_swsw.png"
-## ---- SWSWneighbors
-###### SW-SW neighbors ######
 swsw.tx<-read.delim("stacks/batch_2.fst_TXCB-TXCC.tsv")
 swsw.al<-read.delim("stacks/batch_2.fst_ALST-FLSG.tsv")
 swsw.fl<-read.delim("stacks/batch_2.fst_FLCC-FLHB.tsv")
+
+## ---- SWSWneighbors
+###### SW-SW neighbors ######
 
 tx.sw.sig<-swsw.tx[swsw.tx$Fisher.s.P<0.01,"Locus.ID"]
 al.sw.sig<-swsw.al[swsw.al$Fisher.s.P<0.01,"Locus.ID"]
@@ -1457,7 +1464,7 @@ poptree.png<-"poptree8141.png"
 clcolr <- rep("black", dim(pt.subtree$edge)[1])
 clcolr[c(6,20,21,22,23)]<-all.colors[3]
 
-## ---- PlotFullPoptreeSubset
+## ---- GetPtsubtree
 #just the full subset tree
 pt.subtree<-poptrees[[1]]
 pt.subtree$tip.label[pt.subtree$tip.label=="FLLG"]<-"FLFW"
@@ -1468,6 +1475,8 @@ pt.colors[pt.colors %in% c("FLAB")]<-grp.colors[5]
 pt.colors[pt.colors %in% c("FLSI","FLFD","FLKB","FLSG")]<-grp.colors[3]
 pt.colors[pt.colors %in% c("ALST","ALFW","LAFW")]<-grp.colors[2]
 pt.colors[pt.colors %in% c("TXSP","TXCC","TXFW","TXCB")]<-grp.colors[1]
+## ---- end-GetPtsubtree
+## ---- PlotFullPoptreeSubset
 png(poptree.png,height=7,width=7,units="in",res=300)
 plot.phylo(pt.subtree,tip.color = pt.colors,
            edge.color = clcolr,edge.width = 2,label.offset = 0.0015)
