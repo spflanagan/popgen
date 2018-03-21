@@ -354,7 +354,7 @@ lapply(ne.mcles,function(mcle){ kable(mcle[[1]]) })
 ```{r dmcForReal, eval=FALSE}
 ```
 
-```{r plot_chosen}
+```{r plot_chosen,eval=FALSE}
 selSite = positions[seq(1, length(positions[positions<10000000]), length.out = 100)]
 max.complikes<-plot.complike("p4LG4_10000r2",leg=FALSE)
 mcle<-get.mcle(max.complikes[[1]],Ne=5000,rec=2*10^-7)

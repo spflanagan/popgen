@@ -30,17 +30,19 @@ extract.gt.vcf<-function(vcf){
   return(vcf)
 }
 
+gts2sfaf<-function(row){
+  gt<-row[10:length(row)]
+  ref<-(length(gt[gt=="0/0"])*2)+
+    length(gt[gt=="0/1"])+length(gt[gt=="1/0"])
+  alt<-(length(gt[gt=="1/1"])*2)+
+    length(gt[gt=="0/1"])+length(gt[gt=="1/0"])
+  return(data.frame(position=row["POS"],x=ref,n=(alt+ref)))
+}
+
 vcf2sfaf<-function(vcf,lgs){
   chrs<-lapply(lgs,function(lg){
     gts<-extract.gt.vcf(vcf[vcf$`#CHROM` == lg,])
-    sf.af<-do.call(rbind,apply(gts,1,function(row){
-      gt<-row[10:length(row)]
-      ref<-(length(gt[gt=="0/0"])*2)+
-        length(gt[gt=="0/1"])+length(gt[gt=="1/0"])
-      alt<-(length(gt[gt=="1/1"])*2)+
-        length(gt[gt=="0/1"])+length(gt[gt=="1/0"])
-      return(data.frame(position=row["POS"],x=ref,n=(alt+ref)))
-    }))
+    sf.af<-do.call(rbind,apply(gts,1,gts2sfaf))
     write.table(sf.af,paste("SF2/",lg,".AF.txt",sep=""),
                 col.names = TRUE,row.names=FALSE,sep='\t',
                 quote=FALSE,eol='\n')
@@ -51,4 +53,11 @@ vcf2sfaf<-function(vcf,lgs){
 
 vcf<-parse.vcf("p4.upd.vcf")
 lgs<-unique(vcf$`#CHROM`)
+#frequencies per LG
 af<-vcf2sfaf(vcf,lgs[1:22])
+#whole genome frequencies
+gts<-extract.gt.vcf(vcf)
+gaf<-do.call(rbind,apply(gts,1,gts2sfaf))
+write.table(gaf,"SF2/GenomeWideSpectrum.txt",
+            col.names = TRUE,row.names=FALSE,sep='\t',
+            quote=FALSE,eol='\n')
