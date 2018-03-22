@@ -301,10 +301,10 @@ for(i in 1:length(lgs)){#scaffolds are too short
   # this.par<-cbind(x=this.smooth$x[this.smooth$y<=quantile(this.smooth$y,0.05)],#choosing the lower outliers - smoothed
   #                 smooth.dd=this.smooth$y[this.smooth$y<=quantile(this.smooth$y,0.05)],
   #                 plot.pos=this.plot.pos[this.smooth$y<=quantile(this.smooth$y,0.05)])
-  this.div<-cbind(dd=this.chrom$deltad[this.chrom$deltad>=quantile(this.chrom$deltad,0.95)],#choosing the upper outliers
-                  plot.pos=this.chrom$plot.pos[this.chrom$deltad>=quantile(this.chrom$deltad,0.95)])
-  this.par<-cbind(dd=this.chrom$deltad[this.chrom$deltad<=quantile(this.chrom$deltad,0.05)],#choosing the lower outliers
-                  plot.pos=this.chrom$plot.pos[this.chrom$deltad<=quantile(this.chrom$deltad,0.05)])
+  this.div<-cbind(dd=this.chrom$deltad[this.chrom$deltad>=quantile(this.chrom$deltad,0.99)],#choosing the upper outliers
+                  plot.pos=this.chrom$plot.pos[this.chrom$deltad>=quantile(this.chrom$deltad,0.99)])
+  this.par<-cbind(dd=this.chrom$deltad[this.chrom$deltad<=quantile(this.chrom$deltad,0.01)],#choosing the lower outliers
+                  plot.pos=this.chrom$plot.pos[this.chrom$deltad<=quantile(this.chrom$deltad,0.01)])
   smooth.par<-rbind(smooth.par,this.par)
   smooth.div<-rbind(smooth.div,this.div)
 }
@@ -1495,7 +1495,7 @@ write.table(tm.fwsw,treemix.name,col.names=TRUE,row.names=FALSE,quote=F,sep=' ')
 #ANALYZE (from treemix_analysis.R)
 ## ---- TreemixSetup
 setwd("treemix")
-source("../../scripts/treemix_plotting_funcs.R")#I've modified these functions
+source("../../scripts/002_treemix_plotting_funcs.R")#I've modified these functions
 poporder<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST",
             "ALFW","FLSG","FLKB","FLFD","FLSI","FLAB",
             "FLPB","FLHB","FLCC","FLLG")

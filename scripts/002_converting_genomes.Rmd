@@ -14,7 +14,7 @@ source("../../gwscaR/R/gwscaR_fsts.R")
 source("../../gwscaR/R/gwscaR_popgen.R")
 ```
 
-```{r files}
+```{r genome_files}
 put.genes<-read.delim("putative_genes.txt",header=TRUE,sep='\t')
 #genome annotations
 gff.name<-list.files(path = "../../scovelli_genome/",pattern="ssc_\\d+.*_chromlevel.gff")
@@ -308,7 +308,7 @@ convert.stacks<-function(stacks.fst,outname,lgs,ssc.agp,sscf.agp,chr.agp,scf.agp
     stacks.fst[i,"BP"]<-convert["NewBP"]
   }
   # reorder by chrom
-  scaffs<-levels(stacks.fst$Chr)
+  scaffs<-levels(as.factor(stacks.fst$Chr))
   scaffs[1:22]<-lgs
   upd.fst<-do.call(rbind,lapply(scaffs,function(lg){
     this.chr<-stacks.fst[stacks.fst$Chr==lg,]

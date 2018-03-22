@@ -56,7 +56,7 @@ lgs<-unique(vcf$`#CHROM`)
 #frequencies per LG
 af<-vcf2sfaf(vcf,lgs[1:22])
 #whole genome frequencies
-gts<-extract.gt.vcf(vcf)
+gts<-extract.gt.vcf(vcf[vcf$`#CHROM` %in% lgs,])
 gaf<-do.call(rbind,apply(gts,1,gts2sfaf))
 write.table(gaf,"SF2/GenomeWideSpectrum.txt",
             col.names = TRUE,row.names=FALSE,sep='\t',

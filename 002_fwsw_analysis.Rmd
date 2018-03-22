@@ -25,12 +25,12 @@ source("../../gwscaR/R/gwscaR_plot.R")
 source("../../gwscaR/R/gwscaR_utility.R")
 source("../../gwscaR/R/gwscaR_fsts.R")
 source("../../gwscaR/R/gwscaR_popgen.R")
-source("../scripts/treemix_plotting_funcs.R")#I've modified these functions
+source("../scripts/002_treemix_plotting_funcs.R")#I've modified these functions
 library(knitr)
 ```
 
 ```{r access_analysis, echo=FALSE}
-knitr::read_chunk("../scripts/fwsw_analysis.R")
+knitr::read_chunk("../scripts/002_fwsw_analysis.R")
 ```
 
 ```{r LoadFWSWpackages, include=FALSE}
@@ -401,7 +401,7 @@ addSmooth<-TRUE
 There seems to be an overabundance of shared outliers on LG4. I can test this using the multinomial distribution. 
 ```{r overrep_chrom}
 if(!("stacks.sig" %in% ls())){
-  stacks.sig<-read.delim("stacks.sig.snps.txt")
+  stacks.sig<-read.delim("p4.stacks.sig.snps.txt")
 } 
 if(is.null(stacks.sig$SNP)){ #make sure the SNP column is there.
   stacks.sig$SNP<-paste(stacks.sig$Chr,as.numeric(stacks.sig$BP)+1,sep=".")
@@ -485,6 +485,7 @@ deltad<-read.delim(dd.name, header=TRUE)
 ```{r read_deltad,echo=FALSE}
 dd<-read.delim(dd.name)
 sdd.out<-read.delim(sdd.name)
+
 ```
 This plotting function also generates the smoothed $\delta$-divergence values.
 
@@ -530,7 +531,7 @@ if(length(grep("gz",gff.name))>0){
 }
 colnames(gff)<-c("seqname","source","feature","start","end","score","strand","frame","attribute")
 #ld info
-ld<-read.delim("ld_info_fwsw.txt")
+ld<-read.delim("p4.ld_info_fwsw.txt")
 ```
 
 ### Define some functions
@@ -798,6 +799,7 @@ for(i in 1:length(lgs)){
 Are outliers in putative gene regions?
 
 ```{r fst_compare}
+fw.sig.reg<-read.csv("p4.StacksFWSWOutliers_annotatedByGenome.csv")
 all.put.ssc<-as.character(put.reg$Scovelli_geneID)
 all.put.ssc<-unlist(lapply(all.put.ssc,strsplit,","))
 sig.put.match<-all.put.ssc[all.put.ssc %in% fw.sig.reg$SSCID]
@@ -888,9 +890,8 @@ There are `r nrow(temp.bf.sig[temp.bf.sig$locus %in% sal.bf.sig$locus & temp.bf.
 
 But if we only care about salinity ones, there are `r nrow(temp.bf.sig)` outliers.
 
-#### Salinity
+**Are any of the Bayenv salinity outliers near the putative freshwater genes?**
 
-Are any of the Bayenv salinity outliers near the putative freshwater genes?
 ```{r bayenv_sal}
 
 bfs.in<-outlier.in.region(sal.bf.sig,put.reg,"scaffold")
@@ -898,9 +899,8 @@ bfs.nb<-outlier.nearby(sal.bf.sig,put.reg,chrom.ld,"scaffold")
 ```
 Of the `r nrow(bf)` RAD loci analyzed by *Bayenv2* for associations with temperature, `r length(bfs.in[bfs.in!="NA"])/nrow(put.reg)*100`% are in putative freshwater genes and `r length(bfs.nb[bfs.nb!="NA"])/nrow(put.reg)*100`% are within the LD neighborhood.
 
-#### Temperature
 
-Are any of the Bayenv temperature outliers near putative freshwater genes?
+**Are any of the Bayenv temperature outliers near putative freshwater genes?**
 
 ```{r bayenv_temp}
 
@@ -910,9 +910,7 @@ bft.nb<-outlier.nearby(temp.bf.sig,put.reg,chrom.ld,"scaffold")
 
 Of the `r nrow(bf)` RAD loci analyzed by *Bayenv2* for associations with temperature, `r length(bft.in[bft.in!="NA"])/nrow(put.reg)*100`% are in putative freshwater genes and `r length(bft.nb[bft.nb!="NA"])/nrow(put.reg)*100`% are within the LD neighborhood.
 
-#### Seagrass
-
-Are any of the loci associated with seagrass density in or near putative freshwater genes?
+**Are any of the loci associated with seagrass density in or near putative freshwater genes?**
 
 ```{r bayenv_grass}
 
@@ -937,32 +935,14 @@ unique(put.reg[put.reg$bfg.in !="NA","Gene"])
 
 All three BayEnv tests identified outliers in the genes `r unique(put.reg[put.reg$bfs.in !="NA","Gene"])[unique(put.reg[put.reg$bfs.in !="NA","Gene"]) %in% unique(put.reg[put.reg$bft.in !="NA","Gene"]) & unique(put.reg[put.reg$bfs.in !="NA","Gene"]) %in% unique(put.reg[put.reg$bfg.in !="NA","Gene"])]`. The temperature and grass also share `r unique(put.reg[put.reg$bft.in !="NA","Gene"])[unique(put.reg[put.reg$bft.in !="NA","Gene"]) %in% unique(put.reg[put.reg$bfg.in !="NA","Gene"])][1]`, and temperature and salinity share `r unique(put.reg[put.reg$bfs.in !="NA","Gene"])[unique(put.reg[put.reg$bfs.in !="NA","Gene"]) %in% unique(put.reg[put.reg$bft.in !="NA","Gene"])][1]`. 
 
-Clearly, RHOGTP8 and TNS1 are showing up repeatedly (all Bayenv2 outliers, and $\delta-divergence outliers).
-
-But looking at `put.reg[put.reg$Gene =="RHOGTP8","rad.loci"]`, it's obvious that Rho GTPase-activating proteins are distributed throughout the genome (on chromosomes `r unique(put.reg[put.reg$Gene=="RHOGTP8","Chrom"])`).
-
-<!-- ### Neighbor-joining Fst trees -->
-
-<!-- Using `ape`, I calculated neighbor-joining trees and identified `r dim(fst.trees[fst.trees$Monophyletic==TRUE,])` loci with a monophyletic freshwater clade using `is.monophyletic()`. Are any of those SNPs within genes? -->
-
-<!-- ```{r nj_trees} -->
-<!-- ftmono<-fst.trees[fst.trees$FWMonophyletic == TRUE & !is.na(fst.trees$FWMonophyletic),] -->
-
-<!-- nj.in<-outlier.in.region(ftmono,put.reg,oBP="Pos") -->
-<!-- nj.nb<-outlier.nearby(ftmono,put.reg,chrom.ld,oBP="Pos") -->
-<!-- put.reg$nj.nb<-nj.nb -->
-<!-- put.reg$nj.in<-nj.in -->
-<!-- ``` -->
-
-<!-- So `r length(nj.in[nj.in!="NA"])` loci are located within putative freshwater genes, but `r length(nj.nb[nj.nb!="NA"])` are within the LD region of the putative genes, representing `r length(nj.nb[nj.nb!="NA"])/nrow(put.reg)*100` of the putative gene annotations and `r length(unique(put.reg[put.reg$nj.nb != "NA", "Gene"]))` genes -->
-
-<!-- **I've removed this analysis from the paper, though, so we can ignore this** -->
 
 ### Jost's D
 
 Jost's D measures the fraction of allelic differentiation between populations. According to Molecular Ecologist, ["if allelic differentiation at a particular locus is the value of interest, it appears that D is the best measure"](http://www.molecularecologist.com/2011/03/should-i-use-fst-gst-or-d-2/), so it might be useful to look at Jost's D in the putatively freshwater genes. 
 
 ```{r josts_d}
+#find outliers
+jost.out<-jostd[jostd$D>=quantile(jostd$D,0.99) | jostd$D<=quantile(jostd$D,0.01),]
 jost.in<-outlier.in.region(jostd,put.reg,oChrom="Chr",oBP="POS")
 jost.nb<-outlier.nearby(jostd,put.reg,chrom.ld,oChrom = "Chr",oBP="POS")
 put.reg$jostd.nb<-jost.nb
@@ -980,12 +960,11 @@ So `r length(jost.in[jost.in!="NA"])` loci are located within putative freshwate
 
 *Genes containing Jost D outliers: `r unique(put.reg[put.reg$jostd.in !="NA", "Gene"])`
 
-<!-- *Genes containing monophyletic FW gene trees [IGNORE]: `r unique(put.reg[put.reg$nj.in != "NA","Gene"])`  -->
-
 *Overlap: `r unique(put.reg[put.reg$rad.loci != "NA","Gene"])[unique(put.reg[put.reg$rad.loci != "NA","Gene"]) %in% unique(put.reg[put.reg$sdd.in != "NA","Gene"]) &unique(put.reg[put.reg$rad.loci != "NA","Gene"]) %in% unique(put.reg[put.reg$bfs.in != "NA","Gene"])]`
 
 *Divergence analyses: `r unique(put.reg[put.reg$rad.loci != "NA","Gene"])[unique(put.reg[put.reg$rad.loci != "NA","Gene"]) %in% unique(put.reg[put.reg$sdd.in != "NA","Gene"]) &unique(put.reg[put.reg$rad.loci != "NA","Gene"]) %in% unique(put.reg[put.reg$jostd.in != "NA","Gene"])]` 
 
+*But looking at `put.reg[put.reg$Gene =="RHOGTP8","rad.loci"]`, it's obvious that Rho GTPase-activating proteins are distributed throughout the genome (on chromosomes `r unique(put.reg[put.reg$Gene=="RHOGTP8","Chrom"])`).*
 
 ## Figure 6
 
@@ -996,7 +975,7 @@ Find genomic regions with high $\pi$ and low $\delta$-divergence
 
 There are loci with high $\pi$ and low $\delta$-divergence on `r length(unique(shared.upp$Chr))` chromosomes. 
 
-Instead of the lumped marine-freshwater $F_{ST}$ values that I used originally, I'm gonna plot the average of pairwise $F_{ST}$ values.
+Instead of the lumped marine-freshwater $F_{ST}$ values that I used originally, I'm going to plot the average of pairwise $F_{ST}$ values.
 
 ```{r avg_fsts}
 fst.means<-fwsw.al
@@ -1024,10 +1003,7 @@ fst.points<-FALSE
 #and putative genes
 put.genes<-read.delim("putative_genes.txt",header=TRUE,sep='\t')
 #genome annotations
-put.reg<-read.delim("putative.gene.regions.tsv",header=T)
-#ld info
-ld<-read.delim("ld_info_fwsw.txt")
-ld$pos.diff<-abs(ld$LocIDA - ld$LocIDB)
+#put.reg<-read.delim("putative.gene.regions.tsv",header=T)
 chrom.ld<-tapply(ld[ld$D.>0.5,"pos.diff"],ld[ld$D. >0.5,"Chrom"],mean)
 #select genes of interest
 #fav.genes<-c("AQP3","TNS1","CAMKK1","mucin","CAII","NAKATPase","ARHGEF3")
@@ -1102,7 +1078,7 @@ fst.points<-FALSE
 ![Low pi and low het](fwsw_results/lowdiv_subgenes.png)
 
 
-#### Test for selective sweeps
+### Test for selective sweeps
 
 To look for selective sweeps, I'm going to use the FLK R code by Bonhomme et al, downloaded from https://qgsp.jouy.inra.fr/index.php?option=com_content&view=article&id=50&Itemid=55
 
@@ -1235,7 +1211,7 @@ The plotting function `gene.region.plot` accpets a number of parameters.
 ```{r plotting_function}
 gene.region.plot<-function(chrom,gene,put.reg,vcf,chrom.ld, fst.dfs,deltad=FALSE,D=FALSE,
                            colors="black",lwds=2,alphas=0.5,ltys=1,legend=TRUE,bases="bp", 
-                           smooth=FALSE, fst.name="Corrected.AMOVA.FST",txt.cex=1,y.lim=c(0,1),...){
+                           smooth=FALSE, smooth.loess=TRUE,fst.name="Corrected.AMOVA.FST",txt.cex=1,y.lim=c(0,1),...){
   pstart<-min(as.numeric(as.character(put.reg[put.reg$Gene ==gene & 
                                                      put.reg$Chrom==chrom,"StartBP"])))-(chrom.ld[chrom]/2)
   pstop<-max(as.numeric(as.character(put.reg[put.reg$Gene ==gene & 
@@ -1262,13 +1238,22 @@ gene.region.plot<-function(chrom,gene,put.reg,vcf,chrom.ld, fst.dfs,deltad=FALSE
   
   if(is.data.frame(deltad)){
     this.dd<-deltad[deltad$Chrom %in% chrom,]
-    dd.smooth<-loess.smooth(this.dd$Pos,this.dd$deltad,span=0.1,degree=2)
+    if(smooth.loess==TRUE){
+      dd.smooth<-loess.smooth(this.dd$Pos,this.dd$deltad,span=0.1,degree=2)
+    }else{
+      dd.smooth<-this.dd
+    }
   }
   
   if(is.data.frame(D)){
     this.d<-D[D$Chr %in% chrom,]
-    dsmooth<-loess.smooth(this.d$POS,this.d$D,span=0.1,degree=2) 
+    if(smooth.loess==TRUE) {
+      dsmooth<-loess.smooth(this.d$POS,this.d$D,span=0.1,degree=2)
+    }else{
+      dsmooth<-this.d
+    } 
   }
+  
   pr.gene<-put.reg[put.reg$Chrom==chrom & put.reg$Gene==gene,]
   fst.gene<- unlist(strsplit(gsub(paste(chrom,".",sep=""),"",pr.gene$rad.loci[pr.gene$rad.loci != "NA"]),","))
   sal.gene<- unlist(strsplit(gsub(paste(chrom,".",sep=""),"",pr.gene$bfs.in[pr.gene$bfs.in != "NA"]),","))
@@ -1381,273 +1366,152 @@ gene.region.plot<-function(chrom,gene,put.reg,vcf,chrom.ld, fst.dfs,deltad=FALSE
   #add outlier loci
   clip(x1=min(as.numeric(pstart)),x2=max(as.numeric(pstop)),y1=y.lim[2]+.01,y2=y.lim[2]+0.2)
   abline(v=fst.gene,col="black")
-  points(x=sal.gene,y=rep(y.lim[2]+0.05,length(sal.gene)),col="black",pch=25,cex=0.5*txt.cex)
+  points(x=sal.gene,y=rep(y.lim[2]+0.05,length(sal.gene)),col="black",pch=25,cex=0.75*txt.cex,lwd=2)
   abline(v=nb.gene,col=alpha("black",0.5),cex=2)
   abline(v=nj.gene,col="#08519c",cex=2)
 }
+
+outside.legend<-function(...){
+  opar <- par(fig=c(0, 1, 0, 1), oma=c(0, 0, 0, 0), 
+    mar=c(0, 0, 0, 0), new=TRUE)
+  on.exit(par(opar))
+  plot(0, 0, type='n', bty='n', xaxt='n', yaxt='n')
+  legend(...)
+}
 ```
 
-## Plot all genes - for supplement
+### Plot all genes - for supplement
 
 ```{r plot_putative_regions}
+#set up legend parameters
+leg.text<-c(expression(TX~FWSW~italic(F)[ST]),expression(LA~FWSW~italic(F)[ST]),
+            expression(AL~FWSW~italic(F)[ST]),expression(FL~FWSW~italic(F)[ST]),
+            expression(delta~-divergence),expression(Shared~italic(F)[ST]~Outliers),
+            "Salinity-associated SNPs")
+leg.pchs<-c(rep(32,5),124,25,124)
+leg.ltys<-c(1,1,2,1,1,0,0,0)
+leg.cols<-c(colors,"cornflowerblue","black","black","indianred")
 
-par(oma=c(2,2,2,2),mar=c(2,2,2,2))
-tns1<-lapply(unique(put.reg[put.reg$Gene=="TNS1" & !is.na(put.reg$rad.loci),"Chrom"]),
-       gene.region.plot,gene="TNS1",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
-       fst.dfs=fst.dfs,deltad=deltad,D=jostd,colors=colors,alphas=alphas,ltys=ltys,
-       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst",txt.cex=1.3)
-
-par(mfrow=c(2,2),oma=c(2,2,2,2),mar=c(2,2,2,2))
+png("ARGHEF3.png",height=5,width=10,units="in",res=300)       
+par(mfrow=c(2,3),oma=c(2,2,2,2),mar=c(2,2,2,2))
 arhgef3<-lapply(unique(put.reg[put.reg$Gene=="ARHGEF3" & !is.na(put.reg$rad.loci),"Chrom"]),
        gene.region.plot,gene="ARHGEF3",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
        fst.dfs=fst.dfs,deltad=deltad,D=jostd,colors=colors,alphas=alphas,ltys=ltys,
-       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst")
+       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst",bases="MB",legend=FALSE)
+outside.legend("top",legend=c(leg.text,expression(italic(ARHGEF3))),pch=leg.pchs,lty=leg.ltys,lwd=2,
+               bty='n',ncol=5,cex=1.25,x.intersp=0,col=leg.cols)
+dev.off()
 
-par(mfrow=c(2,4),oma=c(2,2,2,2),mar=c(2,2,2,2))
-ca<-lapply(unique(put.reg[put.reg$Gene=="CA" & !is.na(put.reg$rad.loci),"Chrom"]),
-       gene.region.plot,gene="CA",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
-       fst.dfs=fst.dfs,deltad=deltad,colors=colors,alphas=alphas,ltys=ltys,
-       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst")
-ca2<-lapply(unique(put.reg[put.reg$Gene=="CAII" & !is.na(put.reg$rad.loci),"Chrom"]),
-       gene.region.plot,gene="CAII",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
-       fst.dfs=fst.dfs,deltad=deltad,colors=colors,alphas=alphas,ltys=ltys,
-       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst")
+png("ATP6V0A1.png",height=5,width=10,units="in",res=300)       
+par(mfrow=c(1,2),oma=c(2,2,2,2),mar=c(2,2,2,2))
+atp6v0a1<-lapply(unique(put.reg[put.reg$Gene=="ATP6V0A1" & !is.na(put.reg$rad.loci),"Chrom"]),
+       gene.region.plot,gene="ATP6V0A1",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
+       fst.dfs=fst.dfs,deltad=deltad,D=jostd,colors=colors,alphas=alphas,ltys=ltys,
+       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst",txt.cex=1.3,bases="MB",legend=FALSE)
+outside.legend("top",legend=c(leg.text,expression(italic(ATP6VOA1))),pch=leg.pchs,lty=leg.ltys,lwd=2,
+               bty='n',ncol=5,cex=1.25,x.intersp=0,col=leg.cols)
+dev.off()
 
-par(mfrow=c(2,4),oma=c(2,2,2,2),mar=c(2,2,2,2))
+png("ATP6V1A.png",height=5,width=10,units="in",res=300)       
+par(mfrow=c(1,2),oma=c(2,2,2,2),mar=c(2,2,2,2))
+atp6v1a<-lapply(unique(put.reg[put.reg$Gene=="ATP6V1A" & !is.na(put.reg$rad.loci),"Chrom"]),
+       gene.region.plot,gene="ATP6V1A",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
+       fst.dfs=fst.dfs,deltad=deltad,D=jostd,colors=colors,alphas=alphas,ltys=ltys,
+       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst",txt.cex=1.3,bases="MB",legend=FALSE)
+outside.legend("top",legend=c(leg.text,expression(italic(ATP6V1A))),pch=leg.pchs,lty=leg.ltys,lwd=2,
+               bty='n',ncol=5,cex=1.25,x.intersp=0,col=leg.cols)
+dev.off()
+
+png("FLT4.png",height=4,width=6,units="in",res=300)       
+par(mfrow=c(1,1),oma=c(2,2,2,2),mar=c(2,2,2,2))
+flt4<-lapply(unique(put.reg[put.reg$Gene=="FLT4" & !is.na(put.reg$rad.loci),"Chrom"]),
+       gene.region.plot,gene="FLT4",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
+       fst.dfs=fst.dfs,deltad=deltad,colors=colors,alphas=alphas,ltys=ltys,
+       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst",bases="MB")
+dev.off()
+
+png("OSBPL8.png",height=4,width=6,units="in",res=300)  
+par(mfrow=c(1,1),oma=c(2,2,2,2),mar=c(2,2,2,2))
+osbpl8<-lapply(unique(put.reg[put.reg$Gene=="OSBPL8" & !is.na(put.reg$rad.loci),"Chrom"]),
+       gene.region.plot,gene="OSBPL8",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
+       fst.dfs=fst.dfs,deltad=deltad,colors=colors,alphas=alphas,ltys=ltys,
+       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst",bases="MB")
+dev.off()
+
+png("RHOGTP8.png",height=5,width=10,units="in",res=300)  
+par(mfrow=c(2,5),oma=c(2,2,2,2),mar=c(2,2,2,2))
 rhogtp8<-lapply(unique(put.reg[put.reg$Gene=="RHOGTP8" & !is.na(put.reg$rad.loci),"Chrom"]),
        gene.region.plot,gene="RHOGTP8",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
        fst.dfs=fst.dfs,deltad=deltad,D=jostd,colors=colors,alphas=alphas,ltys=ltys,
-       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst")
+       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst",bases="MB",legend=FALSE)
+outside.legend("top",legend=c(leg.text,expression(italic(RHOGTP))),pch=leg.pchs,lty=leg.ltys,lwd=2,
+               bty='n',ncol=5,cex=1.25,x.intersp=0,col=leg.cols)
+dev.off()
 
-
-par(oma=c(2,2,2,2),mar=c(2,2,2,2))
-slc26a3<-lapply(unique(put.reg[put.reg$Gene=="SLC26A3" & !is.na(put.reg$rad.loci),"Chrom"]),
-       gene.region.plot,gene="SLC26A3",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
+png("SLC2A13.png",height=4,width=6,units="in",res=300)  
+par(mfrow=c(2,2),oma=c(2,2,1,2),mar=c(2,2,1,2))
+slc2a13<-lapply(unique(put.reg[put.reg$Gene=="SLC2A13" & !is.na(put.reg$rad.loci) & put.reg$Chrom %in% lgs,"Chrom"]),
+       gene.region.plot,gene="SLC2A13",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
        fst.dfs=fst.dfs,deltad=deltad,D=jostd,colors=colors,alphas=alphas,ltys=ltys,
-       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst") #LG20 doesn't plot
+       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst",bases="MB",legend=FALSE) 
+outside.legend(x=0.25,y=0.05,legend=c(leg.text,expression(italic(SLC2A13))),pch=leg.pchs,lty=leg.ltys,lwd=2,
+               bty='n',ncol=1,cex=1,x.intersp=0,col=leg.cols)
+dev.off()
 
-par(mfrow=c(2,3),oma=c(2,2,2,2),mar=c(2,2,2,2))
-trim14<-lapply(unique(put.reg[put.reg$Gene=="TRIM14" & !is.na(put.reg$rad.loci),"Chrom"]),
-       gene.region.plot,gene="TRIM14",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
+png("SPG1.png",height=4,width=6,units="in",res=300)  
+par(mfrow=c(1,1),oma=c(1,2,2,2),mar=c(2,2,2,2))
+spg1<-lapply(unique(put.reg[put.reg$Gene=="SPG1" & !is.na(put.reg$rad.loci),"Chrom"]),
+       gene.region.plot,gene="SPG1",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
        fst.dfs=fst.dfs,deltad=deltad,D=jostd,colors=colors,alphas=alphas,ltys=ltys,
-       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst")
+       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst",bases="MB",legend=FALSE) 
+outside.legend("top",legend=c(leg.text,expression(italic(SPG1))),pch=leg.pchs,lty=leg.ltys,lwd=2,
+               bty='n',ncol=3,cex=0.75,x.intersp=0,col=leg.cols)
+dev.off()
 
-par(oma=c(2,2,2,2),mar=c(2,2,2,2))
-pmca<-lapply(unique(put.reg[put.reg$Gene=="PMCA" & !is.na(put.reg$rad.loci),"Chrom"]),
-       gene.region.plot,gene="PMCA",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
+
+png("STAT3.png",height=4,width=6,units="in",res=300)  
+par(mfrow=c(1,1),oma=c(2,2,2,2),mar=c(2,2,2,2))
+stat3<-lapply(unique(put.reg[put.reg$Gene=="STAT3" & !is.na(put.reg$rad.loci),"Chrom"]),
+       gene.region.plot,gene="STAT3",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
        fst.dfs=fst.dfs,deltad=deltad,D=jostd,colors=colors,alphas=alphas,ltys=ltys,
-       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst")
+       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst",bases="MB",legend=FALSE) 
+outside.legend("top",legend=c(leg.text,expression(italic(STAT3))),pch=leg.pchs,lty=leg.ltys,lwd=2,
+               bty='n',ncol=3,cex=0.75,x.intersp=0,col=leg.cols)
+dev.off()
 
-par(mfrow=c(1,3),oma=c(2,2,2,2),mar=c(2,2,2,2))
+png("TIMP3.png",height=4,width=6,units="in",res=300)  
+par(mfrow=c(1,1),oma=c(2,2,1,1),mar=c(2,2,2,2))
+timp3<-lapply(unique(put.reg[put.reg$Gene=="TIMP3" & !is.na(put.reg$rad.loci),"Chrom"]),
+       gene.region.plot,gene="TIMP3",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
+       fst.dfs=fst.dfs,deltad=deltad,D=jostd,colors=colors,alphas=alphas,ltys=ltys,
+       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst",bases="MB")
+dev.off()
+
+png("VATPase.png",height=5,width=8,units="in",res=300) 
+par(mfrow=c(2,2),oma=c(2,2,2,2),mar=c(2,2,2,2))
 vatpase<-lapply(unique(put.reg[put.reg$Gene=="VATPase" & !is.na(put.reg$rad.loci),"Chrom"]),
        gene.region.plot,gene="VATPase",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
        fst.dfs=fst.dfs,deltad=deltad,D=jostd,colors=colors,alphas=alphas,ltys=ltys,
-       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst",txt.cex=1.3)
-```
-
-
-```{r old_plots,eval=FALSE,echo=FALSE}
-#ones that were important before but not anymore
-par(mfrow=c(1,2),oma=c(2,2,2,2),mar=c(2,2,2,2))
-nakatpase<-lapply(unique(put.reg[put.reg$Gene=="NAKATPase" & !is.na(put.reg$rad.loci),"Chrom"]),
-       gene.region.plot,gene="NAKATPase",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
-       fst.dfs=fst.dfs,deltad=deltad,D=jostd,colors=colors,alphas=alphas,ltys=ltys,
-       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst")
-
-
-par(mfrow=c(1,2),oma=c(2,2,2,2),mar=c(2,2,2,2))
-gene.region.plot("LG2","mucin",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
-                          D=jostd, colors=colors,alphas=alphas,ltys=ltys,
-       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst")
-gene.region.plot("LG8","mucin",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
-                        D=jostd,   colors=colors,alphas=alphas,ltys=ltys,
-       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst")
-
-par(mfrow=c(1,2),oma=c(2,2,2,2),mar=c(2,2,2,2))
-gene.region.plot("LG1","CAMKK1",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
-                         D=jostd,  colors=colors,alphas=alphas,ltys=ltys,
-       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst")
-gene.region.plot("LG11","CAMKK1",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
-                         D=jostd,  colors=colors,alphas=alphas,ltys=ltys,
-       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst")
-```
-
-### Create figures
-
-Based on the plots above, I'll exclude cases where the candidate gene is beyond the scope of the FST data.
-
-```{r print_putative_regions, eval=FALSE,echo=FALSE}
-put.reg$plot<-FALSE
-put.reg$plot[!is.na(put.reg$rad.loci)]<-TRUE # | !is.na(put.reg$bfs.in) | !is.na(put.reg$nj.nb)
-fave.lgs<-c("LG1","LG2","LG8","LG9","LG12","LG15","LG19")
-
-unique(put.reg[put.reg$Gene=="AQP3","Chrom"])
-
-png("tns1_aqp3.png",height=5,width=10,res=300,units="in")
-par(mfrow=c(1,2),oma=c(2,2,2,2),mar=c(2,2,2,2))
-gene.region.plot("LG1","TNS1",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
-                           colors=colors,alphas=alphas,ltys=ltys)
-gene.region.plot("LG9","AQP3",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
-                           colors=colors,alphas=alphas,ltys=ltys)
-dev.off()
-
-#PLOT ALL GENES
-png("tns1.png",height=10/3,width=10,units="in",res=300)
-par(mfrow=c(1,2),oma=c(2,2,2,2),mar=c(2,2,2,2))
-tns1<-lapply(unique(put.reg[put.reg$Gene=="TNS1","Chrom"]),
-       gene.region.plot,gene="TNS1",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
-       fst.dfs=fst.dfs,deltad=deltad,colors=colors,alphas=alphas,ltys=ltys)
-dev.off()
-
-png("aqp3.png",height=10,width=10,units="in",res=300)
-par(mfrow=c(3,2),oma=c(2,2,2,2),mar=c(2,2,2,2))
-tns1<-lapply(unique(put.reg[put.reg$Gene=="AQP3" & put.reg$Chrom %in% lgs & put.reg$Chrom != "LG18","Chrom"]),
-       gene.region.plot,gene="AQP3",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
-       fst.dfs=fst.dfs,deltad=deltad,colors=colors,alphas=alphas,ltys=ltys,legend=FALSE)
-plot(0:1,0:1,type='n',xlab="",ylab="",axes=F)
-legend("top",c(expression(TX~FWSW~italic(F)[ST]),
-                expression(LA~FWSW~italic(F)[ST]),
-                expression(AL~FWSW~italic(F)[ST]),
-                expression(FL~FWSW~italic(F)[ST]),
-                expression(delta~-divergence),
-                expression(Shared~italic(F)[ST]~Outliers),
-                "Salinity-associated SNPs",
-                "Monophyletic FW Gene Tree",
-                "FW Candidate Gene"),
-       pch=c(rep(32,5),124,25,124,124),lty=c(1,1,1,1,1,0,0,0,0),lwd=2,
-       col=c(colors,"cornflowerblue","black","black","#08519c","indianred"),
-       bty='n',ncol=3,x.intersp=0)
-dev.off()
-
-png("arhgef3.png",height=10,width=10,units="in",res=300)
-par(mfrow=c(4,3),oma=c(2,2,2,2),mar=c(2,2,2,2))
-arhgef3<-lapply(unique(put.reg[put.reg$Gene=="ARHGEF3" & put.reg$Chrom %in% lgs
-                               &!(put.reg$Chrom %in% c("LG5","LG12","LG22")),"Chrom"]),
-       gene.region.plot,gene="ARHGEF3",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
-       fst.dfs=fst.dfs,deltad=deltad,colors=colors,alphas=alphas,ltys=ltys)
-dev.off()
-
-png("nakatpase.png",height=8,width=10,units="in",res=300)
-par(mfrow=c(2,3),oma=c(2,2,2,2),mar=c(2,2,2,2))
-nakatpase<-lapply(unique(put.reg[put.reg$Gene=="NAKATPase" & put.reg$Chrom %in% lgs & 
-                                   put.reg$Chrom != "LG14","Chrom"]),
-       gene.region.plot,gene="NAKATPase",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
-       fst.dfs=fst.dfs,deltad=deltad,colors=colors,alphas=alphas,ltys=ltys,legend=FALSE)
-plot(0:1,0:1,type='n',xlab="",ylab="",axes=F)
-legend("top",c(expression(TX~FWSW~italic(F)[ST]),
-                expression(LA~FWSW~italic(F)[ST]),
-                expression(AL~FWSW~italic(F)[ST]),
-                expression(FL~FWSW~italic(F)[ST]),
-                expression(delta~-divergence),
-                expression(Shared~italic(F)[ST]~Outliers),
-                "Salinity-associated SNPs",
-                "Monophyletic FW Gene Tree",
-                "FW Candidate Gene"),
-       pch=c(rep(32,5),124,25,124,124),lty=c(1,1,1,1,1,0,0,0,0),lwd=2,
-       col=c(colors,"cornflowerblue","black","black","#08519c","indianred"),
-       bty='n',ncol=1,x.intersp=0)
-dev.off()
-
-png("ca.png",height=10,width=7.5,units="in",res=300)
-par(mfrow=c(4,2),oma=c(2,2,2,2),mar=c(2,2,2,2))
-ca2<-lapply(unique(put.reg[put.reg$Gene=="CAII" &put.reg$Chrom %in% lgs,"Chrom"]),
-       gene.region.plot,gene="CAII",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
-       fst.dfs=fst.dfs,deltad=deltad,colors=colors,alphas=alphas,ltys=ltys,legend=FALSE)
-plot(0:1,0:1,type='n',xlab="",ylab="",axes=F)
-legend("top",c(expression(TX~FWSW~italic(F)[ST]),
-                expression(LA~FWSW~italic(F)[ST]),
-                expression(AL~FWSW~italic(F)[ST]),
-                expression(FL~FWSW~italic(F)[ST]),
-                expression(delta~-divergence),
-                expression(Shared~italic(F)[ST]~Outliers),
-                "Salinity-associated SNPs",
-                "Monophyletic FW Gene Tree",
-                "FW Candidate Gene"),
-       pch=c(rep(32,5),124,25,124,124),lty=c(1,1,1,1,1,0,0,0,0),lwd=2,
-       col=c(colors,"cornflowerblue","black","black","#08519c","indianred"),
-       bty='n',ncol=1,x.intersp=0)
-dev.off()
-
-png("mucins.png",height=10,width=10,units="in",res=300)
-par(mfrow=c(4,3),oma=c(2,2,2,2),mar=c(2,2,2,2))
-ca2<-lapply(unique(put.reg[put.reg$Gene=="mucin" &put.reg$Chrom %in% lgs &
-                             put.reg$Chrom != "LG18","Chrom"]),
-       gene.region.plot,gene="mucin",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
-       fst.dfs=fst.dfs,deltad=deltad,colors=colors,alphas=alphas,ltys=ltys,legend=FALSE)
-plot(0:1,0:1,type='n',xlab="",ylab="",axes=F)
-legend("top",c(expression(TX~FWSW~italic(F)[ST]),
-                expression(LA~FWSW~italic(F)[ST]),
-                expression(AL~FWSW~italic(F)[ST]),
-                expression(FL~FWSW~italic(F)[ST]),
-                expression(delta~-divergence),
-                expression(Shared~italic(F)[ST]~Outliers),
-                "Salinity-associated SNPs",
-                "Monophyletic FW Gene Tree",
-                "FW Candidate Gene"),
-       pch=c(rep(32,5),124,25,124,124),lty=c(1,1,1,1,1,0,0,0,0),lwd=2,
-       col=c(colors,"cornflowerblue","black","black","#08519c","indianred"),
-       bty='n',ncol=1,x.intersp=0)
-dev.off()
-
-png("camkk1.png",height=7,width=10,units="in",res=300)
-par(mfrow=c(2,3),oma=c(2,2,2,2),mar=c(2,2,2,2))
-ca2<-lapply(unique(put.reg[put.reg$Gene=="CAMKK1" &put.reg$Chrom %in% lgs,"Chrom"]),
-       gene.region.plot,gene="CAMKK1",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
-       fst.dfs=fst.dfs,deltad=deltad,colors=colors,alphas=alphas,ltys=ltys,legend=FALSE)
-plot(0:1,0:1,type='n',xlab="",ylab="",axes=F)
-legend("top",c(expression(TX~FWSW~italic(F)[ST]),
-                expression(LA~FWSW~italic(F)[ST]),
-                expression(AL~FWSW~italic(F)[ST]),
-                expression(FL~FWSW~italic(F)[ST]),
-                expression(delta~-divergence),
-                expression(Shared~italic(F)[ST]~Outliers),
-                "Salinity-associated SNPs",
-                "Monophyletic FW Gene Tree",
-                "FW Candidate Gene"),
-       pch=c(rep(32,5),124,25,124,124),lty=c(1,1,1,1,1,0,0,0,0),lwd=2,
-       col=c(colors,"cornflowerblue","black","black","#08519c","indianred"),
-       bty='n',ncol=1,x.intersp=0)
-dev.off()
-       
-png("special.mucin.png",height=5,width=10,units="in",res=300)
-par(mfrow=c(1,2),oma=c(2,2,2,2),mar=c(2,2,2,2))
-gene.region.plot("LG2","mucin",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
-                           colors=colors,alphas=alphas,ltys=ltys)
-gene.region.plot("LG8","mucin",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
-                           colors=colors,alphas=alphas,ltys=ltys)
-dev.off()
-
-png("camkk1_only2.png",height=5,width=10,units="in",res=300)
-par(mfrow=c(1,2),oma=c(2,2,2,2),mar=c(2,2,2,2))
-gene.region.plot("LG1","CAMKK1",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
-                           colors=colors,alphas=alphas,ltys=ltys)
-gene.region.plot("LG11","CAMKK1",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,
-                           colors=colors,alphas=alphas,ltys=ltys)
-dev.off()
-
-
-png("rhogtp.png",height=10,width=10,units="in",res=300)
-par(mfrow=c(4,4),oma=c(2,2,2,2),mar=c(2,2,2,2))
-rhogtp8<-lapply(unique(put.reg[put.reg$Gene=="RHOGTP8" & put.reg$Chrom %in% lgs & 
-                                 put.reg$Chrom != "LG18","Chrom"]),
-       gene.region.plot,gene="RHOGTP8",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
-       fst.dfs=fst.dfs,deltad=deltad,colors=colors,alphas=alphas,ltys=ltys,legend=FALSE)
-par(mfrow=c(1, 1), oma=rep(0, 4), mar=rep(0, 4), new=TRUE)
-plot(0:1,0:1,type='n',xlab="",ylab="",axes=F)
-legend("top",c(expression(TX~FWSW~italic(F)[ST]),
-                expression(LA~FWSW~italic(F)[ST]),
-                expression(AL~FWSW~italic(F)[ST]),
-                expression(FL~FWSW~italic(F)[ST]),
-                expression(delta~-divergence),
-                expression(Shared~italic(F)[ST]~Outliers),
-                "Salinity-associated SNPs",
-                "Monophyletic FW Gene Tree",
-                "FW Candidate Gene"),
-       pch=c(rep(32,5),124,25,124,124),lty=c(1,1,1,1,1,0,0,0,0),lwd=2,
-       col=c(colors,"cornflowerblue","black","black","#08519c","indianred"),
-       bty='n',ncol=5,cex=0.75,x.intersp=0)
+       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst",txt.cex=1.3,bases="MB",legend=FALSE)
+outside.legend("top",legend=c(leg.text,expression(italic(VATPase))),pch=leg.pchs,lty=leg.ltys,lwd=2,
+               bty='n',ncol=3,cex=1,x.intersp=0,col=leg.cols)
 dev.off()
 ```
+
+![](../fwsw_results/ARGHEF3.png)
+![](../fwsw_results/ATP6V0A1.png)
+![](../fwsw_results/ATP5V1A.png)
+![](../fwsw_results/FLT4.png)
+![](../fwsw_results/OSBPL8.png)
+![](../fwsw_results/RHOGTP8.png)
+![](../fwsw_results/SLC2A13.png)
+![](../fwsw_results/SPG1.png)
+![](../fwsw_results/STAT3.png)
+![](../fwsw_results/TIMP3.png)
+![](../fwsw_results/VATPase.png)
+
+
+### Figure 7
 
 ```{r making_Fig7}
 colors=c(grp.colors[1],grp.colors[2],grp.colors[3],grp.colors[6])
@@ -1749,9 +1613,11 @@ dev.off()
 
 ![Fig. 7](../fwsw_results/Fig7candidateGenes.png)
 
-### Plot LG4
+## Figure 8: LG4
 
-```{r plot_lg8,eval=FALSE}
+LG4 clearly is enriched for outliers, let's look at it more closely, including putative FW genes.
+
+```{r prep_lg4,eval=TRUE}
 #define a few things
 chrom<-"LG4"
 pchs<-c(rep(32,6),15,124,124)
@@ -1779,39 +1645,29 @@ sdd.gene<- unlist(strsplit(gsub(paste(chrom,".",sep=""),"",pr.gene$sdd.in[pr.gen
 #put all of them together with their associated shapes
 gene.out<-data.frame(BP=c(as.numeric(fst.gene),as.numeric(sal.gene),as.numeric(sdd.gene)),
                      shape=c(rep(8,length(fst.gene)),rep(1,length(sal.gene)),rep(4,length(sdd.gene))))
-
-png("LG4.png",width=10,height=7,units="in",res=300)
-
-nf <- layout(matrix(c(1,1,1,1,
-                      2,2,2,2,
-                      3,3,3,4), nrow=3, byrow=TRUE))
-par(oma=c(1.5,2.5,1,1),mar=c(1.5,1,2,1))
-
-plot(fst.dfs[[1]]$BP[fst.dfs[[1]]$Chr %in% chrom],
-     fst.dfs[[1]]$Smoothed.AMOVA.Fst[fst.dfs[[1]]$Chr %in% chrom],
-     type='n',ylim=c(0,1),bty="L",xlab="",ylab="",xaxt='n',yaxt='n')
-  axis(2,las=1,cex.axis=2)  
-  axis(1,cex.axis=2,at=c(0,5000000,10000000,15000000),labels = c(0,5,10,15))
-  #add putative gene
-  g<-put.reg[put.reg$Chrom %in% chrom,]
+#add putative genes
+g<-put.reg[put.reg$Chrom %in% chrom,]
   g$Gene<-as.character(g$Gene)
   g$Gene[grep("ATP6",g$Gene)]<-"ATP6V" #standardize the names
   g<-g[,c("Gene","StartBP","StopBP")]
   g<-g[!duplicated(g$StartBP),]
   g<-g[order(g$StartBP),]
-  starts<-as.numeric(g[,"StartBP"])
-  stops<-as.numeric(g[,"StopBP"])
-  rect(xleft=as.numeric(starts),xright=as.numeric(stops),
-         ybottom=-0.04,ytop=1,col="indianred",border="indianred")
-  #ad the ones that are spaced out
-  text(x=g$StartBP[!g$Gene %in% c("SCUBE1","TRIM14")],y=0.5,
-       labels=g$Gene[!g$Gene %in% c("SCUBE1","TRIM14")],font=2,srt=90,xpd=T,cex=1.75)
-  text(x=g$StartBP[g$Gene == "SCUBE1"]-50000,y=0.8,
-       labels=g$Gene[g$Gene =="SCUBE1"],font=2,srt=90,xpd=T,cex=1.75)
-  text(x=g$StartBP[g$Gene == "TRIM14"]+50000,y=0.2,
-       labels=g$Gene[g$Gene =="TRIM14"],font=2,srt=90,xpd=T,cex=1.75)
+```
+```{r plot_lg4}
+png("LG4.png",width=10,height=7,units="in",res=300)
+
+nf <- layout(matrix(c(1,1,1,1,
+                      2,2,2,2), nrow=2, byrow=TRUE))
+
+### Plot all of LG4
+par(oma=c(2.5,3,2,1),mar=c(1.5,1,2,1))
+plot(fst.dfs[[1]]$BP[fst.dfs[[1]]$Chr %in% chrom],
+     fst.dfs[[1]]$Smoothed.AMOVA.Fst[fst.dfs[[1]]$Chr %in% chrom],
+     type='n',ylim=c(0,1),bty="L",xlab="",ylab="",xaxt='n',yaxt='n')
+  axis(2,las=1,cex.axis=1.75)  
+  axis(1,cex.axis=1.75,at=seq(0,1.8*10^7,3*10^6),labels = seq(0,18,3))
   #add fsts
-  mtext(chrom,1,cex=2*0.75,line=2.5)
+  #mtext(chrom,1,cex=2*0.75,line=2.5)
   for(i in 1:length(fst.dfs)){
     points(fst.dfs[[i]]$BP[fst.dfs[[i]]$Chr %in% chrom],
            fst.dfs[[i]]$Smoothed.AMOVA.Fst[fst.dfs[[i]]$Chr %in% chrom],
@@ -1820,6 +1676,18 @@ plot(fst.dfs[[1]]$BP[fst.dfs[[1]]$Chr %in% chrom],
   #add delta-d and Jost's D
   points(dd.smooth$x,dd.smooth$y,col="#dfc27d",type="l",lwd=2)
   points(dsmooth$x,dsmooth$y,type="l",col="#a6611a",lwd=2)   
+   #add the putative genes
+  starts<-as.numeric(g[,"StartBP"])
+  stops<-as.numeric(g[,"StopBP"])
+  rect(xleft=as.numeric(starts),xright=as.numeric(stops),
+         ybottom=-0.04,ytop=1,col="indianred",border="indianred")
+  #add the ones that are spaced out
+  text(x=g$StartBP[!g$Gene %in% c("SCUBE1","TRIM14")],y=0.5,
+       labels=g$Gene[!g$Gene %in% c("SCUBE1","TRIM14")],font=2,srt=90,xpd=T,cex=1.75)
+  text(x=g$StartBP[g$Gene == "SCUBE1"]-50000,y=0.8,
+       labels=g$Gene[g$Gene =="SCUBE1"],font=2,srt=90,xpd=T,cex=1.75)
+  text(x=g$StartBP[g$Gene == "TRIM14"]+50000,y=0.2,
+       labels=g$Gene[g$Gene =="TRIM14"],font=2,srt=90,xpd=T,cex=1.75)
   #add outlier loci
   clip(x1=min(as.numeric(fst.dfs[[1]]$BP[fst.dfs[[1]]$Chr %in% chrom])),
        x2=max(as.numeric(fst.dfs[[1]]$BP[fst.dfs[[1]]$Chr %in% chrom])),y1=0.99,y2=1.06)
@@ -1827,63 +1695,27 @@ plot(fst.dfs[[1]]$BP[fst.dfs[[1]]$Chr %in% chrom],
   points(x=sal.gene,y=rep(1.05,length(sal.gene)),col="black",pch=25,cex=1)
   
 
-  
-###Zoom-in plot
-plot(fst.dfs[[1]]$BP[fst.dfs[[1]]$Chr %in% chrom],
-     fst.dfs[[1]]$Smoothed.AMOVA.Fst[fst.dfs[[1]]$Chr %in% chrom],
-     type='n',ylim=c(0,1),bty="L",xlab="",ylab="",xaxt='n',yaxt='n',xlim=c(5000000,10000000))
-  axis(2,las=1,cex.axis=2)  
-  axis(1,cex.axis=2,at=c(5000000,10000000),labels=c(5,10))
-  
-  #add putative gene
-  g<-put.reg[put.reg$Chrom %in% chrom & put.reg$StartBP<10000000,]
-  g$Gene<-as.character(g$Gene)
-  g$Gene[grep("ATP6",g$Gene)]<-"ATP6V" #standardize the names
-  g<-g[,c("Gene","StartBP","StopBP")]
-  g<-g[!duplicated(g$StartBP),]
-  g<-g[order(g$StartBP),]
-  starts<-as.numeric(g[,"StartBP"])
-  stops<-as.numeric(g[,"StopBP"])
-  rect(xleft=as.numeric(starts),xright=as.numeric(stops),
-         ybottom=-0.04,ytop=1,col="indianred",border="indianred")
-   text(x=g$StartBP,y=0.6,labels=g$Gene,font=2,srt=90,xpd=T,cex=1.75)
-  # text(x=g$StartBP[1]-20000,y=0.6,labels=g$Gene[1],font=2,srt=90,xpd=T,cex=1.75)
-  # text(x=g$StartBP[2]-20000,y=0.6,labels=g$Gene[2],font=2,srt=90,xpd=T,cex=1.75)
-  # text(x=g$StartBP[3]-10000,y=0.6,labels=g$Gene[3],font=2,srt=90,xpd=T,cex=1.75)
-  # text(x=g$StartBP[4]+10000,y=0.6,labels=g$Gene[4],font=2,srt=90,xpd=T,cex=1.75)
-  # text(x=g$StartBP[5],y=0.6,labels=g$Gene[5],font=2,srt=90,xpd=T,cex=1.75)
-  
-  mtext(chrom,1,cex=2*0.75,line=2)
-  for(i in 1:length(fst.dfs)){
-    points(fst.dfs[[i]]$BP[fst.dfs[[i]]$Chr %in% chrom],
-           fst.dfs[[i]]$Smoothed.AMOVA.Fst[fst.dfs[[i]]$Chr %in% chrom],
-           col=alpha(colors[i],alphas[i]),type="l",lwd=lwds[i],lty=ltys[i])
-  }
-  points(dd.smooth$x,dd.smooth$y,col="#dfc27d",type="l",lwd=2)
-  points(dsmooth$x,dsmooth$y,type="l",col="#a6611a",lwd=2)
-  clip(x1=min(as.numeric(0)),x2=max(as.numeric(3500000)),y1=0.99,y2=1.06)
-    abline(v=fst.gene,col="black")
-    points(x=sal.gene,y=rep(1.05,length(sal.gene)),col="black",pch=25,cex=1)
-    #abline(v=nb.gene,col=alpha("black",0.5),lwd=1.5)
-
-###Recombination rate
-load("~/Projects/ssc_map.rda")
-#plot LG4
+### Plot the recombination rate
+load("../../scovelli_genome/ssc_map.rda")
+rec.cols<-c("#fdbb84","#fc8d59","#ef6548")
 plot(set[["LG4"]]@interpolations$slidingwindow@physicalPositions,
-     set[["LG4"]]@interpolations$slidingwindow@rates,type="l",
-     ylim=c(-5,25),xlab="",ylab="",xaxt='n',lwd=2)
+     set[["LG4"]]@interpolations$slidingwindow@rates,type="l",bty="L",
+     ylim=c(-5,25),xlab="",ylab="",xaxt='n',yaxt='n',lwd=2,col=rec.cols[1])
 abline(h=0,lty=2)
-axis(1,at=seq(0,1.8*10^7,3*10^6),labels = seq(0,18,3))
-mtext("Position on LG4 (Mb)",1,line=2)
-mtext("Recombination Rate (cM/Mb)",2,line=2)
+axis(2,cex.axis=1.75,las=1)
+axis(1,at=seq(0,1.8*10^7,3*10^6),labels = seq(0,18,3),cex.axis=1.75)
+mtext("Position on LG4 (Mb)",1,line=2.2,cex=1.5*0.75)
+mtext("Recombination Rate (cM/Mb)",2,line=2.5,cex=1.5*0.75)
 lines(set[["LG4"]]@interpolations$spline@physicalPositions,
-      set[["LG4"]]@interpolations$spline@rates,type="l",col="blue",lwd=2)
+      set[["LG4"]]@interpolations$spline@rates,type="l",col=rec.cols[2],lwd=2)
 lines(set[["LG4"]]@interpolations$loess@physicalPositions,
-      set[["LG4"]]@interpolations$loess@rates,type="l",lwd=2,col="forestgreen")
-legend("topleft",bty='n',col=c("black","blue","forestgreen"),lwd=2,c("Sliding Window","Spline","Loess"))
+      set[["LG4"]]@interpolations$loess@rates,type="l",lwd=2,col=rec.cols[3])
+legend("topleft",bty='n',col=rec.cols,
+       lwd=2,c("Sliding Window","Spline","Loess"),cex=1.5)
 
-###add legend
-
+  
+### add legend
+#create the legend text, and parameters
 lgnd<-unlist(lapply(names(fst.dfs),function(n) { bquote(.(n)~italic(F[ST])) }))
 lgnd<-c(lgnd,expression(delta~-divergence),"Jost's D","gene regions",
         expression("Shared"~italic(F[ST])~"outlier"),"Salinity-associated")
@@ -1891,11 +1723,14 @@ pchs<-c(rep(32,6),15,124,25)
 cols<-c(grp.colors[1],grp.colors[2],grp.colors[3],grp.colors[6],
         "#dfc27d","#a6611a","indianred","black","black")
 ltys=c(1,1,2,1,1,1,0,0,0)
-lwds<-c(rep(2,6),0,0,0)
+lwds<-c(rep(2,6),0,0,1)
+#plot the legend
+par(fig=c(0, 1, 0, 1), oma=c(0, 0, 0, 0), mar=c(0, 0, 0, 0), new=TRUE,xpd=TRUE)
 plot(c(0,1),c(0,1),bty='n',type='n',xlab="",ylab="",xaxt='n',yaxt='n')
-legend("topright",legend=lgnd,pch=pchs,
+legend("top",legend=lgnd,pch=pchs,ncol=5,
        bty='n',lwd=lwds,lty=ltys,
-       col=cols,xpd=TRUE,cex=1.5)
+       col=cols,xpd=TRUE,cex=1.5,
+       x.intersp = 0.5,y.intersp = 0.75)
 dev.off()
 ```
 

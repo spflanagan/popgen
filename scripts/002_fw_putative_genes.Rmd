@@ -57,9 +57,8 @@ jostd$POS<-vcf$POS
 jostd$Chr<-vcf$`#CHROM`
 jostd$ID<-vcf$ID
 #ld info
-ld<-read.delim("ld_info_fwsw.txt")
-#neighbor joining SNP trees
-#fst.trees<-read.delim("p4.snp.ftrees.txt",sep=" ")
+ld<-read.delim("p4.ld_info_fwsw.txt")
+
 #set up some helfpul things
 fw.list<-c("TXFW","LAFW","ALFW","FLLG")
 sw.list<-c("TXSP","TXCC","TXCB","ALST","FLSG","FLKB",
@@ -479,29 +478,12 @@ unique(put.reg[put.reg$bft.in !="NA","Gene"])
 unique(put.reg[put.reg$bfg.in !="NA","Gene"])
 ```
 
-
 All three BayEnv tests identified outliers in the genes `r unique(put.reg[put.reg$bfs.in !="NA","Gene"])[unique(put.reg[put.reg$bfs.in !="NA","Gene"]) %in% unique(put.reg[put.reg$bft.in !="NA","Gene"]) & unique(put.reg[put.reg$bfs.in !="NA","Gene"]) %in% unique(put.reg[put.reg$bfg.in !="NA","Gene"])]`. The temperature and grass also share `r unique(put.reg[put.reg$bft.in !="NA","Gene"])[unique(put.reg[put.reg$bft.in !="NA","Gene"]) %in% unique(put.reg[put.reg$bfg.in !="NA","Gene"])][1]`, and temperature and salinity share `r unique(put.reg[put.reg$bfs.in !="NA","Gene"])[unique(put.reg[put.reg$bfs.in !="NA","Gene"]) %in% unique(put.reg[put.reg$bft.in !="NA","Gene"])][1]`. 
 
-Clearly, RHOGTP8 and TNS1 are showing up repeatedly (all Bayenv2 outliers, and $\delta-divergence outliers).
+Clearly, RHOGTP8 and TNS1 are showing up repeatedly (all Bayenv2 outliers, and $\delta$-divergence outliers).
 
 But looking at `put.reg[put.reg$Gene =="RHOGTP8","rad.loci"]`, it's obvious that Rho GTPase-activating proteins are distributed throughout the genome (on chromosomes `r unique(put.reg[put.reg$Gene=="RHOGTP8","Chrom"])`).
 
-## Neighbor-joining Fst trees
-
-Using `ape`, I calculated neighbor-joining trees and identified `r dim(fst.trees[fst.trees$Monophyletic==TRUE,])` loci with a monophyletic freshwater clade using `is.monophyletic()`. Are any of those SNPs within genes?
-
-```{r nj_trees}
-ftmono<-fst.trees[fst.trees$FWMonophyletic == TRUE & !is.na(fst.trees$FWMonophyletic),]
-
-nj.in<-outlier.in.region(ftmono,put.reg,oBP="Pos")
-nj.nb<-outlier.nearby(ftmono,put.reg,chrom.ld,oBP="Pos")
-put.reg$nj.nb<-nj.nb
-put.reg$nj.in<-nj.in
-```
-
-So `r length(nj.in[nj.in!="NA"])` loci are located within putative freshwater genes, but `r length(nj.nb[nj.nb!="NA"])` are within the LD region of the putative genes, representing `r length(nj.nb[nj.nb!="NA"])/nrow(put.reg)*100` of the putative gene annotations and `r length(unique(put.reg[put.reg$nj.nb != "NA", "Gene"]))` genes
-
-**I've removed this analysis from the paper, though, so we can ignore this**
 
 ## Jost's D
 
@@ -525,7 +507,6 @@ So `r length(jost.in[jost.in!="NA"])` loci are located within putative freshwate
 
 *Genes containing Jost D outliers: `r unique(put.reg[put.reg$jostd.in !="NA", "Gene"])`
 
-*Genes containing monophyletic FW gene trees [IGNORE]: `r unique(put.reg[put.reg$nj.in != "NA","Gene"])` 
 
 *Overlap: `r unique(put.reg[put.reg$rad.loci != "NA","Gene"])[unique(put.reg[put.reg$rad.loci != "NA","Gene"]) %in% unique(put.reg[put.reg$sdd.in != "NA","Gene"]) &unique(put.reg[put.reg$rad.loci != "NA","Gene"]) %in% unique(put.reg[put.reg$bfs.in != "NA","Gene"])]`
 

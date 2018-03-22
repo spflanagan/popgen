@@ -28,8 +28,8 @@ library(RColorBrewer)
 
 and load the necessary files
 ```{r access_analysis, echo=FALSE}
-knitr::read_chunk("../scripts/fwsw_analysis.R")
-knitr::read_chunk("../scripts/run_dmc.R")
+knitr::read_chunk("../scripts/002_fwsw_analysis.R")
+knitr::read_chunk("../scripts/002_run_dmc.R")
 ```
 ```{r FWSWsetup, include=FALSE}
 ```
@@ -159,22 +159,22 @@ And I'm going to run it with a variety of effective population sizes and recombi
 ```{r dmcNe, eval=FALSE}
 ```
 
-I'm running this one on abies using `nohup Rscript ~/Projects/popgen/scripts/run_dmc.R >> ~/Projects/popgen/dmc_ne.log 2>&1 &`. Process 45048 on 9 March 2018.
+I'm running this one on abies using `nohup Rscript ~/Projects/popgen/scripts/002_run_dmc.R >> ~/Projects/popgen/dmc_ne.log 2>&1 &`. 
 
 ## Estimate recombination rates
 
 ```{r rec_est,eval=FALSE}
-ssc.map<-read.delim("~/Projects/SSC_linkage_map_20160701.txt",header=T)
+ssc.map<-read.delim("../../scovelli_genome/SSC_linkage_map_20160701.txt",header=T)
 colnames(ssc.map)<-c("map","mkr","gen","scaffold","scaffold_orientation","scaffold.bp","phys","node")
 ssc.map$set<-"Syngnathus.scovelli"
 map<-ssc.map[,c("set","map","mkr","phys","gen")]
-write.table(map,"~/Projects/ssc_map.txt",sep=" ",row.names=FALSE, col.names = TRUE)
+write.table(map,"../../scovelli_genome/ssc_map.txt",sep=" ",row.names=FALSE, col.names = TRUE)
 library(MareyMap)
 startMareyMapGUI()
 #using the GUI, I ran all three types of recombination rate estimators and saved the MapSet
 ```
-```{r estimate_rec,eval=FALSE}
-ssc.map<-read.delim("~/Projects/ssc_MareyMap.txt",comment.char = "#",sep=" ")
+```{r estimate_rec,eval=TRUE}
+ssc.map<-read.delim("../../scovelli_genome/ssc_MareyMap.txt",comment.char = "#",sep=" ")
 #genome-wide
 r<-data.frame(Genome_wide=c(mean(ssc.map$slidingwindow,na.rm = TRUE)/1000000,
                             mean(ssc.map$spline,na.rm = TRUE)/1000000,
@@ -188,8 +188,8 @@ r<-data.frame(Genome_wide=c(mean(ssc.map$slidingwindow,na.rm = TRUE)/1000000,
               row.names = c("Sliding Window","Spline","Loess"))
 kable(r,caption="Recombination rate estimates")
 ```
-```{r plot_recLG4,eval=FALSE}
-load("~/Projects/ssc_map.rda")
+```{r plot_recLG4,eval=TRUE}
+load("../../scovelli_genome/ssc_map.rda")
 #plot LG4
 plot(set[["LG4"]]@interpolations$slidingwindow@physicalPositions,
      set[["LG4"]]@interpolations$slidingwindow@rates,type="l",

@@ -8,7 +8,7 @@ cd $OUTDIR
 
 #first, convert vcf to sweepfinder
 
-Rscript ../scripts/vcf2sf.R
+Rscript ../scripts/002_vcf2sf.R
 
 #calculate genome-wide allele frequency spectrum
 echo "Calculating genome-wide allele frequency spectrum"
