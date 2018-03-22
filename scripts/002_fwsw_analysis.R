@@ -285,11 +285,13 @@ sdd.name<-"smoothed.deltad.out.txt"
 ## ---- PlotDeltaD
 png(dd.plot.name,height=5,width=7,units="in",res=300)
 par(mar=c(1,1,1,1),oma=c(1,2,1,1))
-dd<-fst.plot(fst.dat = deltad,fst.name = "deltad",bp.name = "Pos",axis=1,pch=19,scaffs.to.plot=scaffs)
+#plot it by lg/scaffold
+dd<-fst.plot(fst.dat = deltad,fst.name = "deltad",bp.name = "Pos",axis=1,pch=19,scaffs.to.plot=scaffs,y.lim = c(-0.5,1))
+abline(h=mean(deltad$deltad),lwd=1,lty=2)
 mtext(expression(paste(delta,"-divergence")),2,line=1.5)
-smooth.par<-data.frame()
-smooth.div<-data.frame()
-for(i in 1:length(lgs)){#scaffolds are too short
+smooth.par<-data.frame()#parallel (lower outliers)
+smooth.div<-data.frame()#divergent (upper outliers)
+for(i in 1:length(lgs)){#scaffolds are too short, only use chromosomes
   this.chrom<-dd[dd$Chrom %in% lgs[i],]
   #span<-nrow(this.chrom)/5000
   this.smooth<-loess.smooth(this.chrom$plot.pos,this.chrom$deltad,span=0.1,degree=2) 
@@ -301,17 +303,23 @@ for(i in 1:length(lgs)){#scaffolds are too short
   # this.par<-cbind(x=this.smooth$x[this.smooth$y<=quantile(this.smooth$y,0.05)],#choosing the lower outliers - smoothed
   #                 smooth.dd=this.smooth$y[this.smooth$y<=quantile(this.smooth$y,0.05)],
   #                 plot.pos=this.plot.pos[this.smooth$y<=quantile(this.smooth$y,0.05)])
-  this.div<-cbind(dd=this.chrom$deltad[this.chrom$deltad>=quantile(this.chrom$deltad,0.99)],#choosing the upper outliers
-                  plot.pos=this.chrom$plot.pos[this.chrom$deltad>=quantile(this.chrom$deltad,0.99)])
-  this.par<-cbind(dd=this.chrom$deltad[this.chrom$deltad<=quantile(this.chrom$deltad,0.01)],#choosing the lower outliers
-                  plot.pos=this.chrom$plot.pos[this.chrom$deltad<=quantile(this.chrom$deltad,0.01)])
+  this.div<-data.frame(cbind(dd=this.chrom$deltad[this.chrom$deltad>=quantile(this.chrom$deltad,0.99)],#choosing the upper outliers
+                  plot.pos=this.chrom$plot.pos[this.chrom$deltad>=quantile(this.chrom$deltad,0.99)]),
+                  stringsAsFactors = FALSE)
+  this.par<-data.frame(cbind(dd=this.chrom$deltad[this.chrom$deltad<=quantile(this.chrom$deltad,0.01)],#choosing the lower outliers
+                  plot.pos=this.chrom$plot.pos[this.chrom$deltad<=quantile(this.chrom$deltad,0.01)]),
+                  stringsAsFactors = FALSE)
   smooth.par<-rbind(smooth.par,this.par)
   smooth.div<-rbind(smooth.div,this.div)
+  points(this.div$plot.pos,this.div$dd,pch=24,bg="cornflowerblue",col="cornflowerblue",cex=0.5)
+  points(this.par$plot.pos,this.par$dd,pch=25,bg="cornflowerblue",col="cornflowerblue",cex=0.5)
 }
 dev.off()
-smooth.div<-merge(smooth.div,dd,by="plot.pos") 
-smooth.par<-merge(smooth.par,dd,by="plot.pos")
-smooth.par<-smooth.par[!duplicated(smooth.par$SNP),]#a couple of SNPs had multiple smoothed delat d values
+smooth.div<-merge(smooth.div,dd,by="plot.pos") #77
+smooth.div$direction<-"divergent"
+smooth.par<-merge(smooth.par,dd,by="plot.pos") #77
+smooth.par$direction<-"parallel"
+#add nucleotide diversity values
 smooth.par$FWpi<-apply(cbind(vcf[vcf$SNP %in% smooth.par$SNP,locus.info],
                              vcf[vcf$SNP %in% smooth.par$SNP,unlist(lapply(fw.list,grep,colnames(vcf)))]),1,calc.pi)
 smooth.par$SWpi<-apply(cbind(vcf[vcf$SNP %in% smooth.par$SNP,locus.info],

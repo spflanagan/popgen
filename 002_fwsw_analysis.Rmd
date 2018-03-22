@@ -485,9 +485,9 @@ deltad<-read.delim(dd.name, header=TRUE)
 ```{r read_deltad,echo=FALSE}
 dd<-read.delim(dd.name)
 sdd.out<-read.delim(sdd.name)
-
 ```
-This plotting function also generates the smoothed $\delta$-divergence values.
+
+This plotting function also generates the smoothed $\delta$-divergence values (which are not saved) and identifies the outliers (in 99% and 1% quantiles, and which are saved in `sdd.out`).
 
 ### Jost's D
 
@@ -508,6 +508,9 @@ jostd.name<-"p4.jostd.perlocus.txt"
 ```
 
 ### Smooth the statistics
+
+*I would like to update this - 22 Mar 2018*
+
 ```{r smooth_name}
 smoothed.name<-"p4_deltad_pi_het.png"
 ```
