@@ -394,10 +394,12 @@ dev.off()
 
 smoothed.name<-"deltad_pi_het.png"
 ## ---- smoothStats
+comp.col<-c(Het="#80cdc1",pi="#018571",Fst="black",D="#a6611a",deltad="#dfc27d")
 png(smoothed.name,height=7,width=5,units="in",res=300)
 par(mfrow=c(3,1),mar=c(1,1,1,1),oma=c(1,2,1,1),cex=0.75)
 dd<-fst.plot(fst.dat = deltad,fst.name = "deltad",bp.name = "Pos",axis=0.75,
              y.lim=c(-0.5,1),scaffold.widths=scaff.starts,pch=19,scaffs.to.plot = scaffs)
+#abline(v=stacks.sig$plot.pos,col="grey10") #stacks
 mtext(expression(paste(delta,"-divergence")),2,line=2,cex=0.75)
 smooth.out<-data.frame()
 smoothed.dd<-data.frame()
@@ -405,28 +407,48 @@ for(i in 1:length(lgs)){#scaffolds are too short
   this.chrom<-dd[dd$Chrom %in% lgs[i],]
   this.smooth<-loess.smooth(this.chrom$plot.pos,this.chrom$deltad,span=0.1,degree=2) 
   these.sig<-stacks.sig[stacks.sig$Chr %in% lgs[i],]
-  this.pos<-unlist(lapply(these.sig$BP,function(x) { this.chrom[which.min(abs(this.chrom$Pos-x)),"Pos"] }))
-  points(this.smooth$x,this.smooth$y,col="cornflowerblue",type="l",lwd=2)
-  points(dd[dd$Pos %in% this.pos,c("plot.pos","deltad")],col="darkorchid")
+  this.pos<-unlist(lapply(these.sig$BP,function(x) { this.chrom[which.min(abs(this.chrom$plot.pos-x)),"plot.pos"] }))
+  points(this.smooth$x,this.smooth$y,col=comp.col["deltad"],type="l",lwd=2)
+  #points(dd[dd$Pos %in% this.pos,c("plot.pos","deltad")],col="darkorchid")
   smoothed.dd<-rbind(smoothed.dd,data.frame(Chrom=rep(lgs[i],length(this.smooth$x)),x=this.smooth$x,y=this.smooth$y))
 }
-points(dd[dd$SNP %in% stacks.sig$SNP,c("plot.pos","deltad")],col="darkorchid")
+points(sdd.out$plot.pos[sdd.out$direction=="divergent"],sdd.out$dd[sdd.out$direction=="divergent"],
+       pch=24,bg="cornflowerblue",col=comp.col["deltad"],cex=0.5) #add  outliers
+points(sdd.out$plot.pos[sdd.out$direction=="parallel"],sdd.out$dd[sdd.out$direction=="divergent"],
+       pch=25,bg="cornflowerblue",col=comp.col["deltad"],cex=0.5)
+#plot pi
 pi.plot<-fst.plot(all.pi,scaffold.widths=scaff.starts,y.lim=c(0,0.5),axis.size = 0.75,
                   scaffs.to.plot = scaffs,fst.name = "Pi",chrom.name = "Chrom",bp.name = "Pos",pch=19)
+#abline(v=stacks.sig$plot.pos,col="grey10") #stacks
 points(x=avg.pi.adj$plot.pos[avg.pi.adj$Chr %in% lgs],y=avg.pi.adj$Avg.Stat[avg.pi.adj$Chr %in% lgs],
-       col="cornflowerblue",type="l",lwd=2)
-points(pi.plot[pi.plot$SNP %in% stacks.sig$SNP,c("plot.pos","Pi")],col="darkorchid")
+       col=comp.col["pi"],type="l",lwd=2)#add lines
+#add outliers
+points(x=pi.plot$plot.pos[pi.plot$Pi>=quantile(pi.plot$Pi,0.99)], #pi
+       y=pi.plot$Pi[pi.plot$Pi>=quantile(pi.plot$Pi,0.99)],
+       pch=24,bg=comp.col["pi"],col=comp.col["pi"],cex=0.5)
+points(x=pi.plot$plot.pos[pi.plot$Pi<=quantile(pi.plot$Pi,0.01)],
+       y=pi.plot$Pi[pi.plot$Pi<=quantile(pi.plot$Pi,0.01)],
+       pch=25,bg=comp.col["pi"],col=comp.col["pi"],cex=0.5)
 mtext(expression(pi),2,line=2,cex=0.75)
+#plot heterozygosity
 het.plot<-fst.plot(all.het,scaffold.widths=scaff.starts,axis.size=0.75,
                    scaffs.to.plot=scaffs,fst.name="Het",chrom.name="Chrom",
                    bp.name="Pos",pch=19)
+#abline(v=stacks.sig$plot.pos,col="grey10")
 points(x=avg.het.adj$plot.pos[avg.het.adj$Chr %in% lgs],y=avg.het.adj$Avg.Stat[avg.het.adj$Chr %in% lgs],
-       col="cornflowerblue",type="l",lwd=2)
-points(het.plot[het.plot$SNP %in% stacks.sig$SNP,c("plot.pos","Het")],col="darkorchid")
+       col=comp.col["Het"],type="l",lwd=2)
+#add outliers
+
+points(x=het.plot$plot.pos[het.plot$Het>=quantile(het.plot$Het,0.99,na.rm = TRUE)],
+       y=het.plot$Het[het.plot$Het>=quantile(het.plot$Het,0.99,na.rm = TRUE)],
+       pch=24,bg=comp.col["Het"],col=comp.col["Het"],cex=0.5)
+points(x=het.plot$plot.pos[het.plot$Het<=quantile(het.plot$Het,0.01,na.rm = TRUE)],
+       y=het.plot$Het[het.plot$Het<=quantile(het.plot$Het,0.01,na.rm = TRUE)],
+       pch=25,bg=comp.col["Het"],col=comp.col["Het"],cex=0.5)
 mtext(expression(italic(H)),2,line=2,cex=0.75)
 last<-0
 for(i in 1:length(lgs)){
-  text(x=mean(het.plot[het.plot$Chrom ==lgs[i],"plot.pos"]),y=0,
+  text(x=median(het.plot[het.plot$Chrom ==lgs[i],"plot.pos"]),y=-0.05,
        labels=lgn[i], adj=1, xpd=TRUE,cex=0.75)
   last<-max(het.plot[het.plot$Chrom ==lgs[i],"plot.pos"])
 }
@@ -533,18 +555,73 @@ for(i in 1:length(chroms2plot)){
   #Pi
   points(avg.pi.adj[avg.pi.adj$Chr%in% chroms2plot[i],c("Avg.Pos","Avg.Stat")],
        type="l",lwd=2,col=comp.col["pi"])
+  this.pi<-pi.plot[pi.plot$Chrom%in% chroms2plot[i],]
+  pi.upp<-this.pi[this.pi$Pi>=quantile(this.pi$Pi,0.99,na.rm = TRUE),]
+  pi.low<-this.pi[this.pi$Pi<=quantile(this.pi$Pi,0.01,na.rm = TRUE),]
+  #find the plotting location
+  nearest.pos<-function(x,target){
+    near.pos<-unlist(lapply(x,function(x,target){
+      pos<-target[which.min(abs(x-target))]
+      return(pos)
+    },target=target))
+    return(near.pos)
+  }
+  nearest.val<-function(pos,stat.df,stat.name,pos.name){
+    near.val<-unlist(lapply(pos,function(pos,stat.df,stat.name,pos.name){
+      near.stat<-stat.df[stat.df[pos.name]==pos,stat.name]
+      return(near.stat)
+    },stat.df=stat.df,stat.name=stat.name,pos.name=pos.name))
+    return(near.val)
+  }
+  
+  pi.upp$linepos<-nearest.pos(pi.upp$Pos,target=avg.pi.adj[avg.pi.adj$Chr %in% chroms2plot[i],"Avg.Pos"])
+  pi.upp$linepi<-nearest.val(pos=pi.upp$linepos,stat.df=avg.pi.adj[avg.pi.adj$Chr %in% chroms2plot[i],],
+                             stat.name="Avg.Stat", pos.name="Avg.Pos")
+  pi.low$linepos<-nearest.pos(pi.low$Pos,target=avg.pi.adj[avg.pi.adj$Chr %in% chroms2plot[i],"Avg.Pos"])
+  pi.low$linepi<-nearest.val(pos=pi.low$linepos,stat.df=avg.pi.adj[avg.pi.adj$Chr %in% chroms2plot[i],],
+                             stat.name="Avg.Stat", pos.name="Avg.Pos")
+  points(x=pi.upp$linepos,y=pi.upp$linepi,
+         pch=24,bg=comp.col["pi"],col=comp.col["pi"])
+  points(x=pi.low$linepos,y=pi.low$linepi,
+         pch=25,bg=comp.col["pi"],col=comp.col["pi"])
   #Het
   points(avg.het.adj[avg.het.adj$Chr %in% chroms2plot[i],c("Avg.Pos","Avg.Stat")],
          type="l",col=comp.col["Het"],lwd=2)
+  
+  het.upp<-het.plot[het.plot$Het>=quantile(het.plot$Het[het.plot$Chrom%in% chroms2plot[i]],0.99,na.rm = TRUE)&
+                      het.plot$Chrom%in% chroms2plot[i],]
+  het.low<-het.plot[het.plot$Het<=quantile(het.plot$Het[het.plot$Chrom%in% chroms2plot[i]],0.01,na.rm = TRUE)&
+                      het.plot$Chrom%in% chroms2plot[i],]
+  het.upp$linepos<-nearest.pos(het.upp$Pos,target=avg.het.adj[avg.het.adj$Chr %in% chroms2plot[i],"Avg.Pos"])
+  het.upp$linehet<-nearest.val(pos=het.upp$linepos,stat.df=avg.het.adj[avg.het.adj$Chr %in% chroms2plot[i],],
+                             stat.name="Avg.Stat", pos.name="Avg.Pos")
+  het.low$linepos<-nearest.pos(het.low$Pos,target=avg.het.adj[avg.het.adj$Chr %in% chroms2plot[i],"Avg.Pos"])
+  het.low$linehet<-nearest.val(pos=het.low$linepos,stat.df=avg.het.adj[avg.het.adj$Chr %in% chroms2plot[i],],
+                             stat.name="Avg.Stat", pos.name="Avg.Pos")
+  points(x=het.upp$linepos,y=het.upp$linehet,
+         pch=24,bg=comp.col["Het"],col=comp.col["Het"])
+  points(het.low$linepos,y=het.low$linehet,
+         pch=25,bg=comp.col["Het"],col=comp.col["Het"])
   #deltad
   this.chrom<-dd[dd$Chrom %in% chroms2plot[i],]
   this.smooth<-loess.smooth(this.chrom$Pos,this.chrom$deltad,span=0.1,degree=2) 
   points(this.smooth$x,this.smooth$y,type="l",col=comp.col["deltad"],lwd=2)
+  points(sdd.out$Pos[sdd.out$direction=="divergent" & sdd.out$Chrom%in% chroms2plot[i]],
+         sdd.out$dd[sdd.out$direction=="divergent" & sdd.out$Chrom%in% chroms2plot[i]],
+         pch=24,bg=comp.col["deltad"],col=comp.col["deltad"],cex=0.5)
+  points(sdd.out$Pos[sdd.out$direction=="parallel" & sdd.out$Chrom%in% chroms2plot[i]],
+         sdd.out$dd[sdd.out$direction=="parallel" & sdd.out$Chrom%in% chroms2plot[i]],
+         pch=25,bg=comp.col["deltad"],col=comp.col["deltad"],cex=0.5)
   #Josts D
   dsmooth<-loess.smooth(jostd$POS[jostd$Chr %in% chroms2plot[i]],
                         jostd$D[jostd$Chr %in% chroms2plot[i]],span=0.1,degree=2) 
   points(dsmooth$x,dsmooth$y,type="l",col=comp.col["D"],lwd=2)
-  
+  points(x=jostd$POS[jostd$D>=quantile(jostd$D,0.99,na.rm = TRUE) & jostd$Chr%in% chroms2plot[i]],
+         y=jostd$D[jostd$D>=quantile(jostd$D,0.99,na.rm = TRUE) & jostd$Chr%in% chroms2plot[i]],
+         pch=24,bg=comp.col["D"],col=comp.col["D"],cex=0.5)
+  points(x=jostd$POS[jostd$D<=quantile(jostd$D,0.01,na.rm = TRUE) & jostd$Chr%in% chroms2plot[i]],
+         y=jostd$D[jostd$D<=quantile(jostd$D,0.01,na.rm = TRUE) & jostd$Chr%in% chroms2plot[i]],
+         pch=25,bg=comp.col["D"],col=comp.col["D"],cex=0.5)
   #the shared peaks
   points(y=c(-0.2,0.5),
          x=c(shared.upp$Avg.Pos[shared.upp$Chr %in% chroms2plot[i]],

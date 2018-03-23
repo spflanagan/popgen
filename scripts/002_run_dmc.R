@@ -426,20 +426,22 @@ dmc.out<-lapply(rs,function(r){
     return(p)
   })
 })
+print("Done running dmc")
 ## ---- end-dmcNe
 } else
 {
 ## ---- dmcForReal
-  #selSite = positions[seq(1, length(positions[positions<10000000]), length.out = 100)]
-  p<-run.dmc(F_estimate = F_estimate,out_name = "p4LG4_8300000_6_6",positions = positions,sampleSizes = sampleSizes,
-          selSite=selSite,rec =6*10^-6,#2*10^-7,Ne = 10000,
-          Ne = 8.3*10^6,selPops = selPops,numBins = numBins,numPops = numPops,
+  selSite = positions[seq(1, length(positions[positions<12000000]), length.out = 100)]
+  p<-run.dmc(F_estimate = F_estimate,out_name = "p4LG4_100000_2_8",positions = positions,sampleSizes = sampleSizes,
+          selSite=selSite,rec =2*10^-8,Ne = 100000,
+          selPops = selPops,numBins = numBins,numPops = numPops,
           sels = sels, times = times,
           migs = migs,mod4_sets=mod4_sets)
-  p<-run.dmc(F_estimate = F_estimate,out_name = "p4LG4_830000_6_6",positions = positions,sampleSizes = sampleSizes,
-             selSite=selSite,rec =6*10^-6,#2*10^-7,Ne = 10000,
-             Ne = 8.3*10^5,selPops = selPops,numBins = numBins,numPops = numPops,
+  p<-run.dmc(F_estimate = F_estimate,out_name = "p4LG4_1000000_2_8",positions = positions,sampleSizes = sampleSizes,
+             selSite=selSite,rec =2*10^-8,Ne = 1000000,
+             selPops = selPops,numBins = numBins,numPops = numPops,
              sels = sels, times = times,
              migs = migs,mod4_sets=mod4_sets)
+  print("Done running dmc")
 ## ---- end-dmcForReal
 }

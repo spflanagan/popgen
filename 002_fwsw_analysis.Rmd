@@ -513,6 +513,54 @@ jostd.name<-"p4.jostd.perlocus.txt"
 
 ```{r smooth_name}
 smoothed.name<-"p4_deltad_pi_het.png"
+#assign the plotting positions relative to all loci
+stacks.sig<-assign.plotpos(stacks.sig,plot.scaffs = plot.scaffs,bounds=bounds,df.chrom="Chr",df.bp="BP")
+dd<-assign.plotpos(deltad,plot.scaffs = plot.scaffs,bounds=bounds,df.chrom="Chrom",df.bp="Pos") 
+pi<-assign.plotpos(all.pi,plot.scaffs = plot.scaffs,bounds=bounds,df.chrom="Chrom",df.bp="Pos") 
+ht<-assign.plotpos(all.het,plot.scaffs = plot.scaffs,bounds=bounds,df.chrom="Chrom",df.bp="Pos") 
+jd<-assign.plotpos(jostd,plot.scaffs = plot.scaffs,bounds=bounds,df.chrom="Chr",df.bp="POS") 
+
+smooth.per.chrom<-function(df,lgs,df.chrom,df.bp,...){#span=0.1,degree=2
+  smooth.low<-data.frame() #lower outliers
+  smooth.up<-data.frame() #upper outliers
+  for(i in 1:length(lgs)){
+    this.chrom<-df[df[df.chrom] %in% lgs[i],]
+    this.smooth<-loess.smooth(this.chrom[df.bp],this.chrom[df.chrom],...) 
+    this.plot.pos<-unlist(lapply(this.smooth$x,function(x) { this.chrom[which.min(abs(this.chrom$plot.pos-x)),"plot.pos"] }))
+    this.div<-data.frame(cbind(dd=this.chrom$deltad[this.chrom$deltad>=quantile(this.chrom$deltad,0.99)],#choosing the upper outliers
+                    plot.pos=this.chrom$plot.pos[this.chrom$deltad>=quantile(this.chrom$deltad,0.99)]),
+                    stringsAsFactors = FALSE)
+    this.par<-data.frame(cbind(dd=this.chrom$deltad[this.chrom$deltad<=quantile(this.chrom$deltad,0.01)],#choosing the lower outliers
+                    plot.pos=this.chrom$plot.pos[this.chrom$deltad<=quantile(this.chrom$deltad,0.01)]),
+                    stringsAsFactors = FALSE)
+    smooth.par<-rbind(smooth.par,this.par)
+    smooth.div<-rbind(smooth.div,this.div)
+    points(this.div$plot.pos,this.div$dd,pch=24,bg="cornflowerblue",col="cornflowerblue",cex=0.5)
+    points(this.par$plot.pos,this.par$dd,pch=25,bg="cornflowerblue",col="cornflowerblue",cex=0.5)
+  }
+  dev.off()
+  smooth.div<-merge(smooth.div,dd,by="plot.pos") #77
+  smooth.div$direction<-"divergent"
+  smooth.par<-merge(smooth.par,dd,by="plot.pos") #77
+  smooth.par$direction<-"parallel"
+  #add nucleotide diversity values
+  smooth.par$FWpi<-apply(cbind(vcf[vcf$SNP %in% smooth.par$SNP,locus.info],
+                               vcf[vcf$SNP %in% smooth.par$SNP,unlist(lapply(fw.list,grep,colnames(vcf)))]),1,calc.pi)
+  smooth.par$SWpi<-apply(cbind(vcf[vcf$SNP %in% smooth.par$SNP,locus.info],
+                               vcf[vcf$SNP %in% smooth.par$SNP,unlist(lapply(sw.list,grep,colnames(vcf)))]),1,calc.pi)
+  smooth.div$FWpi<-apply(cbind(vcf[vcf$SNP %in% smooth.div$SNP,locus.info],
+                               vcf[vcf$SNP %in% smooth.div$SNP,unlist(lapply(fw.list,grep,colnames(vcf)))]),1,calc.pi)
+  smooth.div$SWpi<-apply(cbind(vcf[vcf$SNP %in% smooth.div$SNP,locus.info],
+                               vcf[vcf$SNP %in% smooth.div$SNP,unlist(lapply(sw.list,grep,colnames(vcf)))]),1,calc.pi)
+  #points(smooth.out$plot.pos,smooth.out$smooth.deltad,col="orchid4")
+  dim(smooth.par[smooth.par$SNP %in% stacks.sig$SNP,])
+  sdd.out<-rbind(smooth.par,smooth.div)
+  write.table(sdd.out,sdd.name,col.names=T,row.names=F,quote=F,sep='\t')
+
+}
+
+
+
 ```
 ```{r smoothStats}
 ```
@@ -520,7 +568,7 @@ smoothed.name<-"p4_deltad_pi_het.png"
 
 ## Use putative genes
 
-Here, I compare the Fst outliers and delta-divergence outliers to putative genes identified from other studies of teleosts adapting to freshwater environments.
+Here, I compare the Fst outliers and $\delta$-divergence outliers to putative genes identified from other studies of teleosts adapting to freshwater environments.
 
 ```{r gene_files}
 #putative genes
