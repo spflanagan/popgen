@@ -518,14 +518,16 @@ nearest.pos<-function(stat.df,s.pos,s.stat,target,t.pos,t.stat){
   },target=target))
   return(near.pos)
 }
-upp.low.pts<-function(smooth,chrom,color,stat,pos.name,...){
-  upp<-smooth[[1]][smooth[[1]][,"Chrom"]%in% chrom & smooth[[1]]$direction=="upper",]
-  low<-smooth[[1]][smooth[[1]][,"Chrom"]%in% chrom & smooth[[1]]$direction=="lower",]
+upp.low.pts<-function(smooth,target,chrom,color,stat,pos.name,...){
+  #smooth== smooth[[1]]
+  #target== smooth[[2]]
+  upp<-smooth[smooth[,"Chrom"]%in% chrom & smooth$direction=="upper",]
+  low<-smooth[smooth[,"Chrom"]%in% chrom & smooth$direction=="lower",]
   upp.pts<-nearest.pos(stat.df=upp,s.pos=pos.name,s.stat=stat,
-                          target=smooth[[2]][smooth[[2]][,"chr"]%in% chrom,],
+                          target=target[target[,"chr"]%in% chrom,],
                           t.pos="pos",t.stat="smoothed.stats")
   low.pts<-nearest.pos(stat.df=low,s.pos=pos.name,s.stat=stat,
-                          target=smooth[[2]][smooth[[2]][,"chr"]%in% chrom,],
+                          target=target[target[,"chr"]%in% chrom,],
                           t.pos="pos",t.stat="smoothed.stats")
   points(x=upp.pts[,1],y=upp.pts[,2],pch=24,bg=color,col=color,...)
   points(x=low.pts[,1],y=low.pts[,2],pch=25,bg=color,col=color,...)
@@ -566,23 +568,27 @@ for(i in 1:length(chroms2plot)){
            col=alpha(col=comp.col["Fst"],0.25),bg=alpha(col=comp.col["Fst"],0.25))
   }
   #Pi
-  points(pi.smooth[[2]][pi.smooth[[2]][,"chr"]%in% chroms2plot[i],c("pos","smoothed.stats")],
+  points(pi.bp.smooth[[2]][pi.bp.smooth[[2]][,"chr"]%in% chroms2plot[i],c("pos","smoothed.stats")],
        type="l",lwd=2,col=comp.col["pi"])
-  upp.low.pts(smooth=pi.smooth,chrom=chroms2plot[i],color=comp.col["pi"],stat="Pi",pos.name="Pos")
+  upp.low.pts(smooth=pi.bp.smooth[[1]],target=pi.bp.smooth[[2]],chrom=chroms2plot[i],
+              color=comp.col["pi"],stat="Pi",pos.name="Pos")
   #Het
-  points(ht.smooth[[2]][ht.smooth[[2]][,"chr"]%in% chroms2plot[i],c("pos","smoothed.stats")],
+  points(ht.bp.smooth[[2]][ht.bp.smooth[[2]][,"chr"]%in% chroms2plot[i],c("pos","smoothed.stats")],
          type="l",col=comp.col["Het"],lwd=2)
-  upp.low.pts(smooth=ht.smooth,chrom=chroms2plot[i],color=comp.col["Het"],stat="Het",pos.name="Pos")
+  upp.low.pts(smooth=ht.bp.smooth[[1]],target=ht.bp.smooth[[2]],chrom=chroms2plot[i],
+              color=comp.col["Het"],stat="Het",pos.name="Pos")
   
   #deltad
-  points(dd.smooth[[2]][dd.smooth[[2]][,"chr"]%in% chroms2plot[i],c("pos","smoothed.stats")],
+  points(dd.bp.smooth[[2]][dd.bp.smooth[[2]][,"chr"]%in% chroms2plot[i],c("pos","smoothed.stats")],
          type="l",col=comp.col["deltad"],lwd=2)
-  upp.low.pts(smooth=dd.smooth,chrom=chroms2plot[i],color=comp.col["deltad"],stat="deltad",pos.name="Pos")
+  upp.low.pts(smooth=dd.bp.smooth[[1]],dd.bp.smooth[[2]],chrom=chroms2plot[i],
+              color=comp.col["deltad"],stat="deltad",pos.name="Pos")
 
   #Josts D
-  points(jd.smooth[[2]][jd.smooth[[2]][,"chr"]%in% chroms2plot[i],c("pos","smoothed.stats")],
+  points(jd.bp.smooth[[2]][jd.bp.smooth[[2]][,"chr"]%in% chroms2plot[i],c("pos","smoothed.stats")],
          type="l",col=comp.col["D"],lwd=2)
-  upp.low.pts(smooth=jd.smooth,chrom=chroms2plot[i],color=comp.col["D"],stat="D",pos.name="Pos")
+  upp.low.pts(smooth=jd.bp.smooth[[1]],jd.bp.smooth[[2]],chrom=chroms2plot[i],
+              color=comp.col["D"],stat="D",pos.name="Pos")
   
   #shared Fst outliers
   points(this.df$BP[this.df$BP %in% fw.sig.reg$BP],

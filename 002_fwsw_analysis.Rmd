@@ -536,7 +536,7 @@ smooth.per.chrom<-function(df,lgs,df.chrom,df.bp,df.stat,out.name,...){#span=0.1
   smooth.upp<-data.frame(stringsAsFactors = FALSE) #upper outliers
   for(i in 1:length(lgs)){
     this.chrom<-df[df[,df.chrom] %in% lgs[i],]
-    this.smooth<-loess.smooth(this.chrom[,df.bp],this.chrom[,df.stat]) 
+    this.smooth<-loess.smooth(this.chrom[,df.bp],this.chrom[,df.stat],...) 
     this.smooth<-data.frame(chr=cbind(rep(as.character(lgs[i]),length(this.smooth$x)),
                                   pos=as.numeric(this.smooth$x),
                                   smoothed.stats=as.numeric(this.smooth$y)),stringsAsFactors = FALSE)
@@ -562,10 +562,15 @@ smooth.per.chrom<-function(df,lgs,df.chrom,df.bp,df.stat,out.name,...){#span=0.1
 }
 
 #smooth the statistics
-dd.smooth<-smooth.per.chrom(dd,lgs,df.chrom="Chrom",df.bp="plot.pos",df.stat="deltad",out.name="dd",span=0.1,degree=2) 
-pi.smooth<-smooth.per.chrom(pi,lgs,df.chrom="Chrom",df.bp="plot.pos",df.stat="Pi",out.name="pi",span=0.1,degree=2) 
-ht.smooth<-smooth.per.chrom(ht,lgs,df.chrom="Chrom",df.bp="plot.pos",df.stat="Het",out.name="ht",span=0.1,degree=2) 
-jd.smooth<-smooth.per.chrom(jd,lgs,df.chrom="Chrom",df.bp="plot.pos",df.stat="D",out.name="jd",span=0.1,degree=2) 
+dd.bp.smooth<-smooth.per.chrom(dd,lgs,df.chrom="Chrom",df.bp="Pos",df.stat="deltad",out.name="dd.bp",span=.1,degree=2) 
+pi.bp.smooth<-smooth.per.chrom(pi,lgs,df.chrom="Chrom",df.bp="Pos",df.stat="Pi",out.name="pi.bp",span=0.1,degree=2) 
+ht.bp.smooth<-smooth.per.chrom(ht,lgs,df.chrom="Chrom",df.bp="Pos",df.stat="Het",out.name="ht.bp",span=0.1,degree=2)
+jd.bp.smooth<-smooth.per.chrom(jd,lgs,df.chrom="Chrom",df.bp="Pos",df.stat="D",out.name="jd.bp",span=0.1,degree=2)
+#smooth the statistics
+dd.pp.smooth<-smooth.per.chrom(dd,lgs,df.chrom="Chrom",df.bp="plot.pos",df.stat="deltad",out.name="dd",span=0.1,degree=2) 
+pi.pp.smooth<-smooth.per.chrom(pi,lgs,df.chrom="Chrom",df.bp="plot.pos",df.stat="Pi",out.name="pi",span=0.1,degree=2) 
+ht.pp.smooth<-smooth.per.chrom(ht,lgs,df.chrom="Chrom",df.bp="plot.pos",df.stat="Het",out.name="ht",span=0.1,degree=2) 
+jd.pp.smooth<-smooth.per.chrom(jd,lgs,df.chrom="Chrom",df.bp="plot.pos",df.stat="D",out.name="jd",span=0.1,degree=2) 
 
 ```
 ```{r plot_smoothStats}
@@ -590,23 +595,23 @@ xlab.lgs<-function(df,lgs,lgn,chr,bp,...){
 }
 png(smoothed.name,height=7,width=5,units="in",res=300)
 par(mfrow=c(4,1),mar=c(1,1,1,1),oma=c(1,2,1,1),cex=0.75)
-t<-plot.smooth.stats(df=dd,smooth=dd.smooth,color=comp.col["deltad"],fst.name="deltad",bp.name="Pos",
+t<-plot.smooth.stats(df=dd,smooth=dd.pp.smooth,color=comp.col["deltad"],fst.name="deltad",bp.name="Pos",
                   ylabel=expression(paste(delta,"-divergence")),y.lim=c(-0.5,1),
                   axis=0.75,scaffold.widths=scaff.starts,pch=19,scaffs.to.plot = scaffs)
 xlab.lgs(dd,lgs,lgn,"Chrom","plot.pos",adj=1, xpd=TRUE,y=-0.05,cex=0.75)
 #plot pi
-p<-plot.smooth.stats(df=pi,smooth=pi.smooth,color=comp.col["pi"],fst.name="Pi",chrom.name = "Chrom",bp.name="Pos",
+p<-plot.smooth.stats(df=pi,smooth=pi..pp.smooth,color=comp.col["pi"],fst.name="Pi",chrom.name = "Chrom",bp.name="Pos",
                   ylabel=expression(pi),y.lim=c(0,0.5),
                   axis=0.75,scaffold.widths=scaff.starts,pch=19,scaffs.to.plot = scaffs)
 xlab.lgs(pi,lgs,lgn,"Chrom","plot.pos",adj=1, xpd=TRUE,y=-0.05,cex=0.75)
 #abline(v=stacks.sig$plot.pos,col="grey10") #stacks
 #plot heterozygosity
-h<-plot.smooth.stats(df=ht,smooth=ht.smooth,color=comp.col["Het"],fst.name="Het",chrom.name = "Chrom",bp.name="Pos",
+h<-plot.smooth.stats(df=ht,smooth=ht.pp.smooth,color=comp.col["Het"],fst.name="Het",chrom.name = "Chrom",bp.name="Pos",
                   ylabel=expression(italic(H)),
                   axis=0.75,scaffold.widths=scaff.starts,pch=19,scaffs.to.plot = scaffs)
 xlab.lgs(ht,lgs,lgn,"Chrom","plot.pos",adj=1, xpd=TRUE,y=-0.05,cex=0.75)
 #plot Jost's D
-d<-plot.smooth.stats(df=jd,smooth=jd.smooth,color=comp.col["D"],fst.name="D",chrom.name = "Chr",bp.name="POS",
+d<-plot.smooth.stats(df=jd,smooth=jd.pp.smooth,color=comp.col["D"],fst.name="D",chrom.name = "Chr",bp.name="POS",
                   ylabel=expression("Jost's"~italic(D)),
                   axis=0.75,scaffold.widths=scaff.starts,pch=19,scaffs.to.plot = scaffs)
 xlab.lgs(jd,lgs,lgn,"Chr","plot.pos",adj=1, xpd=TRUE,y=-0.05,cex=0.75)
@@ -934,7 +939,7 @@ Now for $\delta$ -divergence
 
 ```{r dd_compare}
 #in the gene
-sdd.in<-outlier.in.region(dd.smooth[[2]],put.reg,oBP = "Pos")
+sdd.in<-outlier.in.region(dd.bp.smooth[[1]],put.reg,oBP = "Pos")
 put.reg$sdd.in<-sdd.in
 ```
 
@@ -942,10 +947,11 @@ The genes `r unique(put.reg[put.reg$sdd.in!="NA","Gene"])` contain $\delta$-dive
 
 ```{r dd_nearby}
 #in the gene
-sdd.nb<-outlier.nearby(dd.smooth[[2]],put.reg,chrom.ld,oBP = "Pos")
+sdd.nb<-outlier.nearby(dd.bp.smooth[[1]],put.reg,chrom.ld,oBP = "Pos")
+put.reg$sdd.nb<-sdd.nb
 ```
 
-And of the `r nrow(sdd.out)` $\delta$-divergence outliers, `r length(sdd.nb[sdd.nb!="NA"])/nrow(put.reg)*100`% are in the LD region around putative freshwater genes.
+And of the `r nrow(dd.bp.smooth[[1]])` $\delta$-divergence outliers, `r length(sdd.nb[sdd.nb!="NA"])/nrow(put.reg)*100`% are in the LD region around putative freshwater genes.
 
 
 ### Compare Bayenv outliers to putative regions
@@ -1020,8 +1026,8 @@ All three BayEnv tests identified outliers in the genes `r unique(put.reg[put.re
 Jost's D measures the fraction of allelic differentiation between populations. According to Molecular Ecologist, ["if allelic differentiation at a particular locus is the value of interest, it appears that D is the best measure"](http://www.molecularecologist.com/2011/03/should-i-use-fst-gst-or-d-2/), so it might be useful to look at Jost's D in the putatively freshwater genes. 
 
 ```{r josts_d}
-jost.in<-outlier.in.region(jd.smooth[[2]],put.reg,oChrom="chr",oBP="pos")
-jost.nb<-outlier.nearby(jd.smooth[[2]],put.reg,chrom.ld,oChrom = "chr",oBP="pos")
+jost.in<-outlier.in.region(jd.bp.smooth[[1]],put.reg,oChrom="Chrom",oBP="Pos")
+jost.nb<-outlier.nearby(jd.bp.smooth[[1]],put.reg,chrom.ld,oChrom = "Chrom",oBP="pos")
 put.reg$jostd.nb<-jost.nb
 put.reg$jostd.in<-jost.in
 ```
@@ -1040,6 +1046,8 @@ So `r length(jost.in[jost.in!="NA"])` loci are located within putative freshwate
 *Overlap: `r unique(put.reg[put.reg$rad.loci != "NA","Gene"])[unique(put.reg[put.reg$rad.loci != "NA","Gene"]) %in% unique(put.reg[put.reg$sdd.in != "NA","Gene"]) &unique(put.reg[put.reg$rad.loci != "NA","Gene"]) %in% unique(put.reg[put.reg$bfs.in != "NA","Gene"])]`
 
 *Divergence analyses: `r unique(put.reg[put.reg$rad.loci != "NA","Gene"])[unique(put.reg[put.reg$rad.loci != "NA","Gene"]) %in% unique(put.reg[put.reg$sdd.in != "NA","Gene"]) &unique(put.reg[put.reg$rad.loci != "NA","Gene"]) %in% unique(put.reg[put.reg$jostd.in != "NA","Gene"])]` 
+
+*Near divergence analyses: `r unique(put.reg[put.reg$nearby.rad != "NA","Gene"])[unique(put.reg[put.reg$nearby.rad != "NA","Gene"]) %in% unique(put.reg[put.reg$sdd.nb != "NA","Gene"]) &unique(put.reg[put.reg$nearby.rad != "NA","Gene"]) %in% unique(put.reg[put.reg$jostd.in!= "NA","Gene"])]` 
 
 *But looking at `put.reg[put.reg$Gene =="RHOGTP8","rad.loci"]`, it's obvious that Rho GTPase-activating proteins are distributed throughout the genome (on chromosomes `r unique(put.reg[put.reg$Gene=="RHOGTP8","Chrom"])`).*
 
@@ -1093,14 +1101,7 @@ fst.means<-fst.means[!is.na(fst.means$Corrected.AMOVA.Fst),]
 fwsw<-fst.means
 ```
 
-```{r get_bp_smooth}
-#smooth the statistics
-dd.smooth<-smooth.per.chrom(dd,lgs,df.chrom="Chrom",df.bp="Pos",df.stat="deltad",out.name="dd.bp",span=0.1,degree=2) 
-pi.smooth<-smooth.per.chrom(pi,lgs,df.chrom="Chrom",df.bp="Pos",df.stat="Pi",out.name="pi.bp",span=0.1,degree=2) 
-ht.smooth<-smooth.per.chrom(ht,lgs,df.chrom="Chrom",df.bp="Pos",df.stat="Het",out.name="ht.bp",span=0.1,degree=2) 
-jd.smooth<-smooth.per.chrom(jd,lgs,df.chrom="Chrom",df.bp="Pos",df.stat="D",out.name="jd.bp",span=0.1,degree=2) 
 
-```
 
 ```{r hPi_setup}
 fst.points<-FALSE
@@ -1112,8 +1113,7 @@ chrom.ld<-tapply(ld[ld$D.>0.5,"pos.diff"],ld[ld$D. >0.5,"Chrom"],mean)
 #select genes of interest
 #fav.genes<-c("AQP3","TNS1","CAMKK1","mucin","CAII","NAKATPase","ARHGEF3")
 #fav.genes<-c("TNS1","CAII","TRIM14","VATPase")
-fav.genes<-c("ARHGEF3", "ATP6V0A1", "ATP6V1A", "FLT4", "OSBPL8", "RHOGTP8", "SLC2A13", "SPG1", "STAT3", "TIMP3", "VATPase",
-             "IGF-I","TAAR","DCT")
+fav.genes<-c("ARHGEF3", "mucin", "NHE", "TAAR")
 genes2plot<-put.reg[put.reg$Gene %in% fav.genes,]
 #shared Fst outliers
 fw.sig.reg<-read.csv("p4.StacksFWSWOutliers_annotatedByGenome.csv")
@@ -1302,6 +1302,18 @@ vcf2sfaf<-function(vcf,lgs){
 af<-vcf2sfaf(vcf,lgs)
 ```
 
+
+Make separate files
+```{r write_vcfs_perLG}
+header<-"##fileformat=VCFv4.2"
+for(i in 1:length(lgs)){
+  write.table(header,paste(lgs[i],".vcf",sep=""),quote=FALSE,
+              col.names=FALSE,row.names=FALSE )
+  write.table(vcf[vcf$`#CHROM`==lgs[i],-708],paste(lgs[i],".vcf",sep=""),
+              col.names=TRUE,row.names=FALSE,quote=FALSE,sep='\t',append = TRUE)
+}
+```
+
 ## Figure 7
 
 
@@ -1351,18 +1363,28 @@ gene.region.plot<-function(chrom,gene,put.reg,vcf,chrom.ld, fst.dfs,deltad=FALSE
     this.dd<-deltad[deltad$Chrom %in% chrom,]
     if(smooth.loess==TRUE){
       dd.smooth<-loess.smooth(this.dd$Pos,this.dd$deltad,span=0.1,degree=2)
+      names(dd.smooth)<-c("pos","smoothed.stats")
     }else{
       dd.smooth<-this.dd
     }
+  }else if(is.list(deltad)){
+    dd.smooth<-deltad[[2]][deltad[[2]][,"chr"]%in%chrom,]
+  }else{
+    dd.smooth<-NULL
   }
   
   if(is.data.frame(D)){
     this.d<-D[D$Chr %in% chrom,]
     if(smooth.loess==TRUE) {
       dsmooth<-loess.smooth(this.d$POS,this.d$D,span=0.1,degree=2)
+      names(dd.smooth)<-c("pos","smoothed.stats")
     }else{
       dsmooth<-this.d
     } 
+  }else if(is.list(D)){
+    dsmooth<-D[[2]][D[[2]][,"chr"]%in%chrom,]
+  }else{
+    D<-NULL
   }
   
   pr.gene<-put.reg[put.reg$Chrom==chrom & put.reg$Gene==gene,]
@@ -1408,13 +1430,19 @@ gene.region.plot<-function(chrom,gene,put.reg,vcf,chrom.ld, fst.dfs,deltad=FALSE
   }
   
   #add delta divergence
-  if(is.data.frame(deltad)){
-    points(dd.smooth$x,dd.smooth$y,col="#dfc27d",type="l",lwd=2)
+  if(is.data.frame(dd.smooth)){
+    points(dd.smooth$pos,dd.smooth$smoothed.stats,col="#dfc27d",type="l",lwd=2)
+  }
+  if(is.list(deltad)){
+    upp.low.pts(smooth=deltad[[1]],target=deltad[[2]],chrom=chrom,color=comp.col["deltad"],stat="deltad",pos.name="Pos")
   }
   
   #add Jost's D
-  if(is.data.frame(D)){
-    points(dsmooth$x,dsmooth$y,type="l",col="#a6611a",lwd=2)
+  if(is.data.frame(dsmooth)){
+    points(dsmooth$pos,dsmooth$smoothed.stats,type="l",col="#a6611a",lwd=2)
+  }
+  if(is.list(D)){
+    upp.low.pts(smooth=D[[1]],target=D[[2]],chrom=chrom,color=comp.col["D"],stat="D",pos.name="Pos")
   }
   
   
@@ -1439,13 +1467,13 @@ gene.region.plot<-function(chrom,gene,put.reg,vcf,chrom.ld, fst.dfs,deltad=FALSE
   for(i in 1:length(colors)){
     cols<-c(cols,alpha(colors[i],alphas[i]))
   }
-  if(is.data.frame(deltad)){
+  if(!is.null(deltad)){
     cols<-c(cols,"#dfc27d")
     pchs<-c(pchs,32)
     ltys<-c(ltys,1)
     lwds<-c(lwds,2)
   }
-  if(is.data.frame(D)){
+  if(!is.null(D)){
     cols<-c(cols,"#a6611a")
     pchs<-c(pchs,32)
     lgnd<-c(lgnd,"Jost's D")
@@ -1504,123 +1532,51 @@ leg.ltys<-c(1,1,2,1,1,0,0,0)
 leg.cols<-c(colors,"cornflowerblue","black","black","indianred")
 
 png("ARGHEF3.png",height=5,width=10,units="in",res=300)       
-par(mfrow=c(2,3),oma=c(2,2,2,2),mar=c(2,2,2,2))
-arhgef3<-lapply(unique(put.reg[put.reg$Gene=="ARHGEF3" & !is.na(put.reg$rad.loci),"Chrom"]),
+par(mfrow=c(5,3),oma=c(2,2,2,2),mar=c(2,2,2,2))
+arhgef3<-lapply(unique(put.reg[put.reg$Gene=="ARHGEF3" & put.reg$Chrom%in%lgs,"Chrom"]),# & !is.na(put.reg$rad.loci)
        gene.region.plot,gene="ARHGEF3",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
-       fst.dfs=fst.dfs,deltad=deltad,D=jostd,colors=colors,alphas=alphas,ltys=ltys,
-       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst",bases="MB",legend=FALSE)
+       fst.dfs=fst.dfs,deltad=dd.bp.smooth,D=jd.bp.smooth,colors=colors,alphas=alphas,ltys=ltys,
+       smooth=FALSE,smooth.loess=FALSE,fst.name="Smoothed.AMOVA.Fst",bases="MB",legend=FALSE)
 outside.legend("top",legend=c(leg.text,expression(italic(ARHGEF3))),pch=leg.pchs,lty=leg.ltys,lwd=2,
                bty='n',ncol=5,cex=1.25,x.intersp=0,col=leg.cols)
 dev.off()
 
-png("ATP6V0A1.png",height=5,width=10,units="in",res=300)       
-par(mfrow=c(1,2),oma=c(2,2,2,2),mar=c(2,2,2,2))
-atp6v0a1<-lapply(unique(put.reg[put.reg$Gene=="ATP6V0A1" & !is.na(put.reg$rad.loci),"Chrom"]),
-       gene.region.plot,gene="ATP6V0A1",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
-       fst.dfs=fst.dfs,deltad=deltad,D=jostd,colors=colors,alphas=alphas,ltys=ltys,
-       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst",txt.cex=1.3,bases="MB",legend=FALSE)
-outside.legend("top",legend=c(leg.text,expression(italic(ATP6VOA1))),pch=leg.pchs,lty=leg.ltys,lwd=2,
-               bty='n',ncol=5,cex=1.25,x.intersp=0,col=leg.cols)
-dev.off()
-
-png("ATP6V1A.png",height=5,width=10,units="in",res=300)       
-par(mfrow=c(1,2),oma=c(2,2,2,2),mar=c(2,2,2,2))
-atp6v1a<-lapply(unique(put.reg[put.reg$Gene=="ATP6V1A" & !is.na(put.reg$rad.loci),"Chrom"]),
-       gene.region.plot,gene="ATP6V1A",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
-       fst.dfs=fst.dfs,deltad=deltad,D=jostd,colors=colors,alphas=alphas,ltys=ltys,
-       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst",txt.cex=1.3,bases="MB",legend=FALSE)
-outside.legend("top",legend=c(leg.text,expression(italic(ATP6V1A))),pch=leg.pchs,lty=leg.ltys,lwd=2,
-               bty='n',ncol=5,cex=1.25,x.intersp=0,col=leg.cols)
-dev.off()
-
-png("FLT4.png",height=4,width=6,units="in",res=300)       
-par(mfrow=c(1,1),oma=c(2,2,2,2),mar=c(2,2,2,2))
-flt4<-lapply(unique(put.reg[put.reg$Gene=="FLT4" & !is.na(put.reg$rad.loci),"Chrom"]),
-       gene.region.plot,gene="FLT4",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
-       fst.dfs=fst.dfs,deltad=deltad,colors=colors,alphas=alphas,ltys=ltys,
-       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst",bases="MB")
-dev.off()
-
-png("OSBPL8.png",height=4,width=6,units="in",res=300)  
-par(mfrow=c(1,1),oma=c(2,2,2,2),mar=c(2,2,2,2))
-osbpl8<-lapply(unique(put.reg[put.reg$Gene=="OSBPL8" & !is.na(put.reg$rad.loci),"Chrom"]),
-       gene.region.plot,gene="OSBPL8",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
-       fst.dfs=fst.dfs,deltad=deltad,colors=colors,alphas=alphas,ltys=ltys,
-       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst",bases="MB")
-dev.off()
-
-png("RHOGTP8.png",height=5,width=10,units="in",res=300)  
-par(mfrow=c(2,5),oma=c(2,2,2,2),mar=c(2,2,2,2))
-rhogtp8<-lapply(unique(put.reg[put.reg$Gene=="RHOGTP8" & !is.na(put.reg$rad.loci),"Chrom"]),
-       gene.region.plot,gene="RHOGTP8",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
-       fst.dfs=fst.dfs,deltad=deltad,D=jostd,colors=colors,alphas=alphas,ltys=ltys,
+png("mucin.png",height=4,width=6,units="in",res=300)       
+par(mfrow=c(5,3),oma=c(2,2,2,2),mar=c(2,2,2,2))
+mucin<-lapply(unique(put.reg[put.reg$Gene=="mucin"& put.reg$Chrom%in%lgs,"Chrom"]),# & !is.na(put.reg$rad.loci)
+       gene.region.plot,gene="mucin",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
+       fst.dfs=fst.dfs,deltad=dd.bp.smooth,D=jd.bp.smooth,colors=colors,alphas=alphas,ltys=ltys,
        smooth=FALSE,fst.name="Smoothed.AMOVA.Fst",bases="MB",legend=FALSE)
-outside.legend("top",legend=c(leg.text,expression(italic(RHOGTP))),pch=leg.pchs,lty=leg.ltys,lwd=2,
+outside.legend("top",legend=c(leg.text,expression(italic(mucin))),pch=leg.pchs,lty=leg.ltys,lwd=2,
                bty='n',ncol=5,cex=1.25,x.intersp=0,col=leg.cols)
 dev.off()
 
-png("SLC2A13.png",height=4,width=6,units="in",res=300)  
-par(mfrow=c(2,2),oma=c(2,2,1,2),mar=c(2,2,1,2))
-slc2a13<-lapply(unique(put.reg[put.reg$Gene=="SLC2A13" & !is.na(put.reg$rad.loci) & put.reg$Chrom %in% lgs,"Chrom"]),
-       gene.region.plot,gene="SLC2A13",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
-       fst.dfs=fst.dfs,deltad=deltad,D=jostd,colors=colors,alphas=alphas,ltys=ltys,
-       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst",bases="MB",legend=FALSE) 
-outside.legend(x=0.25,y=0.05,legend=c(leg.text,expression(italic(SLC2A13))),pch=leg.pchs,lty=leg.ltys,lwd=2,
-               bty='n',ncol=1,cex=1,x.intersp=0,col=leg.cols)
+png("NHE.png",height=4,width=6,units="in",res=300)       
+par(mfrow=c(2,4),oma=c(2,2,2,2),mar=c(2,2,2,2))
+nhe<-lapply(unique(put.reg[put.reg$Gene=="NHE" & put.reg$Chrom%in%lgs,"Chrom"]),# & !is.na(put.reg$rad.loci)
+       gene.region.plot,gene="NHE",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
+       fst.dfs=fst.dfs,deltad=dd.bp.smooth,D=jd.bp.smooth,colors=colors,alphas=alphas,ltys=ltys,
+       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst",bases="MB",legend=FALSE)
+outside.legend("top",legend=c(leg.text,expression(italic(NHE))),pch=leg.pchs,lty=leg.ltys,lwd=2,
+               bty='n',ncol=5,cex=1.25,x.intersp=0,col=leg.cols)
 dev.off()
 
-png("SPG1.png",height=4,width=6,units="in",res=300)  
-par(mfrow=c(1,1),oma=c(1,2,2,2),mar=c(2,2,2,2))
-spg1<-lapply(unique(put.reg[put.reg$Gene=="SPG1" & !is.na(put.reg$rad.loci),"Chrom"]),
-       gene.region.plot,gene="SPG1",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
-       fst.dfs=fst.dfs,deltad=deltad,D=jostd,colors=colors,alphas=alphas,ltys=ltys,
-       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst",bases="MB",legend=FALSE) 
-outside.legend("top",legend=c(leg.text,expression(italic(SPG1))),pch=leg.pchs,lty=leg.ltys,lwd=2,
-               bty='n',ncol=3,cex=0.75,x.intersp=0,col=leg.cols)
-dev.off()
-
-
-png("STAT3.png",height=4,width=6,units="in",res=300)  
+png("TAAR.png",height=4,width=6,units="in",res=300)       
 par(mfrow=c(1,1),oma=c(2,2,2,2),mar=c(2,2,2,2))
-stat3<-lapply(unique(put.reg[put.reg$Gene=="STAT3" & !is.na(put.reg$rad.loci),"Chrom"]),
-       gene.region.plot,gene="STAT3",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
-       fst.dfs=fst.dfs,deltad=deltad,D=jostd,colors=colors,alphas=alphas,ltys=ltys,
-       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst",bases="MB",legend=FALSE) 
-outside.legend("top",legend=c(leg.text,expression(italic(STAT3))),pch=leg.pchs,lty=leg.ltys,lwd=2,
-               bty='n',ncol=3,cex=0.75,x.intersp=0,col=leg.cols)
+taar<-lapply(unique(put.reg[put.reg$Gene=="TAAR" & put.reg$Chrom%in%lgs,"Chrom"]), #& !is.na(put.reg$rad.loci)
+       gene.region.plot,gene="TAAR",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
+       fst.dfs=fst.dfs,deltad=dd.bp.smooth,D=jd.bp.smooth,colors=colors,alphas=alphas,ltys=ltys,
+       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst",bases="MB",legend=FALSE)
+outside.legend("top",legend=c(leg.text,expression(italic(TAAR))),pch=leg.pchs,lty=leg.ltys,lwd=2,
+               bty='n',ncol=5,cex=1.25,x.intersp=0,col=leg.cols)
 dev.off()
 
-png("TIMP3.png",height=4,width=6,units="in",res=300)  
-par(mfrow=c(1,1),oma=c(2,2,1,1),mar=c(2,2,2,2))
-timp3<-lapply(unique(put.reg[put.reg$Gene=="TIMP3" & !is.na(put.reg$rad.loci),"Chrom"]),
-       gene.region.plot,gene="TIMP3",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
-       fst.dfs=fst.dfs,deltad=deltad,D=jostd,colors=colors,alphas=alphas,ltys=ltys,
-       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst",bases="MB")
-dev.off()
-
-png("VATPase.png",height=5,width=8,units="in",res=300) 
-par(mfrow=c(2,2),oma=c(2,2,2,2),mar=c(2,2,2,2))
-vatpase<-lapply(unique(put.reg[put.reg$Gene=="VATPase" & !is.na(put.reg$rad.loci),"Chrom"]),
-       gene.region.plot,gene="VATPase",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
-       fst.dfs=fst.dfs,deltad=deltad,D=jostd,colors=colors,alphas=alphas,ltys=ltys,
-       smooth=FALSE,fst.name="Smoothed.AMOVA.Fst",txt.cex=1.3,bases="MB",legend=FALSE)
-outside.legend("top",legend=c(leg.text,expression(italic(VATPase))),pch=leg.pchs,lty=leg.ltys,lwd=2,
-               bty='n',ncol=3,cex=1,x.intersp=0,col=leg.cols)
-dev.off()
 ```
 
 ![](../fwsw_results/ARGHEF3.png)
-![](../fwsw_results/ATP6V0A1.png)
-![](../fwsw_results/ATP5V1A.png)
-![](../fwsw_results/FLT4.png)
-![](../fwsw_results/OSBPL8.png)
-![](../fwsw_results/RHOGTP8.png)
-![](../fwsw_results/SLC2A13.png)
-![](../fwsw_results/SPG1.png)
-![](../fwsw_results/STAT3.png)
-![](../fwsw_results/TIMP3.png)
-![](../fwsw_results/VATPase.png)
-
+![](../fwsw_results/mucin.png)
+![](../fwsw_results/NHE.png)
+![](../fwsw_results/TAAR.png)
 
 ### Figure 7
 
@@ -1631,94 +1587,103 @@ ltys=c(1,1,2,1)
 
 png("Fig7candidateGenes.png",height=10,width=10,units="in",res=300)
 
-
-par(mfrow=c(4,4),oma=c(2,2,4.5,2),mar=c(1,3,2,1))
+par(mfrow=c(4,3),oma=c(2,2,4.5,2),mar=c(1,3,2,1))
 #row1
-gene.region.plot("LG1","TNS1",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,txt.cex=2,
-                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst",
-                 bases = "MB",y.lim = c(0,0.5))
-text(x=18000000,y=0.4,expression(italic(TNS1)),xpd=T,cex=2)
-gene.region.plot("LG1","PMCA",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,txt.cex=2,
-                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst",
-                 bases = "MB",y.lim = c(0,0.5))
-text(x=12000000,y=0.4,expression(italic(PMCA)),xpd=T,cex=2)
-gene.region.plot("LG1","CAII",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,txt.cex=2,
-                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst",
-                 bases = "MB",y.lim = c(0,0.5))
-text(x=4500000,y=0.4,expression(italic(CAII)),xpd=T,cex=2)
-gene.region.plot("LG2","CAII",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,txt.cex=2,
-                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst",
-                 bases = "MB",y.lim = c(0,0.5))
-text(x=7500000,y=0.4,expression(italic(CAII)),xpd=T,cex=2)
+gene.region.plot("LG1","NHE",put.reg,vcf=vcf,chrom.ld=chrom.ld,
+       fst.dfs=fst.dfs,deltad=dd.bp.smooth,D=jd.bp.smooth,colors=colors,alphas=alphas,ltys=ltys,
+       smooth=FALSE,smooth.loess=FALSE,fst.name="Smoothed.AMOVA.Fst",bases="MB",legend=FALSE)
+text(x=4500000,y=0.5,expression(italic(NHE)),xpd=T,cex=2)
+
+gene.region.plot("LG5","NHE",put.reg,vcf=vcf,chrom.ld=chrom.ld,
+       fst.dfs=fst.dfs,deltad=dd.bp.smooth,D=jd.bp.smooth,colors=colors,alphas=alphas,ltys=ltys,
+       smooth=FALSE,smooth.loess=FALSE,fst.name="Smoothed.AMOVA.Fst",bases="MB",legend=FALSE)
+text(x=4500000,y=0.5,expression(italic(NHE)),xpd=T,cex=2)
+
+gene.region.plot("LG11","NHE",put.reg,vcf=vcf,chrom.ld=chrom.ld,
+       fst.dfs=fst.dfs,deltad=dd.bp.smooth,D=jd.bp.smooth,colors=colors,alphas=alphas,ltys=ltys,
+       smooth=FALSE,smooth.loess=FALSE,fst.name="Smoothed.AMOVA.Fst",bases="MB",legend=FALSE)
+text(x=3000000,y=0.5,expression(italic(NHE)),xpd=T,cex=2)
+
 #row2
-gene.region.plot("LG10","CAII",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,txt.cex=2,
-                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst",
-                 bases = "MB",y.lim = c(0,0.5))
-text(x=3000000,y=0.4,expression(italic(CAII)),xpd=T,cex=2)
-gene.region.plot("LG21","CAII",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,txt.cex=2,
-                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst",
-                 bases = "MB",y.lim = c(0,0.5))
-text(x=450000,y=0.4,expression(italic(CAII)),xpd=T,cex=2)
-gene.region.plot("LG2","TRIM14",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,txt.cex=2,
-                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst",
-                 bases = "MB",y.lim = c(0,0.5))
-text(x=4000000,y=0.4,expression(italic(TRIM14)),xpd=T,cex=2)
-gene.region.plot("LG5","TRIM14",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,txt.cex=2,
-                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst",
-                 bases = "MB",y.lim = c(0,0.5))
-text(x=7000000,y=0.4,expression(italic(TRIM14)),xpd=T,cex=2)
+gene.region.plot("LG2","mucin",put.reg,vcf=vcf,chrom.ld=chrom.ld,
+       fst.dfs=fst.dfs,deltad=dd.bp.smooth,D=jd.bp.smooth,colors=colors,alphas=alphas,ltys=ltys,
+       smooth=FALSE,smooth.loess=FALSE,fst.name="Smoothed.AMOVA.Fst",bases="MB",legend=FALSE)
+text(x=4500000,y=0.5,expression(italic(mucin)),xpd=T,cex=2)
+
+gene.region.plot("LG4","TAAR",put.reg,vcf=vcf,chrom.ld=chrom.ld,
+       fst.dfs=fst.dfs,deltad=dd.bp.smooth,D=jd.bp.smooth,colors=colors,alphas=alphas,ltys=ltys,
+       smooth=FALSE,smooth.loess=FALSE,fst.name="Smoothed.AMOVA.Fst",bases="MB",legend=FALSE)
+text(x=15000000,y=0.5,expression(italic(TAAR)),xpd=T,cex=2)
+
+gene.region.plot("LG7","TAAR",put.reg,vcf=vcf,chrom.ld=chrom.ld,
+       fst.dfs=fst.dfs,deltad=dd.bp.smooth,D=jd.bp.smooth,colors=colors,alphas=alphas,ltys=ltys,
+       smooth=FALSE,smooth.loess=FALSE,fst.name="Smoothed.AMOVA.Fst",bases="MB",legend=FALSE)
+text(x=3000000,y=0.5,expression(italic(TAAR)),xpd=T,cex=2)
+
 #row3
-gene.region.plot("LG10","TRIM14",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,txt.cex=2,
-                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst",
-                 bases = "MB",y.lim = c(0,0.5))
-text(x=6000000,y=0.4,expression(italic(TRIM14)),xpd=T,cex=2)
-gene.region.plot("LG11","TRIM14",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,txt.cex=2,
-                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst",
-                 bases = "MB",y.lim = c(0,0.5))
-text(x=2500000,y=0.4,expression(italic(TRIM14)),xpd=T,cex=2)
-gene.region.plot("LG13","TRIM14",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,txt.cex=2,
-                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst",
-                 bases = "MB",y.lim = c(0,0.5))
-text(x=1500000,y=0.4,expression(italic(TRIM14)),xpd=T,cex=2)
-gene.region.plot("LG1","VATPase",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,txt.cex=2,
-                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst",
-                 bases = "MB",y.lim = c(0,0.5))
-text(x=6500000,y=0.4,expression(italic(VATPase)),xpd=T,cex=2)
+gene.region.plot("LG7","ARHGEF3",put.reg,vcf=vcf,chrom.ld=chrom.ld,
+       fst.dfs=fst.dfs,deltad=dd.bp.smooth,D=jd.bp.smooth,colors=colors,alphas=alphas,ltys=ltys,
+       smooth=FALSE,smooth.loess=FALSE,fst.name="Smoothed.AMOVA.Fst",bases="MB",legend=FALSE)
+text(x=8500000,y=0.5,expression(italic(ARHGEF3)),xpd=T,cex=2)
+
+gene.region.plot("LG13","ARHGEF3",put.reg,vcf=vcf,chrom.ld=chrom.ld,
+       fst.dfs=fst.dfs,deltad=dd.bp.smooth,D=jd.bp.smooth,colors=colors,alphas=alphas,ltys=ltys,
+       smooth=FALSE,smooth.loess=FALSE,fst.name="Smoothed.AMOVA.Fst",bases="MB",legend=FALSE)
+text(x=2200000,y=0.5,expression(italic(ARHGEF3)),xpd=T,cex=2)
+
+gene.region.plot("LG14","ARHGEF3",put.reg,vcf=vcf,chrom.ld=chrom.ld,
+       fst.dfs=fst.dfs,deltad=dd.bp.smooth,D=jd.bp.smooth,colors=colors,alphas=alphas,ltys=ltys,
+       smooth=FALSE,smooth.loess=FALSE,fst.name="Smoothed.AMOVA.Fst",bases="MB",legend=FALSE)
+text(x=6500000,y=0.5,expression(italic(ARHGEF3)),xpd=T,cex=2)
+
 #row4
-gene.region.plot("LG6","VATPase",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,txt.cex=2,
-                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst",
-                 bases = "MB",y.lim = c(0,0.5))
-text(x=4500000,y=0.4,expression(italic(VATPase)),xpd=T,cex=2)
-gene.region.plot("LG8","VATPase",put.reg,vcf,chrom.ld, fst.dfs,deltad=deltad,txt.cex=2,
-                 colors=colors,alphas=alphas,ltys=ltys,legend=FALSE,fst.name="Smoothed.AMOVA.Fst",
-                 bases = "MB",y.lim = c(0,0.6))
-text(x=4500000,y=0.5,expression(italic(VATPase)),xpd=T,cex=2)
+gene.region.plot("LG18","ARHGEF3",put.reg,vcf=vcf,chrom.ld=chrom.ld,
+       fst.dfs=fst.dfs,deltad=dd.bp.smooth,D=jd.bp.smooth,colors=colors,alphas=alphas,ltys=ltys,
+       smooth=FALSE,smooth.loess=FALSE,fst.name="Smoothed.AMOVA.Fst",bases="MB",legend=FALSE)
+text(x=5500000,y=0.5,expression(italic(ARHGEF3)),xpd=T,cex=2)
+
+gene.region.plot("LG19","ARHGEF3",put.reg,vcf=vcf,chrom.ld=chrom.ld,
+       fst.dfs=fst.dfs,deltad=dd.bp.smooth,D=jd.bp.smooth,colors=colors,alphas=alphas,ltys=ltys,
+       smooth=FALSE,smooth.loess=FALSE,fst.name="Smoothed.AMOVA.Fst",bases="MB",legend=FALSE)
+text(x=4000000,y=0.5,expression(italic(ARHGEF3)),xpd=T,cex=2)
+
+gene.region.plot("LG20","ARHGEF3",put.reg,vcf=vcf,chrom.ld=chrom.ld,
+       fst.dfs=fst.dfs,deltad=dd.bp.smooth,D=jd.bp.smooth,colors=colors,alphas=alphas,ltys=ltys,
+       smooth=FALSE,smooth.loess=FALSE,fst.name="Smoothed.AMOVA.Fst",bases="MB",legend=FALSE)
+text(x=4000000,y=0.5,expression(italic(ARHGEF3)),xpd=T,cex=2)
 
 
-
-
-par(fig = c(0, 1, 0, 1),oma=rep(0, 4), mar=rep(0, 4), new=TRUE)
-plot(0:1.5, 0:1.5, type="n", xlab="", ylab="", axes=FALSE)
-legend(x=0.5,y=0.22,c(expression(Shared~italic(F)[ST]~Outliers),
-                "Salinity-associated SNPs",
-                "FW Candidate Gene"),
-       pch=c(124,25,124),lty=c(0,0,0),lwd=2,
-       col=c("black","black","indianred"),
-       bty='n',ncol=1,cex=2,x.intersp=-0.5,xpd=T)
-
-
-#add lines to the top
-par(fig = c(0, 1, 0, 1),oma=rep(0, 4), mar=rep(0, 4), new=TRUE)
-plot(0:1, 0:1, type="n", xlab="", ylab="", axes=FALSE)
-legend("top",c(expression(TX~FWSW~italic(F)[ST]),
-                expression(LA~FWSW~italic(F)[ST]),
-                expression(AL~FWSW~italic(F)[ST]),
-                expression(FL~FWSW~italic(F)[ST]),
-                expression(delta~-divergence)),
-       pch=rep(32,5),lty=c(1,1,1,1,1),lwd=2,text.width=0.16,
-       col=c(grp.colors[1],grp.colors[2],grp.colors[3],grp.colors[6],
-          "#dfc27d"),
-       bty='n',ncol=3,cex=2,x.intersp=0.5,y.intersp=0.75,xpd=T)
+outside.legend("top",legend=c(expression(TX~FWSW~italic(F)[ST]),expression(LA~FWSW~italic(F)[ST]),
+            expression(AL~FWSW~italic(F)[ST]),expression(FL~FWSW~italic(F)[ST]),
+            expression(delta~-divergence),expression("Jost's"~italic(D)),
+            expression(Shared~italic(F)[ST]~Outliers),
+            "Salinity-associated SNPs","FW gene"),
+            pch=c(rep(32,6),124,25,124),lty=c(1,1,2,1,1,1,0,0,0),lwd=2,
+               bty='n',ncol=5,cex=1.25,x.intersp=0,
+            col=c(colors,comp.col["deltad"],comp.col["D"],"black","black","indianred"))
+# 
+# par(fig = c(0, 1, 0, 1),oma=rep(0, 4), mar=rep(0, 4), new=TRUE)
+# plot(0:1.5, 0:1.5, type="n", xlab="", ylab="", axes=FALSE)
+# legend(x=0.5,y=0.22,c(expression(Shared~italic(F)[ST]~Outliers),
+#                 "Salinity-associated SNPs",
+#                 "FW Candidate Gene"),
+#        pch=c(124,25,124),lty=c(0,0,0),lwd=2,
+#        col=c("black","black","indianred"),
+#        bty='n',ncol=1,cex=2,x.intersp=-0.5,xpd=T)
+# 
+# 
+# #add lines to the top
+# par(fig = c(0, 1, 0, 1),oma=rep(0, 4), mar=rep(0, 4), new=TRUE)
+# plot(0:1, 0:1, type="n", xlab="", ylab="", axes=FALSE)
+# legend("top",c(expression(TX~FWSW~italic(F)[ST]),
+#                 expression(LA~FWSW~italic(F)[ST]),
+#                 expression(AL~FWSW~italic(F)[ST]),
+#                 expression(FL~FWSW~italic(F)[ST]),
+#                 expression(delta~-divergence)),
+#        pch=rep(32,5),lty=c(1,1,1,1,1),lwd=2,text.width=0.16,
+#        col=c(grp.colors[1],grp.colors[2],grp.colors[3],grp.colors[6],
+#           "#dfc27d"),
+#        bty='n',ncol=3,cex=2,x.intersp=0.5,y.intersp=0.75,xpd=T)
 dev.off()
 ```
 
@@ -1736,18 +1701,13 @@ cols<-c(grp.colors[1],grp.colors[2],grp.colors[3],grp.colors[6],
         "#dfc27d","#a6611a","indianred","black","#08519c")
 ltys=c(1,1,2,1,1,1,0,0,0)
 lwds<-c(rep(2,6),0,0,0)
-#smooth the statistics
-dd.smooth<-smooth.per.chrom(dd,lgs,df.chrom="Chrom",df.bp="plot.pos",df.stat="deltad",out.name="dd",span=0.1,degree=2) 
-pi.smooth<-smooth.per.chrom(pi,lgs,df.chrom="Chrom",df.bp="plot.pos",df.stat="Pi",out.name="pi",span=0.1,degree=2) 
-ht.smooth<-smooth.per.chrom(ht,lgs,df.chrom="Chrom",df.bp="plot.pos",df.stat="Het",out.name="ht",span=0.1,degree=2) 
-jd.smooth<-smooth.per.chrom(jd,lgs,df.chrom="Chrom",df.bp="plot.pos",df.stat="D",out.name="jd",span=0.1,degree=2)
 
 #put together the data for LG4
-this.dd<-deltad[deltad$Chrom %in% chrom,]
-dd.smooth<-loess.smooth(this.dd$Pos,this.dd$deltad,span=0.1,degree=2)
+#this.dd<-deltad[deltad$Chrom %in% chrom,]
+#dd.smooth<-loess.smooth(this.dd$Pos,this.dd$deltad,span=0.1,degree=2)
 #add Jost's D
-this.d<-jostd[jostd$Chr %in% chrom,]
-dsmooth<-loess.smooth(this.d$POS,this.d$D,span=0.1,degree=2) 
+#this.d<-jostd[jostd$Chr %in% chrom,]
+#dsmooth<-loess.smooth(this.d$POS,this.d$D,span=0.1,degree=2) 
 #get the outliers
 pr.gene<-put.reg[put.reg$Chrom==chrom ,]
 #rad loci 
@@ -1791,23 +1751,27 @@ plot(fst.dfs[[1]]$BP[fst.dfs[[1]]$Chr %in% chrom],
   }
   #add delta-d and Jost's D
   #Pi
-  points(pi.smooth[[2]][pi.smooth[[2]][,"chr"]%in% chrom,c("pos","smoothed.stats")],
+  points(pi.bp.smooth[[2]][pi.bp.smooth[[2]][,"chr"]%in% chrom,c("pos","smoothed.stats")],
        type="l",lwd=2,col=comp.col["pi"])
-  upp.low.pts(smooth=pi.smooth,chrom=chrom,color=comp.col["pi"],stat="Pi",pos.name="Pos")
+  upp.low.pts(smooth=pi.bp.smooth[[1]],target=pi.bp.smooth[[2]],
+              chrom=chrom,color=comp.col["pi"],stat="Pi",pos.name="Pos",cex=1.75)
   #Het
-  points(ht.smooth[[2]][ht.smooth[[2]][,"chr"]%in% chrom,c("pos","smoothed.stats")],
+  points(ht.bp.smooth[[2]][ht.bp.smooth[[2]][,"chr"]%in% chrom,c("pos","smoothed.stats")],
          type="l",col=comp.col["Het"],lwd=2)
-  upp.low.pts(smooth=ht.smooth,chrom=chrom,color=comp.col["Het"],stat="Het",pos.name="Pos")
+  upp.low.pts(smooth=ht.bp.smooth[[1]],target=ht.bp.smooth[[2]],
+              chrom=chrom,color=comp.col["Het"],stat="Het",pos.name="Pos",cex=1.75)
   
   #deltad
-  points(dd.smooth[[2]][dd.smooth[[2]][,"chr"]%in% chrom,c("pos","smoothed.stats")],
+  points(dd.bp.smooth[[2]][dd.bp.smooth[[2]][,"chr"]%in% chrom,c("pos","smoothed.stats")],
          type="l",col=comp.col["deltad"],lwd=2)
-  upp.low.pts(smooth=dd.smooth,chrom=chrom,color=comp.col["deltad"],stat="deltad",pos.name="Pos")
+  upp.low.pts(smooth=dd.bp.smooth[[1]],target=dd.bp.smooth[[2]],
+              chrom=chrom,color=comp.col["deltad"],stat="deltad",pos.name="Pos",cex=1.75)
 
   #Josts D
-  points(jd.smooth[[2]][jd.smooth[[2]][,"chr"]%in% chrom,c("pos","smoothed.stats")],
+  points(jd.bp.smooth[[2]][jd.bp.smooth[[2]][,"chr"]%in% chrom,c("pos","smoothed.stats")],
          type="l",col=comp.col["D"],lwd=2)
-  upp.low.pts(smooth=jd.smooth,chrom=chrom,color=comp.col["D"],stat="D",pos.name="Pos")
+  upp.low.pts(smooth=jd.bp.smooth[[1]],target=jd.bp.smooth[[2]],
+              chrom=chrom,color=comp.col["D"],stat="D",pos.name="Pos",cex=1.75)
   
   
    #add the putative genes
