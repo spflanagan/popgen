@@ -455,41 +455,7 @@ for(i in 1:length(lgs)){
 dev.off()
 ## ---- end
 
-## ---- HighPIlowDD
-#Do high pi and het have low deltad?
-#do it per chrom
-upp.pi<-NULL
-low.pi<-NULL
-upp.het<-NULL
-low.het<-NULL
-upp.dd<-NULL
-low.dd<-NULL
-for(i in 1:length(lgs)){
-  upp.pi<-rbind(upp.pi,avg.pi.adj[avg.pi.adj$Avg.Stat >= 
-                     quantile(avg.pi.adj$Avg.Stat[avg.pi.adj$Chr %in% lgs[i]],0.95) &
-                     avg.pi.adj$Chr %in% lgs[i],])
-  low.pi<-rbind(low.pi,avg.pi.adj[avg.pi.adj$Avg.Stat <= 
-                     quantile(avg.pi.adj$Avg.Stat[avg.pi.adj$Chr %in% lgs[i]],0.05) &
-                     avg.pi.adj$Chr %in% lgs[i],])
 
-  upp.het<-rbind(upp.het,avg.het.adj[avg.het.adj$Avg.Stat >= 
-                       quantile(avg.het.adj$Avg.Stat[avg.het.adj$Chr %in% lgs[i]],0.95) &
-                       avg.het.adj$Chr %in% lgs[i],])
-  low.het<-rbind(low.het,avg.het.adj[avg.het.adj$Avg.Stat <= 
-                       quantile(avg.het.adj$Avg.Stat[avg.het.adj$Chr %in% lgs[i]],0.05) &
-                       avg.het.adj$Chr %in% lgs[i],])
-
-  upp.dd<-rbind(upp.dd,smoothed.dd[smoothed.dd$y >= 
-                      quantile(smoothed.dd$y[smoothed.dd$Chrom %in% lgs[i]],0.95) &
-                      smoothed.dd$Chrom %in% lgs[i],])
-  low.dd<-rbind(low.dd,smoothed.dd[smoothed.dd$y <= 
-                      quantile(smoothed.dd$y[smoothed.dd$Chrom %in% lgs[i]],0.05) &
-                      smoothed.dd$Chrom %in% lgs[i],])
-}
-shared.upp<-upp.pi[upp.pi$plot.pos %in% upp.het$plot.pos,] #6 of the SNPs are high in both!
-shared.upp$plot.min<-shared.upp$Avg.Pos-250000
-shared.upp$plot.max<-shared.upp$Avg.Pos+250000
-## ---- end
 #include Jost's D (from below)
 jostd.name<-"jostd.perlocus.txt"
 ## ---- readJostD
@@ -527,21 +493,68 @@ names(xlims)<-chroms2plot
 ## ---- plotHandPi
 #colors
 comp.col<-c(Het="#80cdc1",pi="#018571",Fst="black",D="#a6611a",deltad="#dfc27d")
+#find the plotting location
+nearest.pos<-function(stat.df,s.pos,s.stat,target,t.pos,t.stat){
+  near.pos<-t(apply(stat.df,1,function(df,target){
+    x<-as.numeric(df[s.pos])
+    pos<-target[which.min(abs(x-as.numeric(target[,t.pos]))),t.pos]
+    if(pos==x){
+      stat<-as.numeric(target[which.min(abs(x-as.numeric(target[,t.pos]))),t.stat])
+    }else{
+      if(pos>x){
+        upp<-which.min(abs(x-target[,t.pos]))
+        low<-upp-1
+      }else{
+        low<-which.min(abs(x-target[,t.pos]))
+        upp<-low+1
+      }
+      upp.pt<-target[upp,c(t.pos,t.stat)]
+      low.pt<-target[low,c(t.pos,t.stat)]
+      slope<-as.numeric((upp.pt[2]-low.pt[2])/(upp.pt[1]-low.pt[1]))
+      b<-as.numeric(upp.pt[2]-(slope*upp.pt[1]))
+      stat<-slope*x+b
+    }
+    return(cbind(x,stat))
+  },target=target))
+  return(near.pos)
+}
+upp.low.pts<-function(smooth,chrom,color,stat,pos.name,...){
+  upp<-smooth[[1]][smooth[[1]][,"Chrom"]%in% chrom & smooth[[1]]$direction=="upper",]
+  low<-smooth[[1]][smooth[[1]][,"Chrom"]%in% chrom & smooth[[1]]$direction=="lower",]
+  upp.pts<-nearest.pos(stat.df=upp,s.pos=pos.name,s.stat=stat,
+                          target=smooth[[2]][smooth[[2]][,"chr"]%in% chrom,],
+                          t.pos="pos",t.stat="smoothed.stats")
+  low.pts<-nearest.pos(stat.df=low,s.pos=pos.name,s.stat=stat,
+                          target=smooth[[2]][smooth[[2]][,"chr"]%in% chrom,],
+                          t.pos="pos",t.stat="smoothed.stats")
+  points(x=upp.pts[,1],y=upp.pts[,2],pch=24,bg=color,col=color,...)
+  points(x=low.pts[,1],y=low.pts[,2],pch=25,bg=color,col=color,...)
+}
 png(h.pi.name,height=8,width=14,units="in",res=300)
 par(mfrow=row.settings,oma=c(1,1,1,1),mar=c(1,2,2,1))
 for(i in 1:length(chroms2plot)){
   this.df<-fwsw[fwsw$Chr %in% chroms2plot[i],]
   this.xlim<-xlims[[as.character(chroms2plot[i])]]
-  plot(this.df$BP,this.df$Corrected.AMOVA.Fst, xlim<-this.xlim,ylim=c(-0.2,0.5),axes=F,ylab="",xlab="",type='n')
+  plot(this.df$BP,this.df$Corrected.AMOVA.Fst, xlim=this.xlim,ylim=c(-0.2,0.5),axes=F,ylab="",xlab="",type='n')
   xmin<-this.xlim[1]#min(pi.plot$Pos[pi.plot$Chrom%in%chroms2plot[i]])
   xmax<-this.xlim[2]#max(pi.plot$Pos[pi.plot$Chrom%in%chroms2plot[i]])
   
+  #the shared peaks
+  p<-lapply(shared.upp$Pos[shared.upp$Chrom %in% chroms2plot[i]],
+         function(pos){
+           points(y=c(-0.2,0.5),x=c(pos,pos),
+                  type="l",col=alpha("#543005",0.75),cex=2,lwd=4)
+         })
+  
+  points(y=rep(c(-0.2,0.5),length(shared.upp$plot.pos[shared.upp$Chrom %in% chroms2plot[i]])),
+         x=c(shared.upp$plot.pos[shared.upp$Chrom %in% chroms2plot[i]],
+             shared.upp$plot.pos[shared.upp$Chrom %in% chroms2plot[i]]),
+         type="l",col=alpha("#543005",0.75),cex=2,lwd=4)
   #putative gene regions
   g<-genes2plot[genes2plot$Chrom %in% chroms2plot[i] & 
                   genes2plot$StartBP >= xmin & genes2plot$StartBP <= xmax,]
   a<-put.reg[put.reg$Chrom %in% chroms2plot[i] & !(put.reg$Gene %in% fav.genes),]
-  #rect(xleft=as.numeric(a$StartBP),xright=as.numeric(a$StopBP),
-  #     ybottom=-0.2,ytop=0.44,col=alpha("gray35",0.5),border=alpha("gray35",0.5))
+  
   if(nrow(g) > 0){
     rect(xleft=as.numeric(g$StartBP),xright=as.numeric(g$StopBP),
        ybottom=-0.2,ytop=0.44,col="indianred",border="indianred")
@@ -553,80 +566,24 @@ for(i in 1:length(chroms2plot)){
            col=alpha(col=comp.col["Fst"],0.25),bg=alpha(col=comp.col["Fst"],0.25))
   }
   #Pi
-  points(avg.pi.adj[avg.pi.adj$Chr%in% chroms2plot[i],c("Avg.Pos","Avg.Stat")],
+  points(pi.smooth[[2]][pi.smooth[[2]][,"chr"]%in% chroms2plot[i],c("pos","smoothed.stats")],
        type="l",lwd=2,col=comp.col["pi"])
-  this.pi<-pi.plot[pi.plot$Chrom%in% chroms2plot[i],]
-  pi.upp<-this.pi[this.pi$Pi>=quantile(this.pi$Pi,0.99,na.rm = TRUE),]
-  pi.low<-this.pi[this.pi$Pi<=quantile(this.pi$Pi,0.01,na.rm = TRUE),]
-  #find the plotting location
-  nearest.pos<-function(x,target){
-    near.pos<-unlist(lapply(x,function(x,target){
-      pos<-target[which.min(abs(x-target))]
-      return(pos)
-    },target=target))
-    return(near.pos)
-  }
-  nearest.val<-function(pos,stat.df,stat.name,pos.name){
-    near.val<-unlist(lapply(pos,function(pos,stat.df,stat.name,pos.name){
-      near.stat<-stat.df[stat.df[pos.name]==pos,stat.name]
-      return(near.stat)
-    },stat.df=stat.df,stat.name=stat.name,pos.name=pos.name))
-    return(near.val)
-  }
-  
-  pi.upp$linepos<-nearest.pos(pi.upp$Pos,target=avg.pi.adj[avg.pi.adj$Chr %in% chroms2plot[i],"Avg.Pos"])
-  pi.upp$linepi<-nearest.val(pos=pi.upp$linepos,stat.df=avg.pi.adj[avg.pi.adj$Chr %in% chroms2plot[i],],
-                             stat.name="Avg.Stat", pos.name="Avg.Pos")
-  pi.low$linepos<-nearest.pos(pi.low$Pos,target=avg.pi.adj[avg.pi.adj$Chr %in% chroms2plot[i],"Avg.Pos"])
-  pi.low$linepi<-nearest.val(pos=pi.low$linepos,stat.df=avg.pi.adj[avg.pi.adj$Chr %in% chroms2plot[i],],
-                             stat.name="Avg.Stat", pos.name="Avg.Pos")
-  points(x=pi.upp$linepos,y=pi.upp$linepi,
-         pch=24,bg=comp.col["pi"],col=comp.col["pi"])
-  points(x=pi.low$linepos,y=pi.low$linepi,
-         pch=25,bg=comp.col["pi"],col=comp.col["pi"])
+  upp.low.pts(smooth=pi.smooth,chrom=chroms2plot[i],color=comp.col["pi"],stat="Pi",pos.name="Pos")
   #Het
-  points(avg.het.adj[avg.het.adj$Chr %in% chroms2plot[i],c("Avg.Pos","Avg.Stat")],
+  points(ht.smooth[[2]][ht.smooth[[2]][,"chr"]%in% chroms2plot[i],c("pos","smoothed.stats")],
          type="l",col=comp.col["Het"],lwd=2)
+  upp.low.pts(smooth=ht.smooth,chrom=chroms2plot[i],color=comp.col["Het"],stat="Het",pos.name="Pos")
   
-  het.upp<-het.plot[het.plot$Het>=quantile(het.plot$Het[het.plot$Chrom%in% chroms2plot[i]],0.99,na.rm = TRUE)&
-                      het.plot$Chrom%in% chroms2plot[i],]
-  het.low<-het.plot[het.plot$Het<=quantile(het.plot$Het[het.plot$Chrom%in% chroms2plot[i]],0.01,na.rm = TRUE)&
-                      het.plot$Chrom%in% chroms2plot[i],]
-  het.upp$linepos<-nearest.pos(het.upp$Pos,target=avg.het.adj[avg.het.adj$Chr %in% chroms2plot[i],"Avg.Pos"])
-  het.upp$linehet<-nearest.val(pos=het.upp$linepos,stat.df=avg.het.adj[avg.het.adj$Chr %in% chroms2plot[i],],
-                             stat.name="Avg.Stat", pos.name="Avg.Pos")
-  het.low$linepos<-nearest.pos(het.low$Pos,target=avg.het.adj[avg.het.adj$Chr %in% chroms2plot[i],"Avg.Pos"])
-  het.low$linehet<-nearest.val(pos=het.low$linepos,stat.df=avg.het.adj[avg.het.adj$Chr %in% chroms2plot[i],],
-                             stat.name="Avg.Stat", pos.name="Avg.Pos")
-  points(x=het.upp$linepos,y=het.upp$linehet,
-         pch=24,bg=comp.col["Het"],col=comp.col["Het"])
-  points(het.low$linepos,y=het.low$linehet,
-         pch=25,bg=comp.col["Het"],col=comp.col["Het"])
   #deltad
-  this.chrom<-dd[dd$Chrom %in% chroms2plot[i],]
-  this.smooth<-loess.smooth(this.chrom$Pos,this.chrom$deltad,span=0.1,degree=2) 
-  points(this.smooth$x,this.smooth$y,type="l",col=comp.col["deltad"],lwd=2)
-  points(sdd.out$Pos[sdd.out$direction=="divergent" & sdd.out$Chrom%in% chroms2plot[i]],
-         sdd.out$dd[sdd.out$direction=="divergent" & sdd.out$Chrom%in% chroms2plot[i]],
-         pch=24,bg=comp.col["deltad"],col=comp.col["deltad"],cex=0.5)
-  points(sdd.out$Pos[sdd.out$direction=="parallel" & sdd.out$Chrom%in% chroms2plot[i]],
-         sdd.out$dd[sdd.out$direction=="parallel" & sdd.out$Chrom%in% chroms2plot[i]],
-         pch=25,bg=comp.col["deltad"],col=comp.col["deltad"],cex=0.5)
+  points(dd.smooth[[2]][dd.smooth[[2]][,"chr"]%in% chroms2plot[i],c("pos","smoothed.stats")],
+         type="l",col=comp.col["deltad"],lwd=2)
+  upp.low.pts(smooth=dd.smooth,chrom=chroms2plot[i],color=comp.col["deltad"],stat="deltad",pos.name="Pos")
+
   #Josts D
-  dsmooth<-loess.smooth(jostd$POS[jostd$Chr %in% chroms2plot[i]],
-                        jostd$D[jostd$Chr %in% chroms2plot[i]],span=0.1,degree=2) 
-  points(dsmooth$x,dsmooth$y,type="l",col=comp.col["D"],lwd=2)
-  points(x=jostd$POS[jostd$D>=quantile(jostd$D,0.99,na.rm = TRUE) & jostd$Chr%in% chroms2plot[i]],
-         y=jostd$D[jostd$D>=quantile(jostd$D,0.99,na.rm = TRUE) & jostd$Chr%in% chroms2plot[i]],
-         pch=24,bg=comp.col["D"],col=comp.col["D"],cex=0.5)
-  points(x=jostd$POS[jostd$D<=quantile(jostd$D,0.01,na.rm = TRUE) & jostd$Chr%in% chroms2plot[i]],
-         y=jostd$D[jostd$D<=quantile(jostd$D,0.01,na.rm = TRUE) & jostd$Chr%in% chroms2plot[i]],
-         pch=25,bg=comp.col["D"],col=comp.col["D"],cex=0.5)
-  #the shared peaks
-  points(y=c(-0.2,0.5),
-         x=c(shared.upp$Avg.Pos[shared.upp$Chr %in% chroms2plot[i]],
-             shared.upp$Avg.Pos[shared.upp$Chr %in% chroms2plot[i]]),
-         type="l",col=alpha("#543005",0.75),cex=2,lwd=4)
+  points(jd.smooth[[2]][jd.smooth[[2]][,"chr"]%in% chroms2plot[i],c("pos","smoothed.stats")],
+         type="l",col=comp.col["D"],lwd=2)
+  upp.low.pts(smooth=jd.smooth,chrom=chroms2plot[i],color=comp.col["D"],stat="D",pos.name="Pos")
+  
   #shared Fst outliers
   points(this.df$BP[this.df$BP %in% fw.sig.reg$BP],
          this.df$Corrected.AMOVA.Fst[this.df$BP %in% fw.sig.reg$BP],

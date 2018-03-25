@@ -4,6 +4,8 @@ output: html_document
 author: "Sarah P. Flanagan"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 description: "Re-running the freshwater-saltwater analysis using only the dataset from pairwise population comparisons"
+editor_options: 
+  chunk_output_type: console
 ---
 
 In my initial analysis of the freshwater-saltwater dataset, I had three vcf files: 
@@ -450,7 +452,11 @@ In Figure 6, we show different measures of diversity: pi (nucleotide diversity),
 pi.file.name<-"p4.pi.txt"
 avgpi.file.name<-"p4.avgpi.txt"
 ```
-```{r pi, fig.keep='none',eval=FALSE}
+```{r calc_pi,eval=FALSE}
+all.pi<-data.frame(Chrom=vcf$`#CHROM`,Pos=vcf$POS,Pi=unlist(apply(vcf,1,calc.pi)))
+all.pi$SNP<-paste(all.pi$Chrom,as.numeric(as.character(all.pi$Pos)),sep=".")
+write.table(all.pi,pi.file.name,col.names = TRUE,row.names=FALSE, quote=FALSE,sep='\t')
+
 ```
 ```{r pi_readin}
 all.pi<-read.table(pi.file.name,header=T)
@@ -463,6 +469,9 @@ all.het.name<-"p4.avg.het.txt"
 avg.het.adj.name<-"p4.avg.het.adj.txt"
 ```
 ```{r het,eval=FALSE}
+all.het<-data.frame(Chrom=vcf$`#CHROM`,Pos=vcf$POS,Het=unlist(apply(vcf,1,calc.het)))
+all.het$SNP<-paste(all.het$Chrom,as.numeric(as.character(all.het$Pos)),sep=".")
+write.table(all.het,all.het.name,sep='\t',col.names=TRUE)
 ```
 ```{r read_het}
 avg.het.adj<-read.delim(avg.het.adj.name,header=TRUE)
@@ -519,52 +528,95 @@ dd<-assign.plotpos(deltad,plot.scaffs = plot.scaffs,bounds=bounds,df.chrom="Chro
 pi<-assign.plotpos(all.pi,plot.scaffs = plot.scaffs,bounds=bounds,df.chrom="Chrom",df.bp="Pos") 
 ht<-assign.plotpos(all.het,plot.scaffs = plot.scaffs,bounds=bounds,df.chrom="Chrom",df.bp="Pos") 
 jd<-assign.plotpos(jostd,plot.scaffs = plot.scaffs,bounds=bounds,df.chrom="Chr",df.bp="POS") 
+colnames(jd)<-c("locid","D","SNP","Pos","Chrom","ID","plot.pos") #standardize the names
 
-smooth.per.chrom<-function(df,lgs,df.chrom,df.bp,...){#span=0.1,degree=2
-  smooth.low<-data.frame() #lower outliers
-  smooth.up<-data.frame() #upper outliers
+smooth.per.chrom<-function(df,lgs,df.chrom,df.bp,df.stat,out.name,...){#span=0.1,degree=2
+  smooth.all<-data.frame(stringsAsFactors = FALSE) #all smoothed values
+  smooth.low<-data.frame(stringsAsFactors = FALSE) #lower outliers
+  smooth.upp<-data.frame(stringsAsFactors = FALSE) #upper outliers
   for(i in 1:length(lgs)){
-    this.chrom<-df[df[df.chrom] %in% lgs[i],]
-    this.smooth<-loess.smooth(this.chrom[df.bp],this.chrom[df.chrom],...) 
-    this.plot.pos<-unlist(lapply(this.smooth$x,function(x) { this.chrom[which.min(abs(this.chrom$plot.pos-x)),"plot.pos"] }))
-    this.div<-data.frame(cbind(dd=this.chrom$deltad[this.chrom$deltad>=quantile(this.chrom$deltad,0.99)],#choosing the upper outliers
-                    plot.pos=this.chrom$plot.pos[this.chrom$deltad>=quantile(this.chrom$deltad,0.99)]),
-                    stringsAsFactors = FALSE)
-    this.par<-data.frame(cbind(dd=this.chrom$deltad[this.chrom$deltad<=quantile(this.chrom$deltad,0.01)],#choosing the lower outliers
-                    plot.pos=this.chrom$plot.pos[this.chrom$deltad<=quantile(this.chrom$deltad,0.01)]),
-                    stringsAsFactors = FALSE)
-    smooth.par<-rbind(smooth.par,this.par)
-    smooth.div<-rbind(smooth.div,this.div)
-    points(this.div$plot.pos,this.div$dd,pch=24,bg="cornflowerblue",col="cornflowerblue",cex=0.5)
-    points(this.par$plot.pos,this.par$dd,pch=25,bg="cornflowerblue",col="cornflowerblue",cex=0.5)
+    this.chrom<-df[df[,df.chrom] %in% lgs[i],]
+    this.smooth<-loess.smooth(this.chrom[,df.bp],this.chrom[,df.stat]) 
+    this.smooth<-data.frame(chr=cbind(rep(as.character(lgs[i]),length(this.smooth$x)),
+                                  pos=as.numeric(this.smooth$x),
+                                  smoothed.stats=as.numeric(this.smooth$y)),stringsAsFactors = FALSE)
+    this.upp<-this.chrom[this.chrom[df.stat]>=quantile(this.chrom[,df.stat],0.99),]#choosing the upper outliers
+    this.low<-this.chrom[this.chrom[,df.stat]<=quantile(this.chrom[,df.stat],0.01),]#choosing the lower outliers
+                   
+    # save the data
+    smooth.all<-data.frame(rbind(smooth.all,this.smooth))
+    smooth.low<-rbind(smooth.low,this.low)
+    smooth.upp<-rbind(smooth.upp,this.upp)
   }
-  dev.off()
-  smooth.div<-merge(smooth.div,dd,by="plot.pos") #77
-  smooth.div$direction<-"divergent"
-  smooth.par<-merge(smooth.par,dd,by="plot.pos") #77
-  smooth.par$direction<-"parallel"
-  #add nucleotide diversity values
-  smooth.par$FWpi<-apply(cbind(vcf[vcf$SNP %in% smooth.par$SNP,locus.info],
-                               vcf[vcf$SNP %in% smooth.par$SNP,unlist(lapply(fw.list,grep,colnames(vcf)))]),1,calc.pi)
-  smooth.par$SWpi<-apply(cbind(vcf[vcf$SNP %in% smooth.par$SNP,locus.info],
-                               vcf[vcf$SNP %in% smooth.par$SNP,unlist(lapply(sw.list,grep,colnames(vcf)))]),1,calc.pi)
-  smooth.div$FWpi<-apply(cbind(vcf[vcf$SNP %in% smooth.div$SNP,locus.info],
-                               vcf[vcf$SNP %in% smooth.div$SNP,unlist(lapply(fw.list,grep,colnames(vcf)))]),1,calc.pi)
-  smooth.div$SWpi<-apply(cbind(vcf[vcf$SNP %in% smooth.div$SNP,locus.info],
-                               vcf[vcf$SNP %in% smooth.div$SNP,unlist(lapply(sw.list,grep,colnames(vcf)))]),1,calc.pi)
-  #points(smooth.out$plot.pos,smooth.out$smooth.deltad,col="orchid4")
-  dim(smooth.par[smooth.par$SNP %in% stacks.sig$SNP,])
-  sdd.out<-rbind(smooth.par,smooth.div)
-  write.table(sdd.out,sdd.name,col.names=T,row.names=F,quote=F,sep='\t')
-
+   
+  smooth.upp$direction<-"upper" 
+  smooth.low$direction<-"lower"
+  smooth.out<-rbind(smooth.low,smooth.upp) # put the outliers in one df
+  colnames(smooth.all)<-c("chr","pos","smoothed.stats")
+  smooth.all$pos<-as.numeric(as.character(smooth.all$pos))
+  smooth.all$smoothed.stats<-as.numeric(as.character(smooth.all$smoothed.stats))
+  # save to files
+  write.table(smooth.out,paste(out.name,"outliers.txt",sep=""),col.names=T,row.names=F,quote=F,sep='\t')
+  write.table(smooth.all,paste(out.name,"smoothed.txt",sep=""),col.names=T,row.names=F,quote=F,sep='\t')
+  smoothed<-list(smooth.out,smooth.all)
 }
 
-
+#smooth the statistics
+dd.smooth<-smooth.per.chrom(dd,lgs,df.chrom="Chrom",df.bp="plot.pos",df.stat="deltad",out.name="dd",span=0.1,degree=2) 
+pi.smooth<-smooth.per.chrom(pi,lgs,df.chrom="Chrom",df.bp="plot.pos",df.stat="Pi",out.name="pi",span=0.1,degree=2) 
+ht.smooth<-smooth.per.chrom(ht,lgs,df.chrom="Chrom",df.bp="plot.pos",df.stat="Het",out.name="ht",span=0.1,degree=2) 
+jd.smooth<-smooth.per.chrom(jd,lgs,df.chrom="Chrom",df.bp="plot.pos",df.stat="D",out.name="jd",span=0.1,degree=2) 
 
 ```
-```{r smoothStats}
+```{r plot_smoothStats}
+comp.col<-c(Het="#80cdc1",pi="#018571",Fst="black",D="#a6611a",deltad="#dfc27d")
+plot.smooth.stats<-function(df,smooth,color,ylabel,...){
+  dd<-fst.plot(fst.dat = df,...)
+  mtext(ylabel,2,line=2,cex=0.75)
+  points(x=as.numeric(as.character(smooth[[2]]$pos)),
+         y=as.numeric(as.character(smooth[[2]]$smoothed.stats)),col=color,type="l",lwd=2)
+  points(x=as.numeric(smooth[[2]]$pos),y=as.numeric(smooth[[2]]$smoothed.stats),col=color,type="l",lwd=2)
+  points(smooth[[1]]$plot.pos[smooth[[1]]$direction=="upper"],smooth[[1]]$dd[smooth[[1]]$direction=="upper"],
+         pch=24,bg=color,col=color,cex=0.5) #add  outliers
+  points(smooth[[1]]$plot.pos[smooth[[1]]$direction=="lower"],smooth[[1]]$dd[smooth[[1]]$direction=="lower"],
+         pch=25,bg=color,col=color,cex=0.5)
+}
+xlab.lgs<-function(df,lgs,lgn,chr,bp,...){
+  last<-0
+  for(i in 1:length(lgs)){
+    text(x=median(df[df[,chr] ==lgs[i],bp]),labels=lgn[i],...)
+    last<-max(df[df[,chr]  ==lgs[i],bp])
+  }
+}
+png(smoothed.name,height=7,width=5,units="in",res=300)
+par(mfrow=c(4,1),mar=c(1,1,1,1),oma=c(1,2,1,1),cex=0.75)
+t<-plot.smooth.stats(df=dd,smooth=dd.smooth,color=comp.col["deltad"],fst.name="deltad",bp.name="Pos",
+                  ylabel=expression(paste(delta,"-divergence")),y.lim=c(-0.5,1),
+                  axis=0.75,scaffold.widths=scaff.starts,pch=19,scaffs.to.plot = scaffs)
+xlab.lgs(dd,lgs,lgn,"Chrom","plot.pos",adj=1, xpd=TRUE,y=-0.05,cex=0.75)
+#plot pi
+p<-plot.smooth.stats(df=pi,smooth=pi.smooth,color=comp.col["pi"],fst.name="Pi",chrom.name = "Chrom",bp.name="Pos",
+                  ylabel=expression(pi),y.lim=c(0,0.5),
+                  axis=0.75,scaffold.widths=scaff.starts,pch=19,scaffs.to.plot = scaffs)
+xlab.lgs(pi,lgs,lgn,"Chrom","plot.pos",adj=1, xpd=TRUE,y=-0.05,cex=0.75)
+#abline(v=stacks.sig$plot.pos,col="grey10") #stacks
+#plot heterozygosity
+h<-plot.smooth.stats(df=ht,smooth=ht.smooth,color=comp.col["Het"],fst.name="Het",chrom.name = "Chrom",bp.name="Pos",
+                  ylabel=expression(italic(H)),
+                  axis=0.75,scaffold.widths=scaff.starts,pch=19,scaffs.to.plot = scaffs)
+xlab.lgs(ht,lgs,lgn,"Chrom","plot.pos",adj=1, xpd=TRUE,y=-0.05,cex=0.75)
+#plot Jost's D
+d<-plot.smooth.stats(df=jd,smooth=jd.smooth,color=comp.col["D"],fst.name="D",chrom.name = "Chr",bp.name="POS",
+                  ylabel=expression("Jost's"~italic(D)),
+                  axis=0.75,scaffold.widths=scaff.starts,pch=19,scaffs.to.plot = scaffs)
+xlab.lgs(jd,lgs,lgn,"Chr","plot.pos",adj=1, xpd=TRUE,y=-0.05,cex=0.75)
+
+
+dev.off()
 ```
 ![Figure x. Smoothed variables](fwsw_results/p4_deltad_pi_het.png)
+
+
 
 ## Use putative genes
 
@@ -880,33 +932,9 @@ So of the `r nrow(put.reg)` gene annotations `r length(put.nearby.rad[put.nearby
 
 Now for $\delta$ -divergence
 
-```{r dd_plot, echo=FALSE, results='hide',fig.keep='all'}
-par(mar=c(1,1,1,1),oma=c(1,2,1,1))
-dd<-fst.plot(fst.dat = deltad,fst.name = "deltad",bp.name = "Pos",axis=1,pch=19,scaffs.to.plot=scaffs)
-mtext(expression(paste(delta,"-divergence")),2,line=1.5)
-smooth.par<-data.frame()
-smooth.div<-data.frame()
-for(i in 1:length(lgs)){#scaffolds are too short
-  this.chrom<-dd[dd$Chrom %in% lgs[i],]
-  #span<-nrow(this.chrom)/5000
-  this.smooth<-loess.smooth(this.chrom$plot.pos,this.chrom$deltad,span=0.1,degree=2) 
-  this.plot.pos<-unlist(lapply(this.smooth$x,function(x) { this.chrom[which.min(abs(this.chrom$plot.pos-x)),"plot.pos"] }))
-  points(this.smooth$x,this.smooth$y,col="cornflowerblue",type="l",lwd=2)
-  this.div<-cbind(dd=this.chrom$deltad[this.chrom$deltad>=quantile(this.chrom$deltad,0.95)],#choosing the upper outliers
-                  plot.pos=this.chrom$plot.pos[this.chrom$deltad>=quantile(this.chrom$deltad,0.95)])
-  this.par<-cbind(dd=this.chrom$deltad[this.chrom$deltad<=quantile(this.chrom$deltad,0.05)],#choosing the lower outliers
-                  plot.pos=this.chrom$plot.pos[this.chrom$deltad<=quantile(this.chrom$deltad,0.05)])
-  smooth.par<-rbind(smooth.par,this.par)
-  smooth.div<-rbind(smooth.div,this.div)
-}
-apply(new.dat,1,function(dat){
-  arrows(x0=as.numeric(dat[["plot.min"]]),x1=as.numeric(dat[["plot.max"]]),y0=0.9,y1=0.9,length=0,lwd=10)
-})
-```
-
 ```{r dd_compare}
 #in the gene
-sdd.in<-outlier.in.region(sdd.out,put.reg,oBP = "Pos")
+sdd.in<-outlier.in.region(dd.smooth[[2]],put.reg,oBP = "Pos")
 put.reg$sdd.in<-sdd.in
 ```
 
@@ -914,7 +942,7 @@ The genes `r unique(put.reg[put.reg$sdd.in!="NA","Gene"])` contain $\delta$-dive
 
 ```{r dd_nearby}
 #in the gene
-sdd.nb<-outlier.nearby(sdd.out,put.reg,chrom.ld,oBP = "Pos")
+sdd.nb<-outlier.nearby(dd.smooth[[2]],put.reg,chrom.ld,oBP = "Pos")
 ```
 
 And of the `r nrow(sdd.out)` $\delta$-divergence outliers, `r length(sdd.nb[sdd.nb!="NA"])/nrow(put.reg)*100`% are in the LD region around putative freshwater genes.
@@ -992,10 +1020,8 @@ All three BayEnv tests identified outliers in the genes `r unique(put.reg[put.re
 Jost's D measures the fraction of allelic differentiation between populations. According to Molecular Ecologist, ["if allelic differentiation at a particular locus is the value of interest, it appears that D is the best measure"](http://www.molecularecologist.com/2011/03/should-i-use-fst-gst-or-d-2/), so it might be useful to look at Jost's D in the putatively freshwater genes. 
 
 ```{r josts_d}
-#find outliers
-jost.out<-jostd[jostd$D>=quantile(jostd$D,0.99) | jostd$D<=quantile(jostd$D,0.01),]
-jost.in<-outlier.in.region(jostd,put.reg,oChrom="Chr",oBP="POS")
-jost.nb<-outlier.nearby(jostd,put.reg,chrom.ld,oChrom = "Chr",oBP="POS")
+jost.in<-outlier.in.region(jd.smooth[[2]],put.reg,oChrom="chr",oBP="pos")
+jost.nb<-outlier.nearby(jd.smooth[[2]],put.reg,chrom.ld,oChrom = "chr",oBP="pos")
 put.reg$jostd.nb<-jost.nb
 put.reg$jostd.in<-jost.in
 ```
@@ -1021,7 +1047,26 @@ So `r length(jost.in[jost.in!="NA"])` loci are located within putative freshwate
 
 Find genomic regions with high $\pi$ and low $\delta$-divergence
 
-```{r HighPIlowDD}
+```{r shared_upp}
+
+#Do high pi and het have low deltad?
+#do it per chrom
+balancing.sel<-function(pi.out,pi,ht.out,ht,
+                        dd.out,dd,jd.out,jd){
+  pi.upp<-pi.out[pi.out$direction=="upper",]
+  ht.upp<-ht.out[ht.out$direction=="upper",]
+  dd.low<-dd.out[dd.out$direction=="lower",]
+  jd.low<-jd.out[jd.out$direction=="lower",]
+  shared.div<-pi.upp[pi.upp[,pi] %in% ht.upp[,ht],] 
+  shared.dif<-dd.low[dd.low[,dd] %in% jd.low[,jd],] 
+  bal<-shared.div[shared.div[,pi] %in% shared.dif[,dd]]
+  return(list(div=shared.div,dif=shared.dif,bal=bal))
+}
+
+bal<-balancing.sel(pi.smooth[[1]],"plot.pos",ht.smooth[[1]],"plot.pos",
+                   dd.smooth[[1]],"plot.pos",jd.smooth[[1]],"plot.pos")
+
+shared.upp<-bal$div
 ```
 
 There are loci with high $\pi$ and low $\delta$-divergence on `r length(unique(shared.upp$Chr))` chromosomes. 
@@ -1048,6 +1093,14 @@ fst.means<-fst.means[!is.na(fst.means$Corrected.AMOVA.Fst),]
 fwsw<-fst.means
 ```
 
+```{r get_bp_smooth}
+#smooth the statistics
+dd.smooth<-smooth.per.chrom(dd,lgs,df.chrom="Chrom",df.bp="Pos",df.stat="deltad",out.name="dd.bp",span=0.1,degree=2) 
+pi.smooth<-smooth.per.chrom(pi,lgs,df.chrom="Chrom",df.bp="Pos",df.stat="Pi",out.name="pi.bp",span=0.1,degree=2) 
+ht.smooth<-smooth.per.chrom(ht,lgs,df.chrom="Chrom",df.bp="Pos",df.stat="Het",out.name="ht.bp",span=0.1,degree=2) 
+jd.smooth<-smooth.per.chrom(jd,lgs,df.chrom="Chrom",df.bp="Pos",df.stat="D",out.name="jd.bp",span=0.1,degree=2) 
+
+```
 
 ```{r hPi_setup}
 fst.points<-FALSE
@@ -1070,8 +1123,8 @@ chroms2plot<-unique(shared.upp$Chr)
 
 #generate xlims
 xlims<-lapply(chroms2plot,function(lg,ld,genes,vcf){
-  xs<-c(min(genes[genes$Chr == lg,"plot.min"]-ld[lg]),
-        max(genes[genes$Chr == lg,"plot.max"]+ld[lg]))
+  xs<-c(min(genes[genes$Chr == lg,"plot.pos"]-ld[lg]),
+        max(genes[genes$Chr == lg,"plot.pos"]+ld[lg]))
   if(xs[1] < 0){
     xs[1]<-0
   }
@@ -1080,6 +1133,13 @@ xlims<-lapply(chroms2plot,function(lg,ld,genes,vcf){
   }
   return(xs)
 },ld=chrom.ld,genes=shared.upp,vcf=vcf)
+#or do full chroms
+#generate xlims
+xlims<-lapply(chroms2plot,function(lg,genes,vcf){
+  xs<-c(min(vcf$POS[vcf$`#CHROM`==lg]),
+        max(vcf$POS[vcf$`#CHROM`==lg]))
+  return(xs)
+},genes=shared.upp,vcf=vcf)
 names(xlims)<-chroms2plot
 ```
 ```{r plotHandPi}
@@ -1676,6 +1736,11 @@ cols<-c(grp.colors[1],grp.colors[2],grp.colors[3],grp.colors[6],
         "#dfc27d","#a6611a","indianred","black","#08519c")
 ltys=c(1,1,2,1,1,1,0,0,0)
 lwds<-c(rep(2,6),0,0,0)
+#smooth the statistics
+dd.smooth<-smooth.per.chrom(dd,lgs,df.chrom="Chrom",df.bp="plot.pos",df.stat="deltad",out.name="dd",span=0.1,degree=2) 
+pi.smooth<-smooth.per.chrom(pi,lgs,df.chrom="Chrom",df.bp="plot.pos",df.stat="Pi",out.name="pi",span=0.1,degree=2) 
+ht.smooth<-smooth.per.chrom(ht,lgs,df.chrom="Chrom",df.bp="plot.pos",df.stat="Het",out.name="ht",span=0.1,degree=2) 
+jd.smooth<-smooth.per.chrom(jd,lgs,df.chrom="Chrom",df.bp="plot.pos",df.stat="D",out.name="jd",span=0.1,degree=2)
 
 #put together the data for LG4
 this.dd<-deltad[deltad$Chrom %in% chrom,]
@@ -1725,8 +1790,26 @@ plot(fst.dfs[[1]]$BP[fst.dfs[[1]]$Chr %in% chrom],
            col=alpha(colors[i],alphas[i]),type="l",lwd=lwds[i],lty=ltys[i])
   }
   #add delta-d and Jost's D
-  points(dd.smooth$x,dd.smooth$y,col="#dfc27d",type="l",lwd=2)
-  points(dsmooth$x,dsmooth$y,type="l",col="#a6611a",lwd=2)   
+  #Pi
+  points(pi.smooth[[2]][pi.smooth[[2]][,"chr"]%in% chrom,c("pos","smoothed.stats")],
+       type="l",lwd=2,col=comp.col["pi"])
+  upp.low.pts(smooth=pi.smooth,chrom=chrom,color=comp.col["pi"],stat="Pi",pos.name="Pos")
+  #Het
+  points(ht.smooth[[2]][ht.smooth[[2]][,"chr"]%in% chrom,c("pos","smoothed.stats")],
+         type="l",col=comp.col["Het"],lwd=2)
+  upp.low.pts(smooth=ht.smooth,chrom=chrom,color=comp.col["Het"],stat="Het",pos.name="Pos")
+  
+  #deltad
+  points(dd.smooth[[2]][dd.smooth[[2]][,"chr"]%in% chrom,c("pos","smoothed.stats")],
+         type="l",col=comp.col["deltad"],lwd=2)
+  upp.low.pts(smooth=dd.smooth,chrom=chrom,color=comp.col["deltad"],stat="deltad",pos.name="Pos")
+
+  #Josts D
+  points(jd.smooth[[2]][jd.smooth[[2]][,"chr"]%in% chrom,c("pos","smoothed.stats")],
+         type="l",col=comp.col["D"],lwd=2)
+  upp.low.pts(smooth=jd.smooth,chrom=chrom,color=comp.col["D"],stat="D",pos.name="Pos")
+  
+  
    #add the putative genes
   starts<-as.numeric(g[,"StartBP"])
   stops<-as.numeric(g[,"StopBP"])
