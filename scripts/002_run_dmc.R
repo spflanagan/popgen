@@ -4,6 +4,7 @@ library(fields)
 library(MASS)
 
 initial_runs<-FALSE
+subset<-TRUE
 
 
 ## ---- runDMC
@@ -13,7 +14,9 @@ run.dmc<-function(F_estimate,out_name,positions, sampleSizes,selSite=NA,nselsite
                            seq(0.4, 0.6, by = 0.1)),
                   times = c(0, 5, 25, 50, 100, 500, 1000, 1e4, 1e6),
                   migs = c(10^-(seq(5, 1, by = -2)), 0.5, 1),mod4_sets=list(c(3,5,7),16),
-                  mod1=TRUE,mod2=TRUE,mod3=TRUE,mod4=TRUE,mod5=TRUE,complike=TRUE){
+                  mod1=TRUE,mod2=TRUE,mod3=TRUE,mod4=TRUE,mod5=TRUE,complike=TRUE,
+                  neutral_det_name="dmc/det_FOmegas_neutral_p4LG4.RDS",
+                  neutral_inv_name="dmc/inv_FOmegas_neutral_p4LG4.RDS"){
   #make all the parameters global
   F_estimate<<-F_estimate
   positions<<-positions
@@ -262,8 +265,9 @@ run.dmc<-function(F_estimate,out_name,positions, sampleSizes,selSite=NA,nselsite
     source("../programs/dmc-master/calcCompositeLike.R")
     
     ## Neutral model
-    det_FOmegas_neutral = readRDS("dmc/det_FOmegas_neutral_p4LG4.RDS")
-    inv_FOmegas_neutral = readRDS("dmc/inv_FOmegas_neutral_p4LG4.RDS")
+    
+    det_FOmegas_neutral = readRDS(neutral_det_name)
+    inv_FOmegas_neutral = readRDS(neutral_inv_name)
     compLikelihood_neutral = lapply(1 : length(selSite), function(j) {
       calcCompLikelihood_neutral(j, det_FOmegas_neutral, inv_FOmegas_neutral)
     })
@@ -430,18 +434,35 @@ print("Done running dmc")
 ## ---- end-dmcNe
 } else
 {
-## ---- dmcForReal
-  selSite = positions[seq(1, length(positions[positions<12000000]), length.out = 100)]
-  p<-run.dmc(F_estimate = F_estimate,out_name = "p4LG4_100000_2_8",positions = positions,sampleSizes = sampleSizes,
-          selSite=selSite,rec =2*10^-8,Ne = 100000,
-          selPops = selPops,numBins = numBins,numPops = numPops,
-          sels = sels, times = times,
-          migs = migs,mod4_sets=mod4_sets)
-  p<-run.dmc(F_estimate = F_estimate,out_name = "p4LG4_1000000_2_8",positions = positions,sampleSizes = sampleSizes,
-             selSite=selSite,rec =2*10^-8,Ne = 1000000,
-             selPops = selPops,numBins = numBins,numPops = numPops,
-             sels = sels, times = times,
-             migs = migs,mod4_sets=mod4_sets)
-  print("Done running dmc")
-## ---- end-dmcForReal
+  if(subset==TRUE){
+    ## ---- dmcSubset
+    positions<-readRDS("dmc/selectedRegionPositions_p4LG4_subset.RDS")
+    F_estimate<-readRDS("dmc/neutralF_p4LG4_subset.RDS")
+    sampleSizes<-readRDS("dmc/sampleSizes.RDS")
+    neutral_det_name = "dmc/det_FOmegas_neutral_p4LG4_subset.RDS"
+    neutral_inv_name = "dmc/inv_FOmegas_neutral_p4LG4_subset.RDS"
+    selSite = positions[seq(1, length(positions[positions<12000000]), length.out = 100)]
+    p<-run.dmc(F_estimate = F_estimate,out_name = "p4LG4_100000_2_8_sub",positions = positions,sampleSizes = sampleSizes,
+               selSite=selSite,rec =2*10^-8,Ne = 100000,
+               selPops = selPops,numBins = numBins,numPops = numPops,
+               sels = sels, times = times,
+               migs = migs,mod4_sets=mod4_sets,
+               neutral_det_name=neutral_det_name, neutral_inv_name = netural_inv_name)
+    ## ---- end-dmcSubset
+  }else{
+  ## ---- dmcForReal
+    selSite = positions[seq(1, length(positions[positions<12000000]), length.out = 100)]
+    p<-run.dmc(F_estimate = F_estimate,out_name = "p4LG4_100000_2_8",positions = positions,sampleSizes = sampleSizes,
+            selSite=selSite,rec =2*10^-8,Ne = 100000,
+            selPops = selPops,numBins = numBins,numPops = numPops,
+            sels = sels, times = times,
+            migs = migs,mod4_sets=mod4_sets)
+    p<-run.dmc(F_estimate = F_estimate,out_name = "p4LG4_1000000_2_8",positions = positions,sampleSizes = sampleSizes,
+               selSite=selSite,rec =2*10^-8,Ne = 1000000,
+               selPops = selPops,numBins = numBins,numPops = numPops,
+               sels = sels, times = times,
+               migs = migs,mod4_sets=mod4_sets)
+    print("Done running dmc")
+  ## ---- end-dmcForReal
+  }
 }

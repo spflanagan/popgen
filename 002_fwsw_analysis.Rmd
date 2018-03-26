@@ -1,6 +1,8 @@
 ---
 title: "FWSW with smallest dataset"
-output: html_document
+output: 
+  pdf_document: default
+  html_document: default
 author: "Sarah P. Flanagan"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 description: "Re-running the freshwater-saltwater analysis using only the dataset from pairwise population comparisons"
@@ -18,7 +20,7 @@ I did the majority of the analyses using set #3, but would like to explore what 
 Note that in most of these cases the actual analysis will be set to `eval=FALSE` once I've run it once, because then I save the output and only have to read it in, saving compilation time.
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE,out.extra='',fig.pos="H")
 knitr::opts_knit$set(root.dir='./fwsw_results/')
 ```
 ```{r source}
@@ -294,7 +296,7 @@ To get the Poptree distance matrix, I copied and pasted the distance matrix in t
 ```{r fig3_setup,eval=TRUE}
 pt.dist<-as.matrix(read.table("poptree/p4.distance.out",header=T,row.names=1,sep='\t'))
 jostpw<-as.matrix(read.table("Subset.JostsD.tsv",header=T,sep='\t'))
-pwise.fst.raw<-read.table("stacks/p4_fst_summary.txt",header=T,row.names=1,sep='\t')
+pwise.fst.raw<-read.table("stacks/fwsw_fst_summary_subset.txt",header=T,row.names=1,sep='\t')#p4_fst_summary.txt
 pwise.fst<-matrix(nrow=length(pop.list),ncol=length(pop.list))
 dimnames(pwise.fst)[[1]]<-dimnames(pwise.fst)[[2]]<-pop.list
 for(pop1 in 1:length(pop.list)){
@@ -331,7 +333,7 @@ rect.start<-0.1
 clcolr <- rep("grey27", dim(pt.subtree$edge)[1])
 clcolr[c(6,19,20,21,22)]<-all.colors[3]
 ```
-```{r plotTreemixPoptree,eval=FALSE}
+```{r plotTreemixPoptree,eval=TRUE}
 ```
 ![Figure 4. Trees](fwsw_results/p4.trees.png)
 
@@ -489,7 +491,7 @@ dd.name<-as.character("sep.deltadivergence.txt")
 sdd.name<-as.character("sep.smoothedDD.out.txt")
 deltad<-read.delim(dd.name, header=TRUE)
 ```
-```{r PlotDeltaD,results="hide",eval=FALSE}
+```{r PlotDeltaD,results="hide",eval=FALSE,echo=FALSE}
 ```
 ```{r read_deltad,echo=FALSE}
 dd<-read.delim(dd.name)
@@ -518,7 +520,6 @@ jostd.name<-"p4.jostd.perlocus.txt"
 
 ### Smooth the statistics
 
-*I would like to update this - 22 Mar 2018*
 
 ```{r smooth_name}
 smoothed.name<-"p4_deltad_pi_het.png"
@@ -567,7 +568,7 @@ pi.bp.smooth<-smooth.per.chrom(pi,lgs,df.chrom="Chrom",df.bp="Pos",df.stat="Pi",
 ht.bp.smooth<-smooth.per.chrom(ht,lgs,df.chrom="Chrom",df.bp="Pos",df.stat="Het",out.name="ht.bp",span=0.1,degree=2)
 jd.bp.smooth<-smooth.per.chrom(jd,lgs,df.chrom="Chrom",df.bp="Pos",df.stat="D",out.name="jd.bp",span=0.1,degree=2)
 #smooth the statistics
-dd.pp.smooth<-smooth.per.chrom(dd,lgs,df.chrom="Chrom",df.bp="plot.pos",df.stat="deltad",out.name="dd",span=0.1,degree=2) 
+dd.pp.smooth<-smooth.per.chrom(dd,lgs,df.chrom="Chrom",df.bp="plot.pos",df.stat="deltad",out.name="dd",span=0.1,degree=2)
 pi.pp.smooth<-smooth.per.chrom(pi,lgs,df.chrom="Chrom",df.bp="plot.pos",df.stat="Pi",out.name="pi",span=0.1,degree=2) 
 ht.pp.smooth<-smooth.per.chrom(ht,lgs,df.chrom="Chrom",df.bp="plot.pos",df.stat="Het",out.name="ht",span=0.1,degree=2) 
 jd.pp.smooth<-smooth.per.chrom(jd,lgs,df.chrom="Chrom",df.bp="plot.pos",df.stat="D",out.name="jd",span=0.1,degree=2) 
@@ -575,15 +576,15 @@ jd.pp.smooth<-smooth.per.chrom(jd,lgs,df.chrom="Chrom",df.bp="plot.pos",df.stat=
 ```
 ```{r plot_smoothStats}
 comp.col<-c(Het="#80cdc1",pi="#018571",Fst="black",D="#a6611a",deltad="#dfc27d")
-plot.smooth.stats<-function(df,smooth,color,ylabel,...){
+plot.smooth.stats<-function(df,smooth,stat.name,color,ylabel,...){
   dd<-fst.plot(fst.dat = df,...)
-  mtext(ylabel,2,line=2,cex=0.75)
+  mtext(ylabel,2,line=1.5,cex=0.75)
   points(x=as.numeric(as.character(smooth[[2]]$pos)),
          y=as.numeric(as.character(smooth[[2]]$smoothed.stats)),col=color,type="l",lwd=2)
   points(x=as.numeric(smooth[[2]]$pos),y=as.numeric(smooth[[2]]$smoothed.stats),col=color,type="l",lwd=2)
-  points(smooth[[1]]$plot.pos[smooth[[1]]$direction=="upper"],smooth[[1]]$dd[smooth[[1]]$direction=="upper"],
+  points(smooth[[1]]$plot.pos[smooth[[1]]$direction=="upper"],smooth[[1]][smooth[[1]]$direction=="upper",stat.name],
          pch=24,bg=color,col=color,cex=0.5) #add  outliers
-  points(smooth[[1]]$plot.pos[smooth[[1]]$direction=="lower"],smooth[[1]]$dd[smooth[[1]]$direction=="lower"],
+  points(smooth[[1]]$plot.pos[smooth[[1]]$direction=="lower"],smooth[[1]][smooth[[1]]$direction=="lower",stat.name],
          pch=25,bg=color,col=color,cex=0.5)
 }
 xlab.lgs<-function(df,lgs,lgn,chr,bp,...){
@@ -595,33 +596,51 @@ xlab.lgs<-function(df,lgs,lgn,chr,bp,...){
 }
 png(smoothed.name,height=7,width=5,units="in",res=300)
 par(mfrow=c(4,1),mar=c(1,1,1,1),oma=c(1,2,1,1),cex=0.75)
-t<-plot.smooth.stats(df=dd,smooth=dd.pp.smooth,color=comp.col["deltad"],fst.name="deltad",bp.name="Pos",
+t<-plot.smooth.stats(df=dd,smooth=dd.pp.smooth,stat.name="deltad",
+                     color=comp.col["deltad"],fst.name="deltad",bp.name="Pos",
                   ylabel=expression(paste(delta,"-divergence")),y.lim=c(-0.5,1),
                   axis=0.75,scaffold.widths=scaff.starts,pch=19,scaffs.to.plot = scaffs)
-xlab.lgs(dd,lgs,lgn,"Chrom","plot.pos",adj=1, xpd=TRUE,y=-0.05,cex=0.75)
+xlab.lgs(dd,lgs,lgn,"Chrom","plot.pos",adj=1, xpd=TRUE,y=-0.5,cex=0.75)
+#plot Jost's D
+d<-plot.smooth.stats(df=jd,smooth=jd.pp.smooth,stat.name="D",
+                     color=comp.col["D"],fst.name="D",chrom.name = "Chrom",bp.name="Pos",
+                  ylabel=expression("Jost's"~italic(D)),
+                  axis=0.75,scaffold.widths=scaff.starts,pch=19,scaffs.to.plot = scaffs)
+xlab.lgs(jd,lgs,lgn,"Chrom","plot.pos",adj=1, xpd=TRUE,y=-0.075,cex=0.75)
 #plot pi
-p<-plot.smooth.stats(df=pi,smooth=pi..pp.smooth,color=comp.col["pi"],fst.name="Pi",chrom.name = "Chrom",bp.name="Pos",
+p<-plot.smooth.stats(df=pi,smooth=pi.pp.smooth,stat.name="Pi",
+                     color=comp.col["pi"],fst.name="Pi",chrom.name = "Chrom",bp.name="Pos",
                   ylabel=expression(pi),y.lim=c(0,0.5),
                   axis=0.75,scaffold.widths=scaff.starts,pch=19,scaffs.to.plot = scaffs)
 xlab.lgs(pi,lgs,lgn,"Chrom","plot.pos",adj=1, xpd=TRUE,y=-0.05,cex=0.75)
 #abline(v=stacks.sig$plot.pos,col="grey10") #stacks
 #plot heterozygosity
-h<-plot.smooth.stats(df=ht,smooth=ht.pp.smooth,color=comp.col["Het"],fst.name="Het",chrom.name = "Chrom",bp.name="Pos",
+h<-plot.smooth.stats(df=ht,smooth=ht.pp.smooth,stat.name="Het",
+                     color=comp.col["Het"],fst.name="Het",chrom.name = "Chrom",bp.name="Pos",
                   ylabel=expression(italic(H)),
                   axis=0.75,scaffold.widths=scaff.starts,pch=19,scaffs.to.plot = scaffs)
 xlab.lgs(ht,lgs,lgn,"Chrom","plot.pos",adj=1, xpd=TRUE,y=-0.05,cex=0.75)
-#plot Jost's D
-d<-plot.smooth.stats(df=jd,smooth=jd.pp.smooth,color=comp.col["D"],fst.name="D",chrom.name = "Chr",bp.name="POS",
-                  ylabel=expression("Jost's"~italic(D)),
-                  axis=0.75,scaffold.widths=scaff.starts,pch=19,scaffs.to.plot = scaffs)
-xlab.lgs(jd,lgs,lgn,"Chr","plot.pos",adj=1, xpd=TRUE,y=-0.05,cex=0.75)
+
 
 
 dev.off()
 ```
 ![Figure x. Smoothed variables](fwsw_results/p4_deltad_pi_het.png)
 
+```{r list_of_outliers}
+bf$SNP<-paste(bf$scaffold,as.numeric(as.character(bf$BP))+1,sep=".")
+bf.co<-apply(bf[,5:7],2,quantile,0.99) #focus on Bayes Factors, because of Lotterhos & Whitlock (2015)
+sal.bf.sig<-bf[bf$Salinity_BF>bf.co["Salinity_BF"],c(1,2,4,8,6,9)]
+all.out<-data.frame(rbind(cbind(paste(fw.sig.reg$Chr,fw.sig.reg$BP,sep="."),"fst"),
+                          cbind(dd.bp.smooth[[1]]$SNP,"deltad"),
+                          cbind(ht.bp.smooth[[1]]$SNP,"het"),
+                          cbind(jd.bp.smooth[[1]]$SNP,"jostd"),
+                          cbind(pi.bp.smooth[[1]]$SNP,"pi"),
+                          cbind(sal.bf.sig$SNP,"bayenv_salinity")),stringsAsFactors = FALSE)
+colnames(all.out)<-c("SNP","test")
+write.table(all.out,"all_outliers.txt",sep='\t',quote=FALSE,col.names=TRUE,row.names=FALSE)
 
+```
 
 ## Use putative genes
 
@@ -1051,6 +1070,8 @@ So `r length(jost.in[jost.in!="NA"])` loci are located within putative freshwate
 
 *But looking at `put.reg[put.reg$Gene =="RHOGTP8","rad.loci"]`, it's obvious that Rho GTPase-activating proteins are distributed throughout the genome (on chromosomes `r unique(put.reg[put.reg$Gene=="RHOGTP8","Chrom"])`).*
 
+`
+
 ## Figure 6
 
 Find genomic regions with high $\pi$ and low $\delta$-divergence
@@ -1071,8 +1092,8 @@ balancing.sel<-function(pi.out,pi,ht.out,ht,
   return(list(div=shared.div,dif=shared.dif,bal=bal))
 }
 
-bal<-balancing.sel(pi.smooth[[1]],"plot.pos",ht.smooth[[1]],"plot.pos",
-                   dd.smooth[[1]],"plot.pos",jd.smooth[[1]],"plot.pos")
+bal<-balancing.sel(pi.pp.smooth[[1]],"plot.pos",ht.pp.smooth[[1]],"plot.pos",
+                   dd.pp.smooth[[1]],"plot.pos",jd.pp.smooth[[1]],"plot.pos")
 
 shared.upp<-bal$div
 ```
@@ -1210,7 +1231,7 @@ calc.allFreqs<-function(vcf,pop.list, pop.labs){
 freqs<-calc.allFreqs(remove.missing.data(vcf, pop.list),pop.list,pop.labs)
 write.table(freqs,"flk.freqs",row.names = TRUE)
 ```
-```{r FLK}
+```{r FLK,eval=FALSE}
 source("../scripts/FLK.R")
 library(ape); library(phangorn)
 freqs<-read.table("flk.freqs",row.names=1)
@@ -1225,7 +1246,7 @@ tests<-FLK(freqs,Fsnp)
 
 Then I run the `programs/FLKnull.py` program on the output to estimate the empirical null distribution. Once that has run, we use the following code provided by Bonhomme et al to plot the null distribution
 
-```{r plotNull}
+```{r plotNull,eval=FALSE}
 null<-read.table('envelope.txt',head=T)
 plot(tests$Ht,tests$F.LK,pch=19,col="gray",xlab='Heterozygosity',ylab='FLK statistic',xlim=c(0,0.5))
 lines(null$Ht,null$q0.005,type='l',col='navy')
@@ -1304,7 +1325,7 @@ af<-vcf2sfaf(vcf,lgs)
 
 
 Make separate files
-```{r write_vcfs_perLG}
+```{r write_vcfs_perLG,eval=FALSE}
 header<-"##fileformat=VCFv4.2"
 for(i in 1:length(lgs)){
   write.table(header,paste(lgs[i],".vcf",sep=""),quote=FALSE,
@@ -1521,7 +1542,7 @@ outside.legend<-function(...){
 
 ### Plot all genes - for supplement
 
-```{r plot_putative_regions}
+```{r plot_putative_regions,eval=TRUE}
 #set up legend parameters
 leg.text<-c(expression(TX~FWSW~italic(F)[ST]),expression(LA~FWSW~italic(F)[ST]),
             expression(AL~FWSW~italic(F)[ST]),expression(FL~FWSW~italic(F)[ST]),
@@ -1531,52 +1552,58 @@ leg.pchs<-c(rep(32,5),124,25,124)
 leg.ltys<-c(1,1,2,1,1,0,0,0)
 leg.cols<-c(colors,"cornflowerblue","black","black","indianred")
 
-png("ARGHEF3.png",height=5,width=10,units="in",res=300)       
-par(mfrow=c(5,3),oma=c(2,2,2,2),mar=c(2,2,2,2))
+png("ARGHEF3.png",height=8,width=10,units="in",res=300)       
+par(mfrow=c(5,3),oma=c(2,2,3,2),mar=c(2,2,1,1))
 arhgef3<-lapply(unique(put.reg[put.reg$Gene=="ARHGEF3" & put.reg$Chrom%in%lgs,"Chrom"]),# & !is.na(put.reg$rad.loci)
        gene.region.plot,gene="ARHGEF3",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
        fst.dfs=fst.dfs,deltad=dd.bp.smooth,D=jd.bp.smooth,colors=colors,alphas=alphas,ltys=ltys,
        smooth=FALSE,smooth.loess=FALSE,fst.name="Smoothed.AMOVA.Fst",bases="MB",legend=FALSE)
 outside.legend("top",legend=c(leg.text,expression(italic(ARHGEF3))),pch=leg.pchs,lty=leg.ltys,lwd=2,
-               bty='n',ncol=5,cex=1.25,x.intersp=0,col=leg.cols)
+               bty='n',ncol=3,cex=1.25,x.intersp=0,col=leg.cols)
 dev.off()
 
-png("mucin.png",height=4,width=6,units="in",res=300)       
-par(mfrow=c(5,3),oma=c(2,2,2,2),mar=c(2,2,2,2))
+png("mucin.png",height=8,width=10,units="in",res=300)       
+par(mfrow=c(5,3),oma=c(2,2,3,2),mar=c(2,2,1,1))
 mucin<-lapply(unique(put.reg[put.reg$Gene=="mucin"& put.reg$Chrom%in%lgs,"Chrom"]),# & !is.na(put.reg$rad.loci)
        gene.region.plot,gene="mucin",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
        fst.dfs=fst.dfs,deltad=dd.bp.smooth,D=jd.bp.smooth,colors=colors,alphas=alphas,ltys=ltys,
        smooth=FALSE,fst.name="Smoothed.AMOVA.Fst",bases="MB",legend=FALSE)
 outside.legend("top",legend=c(leg.text,expression(italic(mucin))),pch=leg.pchs,lty=leg.ltys,lwd=2,
-               bty='n',ncol=5,cex=1.25,x.intersp=0,col=leg.cols)
+               bty='n',ncol=3,cex=1.25,x.intersp=0,col=leg.cols)
 dev.off()
 
 png("NHE.png",height=4,width=6,units="in",res=300)       
-par(mfrow=c(2,4),oma=c(2,2,2,2),mar=c(2,2,2,2))
+par(mfrow=c(2,4),oma=c(2,2,3,2),mar=c(2,2,2,2))
 nhe<-lapply(unique(put.reg[put.reg$Gene=="NHE" & put.reg$Chrom%in%lgs,"Chrom"]),# & !is.na(put.reg$rad.loci)
        gene.region.plot,gene="NHE",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
        fst.dfs=fst.dfs,deltad=dd.bp.smooth,D=jd.bp.smooth,colors=colors,alphas=alphas,ltys=ltys,
        smooth=FALSE,fst.name="Smoothed.AMOVA.Fst",bases="MB",legend=FALSE)
 outside.legend("top",legend=c(leg.text,expression(italic(NHE))),pch=leg.pchs,lty=leg.ltys,lwd=2,
-               bty='n',ncol=5,cex=1.25,x.intersp=0,col=leg.cols)
+               bty='n',ncol=3,cex=1.25,x.intersp=0,col=leg.cols)
 dev.off()
 
 png("TAAR.png",height=4,width=6,units="in",res=300)       
-par(mfrow=c(1,1),oma=c(2,2,2,2),mar=c(2,2,2,2))
+par(mfrow=c(1,2),oma=c(2,2,3,2),mar=c(2,2,2,2))
 taar<-lapply(unique(put.reg[put.reg$Gene=="TAAR" & put.reg$Chrom%in%lgs,"Chrom"]), #& !is.na(put.reg$rad.loci)
        gene.region.plot,gene="TAAR",put.reg=put.reg,vcf=vcf,chrom.ld=chrom.ld,
        fst.dfs=fst.dfs,deltad=dd.bp.smooth,D=jd.bp.smooth,colors=colors,alphas=alphas,ltys=ltys,
        smooth=FALSE,fst.name="Smoothed.AMOVA.Fst",bases="MB",legend=FALSE)
 outside.legend("top",legend=c(leg.text,expression(italic(TAAR))),pch=leg.pchs,lty=leg.ltys,lwd=2,
-               bty='n',ncol=5,cex=1.25,x.intersp=0,col=leg.cols)
+               bty='n',ncol=3,cex=.75,x.intersp=0,col=leg.cols)
 dev.off()
 
 ```
 
-![](../fwsw_results/ARGHEF3.png)
-![](../fwsw_results/mucin.png)
-![](../fwsw_results/NHE.png)
-![](../fwsw_results/TAAR.png)
+![Supplmental Fig. 5](fwsw_results/ARGHEF3.png)
+
+
+![Supplemental Fig. 6](fwsw_results/mucin.png)
+
+
+![Supplemental Fig. 7](fwsw_results/NHE.png)
+
+
+![Supplemental Fig. 8](fwsw_results/TAAR.png)
 
 ### Figure 7
 
@@ -1687,7 +1714,7 @@ outside.legend("top",legend=c(expression(TX~FWSW~italic(F)[ST]),expression(LA~FW
 dev.off()
 ```
 
-![Fig. 7](../fwsw_results/Fig7candidateGenes.png)
+![Fig. 7](fwsw_results/Fig7candidateGenes.png)
 
 ## Figure 8: LG4
 
@@ -1832,4 +1859,4 @@ legend("top",legend=lgnd,pch=pchs,ncol=5,
 dev.off()
 ```
 
-![LG 4 Figure](../fwsw_results/LG4.png)
+![LG 4 Figure](fwsw_results/LG4.png)
