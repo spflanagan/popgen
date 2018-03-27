@@ -1,0 +1,249 @@
+---
+title: "comparing_outliers"
+author: "Sarah P. Flanagan"
+date: "October 29, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir='../')
+```
+
+## Files
+
+Read in the files - all of the outliers from the saltwater analysis, the freshwater-saltwater comparison, and selection components analysis.
+
+```{r files}
+sw.out<-read.delim("sw_results/AllOutliers.txt")
+fw.out<-read.csv("fwsw_results/StacksFWSWOutliers_annotatedByGenome.csv")
+sca.out<-read.delim("../SCA/results/SCA_supplement_revised.21.11.2016.txt")
+sca.shared<-read.delim("../SCA/results/S1.shared.txt")
+pst<-read.csv("sw_results/pstfst/pstfst_loci_summary.csv",row.names = 1)
+```
+
+## Convert the saltwater loci into genome info
+
+Saltwater 
+
+```{r sw_convert}
+#genome annotations
+gff.name<-list.files(path = "../scovelli_genome/",pattern="ssc_\\d+.*_chromlevel.gff")
+if(length(grep("gz",gff.name))>0){
+  gff<-read.delim(gzfile(paste("../scovelli_genome/",gff.name,sep="")),header=F)
+} else{
+  gff<-read.delim(paste("../scovelli_genome/",gff.name,sep=""),header=F)
+}
+colnames(gff)<-c("seqname","source","feature","start","end","score","strand","frame","attribute")
+
+#get scaffold locations
+scaffs<-gff[grep("scaffold_",gff$attribute),]
+scaffs$scaff<-gsub("ID=(.*);Name=.*","\\1",scaffs$attribute)
+sw.newout<-data.frame(matrix(nrow=nrow(sw.out),ncol=ncol(sw.out)+2),
+                      stringsAsFactors = FALSE)
+
+for(i in 1:nrow(sw.out)){
+  this.gff<-scaffs[scaffs$scaff %in% sw.out[i,]$scaffold,]
+  new.sw<-sw.out[i,]
+  if(nrow(this.gff) == 0){
+    new.sw$LG<-as.character(new.sw$scaffold)
+    new.sw$newBP<-new.sw$BP
+    print(paste("No gff match found at ",i))
+  }
+  if(nrow(this.gff) == 1){
+    new.sw$LG<-as.character(this.gff$seqname)
+    new.sw$newBP<-this.gff$start + new.sw$BP
+  }
+  if(nrow(this.gff) > 1){
+    new.sw$LG<-paste(as.character(this.gff$seqname),collapse=",")
+    new.sw$newBP<-paste(this.gff$start,collapse=",")
+    print(paste("Multiple matches found at ", i))
+  }
+  sw.newout[i,]<-as.data.frame(new.sw,stringsAsFactors=FALSE)
+  colnames(sw.newout)<-colnames(new.sw)
+  sw.newout[i,"scaffold"]<-as.character(new.sw$scaffold)
+  sw.newout[i,"analysis"]<-as.character(new.sw$analysis)
+  sw.newout[i,"SNP"]<-as.character(new.sw$SNP)
+  sw.newout[i,"Sequence"]<-as.character(new.sw$Sequence)
+}
+
+#pst
+pst.newout<-data.frame(matrix(nrow=nrow(pst),ncol=ncol(pst)+2),
+                      stringsAsFactors = FALSE)
+for(i in 1:nrow(pst)){
+  this.gff<-scaffs[scaffs$scaff %in% pst[i,]$scaffold,]
+  new.pst<-pst[i,]
+  if(nrow(this.gff) == 0){
+    new.pst$LG<-as.character(new.pst$scaffold)
+    new.pst$newBP<-new.pst$BP
+    print(paste("No gff match found at ",i))
+  }
+  if(nrow(this.gff) == 1){
+    new.pst$LG<-as.character(this.gff$seqname)
+    new.pst$newBP<-this.gff$start + new.pst$BP
+  }
+  if(nrow(this.gff) > 1){
+    new.pst$LG<-paste(as.character(this.gff$seqname),collapse=",")
+    new.pst$newBP<-paste(this.gff$start,collapse=",")
+    print(paste("Multiple matches found at ", i))
+  }
+  colnames(pst.newout)<-colnames(new.pst)
+  pst.newout[i,"locus"]<-as.numeric(new.pst$locus)
+  pst.newout[i,"scaffold"]<-as.character(new.pst$scaffold)
+  pst.newout[i,"Dist"]<-as.numeric(new.pst$Dist)
+  pst.newout[i,"BP"]<-as.numeric(new.pst$BP)
+  pst.newout[i,"Trait"]<-as.character(new.pst$Trait)
+  pst.newout[i,"SNP"]<-as.character(new.pst$SNP)
+  pst.newout[i,"V10"]<-as.character(new.pst$V10)
+  pst.newout[i,"LG"]<-as.character(new.pst$LG)
+  pst.newout[i,"newBP"]<-as.numeric(new.pst$newBP)
+}
+
+```
+## Compare different
+
+```{r fwsw_compare}
+#any matches between fwsw outliers and sw local adaptation outliers?
+fwsw<-data.frame(LG=character(),swBP=numeric(),fwswBP=numeric(),distance=numeric(),
+                 swAnalysis=character(),fwAnalysis=character(),stringsAsFactors = FALSE)
+count<-1
+for(i in 1:nrow(sw.newout)){
+  lg<-sw.newout[i,"LG"]
+  bp<-sw.newout[i,"newBP"]
+  if(nrow(fw.out[fw.out$Chr %in% lg,])>1){
+    chrom.matches<-data.frame(fw.out[fw.out$Chr %in% lg,])
+    for(j in 1:nrow(chrom.matches)){
+      if(abs(chrom.matches$BP[j] - bp) <= 10000){
+        newout<-data.frame(LG=as.character(lg),swBP=as.numeric(bp),
+                             fwswBP=as.numeric(chrom.matches$BP[j]),
+                             distance=as.numeric(chrom.matches$BP[j])-as.numeric(bp),
+                             swAnalysis=as.character(sw.newout[i,"analysis"]),
+                             fwAnalysis=as.character("Stacks"),stringsAsFactors=FALSE)
+        fwsw[count,]<-newout
+        count<-count+1
+      }
+    }
+  }
+}
+
+#any matches between fwsw outliers and SCA outliers
+fwsca<-data.frame(LG=character(),fwBP=numeric(),scaBP=numeric(),distance=numeric(),
+                 fwAnalysis=character(),scaAnalysis=character(),stringsAsFactors = FALSE)
+count<-1
+for(i in 1:nrow(sca.out)){
+  lg<-sca.out[i,"Chrom"]
+  bp<-sca.out[i,"Pos"]
+  if(nrow(fw.out[fw.out$Chr %in% lg,])>1){
+    chrom.matches<-data.frame(fw.out[fw.out$Chr %in% lg,])
+    for(j in 1:nrow(chrom.matches)){
+      if(abs(chrom.matches$BP[j] - bp) <= 10000){
+        newout<-data.frame(LG=as.character(lg),swBP=as.numeric(bp),
+                             scaBP=as.numeric(chrom.matches$BP[j]),
+                             distance=as.numeric(chrom.matches$BP[j])-as.numeric(bp),
+                             fwAnalysis=as.character("Stacks"),
+                              scaAnalysis=as.character(sca.out[j,"Analyses"]),
+                             stringsAsFactors=FALSE)
+        fwsca[count,]<-newout
+        count<-count+1
+      }
+    }
+  }
+}
+
+#any matches between fwsw outliers and SCA shared outliers
+fwss<-data.frame(LG=character(),fwBP=numeric(),scasharedBP=numeric(),distance=numeric(),
+                 fwAnalysis=character(),scaAnalysis=character(),stringsAsFactors = FALSE)
+count<-1
+for(i in 1:nrow(sca.shared)){
+  lg<-sca.shared[i,"Chrom"]
+  bp<-sca.shared[i,"Pos"]
+  if(nrow(fw.out[fw.out$Chr %in% lg,])>1){
+    chrom.matches<-data.frame(fw.out[fw.out$Chr %in% lg,])
+    for(j in 1:nrow(chrom.matches)){
+      if(abs(chrom.matches$BP[j] - bp) <= 10000){
+        newout<-data.frame(LG=as.character(lg),swBP=as.numeric(bp),
+                             scasharedBP=as.numeric(chrom.matches$BP[j]),
+                             distance=as.numeric(chrom.matches$BP[j])-as.numeric(bp),
+                             scaAnalysis=as.character(sca.shared[j,"Analyses"]),
+                             fwAnalysis=as.character("Stacks"),stringsAsFactors=FALSE)
+        fwsca[count,]<-newout
+        count<-count+1
+      }
+    }
+  }
+}
+
+#any matches between sw outliers and SCA?
+swsca<-data.frame(LG=character(),swBP=numeric(),scaBP=numeric(),distance=numeric(),
+                 swAnalysis=character(),scaAnalysis=character(),stringsAsFactors = FALSE)
+count<-1
+for(i in 1:nrow(sca.out)){
+  lg<-sca.out[i,"Chrom"]
+  bp<-sca.out[i,"Pos"]
+  if(nrow(sw.newout[sw.newout$LG %in% lg,])>1){
+    chrom.matches<-data.frame(sw.newout[sw.newout$LG %in% lg,])
+    for(j in 1:nrow(chrom.matches)){
+      if(abs(chrom.matches$BP[j] - bp) <= 10000){
+        newout<-data.frame(LG=as.character(lg),swBP=as.numeric(sw.newout[i,"newBP"]),
+                             scaBP=as.numeric(chrom.matches$BP[j]),
+                                                    distance=as.numeric(chrom.matches$BP[j])-as.numeric(bp),                             swAnalysis=as.character(sw.newout[i,"analysis"]),
+                            scaAnalysis=as.character(sca.out[j,"Analyses"]),stringsAsFactors=FALSE)
+        swsca[count,]<-newout
+        count<-count+1
+      }
+    }
+  }
+}
+
+#any matches between sw and shared SCA
+swss<-data.frame(LG=character(),swBP=numeric(),scasharedBP=numeric(),distance=numeric(),
+                 swAnalysis=character(),scaAnalysis=character(),stringsAsFactors = FALSE)
+count<-1
+for(i in 1:nrow(sca.shared)){
+  lg<-sca.shared[i,"Chrom"]
+  bp<-sca.shared[i,"Pos"]
+  if(nrow(sw.newout[sw.newout$LG %in% lg,])>1){
+    chrom.matches<-data.frame(sw.newout[sw.newout$LG %in% lg,])
+    for(j in 1:nrow(chrom.matches)){
+      if(abs(chrom.matches$BP[j] - bp) <= 10000){
+        newout<-data.frame(LG=as.character(lg),swBP=as.numeric(sw.newout[i,"newBP"]),
+                             scaBP=as.numeric(chrom.matches$BP[j]),
+                             distance=as.numeric(chrom.matches$BP[j])-as.numeric(bp),
+                             scaAnalysis=as.character(sca.shared[j,"Analyses"]),
+                             swAnalysis=as.character(sw.newout[i,"analysis"]),stringsAsFactors=FALSE)
+        swss[count,]<-newout
+        count<-count+1
+      }
+    }
+  }
+}
+
+#any matches between pst and SCA
+bands<-pst.newout[pst.newout$Trait=="Bands",]
+ss<-sca.out[sca.out$Analyses=="MOFst",]
+bandss<-data.frame(LG=character(),bandsBP=numeric(),ssBP=numeric(),distance=numeric(),stringsAsFactors = FALSE)
+count<-1
+for(i in 1:nrow(bands)){
+  lg<-bands[i,"LG"]
+  bp<-bands[i,"newBP"]
+  if(nrow(ss[ss$Chrom %in% lg,])>1){
+    chrom.matches<-data.frame(ss[ss$Chrom %in% lg,])
+    for(j in 1:nrow(chrom.matches)){
+      if(abs(chrom.matches$Pos[j] - bp) <= 100000){
+        newout<-data.frame(LG=as.character(lg),bandsBP=as.numeric(bands[i,"newBP"]),
+                             ssBP=as.numeric(chrom.matches$Pos[j]),
+                             distance=abs(as.numeric(chrom.matches$Pos[j])-as.numeric(bp)),stringsAsFactors=FALSE)
+        bandss[count,]<-newout
+        count<-count+1
+      }
+    }
+  }
+}
+
+#     LG bandsBP    ssBP distance
+# 1  LG9 8941144 8923912    17232
+# 2  LG6 8494697 8587821    93124
+# 3 LG12 7474393 7523241    48848
+# 4  LG8 1844770 1784388    60382
+
+```

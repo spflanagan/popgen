@@ -4,7 +4,8 @@ library(fields)
 library(MASS)
 
 initial_runs<-FALSE
-subset<-TRUE
+subset<-FALSE
+recomb_runs<-TRUE
 
 
 ## ---- runDMC
@@ -452,6 +453,19 @@ print("Done running dmc")
                neutral_inv_name = "dmc/inv_FOmegas_neutral_p4LG4_subset.RDS",
                mod1=FALSE,mod2=FALSE,mod3=FALSE,mod4=FALSE,mod5=FALSE)
     ## ---- end-dmcSubset
+  }else if(recomb_runs==TRUE){
+    ## ---- dmcRecomb
+    p<-run.dmc(F_estimate = F_estimate,out_name = "p4LG4_100000_2_9",positions = positions,sampleSizes = sampleSizes,
+               selSite=selSite,rec =2*10^-9,Ne = 100000,
+               selPops = selPops,numBins = numBins,numPops = numPops,
+               sels = sels, times = times,
+               migs = migs,mod4_sets=mod4_sets)
+    p<-run.dmc(F_estimate = F_estimate,out_name = "p4LG4_100000_2_10",positions = positions,sampleSizes = sampleSizes,
+               selSite=selSite,rec =2*10^-10,Ne = 100000,
+               selPops = selPops,numBins = numBins,numPops = numPops,
+               sels = sels, times = times,
+               migs = migs,mod4_sets=mod4_sets)
+    ## ---- end-dmcRecomb
   }else{
   ## ---- dmcForReal
     selSite = positions[seq(1, length(positions[positions<12000000]), length.out = 100)]

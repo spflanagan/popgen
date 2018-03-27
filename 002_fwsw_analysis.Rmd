@@ -1328,10 +1328,10 @@ Make separate files
 ```{r write_vcfs_perLG,eval=FALSE}
 header<-"##fileformat=VCFv4.2"
 for(i in 1:length(lgs)){
-  write.table(header,paste(lgs[i],".vcf",sep=""),quote=FALSE,
+  write.table(header,paste("sweed/",lgs[i],".vcf",sep=""),quote=FALSE,
               col.names=FALSE,row.names=FALSE )
-  write.table(vcf[vcf$`#CHROM`==lgs[i],-708],paste(lgs[i],".vcf",sep=""),
-              col.names=TRUE,row.names=FALSE,quote=FALSE,sep='\t',append = TRUE)
+  suppressWarnings(write.table(vcf[vcf$`#CHROM`==lgs[i],-708],paste("sweed/",lgs[i],".vcf",sep=""),
+              col.names=TRUE,row.names=FALSE,quote=FALSE,sep='\t',append = TRUE))
 }
 ```
 
