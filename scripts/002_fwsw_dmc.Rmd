@@ -354,7 +354,7 @@ lapply(ne.mcles,function(mcle){ kable(mcle[[1]]) })
 ```{r dmcForReal, eval=FALSE}
 ```
 
-```{r plot_chosen,eval=TRUE}
+```{r plot_chosen,eval=TRUE,fig.height=4,fig.width=6,fig.align='H'}
 selSite = positions[seq(1, length(positions[positions<10000000]), length.out = 100)]
 par(mfrow=c(2,1),oma=c(2,2,2,2),mar=c(2,2,2,2))
 max.complikes1<-plot.complike("p4LG4_100000_2_8",leg=FALSE)
@@ -394,6 +394,20 @@ saveRDS(det_FOmegas_neutral, "dmc/det_FOmegas_neutral_p4LG4_subset.RDS")
 inv_FOmegas_neutral = ginv(Tmatrix %*% (F_estimate + sampleErrorMatrix) %*% t(Tmatrix))
 saveRDS(inv_FOmegas_neutral, "dmc/inv_FOmegas_neutral_p4LG4_subset.RDS")
 
+```
+
+```{r plot_subset,fig.height=4,fig.width=6,fig.align='H'}
+positions<-readRDS("dmc/selectedRegionPositions_p4LG4_subset.RDS")
+F_estimate<-readRDS("dmc/neutralF_p4LG4_subset.RDS")
+sampleSizes<-readRDS("dmc/sampleSizes.RDS")
+neutral_det_name = "dmc/det_FOmegas_neutral_p4LG4_subset.RDS"
+neutral_inv_name = "dmc/inv_FOmegas_neutral_p4LG4_subset.RDS"
+selSite = positions[seq(1, length(positions[positions<12000000]), length.out = 100)]
+par(mfrow=c(2,1),oma=c(2,2,2,2),mar=c(2,2,2,2))
+max.complikes1<-plot.complike("p4LG4_100000_2_8_sub",leg=FALSE)
+max.complikes2<-plot.complike("p4LG4_100000_2_8_sub",leg=FALSE)
+mcle.sub<-get.mcle(max.complikes1[[1]],Ne=100000,rec=2*10^-8)
+kable(mcle.sub)
 ```
 
 ### Plot profile likelihood surfaces

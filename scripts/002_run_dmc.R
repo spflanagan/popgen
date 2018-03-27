@@ -29,6 +29,9 @@ run.dmc<-function(F_estimate,out_name,positions, sampleSizes,selSite=NA,nselsite
   sels<<-sels
   times<<-times
   migs<<-migs
+  neutral_det_name<<-neutral_det_name
+  neutral_inv_name<<-neutral_inv_name
+  print(paste(neutral_det_name,neutral_inv_name,sep=","))
   #set up parameters
   M <<- numPops
   Tmatrix <<- matrix(data = rep(-1 / M, (M - 1) * M), nrow = M - 1, ncol = M)
@@ -439,15 +442,15 @@ print("Done running dmc")
     positions<-readRDS("dmc/selectedRegionPositions_p4LG4_subset.RDS")
     F_estimate<-readRDS("dmc/neutralF_p4LG4_subset.RDS")
     sampleSizes<-readRDS("dmc/sampleSizes.RDS")
-    neutral_det_name = "dmc/det_FOmegas_neutral_p4LG4_subset.RDS"
-    neutral_inv_name = "dmc/inv_FOmegas_neutral_p4LG4_subset.RDS"
     selSite = positions[seq(1, length(positions[positions<12000000]), length.out = 100)]
     p<-run.dmc(F_estimate = F_estimate,out_name = "p4LG4_100000_2_8_sub",positions = positions,sampleSizes = sampleSizes,
                selSite=selSite,rec =2*10^-8,Ne = 100000,
                selPops = selPops,numBins = numBins,numPops = numPops,
                sels = sels, times = times,
                migs = migs,mod4_sets=mod4_sets,
-               neutral_det_name=neutral_det_name, neutral_inv_name = netural_inv_name)
+               neutral_det_name="dmc/det_FOmegas_neutral_p4LG4_subset.RDS", 
+               neutral_inv_name = "dmc/inv_FOmegas_neutral_p4LG4_subset.RDS",
+               mod1=FALSE,mod2=FALSE,mod3=FALSE,mod4=FALSE,mod5=FALSE)
     ## ---- end-dmcSubset
   }else{
   ## ---- dmcForReal
