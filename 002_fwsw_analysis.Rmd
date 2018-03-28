@@ -1335,6 +1335,25 @@ for(i in 1:length(lgs)){
 }
 ```
 
+Read in sweed results
+
+```{r sweed}
+sweed.files<-list.files(path="sweed",pattern="SweeD_Report.lg",full.names=TRUE)
+sweed<-do.call(rbind,lapply(sweed.files[2:6],function(file){
+  swlg<-read.delim(file,skip=2,header=TRUE)
+  swlg$Chrom<-paste("LG",gsub(".*lg(\\d+)$","\\1",file),sep="")
+  return(swlg)
+}))
+sweed<-assign.plotpos(sweed,plot.scaffs,bounds,df.bp="Position")
+plot(1:nrow(sweed),sweed$Likelihood,bty="L",type = 'n',xlab="Position on Chromosome",
+     ylab="SweeD Likelihood",xaxt='n',las=1)
+for(i in length(lgs)){
+  if(i %% 2 == 0){ this.col<-"grey" } else { this.col <- "darkgrey" }
+  points(sweed$plot.pos[sweed$Chrom==lgs],sweed$Likelihood[sweed$Chrom==lgs],pch=19,
+         col=this.col)
+}
+```
+
 ## Figure 7
 
 
