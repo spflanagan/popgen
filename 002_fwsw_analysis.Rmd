@@ -1345,13 +1345,19 @@ sweed<-do.call(rbind,lapply(sweed.files[2:6],function(file){
   return(swlg)
 }))
 sweed<-assign.plotpos(sweed,plot.scaffs,bounds,df.bp="Position")
-plot(1:nrow(sweed),sweed$Likelihood,bty="L",type = 'n',xlab="Position on Chromosome",
+plot(c(0,max(sweed$plot.pos)),c(0,max(sweed$Likelihood)+1),bty="L",type = 'n',xlab="Position on Chromosome",
      ylab="SweeD Likelihood",xaxt='n',las=1)
-for(i in length(lgs)){
-  if(i %% 2 == 0){ this.col<-"grey" } else { this.col <- "darkgrey" }
-  points(sweed$plot.pos[sweed$Chrom==lgs],sweed$Likelihood[sweed$Chrom==lgs],pch=19,
-         col=this.col)
+for(i in 1:length(lgs)){
+  if(nrow(sweed[sweed$Chrom %in% lgs[i],])>0){
+    if(i %% 2 == 0){ this.col<-"lightgrey" } else { this.col <- "darkgrey" }
+    points(sweed$plot.pos[sweed$Chrom==lgs[i]],sweed$Likelihood[sweed$Chrom==lgs[i]],pch=19,
+           col=this.col)
+  }
 }
+#or try this
+sweed.plot<-fst.plot(sweed,fst.name = "Likelihood", bp.name = "Position",chrom.name = "Chrom", 
+                    scaffs.to.plot=plot.scaffs,scaffold.widths = bounds,pch=19,
+                    pt.cols=c("lightgrey","darkgrey"),pt.cex=1,axis.size=1)
 ```
 
 ## Figure 7
