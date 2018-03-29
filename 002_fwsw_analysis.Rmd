@@ -1339,7 +1339,7 @@ Read in sweed results
 
 ```{r sweed}
 sweed.files<-list.files(path="sweed",pattern="SweeD_Report.lg",full.names=TRUE)
-sweed<-do.call(rbind,lapply(sweed.files[2:6],function(file){
+sweed<-do.call(rbind,lapply(sweed.files,function(file){
   swlg<-read.delim(file,skip=2,header=TRUE)
   swlg$Chrom<-paste("LG",gsub(".*lg(\\d+)$","\\1",file),sep="")
   return(swlg)
