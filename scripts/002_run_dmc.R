@@ -6,7 +6,8 @@ library(MASS)
 initial_runs<-FALSE
 subset<-FALSE
 recomb_runs<-FALSE
-selection<-TRUE
+selection<-FALSE
+two_nes<-FALSE
 
 
 ## ---- runDMC
@@ -454,6 +455,20 @@ print("Done running dmc")
                neutral_inv_name = "dmc/inv_FOmegas_neutral_p4LG4_subset.RDS",
                mod1=FALSE,mod2=FALSE,mod3=FALSE,mod4=FALSE,mod5=FALSE)
     ## ---- end-dmcSubset
+  }else if(two_nes==TRUE){
+    ## ---- dmcTwoNes
+    selSite = positions[seq(1, length(positions[positions<12000000]), length.out = 100)]
+    p<-run.dmc(F_estimate = F_estimate,out_name = "p4LG4_100000_2_8",positions = positions,sampleSizes = sampleSizes,
+               selSite=selSite,rec =2*10^-8,Ne = 100000,
+               selPops = selPops,numBins = numBins,numPops = numPops,
+               sels = sels, times = times,
+               migs = migs,mod4_sets=mod4_sets)
+    p<-run.dmc(F_estimate = F_estimate,out_name = "p4LG4_1000000_2_8",positions = positions,sampleSizes = sampleSizes,
+               selSite=selSite,rec =2*10^-8,Ne = 1000000,
+               selPops = selPops,numBins = numBins,numPops = numPops,
+               sels = sels, times = times,
+               migs = migs,mod4_sets=mod4_sets)
+    ## ---- end-dmcTwoNes
   }else if(recomb_runs==TRUE){
     ## ---- dmcRecomb
     p<-run.dmc(F_estimate = F_estimate,out_name = "p4LG4_100000_2_9",positions = positions,sampleSizes = sampleSizes,
@@ -479,17 +494,16 @@ print("Done running dmc")
     ## ---- end-dmcSelection
   } else{
   ## ---- dmcForReal
-    selSite = positions[seq(1, length(positions[positions<12000000]), length.out = 100)]
-    p<-run.dmc(F_estimate = F_estimate,out_name = "p4LG4_100000_2_8",positions = positions,sampleSizes = sampleSizes,
-            selSite=selSite,rec =2*10^-8,Ne = 100000,
-            selPops = selPops,numBins = numBins,numPops = numPops,
-            sels = sels, times = times,
-            migs = migs,mod4_sets=mod4_sets)
-    p<-run.dmc(F_estimate = F_estimate,out_name = "p4LG4_1000000_2_8",positions = positions,sampleSizes = sampleSizes,
-               selSite=selSite,rec =2*10^-8,Ne = 1000000,
+    selSite = positions[seq(1, length(positions[positions<10000000]), length.out = 100)]
+    sels = c(9e-4,7.5e-4,5e-4, 2.5e-4,1e-4,1e-3, 0.01, 
+             seq(0.02, 0.14, by = 0.01), seq(0.15, 0.3, by = 0.05))
+    p<-run.dmc(F_estimate = F_estimate,out_name = "p4LG4_100000_2_9_forReal",
+               positions = positions,sampleSizes = sampleSizes,
+               selSite=selSite,rec =2*10^-9,Ne = 100000,
                selPops = selPops,numBins = numBins,numPops = numPops,
                sels = sels, times = times,
                migs = migs,mod4_sets=mod4_sets)
+
     print("Done running dmc")
   ## ---- end-dmcForReal
   }

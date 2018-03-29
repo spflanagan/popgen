@@ -1212,119 +1212,8 @@ fst.points<-FALSE
 
 ### Test for selective sweeps
 
-To look for selective sweeps, I'm going to use the FLK R code by Bonhomme et al, downloaded from https://qgsp.jouy.inra.fr/index.php?option=com_content&view=article&id=50&Itemid=55
+To test for selective sweeps, I'm using SweeD, which is a modified version of SweepFinder. Although it allows for multi-threading, I've found that I can highly parallelize the analysis by first calculating the genome-wide frequency spectrum from the whole vcf and then running each chromosome separately in the background on a supercomputer. So I need to make separate vcf files per chromosome, with a header line.
 
-The mandatory input is a matrix of allele frequencies for each population.
-
-```{r FLK_freqs,eval=FALSE}
-calc.allFreqs<-function(vcf,pop.list, pop.labs){
-  allFreqs<-do.call(rbind,lapply(pop.list, function(pop){
-    this.vcf<-cbind(vcf[,1:9],vcf$SNP,vcf[,grep(pop,colnames(vcf))])
-    afs<-do.call(rbind,apply(this.vcf,1,calc.afs.vcf))
-    return(afs$RefFreq)
-  }))
-  colnames(allFreqs)<-vcf$SNP
-  rownames(allFreqs)<-pop.labs
-  return(allFreqs)
-}
-
-freqs<-calc.allFreqs(remove.missing.data(vcf, pop.list),pop.list,pop.labs)
-write.table(freqs,"flk.freqs",row.names = TRUE)
-```
-```{r FLK,eval=FALSE}
-source("../scripts/FLK.R")
-library(ape); library(phangorn)
-freqs<-read.table("flk.freqs",row.names=1)
-## estimate the population tree using Reynolds distances
-## computed on the SNP data, without specifying an outgroup
-Fsnp<-Fij(freqs)
-
-## Now compute the FLK and LK tests
-tests<-FLK(freqs,Fsnp) 
-
-```
-
-Then I run the `programs/FLKnull.py` program on the output to estimate the empirical null distribution. Once that has run, we use the following code provided by Bonhomme et al to plot the null distribution
-
-```{r plotNull,eval=FALSE}
-null<-read.table('envelope.txt',head=T)
-plot(tests$Ht,tests$F.LK,pch=19,col="gray",xlab='Heterozygosity',ylab='FLK statistic',xlim=c(0,0.5))
-lines(null$Ht,null$q0.005,type='l',col='navy')
-lines(null$Ht,null$q0.995,type='l',col='navy')
-lines(null$Ht,null$q0.025,type='l',col='navy')
-lines(null$Ht,null$q0.975,type='l',col='navy')
-lines(null$Ht,null$q0.5,type='l',col='navy')
-lines(smooth.spline(null$Ht,null$q0.995))
-lines(smooth.spline(null$Ht,null$q0.005))
-lines(smooth.spline(null$Ht,null$q0.025),lty=2)
-lines(smooth.spline(null$Ht,null$q0.975),lty=2)
-lines(smooth.spline(null$Ht,null$q0.5),lty=3)
-```
-
-Use PopGenome to do the CLR method. First I need to convert my vcf file to a tabix-ed vcf file, using `bgzip p4.upd.vcf` followed by `tabix -p vcf p4.upd.vcf.gz`, and saved these in the popgenome/ directory.
-
-```{r popgenome,eval=FALSE}
-mins<-tapply(X = vcf$POS,INDEX = vcf$`#CHROM`,min)[scaffs]
-maxs<-tapply(X = vcf$POS,INDEX = vcf$`#CHROM`,max)[scaffs]
-snps<-tapply(X = vcf$POS,INDEX = vcf$`#CHROM`,length)[scaffs]
-library(PopGenome)
-GENOME.class <- readVCF("popgenome/p4.upd.vcf.gz",numcols=snps["LG1"],tid="LG1",
-                  frompos=mins["LG1"],topos=maxs["LG1"],
-                  include.unknown = TRUE)
-TXSP<-grep("TXSP",colnames(vcf),value = TRUE)
-TXCC<-grep("TXCC",colnames(vcf),value = TRUE)
-TXFW<-grep("TXFW",colnames(vcf),value = TRUE)
-TXCB<-grep("TXCB",colnames(vcf),value = TRUE)
-LAFW<-grep("LAFW",colnames(vcf),value = TRUE)
-ALST<-grep("ALST",colnames(vcf),value = TRUE)
-ALFW<-grep("ALFW",colnames(vcf),value = TRUE)
-FLSG<-grep("FLSG",colnames(vcf),value = TRUE)
-FLKB<-grep("FLKB",colnames(vcf),value = TRUE)
-FLFD<-grep("FLFD",colnames(vcf),value = TRUE)
-FLSI<-grep("FLSI",colnames(vcf),value = TRUE)
-FLAB<-grep("FLAB",colnames(vcf),value = TRUE)
-FLPB<-grep("FLPB",colnames(vcf),value = TRUE)
-FLHB<-grep("FLHB",colnames(vcf),value = TRUE)
-FLCC<-grep("FLCC",colnames(vcf),value = TRUE)
-FLFW<-grep("FLFW",colnames(vcf),value = TRUE)
-genvcf<-set.populations(genvcf,
-                        list(TXSP,TXCC,TXFW,TXCB,LAFW,ALST,ALFW,FLSG,FLKB,FLFD,FLSI,FLAB,FLPB,FLHB,FLCC,FLFW),
-                        diploid=TRUE)
-
-```
-
-Convert to sweepfinder2 format:
-
-```{r convert_SF2,eval=FALSE}
-#one file for each chromosome
-#first column is position
-#second column is count of derived alleles
-#third column is the total number of observed alleles
-#fourth column indicates whether it's derived or ancestral. 
-
-vcf2sfaf<-function(vcf,lgs){
-  chrs<-lapply(lgs,function(lg){
-    gts<-extract.gt.vcf(vcf[vcf$`#CHROM` == lg,])
-    sf.af<-do.call(rbind,apply(gts,1,function(row){
-      gt<-row[10:length(row)]
-      ref<-(length(gt[gt=="0/0"])*2)+
-        length(gt[gt=="0/1"])+length(gt[gt=="1/0"])
-      alt<-(length(gt[gt=="1/1"])*2)+
-        length(gt[gt=="0/1"])+length(gt[gt=="1/0"])
-      return(data.frame(position=row["POS"],x=ref,n=alt))
-    }))
-    write.table(sf.af,paste("SF2/",lg,".AF.txt",sep=""),
-                col.names = TRUE,row.names=FALSE,sep='\t',
-                quote=FALSE,eol='\n')
-    print(paste("Writing to file: SF2/",lg,".AF.txt",sep=""))
-    return(sf.af)
-  })
-}
-af<-vcf2sfaf(vcf,lgs)
-```
-
-
-Make separate files
 ```{r write_vcfs_perLG,eval=FALSE}
 header<-"##fileformat=VCFv4.2"
 for(i in 1:length(lgs)){
@@ -1335,13 +1224,20 @@ for(i in 1:length(lgs)){
 }
 ```
 
-Read in sweed results
+Then I can run SweeD on each file, specifying the genoem-wide frequency spectrum file and a grid size of 50 - which I've done. Now I can start to make sense of the results. SweeD produces output that shows the position, likelihood, and alpha value. The likelihood value is the one we're primarily interested in, so I'll plot those genome-wide.
 
 ```{r sweed}
-sweed.files<-list.files(path="sweed",pattern="SweeD_Report.lg",full.names=TRUE)
+sweed.files<-list.files(path="sweed",pattern="SweeD_Report",full.names=TRUE)
 sweed<-do.call(rbind,lapply(sweed.files,function(file){
   swlg<-read.delim(file,skip=2,header=TRUE)
-  swlg$Chrom<-paste("LG",gsub(".*lg(\\d+)$","\\1",file),sep="")
+  if(grep("lg",file)){ #correct lowercase chrom names
+    swlg$Chrom<-paste("LG",gsub(".*lg(\\d+)$","\\1",file),sep="")
+  }else if(grep("LG",file)){
+    swlg$Chrom<-gsub(".*(LG\\d+)$","\\1",file)
+  }else{
+    swlg$Chrom<-file
+    print("Warning: error parsing chromosome name from filename")
+  }
   return(swlg)
 }))
 sweed<-assign.plotpos(sweed,plot.scaffs,bounds,df.bp="Position")
@@ -1359,6 +1255,119 @@ sweed.plot<-fst.plot(sweed,fst.name = "Likelihood", bp.name = "Position",chrom.n
                     scaffs.to.plot=plot.scaffs,scaffold.widths = bounds,pch=19,
                     pt.cols=c("lightgrey","darkgrey"),pt.cex=1,axis.size=1)
 ```
+
+<!-- To look for selective sweeps, I'm going to use the FLK R code by Bonhomme et al, downloaded from https://qgsp.jouy.inra.fr/index.php?option=com_content&view=article&id=50&Itemid=55 -->
+
+<!-- The mandatory input is a matrix of allele frequencies for each population. -->
+
+<!-- ```{r FLK_freqs,eval=FALSE} -->
+<!-- calc.allFreqs<-function(vcf,pop.list, pop.labs){ -->
+<!--   allFreqs<-do.call(rbind,lapply(pop.list, function(pop){ -->
+<!--     this.vcf<-cbind(vcf[,1:9],vcf$SNP,vcf[,grep(pop,colnames(vcf))]) -->
+<!--     afs<-do.call(rbind,apply(this.vcf,1,calc.afs.vcf)) -->
+<!--     return(afs$RefFreq) -->
+<!--   })) -->
+<!--   colnames(allFreqs)<-vcf$SNP -->
+<!--   rownames(allFreqs)<-pop.labs -->
+<!--   return(allFreqs) -->
+<!-- } -->
+
+<!-- freqs<-calc.allFreqs(remove.missing.data(vcf, pop.list),pop.list,pop.labs) -->
+<!-- write.table(freqs,"flk.freqs",row.names = TRUE) -->
+<!-- ``` -->
+<!-- ```{r FLK,eval=FALSE} -->
+<!-- source("../scripts/FLK.R") -->
+<!-- library(ape); library(phangorn) -->
+<!-- freqs<-read.table("flk.freqs",row.names=1) -->
+<!-- ## estimate the population tree using Reynolds distances -->
+<!-- ## computed on the SNP data, without specifying an outgroup -->
+<!-- Fsnp<-Fij(freqs) -->
+
+<!-- ## Now compute the FLK and LK tests -->
+<!-- tests<-FLK(freqs,Fsnp)  -->
+
+<!-- ``` -->
+
+<!-- Then I run the `programs/FLKnull.py` program on the output to estimate the empirical null distribution. Once that has run, we use the following code provided by Bonhomme et al to plot the null distribution -->
+
+<!-- ```{r plotNull,eval=FALSE} -->
+<!-- null<-read.table('envelope.txt',head=T) -->
+<!-- plot(tests$Ht,tests$F.LK,pch=19,col="gray",xlab='Heterozygosity',ylab='FLK statistic',xlim=c(0,0.5)) -->
+<!-- lines(null$Ht,null$q0.005,type='l',col='navy') -->
+<!-- lines(null$Ht,null$q0.995,type='l',col='navy') -->
+<!-- lines(null$Ht,null$q0.025,type='l',col='navy') -->
+<!-- lines(null$Ht,null$q0.975,type='l',col='navy') -->
+<!-- lines(null$Ht,null$q0.5,type='l',col='navy') -->
+<!-- lines(smooth.spline(null$Ht,null$q0.995)) -->
+<!-- lines(smooth.spline(null$Ht,null$q0.005)) -->
+<!-- lines(smooth.spline(null$Ht,null$q0.025),lty=2) -->
+<!-- lines(smooth.spline(null$Ht,null$q0.975),lty=2) -->
+<!-- lines(smooth.spline(null$Ht,null$q0.5),lty=3) -->
+<!-- ``` -->
+
+<!-- Use PopGenome to do the CLR method. First I need to convert my vcf file to a tabix-ed vcf file, using `bgzip p4.upd.vcf` followed by `tabix -p vcf p4.upd.vcf.gz`, and saved these in the popgenome/ directory. -->
+
+<!-- ```{r popgenome,eval=FALSE} -->
+<!-- mins<-tapply(X = vcf$POS,INDEX = vcf$`#CHROM`,min)[scaffs] -->
+<!-- maxs<-tapply(X = vcf$POS,INDEX = vcf$`#CHROM`,max)[scaffs] -->
+<!-- snps<-tapply(X = vcf$POS,INDEX = vcf$`#CHROM`,length)[scaffs] -->
+<!-- library(PopGenome) -->
+<!-- GENOME.class <- readVCF("popgenome/p4.upd.vcf.gz",numcols=snps["LG1"],tid="LG1", -->
+<!--                   frompos=mins["LG1"],topos=maxs["LG1"], -->
+<!--                   include.unknown = TRUE) -->
+<!-- TXSP<-grep("TXSP",colnames(vcf),value = TRUE) -->
+<!-- TXCC<-grep("TXCC",colnames(vcf),value = TRUE) -->
+<!-- TXFW<-grep("TXFW",colnames(vcf),value = TRUE) -->
+<!-- TXCB<-grep("TXCB",colnames(vcf),value = TRUE) -->
+<!-- LAFW<-grep("LAFW",colnames(vcf),value = TRUE) -->
+<!-- ALST<-grep("ALST",colnames(vcf),value = TRUE) -->
+<!-- ALFW<-grep("ALFW",colnames(vcf),value = TRUE) -->
+<!-- FLSG<-grep("FLSG",colnames(vcf),value = TRUE) -->
+<!-- FLKB<-grep("FLKB",colnames(vcf),value = TRUE) -->
+<!-- FLFD<-grep("FLFD",colnames(vcf),value = TRUE) -->
+<!-- FLSI<-grep("FLSI",colnames(vcf),value = TRUE) -->
+<!-- FLAB<-grep("FLAB",colnames(vcf),value = TRUE) -->
+<!-- FLPB<-grep("FLPB",colnames(vcf),value = TRUE) -->
+<!-- FLHB<-grep("FLHB",colnames(vcf),value = TRUE) -->
+<!-- FLCC<-grep("FLCC",colnames(vcf),value = TRUE) -->
+<!-- FLFW<-grep("FLFW",colnames(vcf),value = TRUE) -->
+<!-- genvcf<-set.populations(genvcf, -->
+<!--                         list(TXSP,TXCC,TXFW,TXCB,LAFW,ALST,ALFW,FLSG,FLKB,FLFD,FLSI,FLAB,FLPB,FLHB,FLCC,FLFW), -->
+<!--                         diploid=TRUE) -->
+
+<!-- ``` -->
+
+<!-- Convert to sweepfinder2 format: -->
+
+<!-- ```{r convert_SF2,eval=FALSE} -->
+<!-- #one file for each chromosome -->
+<!-- #first column is position -->
+<!-- #second column is count of derived alleles -->
+<!-- #third column is the total number of observed alleles -->
+<!-- #fourth column indicates whether it's derived or ancestral.  -->
+
+<!-- vcf2sfaf<-function(vcf,lgs){ -->
+<!--   chrs<-lapply(lgs,function(lg){ -->
+<!--     gts<-extract.gt.vcf(vcf[vcf$`#CHROM` == lg,]) -->
+<!--     sf.af<-do.call(rbind,apply(gts,1,function(row){ -->
+<!--       gt<-row[10:length(row)] -->
+<!--       ref<-(length(gt[gt=="0/0"])*2)+ -->
+<!--         length(gt[gt=="0/1"])+length(gt[gt=="1/0"]) -->
+<!--       alt<-(length(gt[gt=="1/1"])*2)+ -->
+<!--         length(gt[gt=="0/1"])+length(gt[gt=="1/0"]) -->
+<!--       return(data.frame(position=row["POS"],x=ref,n=alt)) -->
+<!--     })) -->
+<!--     write.table(sf.af,paste("SF2/",lg,".AF.txt",sep=""), -->
+<!--                 col.names = TRUE,row.names=FALSE,sep='\t', -->
+<!--                 quote=FALSE,eol='\n') -->
+<!--     print(paste("Writing to file: SF2/",lg,".AF.txt",sep="")) -->
+<!--     return(sf.af) -->
+<!--   }) -->
+<!-- } -->
+<!-- af<-vcf2sfaf(vcf,lgs) -->
+<!-- ``` -->
+
+
 
 ## Figure 7
 
@@ -1780,12 +1789,84 @@ g<-put.reg[put.reg$Chrom %in% chrom,]
   g<-g[,c("Gene","StartBP","StopBP")]
   g<-g[!duplicated(g$StartBP),]
   g<-g[order(g$StartBP),]
+  
+#functions for plotting dmc output
+  calc.max.complike<-function(pattern){
+  #read in composite likelihood files and calculate max for all proposed selected sites
+  compLikelihood_neutral = readRDS("dmc/compLikelihood_neutral_p4LG4.RDS")
+  compLikelihood_neutral_site = sapply(1 : length(compLikelihood_neutral), function(i) {
+    max(unlist(compLikelihood_neutral[[i]]))
+  })
+  
+  compLikelihood_ind = readRDS(paste("dmc/compLikelihood_ind_",pattern,".RDS",sep=""))
+  compLikelihood_ind_site = sapply(1 : length(selSite), function(i) {
+    max(unlist(compLikelihood_ind[[i]]))
+  })
+  
+  compLikelihood_mig = readRDS(paste("dmc/compLikelihood_mig_",pattern,".RDS",sep=""))
+  compLikelihood_mig_site = sapply(1 : length(selSite), function(i) {
+    max(unlist(compLikelihood_mig[[i]]))
+  })
+  
+  compLikelihood_sv = readRDS(paste("dmc/compLikelihood_sv_",pattern,".RDS",sep=""))
+  compLikelihood_sv_site = sapply(1 : length(selSite), function(i) {  
+    max(unlist(compLikelihood_sv[[i]]))
+  })
+  
+  compLikelihood_mixed_migInd = readRDS(paste("dmc/compLikelihood_mixed_migInd_",pattern,".RDS",sep=""))
+  compLikelihood_mixed_migInd_site = sapply(1 : length(selSite), function(i) {
+    max(unlist(compLikelihood_mixed_migInd[[i]]))
+  })
+  
+  compLikelihood_mixed_svInd = readRDS(paste("dmc/compLikelihood_mixed_svInd_",pattern,".RDS",sep=""))
+  compLikelihood_mixed_svInd_site = sapply(1 : length(selSite), function(i) {
+    max(unlist(compLikelihood_mixed_svInd[[i]]))
+  })
+  return(c(ind=(compLikelihood_ind_site - compLikelihood_neutral_site),
+           mig=(compLikelihood_mig_site - compLikelihood_neutral_site), 
+           sv=(compLikelihood_sv_site - compLikelihood_neutral_site),
+           migInd=(compLikelihood_mixed_migInd_site - compLikelihood_neutral_site),
+           svInd=(compLikelihood_mixed_svInd_site - compLikelihood_neutral_site)))
+}
+
+plot.complike<-function(pattern,leg=TRUE,lab=TRUE,plot_range = NA){
+  max.likes<-calc.max.complike(pattern)
+  
+  if(is.na(plot_range)){ plot_range = range(max.likes) }
+  
+  if(lab==TRUE){
+    x.lab<-"Proposed position selected site"
+    y.lab<-"Composite log-likelihood (model - neutral)"
+  } else{
+    x.lab<-y.lab<-""
+  }
+  
+  plot(selSite, max.likes[grep("ind",names(max.likes))], type = "b",
+       ylim = c(plot_range[1] - 50, plot_range[2] + 50),
+       xlab = x.lab,
+       ylab = y.lab)
+  lines(selSite, max.likes[grep("mig\\d+",names(max.likes))], col = "red",
+        type = "b")
+  lines(selSite, max.likes[grep("sv\\d+",names(max.likes))], col = "blue",
+        type = "b")
+  lines(selSite, max.likes[grep("migInd",names(max.likes))],
+        col = "orange", lty = 2, type = "b")
+  lines(selSite, max.likes[grep("svInd",names(max.likes))],
+        col = "green", lty = 2, type = "b")
+  legend("top",bty='n',legend = pattern)
+  if(isTRUE(leg)){
+    legend("topright", col = c("black", "red", "blue", "orange", "green"),
+           lty = c(rep(1, 3), rep(2, 2)), sapply(1 : 5, function(i) paste("Model", i)))
+  }
+  return(list(max.likes,pattern))
+}
 ```
 ```{r plot_lg4}
 png("LG4.png",width=10,height=7,units="in",res=300)
 
 nf <- layout(matrix(c(1,1,1,1,
-                      2,2,2,2), nrow=2, byrow=TRUE))
+                      2,2,2,2,
+                      3,3,3,3), nrow=3, byrow=TRUE))
 
 ### Plot all of LG4
 par(oma=c(2.5,3,2,1),mar=c(1.5,1,2,1))
@@ -1863,6 +1944,13 @@ lines(set[["LG4"]]@interpolations$loess@physicalPositions,
 legend("topleft",bty='n',col=rec.cols,
        lwd=2,c("Sliding Window","Spline","Loess"),cex=1.5)
 
+### Plot dmc results
+positions<-readRDS("dmc/selectedRegionPositions_p4LG4.RDS")
+selSite = positions[seq(1, length(positions[positions<10000000]), length.out = 100)]
+sels = c(9e-4,7.5e-4,5e-4, 2.5e-4,1e-4,1e-3, 0.01, 
+         seq(0.02, 0.14, by = 0.01), seq(0.15, 0.3, by = 0.05))
+max.complikes.sel<-plot.complike("p4LG4_100000_2_9_forReal",
+                                 plot_range=range(fst.dfs[[1]]$BP[fst.dfs[[1]]$Chr %in% chrom]))
   
 ### add legend
 #create the legend text, and parameters

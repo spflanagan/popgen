@@ -351,7 +351,7 @@ lapply(ne.mcles,function(mcle){ kable(mcle[[1]]) })
 
 ## Model with chosen parameters
 
-```{r dmcForReal, eval=FALSE}
+```{r dmcTwoNes, eval=FALSE}
 ```
 
 ```{r plot_chosen,eval=TRUE,fig.height=10,fig.width=6,fig.align='H'}
@@ -441,6 +441,24 @@ par(mfrow=c(1,1),oma=c(2,2,2,2),mar=c(2,2,2,2))
 max.complikes.sel<-plot.complike("p4LG4_100000_2_9_sels",leg=FALSE)
 mcle.sel<-get.mcle(max.complikes.sel[[1]],Ne=100000,rec=2*10^-9)
 kable(mcle.sel)
+
+```
+
+### Chosen parameter runs
+
+Using recombination rate of 2e-9, Ne= 100000, with a wider range of selection values that go below 1e-4, and 100 selection sites from 0 to 10Mb.
+
+```{r dmcForReal,eval=FALSE}
+```
+
+```{r plot_final,eval=TRUE,fig.height=6,fig.width=6,fig.align='H'}
+selSite = positions[seq(1, length(positions[positions<10000000]), length.out = 100)]
+sels = c(9e-4,7.5e-4,5e-4, 2.5e-4,1e-4,1e-3, 0.01, 
+         seq(0.02, 0.14, by = 0.01), seq(0.15, 0.3, by = 0.05))
+par(mfrow=c(1,1),oma=c(2,2,2,2),mar=c(2,2,2,2))
+max.complikes<-plot.complike("p4LG4_100000_2_9_forReal",leg=FALSE)
+mcle<-get.mcle(max.complikes[[1]],Ne=100000,rec=2*10^-9)
+kable(mcle)
 
 ```
 
