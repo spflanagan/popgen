@@ -5,7 +5,8 @@ library(MASS)
 
 initial_runs<-FALSE
 subset<-FALSE
-recomb_runs<-TRUE
+recomb_runs<-FALSE
+selection<-TRUE
 
 
 ## ---- runDMC
@@ -466,7 +467,17 @@ print("Done running dmc")
                sels = sels, times = times,
                migs = migs,mod4_sets=mod4_sets)
     ## ---- end-dmcRecomb
-  }else{
+  }else if(selection==TRUE){
+    ## ---- dmcSelection
+    sels = c(9e-4,7.5e-4,5e-4, 2.5e-4,1e-4)
+    p<-run.dmc(F_estimate = F_estimate,out_name = "p4LG4_100000_2_9_sels",
+               positions = positions,sampleSizes = sampleSizes,
+               selSite=selSite,rec =2*10^-9,Ne = 100000,
+               selPops = selPops,numBins = numBins,numPops = numPops,
+               sels = sels, times = times,
+               migs = migs,mod4_sets=mod4_sets)
+    ## ---- end-dmcSelection
+  } else{
   ## ---- dmcForReal
     selSite = positions[seq(1, length(positions[positions<12000000]), length.out = 100)]
     p<-run.dmc(F_estimate = F_estimate,out_name = "p4LG4_100000_2_8",positions = positions,sampleSizes = sampleSizes,

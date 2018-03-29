@@ -214,7 +214,7 @@ legend("topleft",bty='n',col=c("black","blue","forestgreen"),lwd=2,c("Sliding Wi
 calc.max.complike<-function(pattern){
   #read in composite likelihood files and calculate max for all proposed selected sites
   compLikelihood_neutral = readRDS("dmc/compLikelihood_neutral_p4LG4.RDS")
-  compLikelihood_neutral_site = sapply(1 : length(selSite), function(i) {
+  compLikelihood_neutral_site = sapply(1 : length(compLikelihood_neutral), function(i) {
     max(unlist(compLikelihood_neutral[[i]]))
   })
   
@@ -355,7 +355,7 @@ lapply(ne.mcles,function(mcle){ kable(mcle[[1]]) })
 ```
 
 ```{r plot_chosen,eval=TRUE,fig.height=10,fig.width=6,fig.align='H'}
-selSite = positions[seq(1, length(positions[positions<10000000]), length.out = 100)]
+selSite = positions[seq(1, length(positions[positions<12000000]), length.out = 100)]
 par(mfrow=c(2,1),oma=c(2,2,2,2),mar=c(2,2,2,2))
 max.complikes1<-plot.complike("p4LG4_100000_2_8",leg=FALSE)
 max.complikes2<-plot.complike("p4LG4_1000000_2_8",leg=FALSE)
@@ -415,14 +415,33 @@ kable(mcle.sub)
 ```{r dmcRecomb, eval=FALSE}
 ```
 
-```{r plot_chosen,eval=TRUE,fig.height=10,fig.width=6,fig.align='H'}
+```{r plot_recomb,eval=TRUE,fig.height=10,fig.width=6,fig.align='H'}
+selSite = positions[seq(1, length(positions), length.out = 50)]
+F_estimate<-readRDS("dmc/neutralF_p4LG4.RDS")
+sampleSizes<-readRDS("dmc/sampleSizes.RDS")
 par(mfrow=c(2,1),oma=c(2,2,2,2),mar=c(2,2,2,2))
 max.complikes1<-plot.complike("p4LG4_100000_2_9",leg=FALSE)
-max.complikes2<-plot.complike("p4LG4_1000000_2_10",leg=FALSE)
+max.complikes2<-plot.complike("p4LG4_100000_2_10",leg=FALSE)
 mcle1<-get.mcle(max.complikes1[[1]],Ne=100000,rec=2*10^-9)
 kable(mcle1)
-mcle2<-get.mcle(max.complikes2[[1]],Ne=1000000,rec=2*10^-10)
+mcle2<-get.mcle(max.complikes2[[1]],Ne=100000,rec=2*10^-10)
 kable(mcle2)
+```
+
+### Different selection parameters
+
+*Going below 1e-5 (i.e. to 1e-6) caused infinite values to occur*
+
+```{r dmcSelection,eval=FALSE}
+```
+
+```{r plot_sel,eval=TRUE,fig.height=6,fig.width=6,fig.align='H'}
+sels = c(9e-4,7.5e-4,5e-4, 2.5e-4,1e-4)
+par(mfrow=c(1,1),oma=c(2,2,2,2),mar=c(2,2,2,2))
+max.complikes.sel<-plot.complike("p4LG4_100000_2_9_sels",leg=FALSE)
+mcle.sel<-get.mcle(max.complikes.sel[[1]],Ne=100000,rec=2*10^-9)
+kable(mcle.sel)
+
 ```
 
 <!-- ### Plot profile likelihood surfaces -->
