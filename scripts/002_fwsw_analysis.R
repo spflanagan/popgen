@@ -490,6 +490,7 @@ xlims<-lapply(chroms2plot,function(lg,vcf){
   return(xs)
 },vcf=vcf)
 names(xlims)<-chroms2plot
+HandPiName<-expression(Large~pi~and~italic(H))
 ## ---- plotHandPi
 #colors
 comp.col<-c(Het="#80cdc1",pi="#018571",Fst="black",D="#a6611a",deltad="#dfc27d")
@@ -630,7 +631,7 @@ plot(0, 0, type='n', bty='n', xaxt='n', yaxt='n')
 legend("topleft",xpd=TRUE,
        legend=c("Putative Gene",
                 expression(Shared~italic(F)[ST]~Outlier),
-                expression(Large~pi~and~italic(H))),
+                HandPiName),
        bty='n',pch=c(15,8,15),#lwd=c(2,1,4,2,2,0,2,2),lty=c(1,0,1,1,1,0,1,1),
        cex = 2,x.intersp = 0.5,y.intersp = 0.75,text.width=0.45,
        col=c("indianred","orchid4",alpha("#543005",0.75)))

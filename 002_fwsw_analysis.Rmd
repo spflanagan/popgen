@@ -251,7 +251,7 @@ tm.tree<-"treemix/p4_k100bFLPBrm4"
 For the PopTree2 analysis, I need to convert the vcf file to genepop format. I did this using PGDSpider2. Then I ran PopTree2 on Windows10, using Da to calculate neighbor-joining trees and using 1000 bootstrap replicates.
 
 Or, if that doesn't work,
-```{r RemoveMissingData}
+```{r RemoveMissingData,results="hide"}
 ```
 ```{r poptree_names}
 gpop.name<-"poptree/p4.genepop"
@@ -1162,6 +1162,7 @@ xlims<-lapply(chroms2plot,function(lg,genes,vcf){
   return(xs)
 },genes=shared.upp,vcf=vcf)
 names(xlims)<-chroms2plot
+HandPiName<-expression(Large~pi~and~italic(H))
 ```
 ```{r plotHandPi}
 ```
@@ -1203,6 +1204,7 @@ row.settings<-c(4,3)
 chroms2plot<-unique(shared.low$Chr)
 shared.upp<-shared.low
 fst.points<-FALSE
+HandPiName<-expression(Low~pi~and~italic(H))
 ```
 ```{r plotHandPi}
 ```
@@ -1210,7 +1212,7 @@ fst.points<-FALSE
 ![Low pi and low het](fwsw_results/lowdiv_subgenes.png)
 
 
-### Test for selective sweeps
+## Test for selective sweeps
 
 To test for selective sweeps, I'm using SweeD, which is a modified version of SweepFinder. Although it allows for multi-threading, I've found that I can highly parallelize the analysis by first calculating the genome-wide frequency spectrum from the whole vcf and then running each chromosome separately in the background on a supercomputer. So I need to make separate vcf files per chromosome, with a header line.
 
@@ -1226,13 +1228,15 @@ for(i in 1:length(lgs)){
 
 Then I can run SweeD on each file, specifying the genoem-wide frequency spectrum file and a grid size of 50 - which I've done. Now I can start to make sense of the results. SweeD produces output that shows the position, likelihood, and alpha value. The likelihood value is the one we're primarily interested in, so I'll plot those genome-wide.
 
+### Plot SweeD results
+
 ```{r sweed}
 sweed.files<-list.files(path="sweed",pattern="SweeD_Report",full.names=TRUE)
 sweed<-do.call(rbind,lapply(sweed.files,function(file){
   swlg<-read.delim(file,skip=2,header=TRUE)
-  if(grep("lg",file)){ #correct lowercase chrom names
+  if(length(grep("lg",file)==TRUE)>0){ #correct lowercase chrom names
     swlg$Chrom<-paste("LG",gsub(".*lg(\\d+)$","\\1",file),sep="")
-  }else if(grep("LG",file)){
+  }else if(length(grep("LG",file)==TRUE)>0){
     swlg$Chrom<-gsub(".*(LG\\d+)$","\\1",file)
   }else{
     swlg$Chrom<-file
@@ -1240,20 +1244,183 @@ sweed<-do.call(rbind,lapply(sweed.files,function(file){
   }
   return(swlg)
 }))
-sweed<-assign.plotpos(sweed,plot.scaffs,bounds,df.bp="Position")
-plot(c(0,max(sweed$plot.pos)),c(0,max(sweed$Likelihood)+1),bty="L",type = 'n',xlab="Position on Chromosome",
-     ylab="SweeD Likelihood",xaxt='n',las=1)
-for(i in 1:length(lgs)){
-  if(nrow(sweed[sweed$Chrom %in% lgs[i],])>0){
-    if(i %% 2 == 0){ this.col<-"lightgrey" } else { this.col <- "darkgrey" }
-    points(sweed$plot.pos[sweed$Chrom==lgs[i]],sweed$Likelihood[sweed$Chrom==lgs[i]],pch=19,
-           col=this.col)
-  }
-}
+
 #or try this
 sweed.plot<-fst.plot(sweed,fst.name = "Likelihood", bp.name = "Position",chrom.name = "Chrom", 
                     scaffs.to.plot=plot.scaffs,scaffold.widths = bounds,pch=19,
-                    pt.cols=c("lightgrey","darkgrey"),pt.cex=1,axis.size=1)
+                    pt.cex=1,axis.size=0)
+axis(2,pos=-5000000,las=1)
+labs<-tapply(sweed$plot.pos,sweed$Chrom,median)
+text(x=labs[lgs],y=-.5,labels=lgn,xpd=TRUE)
+abline(h=quantile(sweed.plot$Likelihood,0.99),lty=2,col="cornflowerblue",lwd=2)
+
+```
+
+There are `r nrow(sweed[sweed$Likelihood>=quantile(sweed$Likelihood,0.99),])` of `r nrow(sweed)` estimated likelihoods by SweeD that exceed the upper 1% quantile. These are distributed on `r length(summary(as.factor(sweed$Chrom[sweed$Likelihood>=quantile(sweed$Likelihood,0.99)])))` chromosomes: `r summary(as.factor(sweed$Chrom[sweed$Likelihood>=quantile(sweed$Likelihood,0.99)]))`
+
+### Investigate nearby genes
+
+```{r sweed_outliers}
+sweed.out<-sweed[sweed$Likelihood >= quantile(sweed$Likelihood,0.99),]
+sweed.in<-outlier.in.region(sweed.out,put.reg,oBP = "Position",oChrom = "Chrom")
+sweed.nb<-outlier.nearby(sweed.out,put.reg,chrom.ld,oBP = "Position",oChrom="Chrom")
+```
+
+`r length(sweed.in[sweed.in!="NA"])` genes contain SweeD outliers and `r length(sweed.nb[sweed.nb!="NA"])` genes are within the LD distance of the SweeD estimators. However, this is likely because the SweeD likelihood estimates are fairly spread out. So let's plot those five chromosomes.
+
+```{r sweed_plotprep}
+chroms2plot<-unique(sweed.out$Chrom)
+h.pi.name<-"sweed_perchrom.png"
+row.settings<-c(3,2)
+shared.upp<-sweed.out
+fst.points<-FALSE
+xlims<-lapply(chroms2plot,function(lg,genes,vcf){
+  xs<-c(min(vcf$POS[vcf$`#CHROM`==lg]),
+        max(vcf$POS[vcf$`#CHROM`==lg]))
+  return(xs)
+},genes=shared.upp,vcf=vcf)
+names(xlims)<-chroms2plot
+#these are the genes nearby
+fav.genes<-c("LEPR","EFNB1","TRIM14","ATP6V0A1","WNT11","angiotensin II receptor",
+             "EYA","CA","SGK3","FLT4","MSX2")
+genes2plot<-put.reg[put.reg$Gene %in% fav.genes,]
+genes2plot$Gene<-as.character(genes2plot$Gene)
+genes2plot$Gene[genes2plot$Gene == "angiotensin II receptor"]<-"AGTR1"
+## fix the locations of a couple for readability
+#trim14
+trim14.min<-min(put.reg$StartBP[put.reg$Gene=="TRIM14" & put.reg$Chrom=="LG10"])
+trim14.max<-max(put.reg$StopBP[put.reg$Gene=="TRIM14" & put.reg$Chrom=="LG10"])
+genes2plot$StartBP[put.reg$Chrom=="LG10"&put.reg$Gene=="TRIM14"]<-trim14.min
+genes2plot$StopBP[put.reg$Chrom=="LG10"&put.reg$Gene=="TRIM14"]<-trim14.max
+
+
+
+comp.col<-c(Het="#80cdc1",pi="#018571",Fst="black",D="#a6611a",deltad="#dfc27d")
+HandPiName<-"SweeD outliers"
+```
+```{r sweed_plotPerchrom}
+png("Sweed.png",height=6,width=10,res=300,units = "in")
+nf <- layout(matrix(c(1,1,1,
+                      2,3,4,
+                      5,6,7), nrow=3, byrow=TRUE),widths=c(1,1,1),heights=c(0.75,1.25,1.25))
+# genome-wide
+par(oma=c(1,1,1,1),mar=c(1,2,0.5,1))
+sweed.plot<-fst.plot(sweed,fst.name = "Likelihood", bp.name = "Position",chrom.name = "Chrom", 
+                    scaffs.to.plot=plot.scaffs,scaffold.widths = bounds,pch=19,
+                    pt.cex=1,axis.size=0,y.lim=c(0,15))
+axis(2,pos=-5000000,las=1,at=c(0,15),ylim=c(0,15),cex.axis=1.5)
+mtext("CLR",2,line=1.5)
+labs<-tapply(sweed$plot.pos,sweed$Chrom,median)
+text(x=labs[lgs],y=-1.75,labels=lgn,xpd=TRUE,cex=1.5)
+abline(h=quantile(sweed.plot$Likelihood,0.99),lty=2,col="cornflowerblue",lwd=2)
+
+# add each chrom with outliers
+for(i in 1:length(chroms2plot)){
+  this.df<-fwsw[fwsw$Chr %in% chroms2plot[i],]
+  this.xlim<-xlims[[as.character(chroms2plot[i])]]
+  plot(this.df$BP,this.df$Corrected.AMOVA.Fst, xlim=this.xlim,ylim=c(-0.2,0.5),axes=F,ylab="",xlab="",type='n')
+  xmin<-this.xlim[1]#min(pi.plot$Pos[pi.plot$Chrom%in%chroms2plot[i]])
+  xmax<-this.xlim[2]#max(pi.plot$Pos[pi.plot$Chrom%in%chroms2plot[i]])
+  
+  #the shared peaks
+  p<-lapply(shared.upp$Pos[shared.upp$Chrom %in% chroms2plot[i]],
+         function(pos){
+           points(y=c(-0.2,0.5),x=c(pos,pos),
+                  type="l",col=alpha("#f1b6da",0.75),cex=2,lwd=4)
+         })
+  
+  points(y=rep(c(-0.2,0.5),length(shared.upp$plot.pos[shared.upp$Chrom %in% chroms2plot[i]])),
+         x=c(shared.upp$plot.pos[shared.upp$Chrom %in% chroms2plot[i]],
+             shared.upp$plot.pos[shared.upp$Chrom %in% chroms2plot[i]]),
+         type="l",col=alpha("#f1b6da",0.75),cex=2,lwd=4)
+  #putative gene regions
+  g<-genes2plot[genes2plot$Chrom %in% chroms2plot[i] & 
+                  genes2plot$StartBP >= xmin & genes2plot$StartBP <= xmax,]
+  a<-put.reg[put.reg$Chrom %in% chroms2plot[i] & !(put.reg$Gene %in% fav.genes),]
+  
+  if(nrow(g) > 0){
+    rect(xleft=as.numeric(g$StartBP),xright=as.numeric(g$StopBP),
+       ybottom=-0.2,ytop=0.44,col="indianred",border="indianred")
+  }
+  
+  #Fst
+  if(fst.points==TRUE){
+    points(this.df$BP,this.df$Corrected.AMOVA.Fst,pch=19,cex=1.5,
+           col=alpha(col=comp.col["Fst"],0.25),bg=alpha(col=comp.col["Fst"],0.25))
+  }
+  #Pi
+  points(pi.bp.smooth[[2]][pi.bp.smooth[[2]][,"chr"]%in% chroms2plot[i],c("pos","smoothed.stats")],
+       type="l",lwd=2,col=comp.col["pi"])
+  upp.low.pts(smooth=pi.bp.smooth[[1]],target=pi.bp.smooth[[2]],chrom=chroms2plot[i],
+              color=comp.col["pi"],stat="Pi",pos.name="Pos")
+  #Het
+  points(ht.bp.smooth[[2]][ht.bp.smooth[[2]][,"chr"]%in% chroms2plot[i],c("pos","smoothed.stats")],
+         type="l",col=comp.col["Het"],lwd=2)
+  upp.low.pts(smooth=ht.bp.smooth[[1]],target=ht.bp.smooth[[2]],chrom=chroms2plot[i],
+              color=comp.col["Het"],stat="Het",pos.name="Pos")
+  
+  #deltad
+  points(dd.bp.smooth[[2]][dd.bp.smooth[[2]][,"chr"]%in% chroms2plot[i],c("pos","smoothed.stats")],
+         type="l",col=comp.col["deltad"],lwd=2)
+  upp.low.pts(smooth=dd.bp.smooth[[1]],dd.bp.smooth[[2]],chrom=chroms2plot[i],
+              color=comp.col["deltad"],stat="deltad",pos.name="Pos")
+
+  #Josts D
+  points(jd.bp.smooth[[2]][jd.bp.smooth[[2]][,"chr"]%in% chroms2plot[i],c("pos","smoothed.stats")],
+         type="l",col=comp.col["D"],lwd=2)
+  upp.low.pts(smooth=jd.bp.smooth[[1]],jd.bp.smooth[[2]],chrom=chroms2plot[i],
+              color=comp.col["D"],stat="D",pos.name="Pos")
+  
+  #shared Fst outliers
+  points(this.df$BP[this.df$BP %in% fw.sig.reg$BP],
+         this.df$Corrected.AMOVA.Fst[this.df$BP %in% fw.sig.reg$BP],
+         pch=8,cex=2,col="orchid4",lwd=3)
+  #add text for putative genes
+  if(i == 1){
+    txt.locs<-data.frame(starts=unique(g$StartBP),name=g$Gene[!duplicated(g$StartBP)])
+    txt.locs<-txt.locs[order(txt.locs$starts),]
+    txt.locs[1,"starts"]<-txt.locs[1,"starts"]-500000
+    txt.locs[2,"starts"]<-txt.locs[2,"starts"]+500000
+    text(x=txt.locs$starts,y=0.35,cex=1.5,labels=txt.locs$name,srt=90,xpd=T)  
+  }else if(i==2){
+    txt.locs<-data.frame(starts=unique(g$StartBP),name=g$Gene[!duplicated(g$StartBP)])
+    txt.locs<-txt.locs[order(txt.locs$starts),]
+    txt.locs[3,"starts"]<-mean(txt.locs[3:5,"starts"])
+    txt.locs<-txt.locs[1:3,]
+    text(x=txt.locs$starts,y=0.35,cex=1.5,labels=txt.locs$name,srt=90,xpd=T) 
+  }else if(i==4){
+    txt.locs<-data.frame(starts=unique(g$StartBP),name=g$Gene[!duplicated(g$StartBP)])
+    txt.locs<-txt.locs[order(txt.locs$starts),]
+    txt.locs[1,"starts"]<-txt.locs[1,"starts"]+75000
+    text(x=txt.locs$starts[-4],y=0.35,cex=1.5,labels=txt.locs$name[-4],srt=90,xpd=T)  
+    text(x=txt.locs$starts[4],y=0,cex=1.5,labels=txt.locs$name[4],srt=90,xpd=T)  
+  }else{
+    txt.locs<-data.frame(starts=unique(g$StartBP),name=g$Gene[!duplicated(g$StartBP)])
+    txt.locs<-txt.locs[order(txt.locs$starts),]
+    #txt.locs<-txt.locs[-4,]
+    text(x=txt.locs$starts,y=0.35,cex=1.5,labels=txt.locs$name,srt=90,xpd=T) 
+  }
+  
+  #axes etc
+   axis(1,pos=-0.2,c(xmin,xmax),
+       labels = c(round((xmin/1000000),2),round((xmax/1000000),2)),cex.axis=1.5)
+  axis(2,las=1,hadj=0.75,cex.axis=1.5,pos=xmin,at=c(-0.25,0,0.25,0.5))
+  mtext(chroms2plot[i],1,cex=1.5*0.75,line=1)
+}
+
+# legend
+plot(0, 0, type='n', bty='n', xaxt='n', yaxt='n')
+legend("topleft",xpd=TRUE,
+       legend=c("Putative Gene",
+                expression(Shared~italic(F)[ST]~Outlier),
+                HandPiName, expression(italic(H)),
+                expression(pi),
+                expression("Jost's"~italic(D)),
+                expression(delta~-divergence)),
+       bty='n',pch=c(15,8,15,15,15,15,15),#lwd=c(2,1,4,2,2,0,2,2),lty=c(1,0,1,1,1,0,1,1),
+       pt.cex = 2,cex=1.5,x.intersp = 0.5,y.intersp = 0.75,text.width=0.45,
+       col=c("indianred","orchid4",alpha("#f1b6da",0.75),comp.col[1:2],comp.col[4:5]))
+dev.off()
 ```
 
 <!-- To look for selective sweeps, I'm going to use the FLK R code by Bonhomme et al, downloaded from https://qgsp.jouy.inra.fr/index.php?option=com_content&view=article&id=50&Itemid=55 -->
