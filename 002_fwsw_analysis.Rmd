@@ -253,7 +253,7 @@ For the PopTree2 analysis, I need to convert the vcf file to genepop format. I d
 Or, if that doesn't work,
 ```{r RemoveMissingData,results="hide"}
 ```
-```{r poptree_names}
+```{r poptree_names,results="hide"}
 gpop.name<-"poptree/p4.genepop"
 sub.prefix<-"poptree/p4_"
 vcf<-remove.missing.data(vcf, pop.list)
@@ -365,9 +365,12 @@ fwsw.al<-read.delim("stacks/p4.fst_ALFW-ALST.txt")
 fwsw.fl<-read.delim("stacks/p4.fst_FLCC-FLLG.txt")
 
 ```
-```{r StacksFsts}
+```{r StacksFsts,eval=FALSE}
 ```
-```{r compare2ScovelliGenome,eval=TRUE}
+```{r read_stacksig,echo=FALSE}
+stacks.sig<-read.delim(stacks.sig.out,header=T)
+```
+```{r compare2ScovelliGenome,eval=FALSE}
 ```
 ```{r read_compare}
 fw.sig.reg<-read.csv(annotations.name)
@@ -439,7 +442,7 @@ swsw.fl<-read.delim("stacks/p4.fst_FLCC-FLHB.txt")
 
 ## Diversity statistics
 
-In Figure 6, we show different measures of diversity: pi (nucleotide diversity), heterozygosity, Jost's D, and delta-divergence. Additionally, we include the shared Fst outliers and putative loci, and highlight regions with high `pi` and \italic(H).
+In Figure 6, we show different measures of diversity: nucleotide diversity ($\pi$), heterozygosity (*H*), Jost's D, and $\delta$-divergence. Additionally, we include the shared Fst outliers and putative loci, and highlight regions with high $\pi$ and *H*.
 
 ### Allele Frequency Spectrum
 ```{r calcAFS,eval=FALSE,results="hide"}
@@ -574,7 +577,7 @@ ht.pp.smooth<-smooth.per.chrom(ht,lgs,df.chrom="Chrom",df.bp="plot.pos",df.stat=
 jd.pp.smooth<-smooth.per.chrom(jd,lgs,df.chrom="Chrom",df.bp="plot.pos",df.stat="D",out.name="jd",span=0.1,degree=2) 
 
 ```
-```{r plot_smoothStats}
+```{r plot_smoothStats,eval=FALSE}
 comp.col<-c(Het="#80cdc1",pi="#018571",Fst="black",D="#a6611a",deltad="#dfc27d")
 plot.smooth.stats<-function(df,smooth,stat.name,color,ylabel,...){
   dd<-fst.plot(fst.dat = df,...)
@@ -645,10 +648,13 @@ write.table(all.out,"all_outliers.txt",sep='\t',quote=FALSE,col.names=TRUE,row.n
 ## Use putative genes
 
 Here, I compare the Fst outliers and $\delta$-divergence outliers to putative genes identified from other studies of teleosts adapting to freshwater environments.
-
-```{r gene_files}
+```{r ld_putgenes}
 #putative genes
 put.genes<-read.delim("putative_genes.txt",header=TRUE,sep='\t')
+#ld info
+ld<-read.delim("p4.ld_info_fwsw.txt")
+```
+```{r gff,eval=FALSE}
 #genome annotations
 gff.name<-"ssc_2016_12_20_chromlevel.gff.gz"
 if(length(grep("gz",gff.name))>0){
@@ -657,8 +663,6 @@ if(length(grep("gz",gff.name))>0){
   gff<-read.delim(paste("../../scovelli_genome/",gff.name,sep=""),header=F)
 }
 colnames(gff)<-c("seqname","source","feature","start","end","score","strand","frame","attribute")
-#ld info
-ld<-read.delim("p4.ld_info_fwsw.txt")
 ```
 
 ### Define some functions
@@ -790,7 +794,7 @@ About `r length(counts[counts>0])/length(counts)*100`% of the putative genes hav
 $D'$ was calculated using a custom C++ program (found at https://github.com/spflanagan/SCA/tree/master/programs/pairwise_ld_vcf) using the formula:
 
 $$D' = \sum_{i=1}^m\sum_{j=1}^n \frac{p_iq_j|D_{ij}|}{D_{max}},$$
-where $m$ is the number of alleles at locus and $n$ is the number of alleles at locus B. $D_{ij}$ was calculated as $f_{ij}-p_iq_j$, where $f_{ij}$ is the frequency of the $A_iB_j$ haplotype, $p_i$ is the frequency of allele $i$, and $q_j$ is the frequency of allele $j$. $D_{max}$ is the lesser of $p_iq_j$ or $(1-p_i)(1-q_j)$ when $D_{ij} \lt 0$ and is the minimum of $(1-p_i)q_i$ or $p_i(1-q_i)$ when $D_{ij} \gt 0$.
+where $m$ is the number of alleles at locus and $n$ is the number of alleles at locus B. $D_{ij}$ was calculated as $f_{ij}-p_iq_j$, where $f_{ij}$ is the frequency of the $A_iB_j$ haplotype, $p_i$ is the frequency of allele $i$, and $q_j$ is the frequency of allele $j$. $D_{max}$ is the lesser of $p_iq_j$ or $(1-p_i)(1-q_j)$ when $D_{ij}$ < 0 and is the minimum of (1 - $p_{i}$)$q_{i}$ or $p_i(1-q_i)$ when $D_{ij} \gt 0$.
 
 In the data.frame `ld`, the locus IDs (`LocIDA` and `LocIDB`) are the positions on the chromosome.
 
@@ -923,21 +927,21 @@ for(i in 1:length(lgs)){
 }
 ```
 
-Are outliers in putative gene regions?
+### FST outliers in putative gene regions
 
 ```{r fst_compare}
 fw.sig.reg<-read.csv("p4.StacksFWSWOutliers_annotatedByGenome.csv")
 all.put.ssc<-as.character(put.reg$Scovelli_geneID)
 all.put.ssc<-unlist(lapply(all.put.ssc,strsplit,","))
 sig.put.match<-all.put.ssc[all.put.ssc %in% fw.sig.reg$SSCID]
-print(dim(sig.put.match))
 
 #or use the functions
 fw.sig.reg$SNP<-paste(fw.sig.reg$Chr,as.character(fw.sig.reg$BP),sep=".")
 stacks.in<-outlier.in.region(fw.sig.reg,put.reg,oChrom="Chr")
+put.reg$fst.in<-as.character(stacks.in)
 ```
 
-Of the `r nrow(fw.sig.reg)` shared outlier SNPs, `r nrow(fw.sig.reg[!is.na(fw.sig.reg$SSCID),])` are in coding regions of the genome. However, `r length(stacks.in[stacks.in!="NA"])` shared outliers are in putative gene regions.
+Of the `r nrow(fw.sig.reg)` shared outlier SNPs, `r nrow(fw.sig.reg[!is.na(fw.sig.reg$SSCID),])` are in coding regions of the genome. However, `r length(stacks.in[stacks.in!="NA"])` shared outliers are in putative gene regions, namely `r put.reg[put.reg$fst.in !="NA","Gene"]`
 
 No, they don't overlap. Maybe they're in the same LD region?
 
@@ -1054,17 +1058,17 @@ So `r length(jost.in[jost.in!="NA"])` loci are located within putative freshwate
 
 ### Combining all of those analyses
 
-*Genes containing shared Fst outliers: `r unique(put.reg[put.reg$rad.loci != "NA","Gene"])`
+*Genes containing shared Fst outliers: `r unique(put.reg[put.reg$fst.in != "NA",c("Gene","Chrom")])`
 
-*Genes containing $\delta$ -divergence outliers: `r unique(put.reg[put.reg$sdd.in != "NA","Gene"])`
+*Genes containing $\delta$ -divergence outliers: `r unique(put.reg[put.reg$sdd.in != "NA",c("Gene","Chrom")])`
 
-*Genes containing Salinity-associated outliers: `r unique(put.reg[put.reg$bfs.in != "NA","Gene"])`
+*Genes containing Salinity-associated outliers: `r unique(put.reg[put.reg$bfs.in != "NA",c("Gene","Chrom")])`
 
-*Genes containing Jost D outliers: `r unique(put.reg[put.reg$jostd.in !="NA", "Gene"])`
+*Genes containing Jost D outliers: `r unique(put.reg[put.reg$jostd.in !="NA",c("Gene","Chrom")])`
 
-*Overlap: `r unique(put.reg[put.reg$rad.loci != "NA","Gene"])[unique(put.reg[put.reg$rad.loci != "NA","Gene"]) %in% unique(put.reg[put.reg$sdd.in != "NA","Gene"]) &unique(put.reg[put.reg$rad.loci != "NA","Gene"]) %in% unique(put.reg[put.reg$bfs.in != "NA","Gene"])]`
+*Overlap: `r unique(put.reg[put.reg$fst.in != "NA","Gene"])[unique(put.reg[put.reg$fst.in != "NA","Gene"]) %in% unique(put.reg[put.reg$sdd.in != "NA","Gene"]) &unique(put.reg[put.reg$fst.in != "NA","Gene"]) %in% unique(put.reg[put.reg$bfs.in != "NA","Gene"])]`
 
-*Divergence analyses: `r unique(put.reg[put.reg$rad.loci != "NA","Gene"])[unique(put.reg[put.reg$rad.loci != "NA","Gene"]) %in% unique(put.reg[put.reg$sdd.in != "NA","Gene"]) &unique(put.reg[put.reg$rad.loci != "NA","Gene"]) %in% unique(put.reg[put.reg$jostd.in != "NA","Gene"])]` 
+*Divergence analyses: `r unique(put.reg[put.reg$fst.in != "NA","Gene"])[unique(put.reg[put.reg$fst.in != "NA","Gene"]) %in% unique(put.reg[put.reg$sdd.in != "NA","Gene"]) &unique(put.reg[put.reg$fst.in != "NA","Gene"]) %in% unique(put.reg[put.reg$jostd.in != "NA","Gene"])]` 
 
 *Near divergence analyses: `r unique(put.reg[put.reg$nearby.rad != "NA","Gene"])[unique(put.reg[put.reg$nearby.rad != "NA","Gene"]) %in% unique(put.reg[put.reg$sdd.nb != "NA","Gene"]) &unique(put.reg[put.reg$nearby.rad != "NA","Gene"]) %in% unique(put.reg[put.reg$jostd.in!= "NA","Gene"])]` 
 
@@ -1245,12 +1249,12 @@ sweed<-do.call(rbind,lapply(sweed.files,function(file){
   return(swlg)
 }))
 
-#or try this
+#try this
 sweed.plot<-fst.plot(sweed,fst.name = "Likelihood", bp.name = "Position",chrom.name = "Chrom", 
                     scaffs.to.plot=plot.scaffs,scaffold.widths = bounds,pch=19,
                     pt.cex=1,axis.size=0)
 axis(2,pos=-5000000,las=1)
-labs<-tapply(sweed$plot.pos,sweed$Chrom,median)
+labs<-tapply(sweed.plot$plot.pos,sweed.plot$Chrom,median)
 text(x=labs[lgs],y=-.5,labels=lgn,xpd=TRUE)
 abline(h=quantile(sweed.plot$Likelihood,0.99),lty=2,col="cornflowerblue",lwd=2)
 
@@ -1262,13 +1266,15 @@ There are `r nrow(sweed[sweed$Likelihood>=quantile(sweed$Likelihood,0.99),])` of
 
 ```{r sweed_outliers}
 sweed.out<-sweed[sweed$Likelihood >= quantile(sweed$Likelihood,0.99),]
+#need to add a snp for these to work
+sweed.out$SNP<-paste(sweed.out$Chrom,sweed.out$Position,sep=".")
 sweed.in<-outlier.in.region(sweed.out,put.reg,oBP = "Position",oChrom = "Chrom")
 sweed.nb<-outlier.nearby(sweed.out,put.reg,chrom.ld,oBP = "Position",oChrom="Chrom")
 ```
 
 `r length(sweed.in[sweed.in!="NA"])` genes contain SweeD outliers and `r length(sweed.nb[sweed.nb!="NA"])` genes are within the LD distance of the SweeD estimators. However, this is likely because the SweeD likelihood estimates are fairly spread out. So let's plot those five chromosomes.
 
-```{r sweed_plotprep}
+```{r sweed_plotprep,eval=FALSE}
 chroms2plot<-unique(sweed.out$Chrom)
 h.pi.name<-"sweed_perchrom.png"
 row.settings<-c(3,2)
@@ -1298,7 +1304,7 @@ genes2plot$StopBP[put.reg$Chrom=="LG10"&put.reg$Gene=="TRIM14"]<-trim14.max
 comp.col<-c(Het="#80cdc1",pi="#018571",Fst="black",D="#a6611a",deltad="#dfc27d")
 HandPiName<-"SweeD outliers"
 ```
-```{r sweed_plotPerchrom}
+```{r sweed_plotPerchrom,eval=FALSE}
 png("Sweed.png",height=6,width=10,res=300,units = "in")
 nf <- layout(matrix(c(1,1,1,
                       2,3,4,
@@ -1422,6 +1428,9 @@ legend("topleft",xpd=TRUE,
        col=c("indianred","orchid4",alpha("#f1b6da",0.75),comp.col[1:2],comp.col[4:5]))
 dev.off()
 ```
+
+![SweeD Plot](fwsw_results/Sweed.png)
+
 
 <!-- To look for selective sweeps, I'm going to use the FLK R code by Bonhomme et al, downloaded from https://qgsp.jouy.inra.fr/index.php?option=com_content&view=article&id=50&Itemid=55 -->
 
@@ -1743,7 +1752,7 @@ outside.legend<-function(...){
 
 ### Plot all genes - for supplement
 
-```{r plot_putative_regions,eval=TRUE}
+```{r plot_putative_regions,eval=FALSE}
 #set up legend parameters
 leg.text<-c(expression(TX~FWSW~italic(F)[ST]),expression(LA~FWSW~italic(F)[ST]),
             expression(AL~FWSW~italic(F)[ST]),expression(FL~FWSW~italic(F)[ST]),
@@ -1808,7 +1817,7 @@ dev.off()
 
 ### Figure 7
 
-```{r making_Fig7}
+```{r making_Fig7,eval=FALSE}
 colors=c(grp.colors[1],grp.colors[2],grp.colors[3],grp.colors[6])
 alphas=c(0.5,0.5,1,0.5)
 ltys=c(1,1,2,1)
@@ -1927,6 +1936,7 @@ chrom<-"LG4"
 pchs<-c(rep(32,6),15,124,124)
 cols<-c(grp.colors[1],grp.colors[2],grp.colors[3],grp.colors[6],
         "#dfc27d","#a6611a","indianred","black","#08519c")
+comp.col<-c(Het="#80cdc1",pi="#018571",Fst="black",D="#a6611a",deltad="#dfc27d")
 ltys=c(1,1,2,1,1,1,0,0,0)
 lwds<-c(rep(2,6),0,0,0)
 
@@ -1956,77 +1966,94 @@ g<-put.reg[put.reg$Chrom %in% chrom,]
   g<-g[,c("Gene","StartBP","StopBP")]
   g<-g[!duplicated(g$StartBP),]
   g<-g[order(g$StartBP),]
-  
+## Model 1
+source("../programs/dmc-master/getMCLE.R")
+dmc.pattern<-"p4LG4_1000000_2_8"
+positions<-readRDS("dmc/selectedRegionPositions_p4LG4.RDS")
+selSite = positions[seq(1, length(positions[positions<12000000]), length.out = 100)]
+sels<-c(1e-4, 1e-3, 0.01, seq(0.02, 0.14, by = 0.01), seq(0.15, 0.3, by = 0.05), 
+                           seq(0.4, 0.6, by = 0.1))
+times = c(0, 5, 25, 50, 100, 500, 1000, 1e4, 1e6)
+migs = c(10^-(seq(5, 1, by = -2)), 0.5, 1)
+Ne<-1000000
+sources<-c(3,5,7,16)
+gs<-c(1/(2*Ne), 10^-(4:1))
+compLikelihood_ind<-readRDS(paste("dmc/compLikelihood_ind_",dmc.pattern,".RDS",sep=""))
+mcle_ind = getMCLEind(compLikelihood_ind, selSite, sels)
+mcle_ind_index<-which(mcle_ind[1]==selSite)
+profileLike_sel_ind = sapply(1: length(sels), function(i) {
+  max(unlist(compLikelihood_ind[[mcle_ind_index]][[i]]))
+})
+
+## Model 3
+compLikelihood_sv<-readRDS(paste("dmc/compLikelihood_sv_",dmc.pattern,".RDS",sep=""))
+mcle_sv<-getMCLEsv_source(compLikelihood_sv, selSite, sels, gs, times, sources)
+mcle_sv_index<-which(mcle_sv[1]==selSite)
+profileLike_sel_sv = sapply(1: length(sels), function(i) {
+  max(unlist(compLikelihood_sv[[mcle_sv_index]][[i]]))
+})
+
+## Model 5
+compLikelihood_mixed_svInd<-readRDS(paste("dmc/compLikelihood_mixed_svInd_",dmc.pattern,".RDS",sep=""))
+mcle_mixed_svInd<-getMCLEmixed(compLikelihood_mixed_svInd, selSite, sels, gs, times, migs[1], sources)
+mcle_mixed_svInd_index<-which(mcle_mixed_svInd[1]==selSite)
+profileLike_sel_mixed_svInd = sapply(1: length(sels), function(i) {
+  max(unlist(compLikelihood_mixed_svInd[[mcle_mixed_svInd_index]][[i]]))
+})
+
 #functions for plotting dmc output
-  calc.max.complike<-function(pattern){
+calc.max.complike<-function(pattern,neutral_name=NA){
   #read in composite likelihood files and calculate max for all proposed selected sites
-  compLikelihood_neutral = readRDS("dmc/compLikelihood_neutral_p4LG4.RDS")
+  if(is.na(neutral_name)){
+    compLikelihood_neutral = readRDS(paste("dmc/compLikelihood_neutral_",dmc.pattern,".RDS",sep=""))
+  }else{
+    compLikelihood_neutral = readRDS(neutral_name)
+  }
+  
   compLikelihood_neutral_site = sapply(1 : length(compLikelihood_neutral), function(i) {
     max(unlist(compLikelihood_neutral[[i]]))
   })
   
   compLikelihood_ind = readRDS(paste("dmc/compLikelihood_ind_",pattern,".RDS",sep=""))
-  compLikelihood_ind_site = sapply(1 : length(selSite), function(i) {
+  compLikelihood_ind_site = sapply(1 : length(compLikelihood_ind), function(i) {
     max(unlist(compLikelihood_ind[[i]]))
   })
   
   compLikelihood_mig = readRDS(paste("dmc/compLikelihood_mig_",pattern,".RDS",sep=""))
-  compLikelihood_mig_site = sapply(1 : length(selSite), function(i) {
+  compLikelihood_mig_site = sapply(1 : length(compLikelihood_mig), function(i) {
     max(unlist(compLikelihood_mig[[i]]))
   })
   
   compLikelihood_sv = readRDS(paste("dmc/compLikelihood_sv_",pattern,".RDS",sep=""))
-  compLikelihood_sv_site = sapply(1 : length(selSite), function(i) {  
+  compLikelihood_sv_site = sapply(1 : length( compLikelihood_sv), function(i) {  
     max(unlist(compLikelihood_sv[[i]]))
   })
   
   compLikelihood_mixed_migInd = readRDS(paste("dmc/compLikelihood_mixed_migInd_",pattern,".RDS",sep=""))
-  compLikelihood_mixed_migInd_site = sapply(1 : length(selSite), function(i) {
+  compLikelihood_mixed_migInd_site = sapply(1 : length(compLikelihood_mixed_migInd), function(i) {
     max(unlist(compLikelihood_mixed_migInd[[i]]))
   })
   
   compLikelihood_mixed_svInd = readRDS(paste("dmc/compLikelihood_mixed_svInd_",pattern,".RDS",sep=""))
-  compLikelihood_mixed_svInd_site = sapply(1 : length(selSite), function(i) {
+  compLikelihood_mixed_svInd_site = sapply(1 : length(compLikelihood_mixed_svInd), function(i) {
     max(unlist(compLikelihood_mixed_svInd[[i]]))
   })
-  return(c(ind=(compLikelihood_ind_site - compLikelihood_neutral_site),
+  return(list(max.likes=c(ind=(compLikelihood_ind_site - compLikelihood_neutral_site),
            mig=(compLikelihood_mig_site - compLikelihood_neutral_site), 
            sv=(compLikelihood_sv_site - compLikelihood_neutral_site),
            migInd=(compLikelihood_mixed_migInd_site - compLikelihood_neutral_site),
-           svInd=(compLikelihood_mixed_svInd_site - compLikelihood_neutral_site)))
+           svInd=(compLikelihood_mixed_svInd_site - compLikelihood_neutral_site)),
+         max.complikes=c(neutral=compLikelihood_neutral,ind=compLikelihood_ind,
+           mig=compLikelihood_mig, 
+           sv=compLikelihood_sv,
+           migInd=compLikelihood_mixed_migInd,
+           svInd=compLikelihood_mixed_svInd)))
 }
 
-plot.complike<-function(pattern,leg=TRUE,lab=TRUE,plot_range = NA){
-  max.likes<-calc.max.complike(pattern)
+plot.complike<-function(pattern,leg=TRUE,lab=TRUE,plot_range = NA,selSite){
   
-  if(is.na(plot_range)){ plot_range = range(max.likes) }
-  
-  if(lab==TRUE){
-    x.lab<-"Proposed position selected site"
-    y.lab<-"Composite log-likelihood (model - neutral)"
-  } else{
-    x.lab<-y.lab<-""
-  }
-  
-  plot(selSite, max.likes[grep("ind",names(max.likes))], type = "b",
-       ylim = c(plot_range[1] - 50, plot_range[2] + 50),
-       xlab = x.lab,
-       ylab = y.lab)
-  lines(selSite, max.likes[grep("mig\\d+",names(max.likes))], col = "red",
-        type = "b")
-  lines(selSite, max.likes[grep("sv\\d+",names(max.likes))], col = "blue",
-        type = "b")
-  lines(selSite, max.likes[grep("migInd",names(max.likes))],
-        col = "orange", lty = 2, type = "b")
-  lines(selSite, max.likes[grep("svInd",names(max.likes))],
-        col = "green", lty = 2, type = "b")
-  legend("top",bty='n',legend = pattern)
-  if(isTRUE(leg)){
-    legend("topright", col = c("black", "red", "blue", "orange", "green"),
-           lty = c(rep(1, 3), rep(2, 2)), sapply(1 : 5, function(i) paste("Model", i)))
-  }
-  return(list(max.likes,pattern))
 }
+
 ```
 ```{r plot_lg4}
 png("LG4.png",width=10,height=7,units="in",res=300)
@@ -2036,7 +2063,7 @@ nf <- layout(matrix(c(1,1,1,1,
                       3,3,3,3), nrow=3, byrow=TRUE))
 
 ### Plot all of LG4
-par(oma=c(2.5,3,2,1),mar=c(1.5,1,2,1))
+par(oma=c(2.5,5,2,1),mar=c(1.5,1,2,1))
 plot(fst.dfs[[1]]$BP[fst.dfs[[1]]$Chr %in% chrom],
      fst.dfs[[1]]$Smoothed.AMOVA.Fst[fst.dfs[[1]]$Chr %in% chrom],
      type='n',ylim=c(0,1),bty="L",xlab="",ylab="",xaxt='n',yaxt='n')
@@ -2051,15 +2078,15 @@ plot(fst.dfs[[1]]$BP[fst.dfs[[1]]$Chr %in% chrom],
   }
   #add delta-d and Jost's D
   #Pi
-  points(pi.bp.smooth[[2]][pi.bp.smooth[[2]][,"chr"]%in% chrom,c("pos","smoothed.stats")],
-       type="l",lwd=2,col=comp.col["pi"])
-  upp.low.pts(smooth=pi.bp.smooth[[1]],target=pi.bp.smooth[[2]],
-              chrom=chrom,color=comp.col["pi"],stat="Pi",pos.name="Pos",cex=1.75)
+#  points(pi.bp.smooth[[2]][pi.bp.smooth[[2]][,"chr"]%in% chrom,c("pos","smoothed.stats")],
+#       type="l",lwd=2,col=comp.col["pi"])
+#  upp.low.pts(smooth=pi.bp.smooth[[1]],target=pi.bp.smooth[[2]],
+#              chrom=chrom,color=comp.col["pi"],stat="Pi",pos.name="Pos",cex=1.75)
   #Het
-  points(ht.bp.smooth[[2]][ht.bp.smooth[[2]][,"chr"]%in% chrom,c("pos","smoothed.stats")],
-         type="l",col=comp.col["Het"],lwd=2)
-  upp.low.pts(smooth=ht.bp.smooth[[1]],target=ht.bp.smooth[[2]],
-              chrom=chrom,color=comp.col["Het"],stat="Het",pos.name="Pos",cex=1.75)
+ # points(ht.bp.smooth[[2]][ht.bp.smooth[[2]][,"chr"]%in% chrom,c("pos","smoothed.stats")],
+#         type="l",col=comp.col["Het"],lwd=2)
+ # upp.low.pts(smooth=ht.bp.smooth[[1]],target=ht.bp.smooth[[2]],
+#              chrom=chrom,color=comp.col["Het"],stat="Het",pos.name="Pos",cex=1.75)
   
   #deltad
   points(dd.bp.smooth[[2]][dd.bp.smooth[[2]][,"chr"]%in% chrom,c("pos","smoothed.stats")],
@@ -2102,8 +2129,7 @@ plot(set[["LG4"]]@interpolations$slidingwindow@physicalPositions,
 abline(h=0,lty=2)
 axis(2,cex.axis=1.75,las=1)
 axis(1,at=seq(0,1.8*10^7,3*10^6),labels = seq(0,18,3),cex.axis=1.75)
-mtext("Position on LG4 (Mb)",1,line=2.2,cex=1.5*0.75)
-mtext("Recombination Rate (cM/Mb)",2,line=2.5,cex=1.5*0.75)
+mtext("Recombination Rate\n(cM/Mb)",2,line=3,cex=1.5*0.75)
 lines(set[["LG4"]]@interpolations$spline@physicalPositions,
       set[["LG4"]]@interpolations$spline@rates,type="l",col=rec.cols[2],lwd=2)
 lines(set[["LG4"]]@interpolations$loess@physicalPositions,
@@ -2112,12 +2138,30 @@ legend("topleft",bty='n',col=rec.cols,
        lwd=2,c("Sliding Window","Spline","Loess"),cex=1.5)
 
 ### Plot dmc results
-positions<-readRDS("dmc/selectedRegionPositions_p4LG4.RDS")
-selSite = positions[seq(1, length(positions[positions<10000000]), length.out = 100)]
-sels = c(9e-4,7.5e-4,5e-4, 2.5e-4,1e-4,1e-3, 0.01, 
-         seq(0.02, 0.14, by = 0.01), seq(0.15, 0.3, by = 0.05))
-max.complikes.sel<-plot.complike("p4LG4_100000_2_9_forReal",
-                                 plot_range=range(fst.dfs[[1]]$BP[fst.dfs[[1]]$Chr %in% chrom]))
+max.complikes<-calc.max.complike(dmc.pattern)
+max.likes<-max.complikes[[1]]
+plot_range = range(max.likes)
+plot(selSite, max.likes[grep("ind",names(max.likes))], type = "b",bty="l",
+       ylim = c(plot_range[1] - 50, plot_range[2] + 50),
+     xlim=range(fst.dfs[[1]]$BP[fst.dfs[[1]]$Chr %in% chrom]),
+     xlab = "x.lab",ylab = "",cex=2,las=1,cex.axis=1.75,xaxt='n')
+axis(1,at=seq(0,1.8*10^7,3*10^6),labels = seq(0,18,3),cex.axis=1.75)
+lines(selSite, max.likes[grep("mig\\d+",names(max.likes))],cex=2, col = "#d7191c",#red
+        type = "b")
+lines(selSite, max.likes[grep("sv\\d+",names(max.likes))],cex=2, col = "#2b83ba",#blue
+        type = "b")
+lines(selSite, max.likes[grep("migInd",names(max.likes))],cex=2,#orange
+        col = "#fdae61", lty = 2, type = "b")
+lines(selSite, max.likes[grep("svInd",names(max.likes))],cex=2,#green
+        col = "#abdda4", lty = 2, type = "b")
+legend("topright", col = c("black", "#d7191c", "#2b83ba", "#fdae61", "#abdda4"),
+           lty = c(rep(1, 3), rep(2, 2)), sapply(1 : 5, function(i) paste("Model", i)),
+       bty='n',cex=1.5,lwd=2)
+mtext("Composite Log Likelihood",2,line=3.75,cex=1.5*0.75)
+mtext("Position on LG4 (Mb)",1,line=2.2,cex=1.5*0.75)
+abline(v=mcle_ind[1],lty=2,lwd=2,col="black",xpd=FALSE)
+abline(v=mcle_sv[1],lty=2,lwd=2,col="#2b83ba",xpd=FALSE)
+abline(v=mcle_mixed_svInd[1],lty=2,lwd=2,col="#abdda4",xpd=FALSE)
   
 ### add legend
 #create the legend text, and parameters

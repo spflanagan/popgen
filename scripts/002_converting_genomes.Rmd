@@ -198,7 +198,7 @@ comp.mb
 
 Great, this worked! `r nrow(comp.mb[comp.mb$converted <= comp.mb$Genome,])` of the `r length(lgs)` chromosomes now have positions that fit on the genome's chromosomes. Yay!
 
-### Create new fiels with the updated ones
+### Create new files with the updated ones
 
 Now, I just need to replace these in the vcf and map files and re-run most of the analyses.
 

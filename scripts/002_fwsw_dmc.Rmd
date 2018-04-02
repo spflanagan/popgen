@@ -81,9 +81,9 @@ numPops<-16
 
 #calculate the neutral F matrix
 saveRDS(sampleSizes,"dmc/sampleSizes.RDS")
-neutralF_filename<-"dmc/neutralF_p4LG4"
+neutralF_filename<-"dmc/neutralF_p4LG4_50" #for 50 positions
 source("../programs/dmc-master/calcNeutralF.R")
-F_estimate<-readRDS("dmc/neutralF_p4LG4.RDS")
+F_estimate<-readRDS("dmc/neutralF_p4LG4_50.RDS")
 
 #calculate the determinant and inverse of the neutral F matrix
 M <- numPops
@@ -91,10 +91,32 @@ Tmatrix <- matrix(data = rep(-1 / M, (M - 1) * M), nrow = M - 1, ncol = M)
 diag(Tmatrix) = (M - 1) / M 
 sampleErrorMatrix = diag(1/sampleSizes, nrow = numPops, ncol = numPops)
 det_FOmegas_neutral = det(Tmatrix %*% (F_estimate + sampleErrorMatrix) %*% t(Tmatrix))
-saveRDS(det_FOmegas_neutral, "dmc/det_FOmegas_neutral_p4LG4.RDS")
+saveRDS(det_FOmegas_neutral, "dmc/det_FOmegas_neutral_p4LG4_50.RDS")
 
 inv_FOmegas_neutral = ginv(Tmatrix %*% (F_estimate + sampleErrorMatrix) %*% t(Tmatrix))
-saveRDS(inv_FOmegas_neutral, "dmc/inv_FOmegas_neutral_p4LG4.RDS")
+saveRDS(inv_FOmegas_neutral, "dmc/inv_FOmegas_neutral_p4LG4_50.RDS")
+
+```
+
+```{r calc_neutralF_100, eval=FALSE}
+selSite = positions[seq(1, length(positions[positions<12000000]), length.out = 100)]
+allFreqs<-readRDS("dmc/neutralAlleleFreqs_p4LG4.RDS")
+#calculate the neutral F matrix
+sampleSizes<-readRDS("dmc/sampleSizes.RDS")
+neutralF_filename<-"dmc/neutralF_p4LG4_100" #for 50 positions
+source("../programs/dmc-master/calcNeutralF.R")
+F_estimate<-readRDS("dmc/neutralF_p4LG4_100.RDS")
+
+#calculate the determinant and inverse of the neutral F matrix
+M <- numPops
+Tmatrix <- matrix(data = rep(-1 / M, (M - 1) * M), nrow = M - 1, ncol = M)
+diag(Tmatrix) = (M - 1) / M 
+sampleErrorMatrix = diag(1/sampleSizes, nrow = numPops, ncol = numPops)
+det_FOmegas_neutral = det(Tmatrix %*% (F_estimate + sampleErrorMatrix) %*% t(Tmatrix))
+saveRDS(det_FOmegas_neutral, "dmc/det_FOmegas_neutral_p4LG4_100.RDS")
+
+inv_FOmegas_neutral = ginv(Tmatrix %*% (F_estimate + sampleErrorMatrix) %*% t(Tmatrix))
+saveRDS(inv_FOmegas_neutral, "dmc/inv_FOmegas_neutral_p4LG4_100.RDS")
 
 ```
 
@@ -185,6 +207,9 @@ r<-data.frame(Genome_wide=c(mean(ssc.map$slidingwindow,na.rm = TRUE)/1000000,
               LG4_first12Mb=c(mean(ssc.map$slidingwindow[ssc.map$map=="LG4" & ssc.map$phys<12*10^6],na.rm = TRUE)/1000000,
                             mean(ssc.map$spline[ssc.map$map=="LG4"& ssc.map$phys<12*10^6],na.rm = TRUE)/1000000,
                             mean(ssc.map$loess[ssc.map$map=="LG4"& ssc.map$phys<12*10^6],na.rm = TRUE)/1000000),
+              LG4_first10Mb=c(mean(ssc.map$slidingwindow[ssc.map$map=="LG4" & ssc.map$phys<10*10^6],na.rm = TRUE)/1000000,
+                            mean(ssc.map$spline[ssc.map$map=="LG4"& ssc.map$phys<10*10^6],na.rm = TRUE)/1000000,
+                            mean(ssc.map$loess[ssc.map$map=="LG4"& ssc.map$phys<10*10^6],na.rm = TRUE)/1000000),
               row.names = c("Sliding Window","Spline","Loess"))
 kable(r,caption="Recombination rate estimates")
 ```
@@ -211,47 +236,57 @@ legend("topleft",bty='n',col=c("black","blue","forestgreen"),lwd=2,c("Sliding Wi
 ### Plot maximum composite likelihood ratios for models over proposed selected sites
 
 ```{r plot_likelihoods_fxns}
-calc.max.complike<-function(pattern){
+calc.max.complike<-function(pattern,neutral_name=NA){
   #read in composite likelihood files and calculate max for all proposed selected sites
-  compLikelihood_neutral = readRDS("dmc/compLikelihood_neutral_p4LG4.RDS")
+  if(is.na(neutral_name)){
+    compLikelihood_neutral = readRDS(paste("dmc/compLikelihood_neutral_",pattern,".RDS",sep=""))
+  }else{
+    compLikelihood_neutral = readRDS(neutral_name)
+  }
+  
   compLikelihood_neutral_site = sapply(1 : length(compLikelihood_neutral), function(i) {
     max(unlist(compLikelihood_neutral[[i]]))
   })
   
   compLikelihood_ind = readRDS(paste("dmc/compLikelihood_ind_",pattern,".RDS",sep=""))
-  compLikelihood_ind_site = sapply(1 : length(selSite), function(i) {
+  compLikelihood_ind_site = sapply(1 : length(compLikelihood_ind), function(i) {
     max(unlist(compLikelihood_ind[[i]]))
   })
   
   compLikelihood_mig = readRDS(paste("dmc/compLikelihood_mig_",pattern,".RDS",sep=""))
-  compLikelihood_mig_site = sapply(1 : length(selSite), function(i) {
+  compLikelihood_mig_site = sapply(1 : length(compLikelihood_mig), function(i) {
     max(unlist(compLikelihood_mig[[i]]))
   })
   
   compLikelihood_sv = readRDS(paste("dmc/compLikelihood_sv_",pattern,".RDS",sep=""))
-  compLikelihood_sv_site = sapply(1 : length(selSite), function(i) {  
+  compLikelihood_sv_site = sapply(1 : length( compLikelihood_sv), function(i) {  
     max(unlist(compLikelihood_sv[[i]]))
   })
   
   compLikelihood_mixed_migInd = readRDS(paste("dmc/compLikelihood_mixed_migInd_",pattern,".RDS",sep=""))
-  compLikelihood_mixed_migInd_site = sapply(1 : length(selSite), function(i) {
+  compLikelihood_mixed_migInd_site = sapply(1 : length(compLikelihood_mixed_migInd), function(i) {
     max(unlist(compLikelihood_mixed_migInd[[i]]))
   })
   
   compLikelihood_mixed_svInd = readRDS(paste("dmc/compLikelihood_mixed_svInd_",pattern,".RDS",sep=""))
-  compLikelihood_mixed_svInd_site = sapply(1 : length(selSite), function(i) {
+  compLikelihood_mixed_svInd_site = sapply(1 : length(compLikelihood_mixed_svInd), function(i) {
     max(unlist(compLikelihood_mixed_svInd[[i]]))
   })
-  return(c(ind=(compLikelihood_ind_site - compLikelihood_neutral_site),
+  return(list(max.likes=c(ind=(compLikelihood_ind_site - compLikelihood_neutral_site),
            mig=(compLikelihood_mig_site - compLikelihood_neutral_site), 
            sv=(compLikelihood_sv_site - compLikelihood_neutral_site),
            migInd=(compLikelihood_mixed_migInd_site - compLikelihood_neutral_site),
-           svInd=(compLikelihood_mixed_svInd_site - compLikelihood_neutral_site)))
+           svInd=(compLikelihood_mixed_svInd_site - compLikelihood_neutral_site)),
+         max.complikes=c(neutral=compLikelihood_neutral,ind=compLikelihood_ind,
+           mig=compLikelihood_mig, 
+           sv=compLikelihood_sv,
+           migInd=compLikelihood_mixed_migInd,
+           svInd=compLikelihood_mixed_svInd)))
 }
 
-plot.complike<-function(pattern,leg=TRUE,lab=TRUE){
-  max.likes<-calc.max.complike(pattern)
-  
+plot.complike<-function(pattern,selSite,leg=TRUE,lab=TRUE){
+  max.complikes<-calc.max.complike(pattern)
+  max.likes<-max.complikes[[1]]
   plot_range = range(max.likes)
   
   if(lab==TRUE){
@@ -278,7 +313,7 @@ plot.complike<-function(pattern,leg=TRUE,lab=TRUE){
     legend("topright", col = c("black", "red", "blue", "orange", "green"),
            lty = c(rep(1, 3), rep(2, 2)), sapply(1 : 5, function(i) paste("Model", i)))
   }
-  return(list(max.likes,pattern))
+  return(list(max.complikes[[2]],max.likes,pattern))
 }
 
 ```
@@ -288,8 +323,9 @@ patterns<-c("p4LG4_8300_2_8","p4LG4_83000_2_8","p4LG4_830000_2_8","p4LG4_8300000
             "p4LG4_8300_2_7","p4LG4_83000_2_7","p4LG4_830000_2_7","p4LG4_8300000_2_7",
             "p4LG4_8300_6_6","p4LG4_83000_6_6","p4LG4_830000_6_6","p4LG4_8300000_6_6",
             "p4LG4_8300_5_6","p4LG4_83000_5_6","p4LG4_830000_5_6","p4LG4_8300000_5_6")
+selSite = positions[seq(1, length(positions), length.out = 50)]
 par(mfrow=c(4,4),mar=c(1.5,1.5,0.5,0.5),oma=c(2,2,2,2))
-ne.complikes<-lapply(patterns,plot.complike,leg=FALSE,lab=FALSE)
+ne.complikes<-lapply(patterns,plot.complike,leg=FALSE,lab=FALSE,selSite=selSite)
 mtext("Position on LG4",1,outer=TRUE,cex=0.8,line=.5)
 mtext("Composite log likelihood (model - neutral)",2,outer=T,cex=0.8,line=.5)
 par(fig=c(0,1,0,1),oma=c(0,0,0,0),mar=c(0,0,0,0),new=TRUE)
@@ -336,13 +372,14 @@ get.mcle<-function(max.complikes,Ne,rec,selSite= positions[seq(1, length(positio
 
 ```{r get_mcle}
 rs<-c("2_8"=2.17*10^-8,"2_7"=2*10^-7,"6_6"=6*10^-6,"5_6"=5.6*10^-6)
-ne.mcles<-lapply(ne.complikes, function(max.complikes){
-  pattern<-max.complikes[[2]]
+ne.mcles<-lapply(ne.complikes, function(m.complikes){
+  pattern<-m.complikes[[3]]
+  print(pattern)
   Ne<-as.numeric(gsub("p4LG4_(\\d+)_.*","\\1",pattern))
   r<-gsub("p4LG4_\\d+_(\\d_\\d)","\\1",pattern)
   rec<-rs[r]
-  max.complikes<-max.complikes[[1]]
-  mcle<-get.mcle(max.complikes,Ne=Ne,rec=rec)
+  max.comp<-m.complikes[[1]]
+  mcle<-get.mcle(max.comp,Ne=Ne,rec=rec)
   return(list(mcle,Ne,rec))
 })
 names(ne.mcles)<-patterns
@@ -357,11 +394,11 @@ lapply(ne.mcles,function(mcle){ kable(mcle[[1]]) })
 ```{r plot_chosen,eval=TRUE,fig.height=10,fig.width=6,fig.align='H'}
 selSite = positions[seq(1, length(positions[positions<12000000]), length.out = 100)]
 par(mfrow=c(2,1),oma=c(2,2,2,2),mar=c(2,2,2,2))
-max.complikes1<-plot.complike("p4LG4_100000_2_8",leg=FALSE)
-max.complikes2<-plot.complike("p4LG4_1000000_2_8",leg=FALSE)
-mcle1<-get.mcle(max.complikes1[[1]],Ne=100000,rec=2*10^-8)
+max.complikes1<-plot.complike("p4LG4_100000_2_8",leg=FALSE,selSite = selSite)
+max.complikes2<-plot.complike("p4LG4_1000000_2_8",leg=FALSE,selSite = selSite)
+mcle1<-get.mcle(max.complikes1[[1]],Ne=100000,rec=2*10^-8,selSite = selSite)
 kable(mcle1)
-mcle2<-get.mcle(max.complikes2[[1]],Ne=1000000,rec=2*10^-8)
+mcle2<-get.mcle(max.complikes2[[1]],Ne=1000000,rec=2*10^-8,selSite = selSite)
 kable(mcle2)
 ```
 
@@ -405,8 +442,9 @@ neutral_det_name = "dmc/det_FOmegas_neutral_p4LG4_subset.RDS"
 neutral_inv_name = "dmc/inv_FOmegas_neutral_p4LG4_subset.RDS"
 selSite = positions[seq(1, length(positions[positions<12000000]), length.out = 100)]
 par(mfrow=c(1,1),oma=c(2,2,2,2),mar=c(2,2,2,2))
-max.complikes1<-plot.complike("p4LG4_100000_2_8_sub",leg=TRUE)
-mcle.sub<-get.mcle(max.complikes1[[1]],Ne=100000,rec=2*10^-8)
+max.complikes1<-plot.complike("p4LG4_100000_2_8_sub",leg=TRUE,selSite = selSite)
+mcle.sub<-get.mcle(max.complikes1[[1]],Ne=100000,rec=2*10^-8,
+                   selSite=selSite)
 kable(mcle.sub)
 ```
 
@@ -417,11 +455,11 @@ kable(mcle.sub)
 
 ```{r plot_recomb,eval=TRUE,fig.height=10,fig.width=6,fig.align='H'}
 selSite = positions[seq(1, length(positions), length.out = 50)]
-F_estimate<-readRDS("dmc/neutralF_p4LG4.RDS")
+F_estimate<-readRDS("dmc/neutralF_p4LG4_50.RDS")
 sampleSizes<-readRDS("dmc/sampleSizes.RDS")
 par(mfrow=c(2,1),oma=c(2,2,2,2),mar=c(2,2,2,2))
-max.complikes1<-plot.complike("p4LG4_100000_2_9",leg=FALSE)
-max.complikes2<-plot.complike("p4LG4_100000_2_10",leg=FALSE)
+max.complikes1<-plot.complike("p4LG4_100000_2_9",leg=FALSE,selSite = selSite)
+max.complikes2<-plot.complike("p4LG4_100000_2_10",leg=FALSE,selSite = selSite)
 mcle1<-get.mcle(max.complikes1[[1]],Ne=100000,rec=2*10^-9)
 kable(mcle1)
 mcle2<-get.mcle(max.complikes2[[1]],Ne=100000,rec=2*10^-10)
@@ -437,9 +475,11 @@ kable(mcle2)
 
 ```{r plot_sel,eval=TRUE,fig.height=6,fig.width=6,fig.align='H'}
 sels = c(9e-4,7.5e-4,5e-4, 2.5e-4,1e-4)
+selSite = positions[seq(1, length(positions[positions<12000000]), length.out = 50)]
+F_estimate<-readRDS("dmc/neutralF_p4LG4_50.RDS")
 par(mfrow=c(1,1),oma=c(2,2,2,2),mar=c(2,2,2,2))
-max.complikes.sel<-plot.complike("p4LG4_100000_2_9_sels",leg=FALSE)
-mcle.sel<-get.mcle(max.complikes.sel[[1]],Ne=100000,rec=2*10^-9)
+max.complikes.sel<-plot.complike("p4LG4_100000_2_9_sels",leg=FALSE,selSite = selSite)
+mcle.sel<-get.mcle(max.complikes.sel[[1]],Ne=100000,rec=2*10^-9,sels=sels)
 kable(mcle.sel)
 
 ```
@@ -453,26 +493,127 @@ Using recombination rate of 2e-9, Ne= 100000, with a wider range of selection va
 
 ```{r plot_final,eval=TRUE,fig.height=6,fig.width=6,fig.align='H'}
 selSite = positions[seq(1, length(positions[positions<10000000]), length.out = 100)]
-sels = c(9e-4,7.5e-4,5e-4, 2.5e-4,1e-4,1e-3, 0.01, 
-         seq(0.02, 0.14, by = 0.01), seq(0.15, 0.3, by = 0.05))
-par(mfrow=c(1,1),oma=c(2,2,2,2),mar=c(2,2,2,2))
-max.complikes<-plot.complike("p4LG4_100000_2_9_forReal",leg=FALSE)
-mcle<-get.mcle(max.complikes[[1]],Ne=100000,rec=2*10^-9)
+F_estimate<-readRDS("dmc/neutralF_p4LG4_100_10MB.RDS")
+    sels = c(1e-4, 1e-3, 0.01, seq(0.02, 0.14, by = 0.01), seq(0.15, 0.3, by = 0.05), 
+             seq(0.4, 0.6, by = 0.1))
+    par(mfrow=c(1,1),oma=c(2,2,2,2),mar=c(2,2,2,2))
+max.complikes<-plot.complike("p4LG4_100000_2_9_forReal",leg=FALSE,selSite = selSite)
+mcle<-get.mcle(max.complikes[[1]],Ne=100000,rec=2*10^-9,sels=sels,selSite=selSite)
 kable(mcle)
 
 ```
 
-<!-- ### Plot profile likelihood surfaces -->
+## Plot profile likelihood surfaces
 
-<!-- Plot the profile likelihood surfaces for the parameter of time the beneficial allele has been standing independently in the selected populations for the models with the highest composite log-likelihoods. -->
+Plot the profile likelihood surfaces for Models 3 and 5, where standing variation is present in all or one population, which have the highest composite log-likelihoods. 
 
-<!-- ## Finding prolactin -->
+```{r plot_likeProfile,eval=TRUE,fig.height=10,fig.width=6,fig.align='H'}
+selSite = positions[seq(1, length(positions[positions<10000000]), length.out = 100)]
+gs<-c(1/(2*Ne), 10^-(4:1))
+Ne=100000
+rec=2*10^-9
+sources <- c(3,5,7,16)
+times = c(0, 5, 25, 50, 100, 500, 1000, 1e4, 1e6)
+migs = c(10^-(seq(5, 1, by = -2)), 0.5, 1)
+    sels = c(1e-4, 1e-3, 0.01, seq(0.02, 0.14, by = 0.01), seq(0.15, 0.3, by = 0.05), 
+             seq(0.4, 0.6, by = 0.1))
+par(mfrow=c(2,1),oma=c(2,2,2,2),mar=c(2,2,2,2))
+## Model 3
+compLikelihood_sv<-readRDS("dmc/compLikelihood_sv_p4LG4_100000_2_9_forReal.RDS")
+names(compLikelihood_sv)<-selSite
+compLikelihood_sv_site = sapply(1 : length(selSite), function(i) {  
+  max(unlist(compLikelihood_sv[[i]]))
+})
+mcle_sv = getMCLEsv_source(compLikelihood_sv,selSite, sels, gs, times, sources)
+mcle_sv_index<-which(mcle_sv[1]==selSite)
+compLike_sv_byTime = lapply(1 : length(times), function(time) {
+  sapply(1: length(sels), function(sel) {
+    sapply(1 : length(gs), function(g) {
+      compLikelihood_sv[[mcle_sv_index]][[sel]][[g]][[time]]
+    })
+  })
+})
 
-<!-- ```{r pinpoint_prl,echo=FALSE,eval=FALSE} -->
-<!-- #generate position data near prolactin -->
+profileLike_time_sv = sapply(1: length(compLike_sv_byTime), function(i) {
+  max(unlist(compLike_sv_byTime[[i]]))
+})
 
-<!-- put.reg<-read.delim("putative.gene.regions.tsv",header=T) -->
-<!-- prl<-put.reg[put.reg$Gene=="PRL" & put.reg$Chrom=="LG4",] -->
-<!-- prl.loc<-as.numeric(prl$StartBP[2])+((as.numeric(prl$StopBP[2])-as.numeric(prl$StartBP[2]))/2) -->
-<!-- ``` -->
+plot(times, profileLike_time_sv, type = "b", xlab = "Time",
+     ylab = "Profile composite log-likelihood", main = "Figure 2: Model 3")
+abline(v = mcle_sv[4], lty = 2, col = "red")
+
+## Model 5
+compLikelihood_mixed_svInd<-readRDS("dmc/compLikelihood_mixed_svInd_p4LG4_100000_2_9_forReal.RDS")
+mcle_mixed_svInd = getMCLEmixed(compLikelihood_mixed_svInd, selSite, sels,
+                                gs, times, migs[1], sources)
+mcle_mixed_svInd_index<-which(mcle_sv[1]==selSite)
+compLike_mixed_svInd_byTime = lapply(1 : length(times), function(time) {
+  sapply(1: length(sels), function(sel) {
+    sapply(1 : length(gs), function(g) {
+      compLikelihood_mixed_svInd[[mcle_mixed_svInd_index]][[sel]][[g]][[time]]
+    })
+  })
+})
+
+profileLike_time_mixed_svInd = sapply(1: length(compLike_mixed_svInd_byTime), function(i) {
+  max(unlist(compLike_mixed_svInd_byTime[[i]]))
+})
+
+plot(times, profileLike_time_mixed_svInd, type = "b", xlab = "Time",
+     ylab = "Profile composite log-likelihood", main = "Figure 3: Model 5")
+abline(v = mcle_mixed_svInd[4], lty = 2, col = "red")
+```
+
+
+We see little difference in the composite log-likelihoods of models 3 and 5, provides further evidence that independent mutations (or selection very old standing variation) in FLFW generated the patterns observed in the data. The point estimates of MCLE of t are marked by red lines in Figures 2 and 3.
+
+## MCLE for the strength of selection
+
+The best fitting models are 5 (green), 3 (blue), and 1 (black). Models 3 and 5 estimate selection at 0.2 and model 1 estimates it at 0.15. 
+
+```{r mcle_s}
+## Model 1
+compLikelihood_ind<-readRDS("dmc/compLikelihood_ind_p4LG4_100000_2_9_forReal.RDS")
+mcle_ind = getMCLEind(compLikelihood_ind, selSite, sels)
+mcle_ind_index<-which(mcle_ind[1]==selSite)
+profileLike_sel_ind = sapply(1: length(sels), function(i) {
+  max(unlist(compLikelihood_ind[[mcle_ind_index]][[i]]))
+})
+
+## Model 3
+profileLike_sel_sv = sapply(1: length(sels), function(i) {
+  max(unlist(compLikelihood_sv[[mcle_sv_index]][[i]]))
+})
+
+## Model 5
+profileLike_sel_mixed_svInd = sapply(1: length(sels), function(i) {
+  max(unlist(compLikelihood_mixed_svInd[[mcle_mixed_svInd_index]][[i]]))
+})
+
+par(mfrow = c(1, 3))
+plot(sels, profileLike_sel_sv, type = "b", xlab = "Sel",
+     ylab = "Profile composite log-likelihood", main = "Model 3")
+abline(v = mcle_sv[2], lty = 2, col = "blue")
+
+plot(sels, profileLike_sel_mixed_svInd, type = "b", xlab = "Sel",
+     ylab = "Profile composite log-likelihood", main = "Model 5")
+abline(v = mcle_mixed_svInd[2], lty = 2, col = "blue")
+
+plot(sels, profileLike_sel_ind, type = "b", xlab = "Sel",
+     ylab = "Profile composite log-likelihood", main = "Model 1")
+abline(v = mcle_ind[2], lty = 2, col = "blue")
+
+```
+
+## Where is the selected site?
+
+The selected site is somewhere between $`r min(mcle_ind[1],mcle_sv[1],mcle_mixed_svInd[1])`$ and $`r max(mcle_ind[1],mcle_sv[1],mcle_mixed_svInd[1])`$, if we take the maximum estimates from models 1, 3, and 5.
+
+```{r plot_final_again}
+par(mfrow=c(1,1),oma=c(2,2,2,2),mar=c(2,2,2,2))
+max.complikes<-plot.complike("p4LG4_100000_2_9_forReal",leg=FALSE,selSite = selSite)
+abline(v=mcle_ind[1],lty=2,lwd=2,col="black")
+abline(v=mcle_sv[1],lty=2,lwd=2,col="blue")
+abline(v=mcle_mixed_svInd[1],lty=2,lwd=2,col="green")
+```
 
