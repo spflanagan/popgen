@@ -110,32 +110,32 @@ map("worldHires", "usa",xlim=c(-100,-76), ylim=c(24,32),
 	col="gray90", mar=c(0,0,0,0),fill=TRUE, res=300,myborder=0)
 map("worldHires", "mexico",xlim=c(-100,-76), ylim=c(24,32), 
 	col="gray95", fill=TRUE, add=TRUE)
-points(mar.coor$lon, mar.coor$lat,  col="black", cex=1.2, pch=19)
-points(-1*fw.coor$lon, fw.coor$lat,  col="#2166ac", cex=1.5, pch=18)
+points(mar.coor$lon, mar.coor$lat,  col="black", cex=2, pch=19)
+points(-1*fw.coor$lon, fw.coor$lat,  col="cornflowerblue", cex=2, pch=18)
 abline(h=c(25,30,35),lty=3)
 abline(v=c(-80,-85,-90,-95,-100),lty=3)
-text(x=c(-99.5,-99.5),y=c(25,30),c("25N","30N"))
-text(x=c(-80,-85,-90,-95),y=rep(31.8,4),c("80W","85W","90W","95W"))
-text(y=26,x=-90,"Gulf of Mexico")
-text(y=25.5,x=-98.5,"Mexico")
-text(x=-91,y=31,"USA")
-text(x=-78,y=29.5,"Atlantic Ocean")
-text(x=-96.5,y=26,"TXSP",font=2)
-text(x=-96.9,y=27.2,"TXCC",font=2)
-text(x=-96,y=28.3,"TXFW",font=2,col="#2166ac")
-text(x=-94.7,y=29,"TXCB",font=2)
-text(x=-90.2,y=30.3,"LAFW",font=2,col="#2166ac")
-text(x=-88,y=30,"ALST",font=2)
-text(x=-87,y=30.75,"ALFW",font=2,col="#2166ac")
-text(x=-85,y=29.4,"FLSG",font=2)
-text(x=-83.5,y=29.2,"FLKB",font=2)
-text(x=-83.2,y=27.6,"FLFD",font=2)
-text(x=-82.2,y=26,"FLSI",font=2)
-text(x=-80,y=24.8,"FLAB",font=2)
-text(x=-79.5,y=26.8,"FLPB",font=2)
-text(x=-79.7,y=27.2,"FLHB",font=2)
-text(x=-80.2,y=28.2,"FLCC",font=2)
-text(x=-80.9,y=29.3,"FLFW",font=2,col="#2166ac")
+text(x=c(-99.5,-99.5),y=c(25,30),c("25N","30N"),cex=1.75)
+text(x=c(-80,-85,-90,-95),y=rep(31.8,4),c("80W","85W","90W","95W"),cex=1.75)
+text(y=26,x=-90,"Gulf of Mexico",cex=1.75)
+text(y=25.5,x=-98.5,"Mexico",cex=1.75)
+text(x=-91,y=31,"USA",cex=1.75)
+text(x=-78,y=29.5,"Atlantic Ocean",cex=1.75)
+text(x=-96.5,y=26,"TXSP",font=2,cex=1.75)
+text(x=-96.9,y=27.2,"TXCC",font=2,cex=1.75)
+text(x=-96,y=28.3,"TXFW",font=2,col="cornflowerblue",cex=1.75)
+text(x=-94.7,y=29,"TXCB",font=2,cex=1.75)
+text(x=-90.2,y=30.3,"LAFW",font=2,col="cornflowerblue",cex=1.75)
+text(x=-88,y=30,"ALST",font=2,cex=1.75)
+text(x=-87,y=30.75,"ALFW",font=2,col="cornflowerblue",cex=1.75)
+text(x=-85,y=29.4,"FLSG",font=2,cex=1.75)
+text(x=-83.5,y=29.2,"FLKB",font=2,cex=1.75)
+text(x=-83.2,y=27.6,"FLFD",font=2,cex=1.75)
+text(x=-82.2,y=26,"FLSI",font=2,cex=1.75)
+text(x=-80,y=24.8,"FLAB",font=2,cex=1.75)
+text(x=-79.5,y=26.8,"FLPB",font=2,cex=1.75)
+text(x=-79.7,y=27.2,"FLHB",font=2,cex=1.75)
+text(x=-80.2,y=28.2,"FLCC",font=2,cex=1.75)
+text(x=-80.9,y=29.3,"FLFW",font=2,col="cornflowerblue",cex=1.75)
 dev.off()
 ## ---- end
 
@@ -231,7 +231,7 @@ all.afs<-c(fw.afs,sw.afs)
 ## ---- plotAFS
 png(afs.plot.name,height=10,width=10,units="in",res=300)
 
-par(mfrow=c(4,4),mar=c(2,2,1,0),oma=c(2,2,0.5,0.5))
+par(mfrow=c(4,4),mar=c(2,2,1,0),oma=c(2,3,0.5,0.5))
 for(i in 1:length(pop.labs)){
   if(pop.labs[i] %in% names(fw.afs)){
     color<-"cornflowerblue"
@@ -242,14 +242,14 @@ for(i in 1:length(pop.labs)){
        xlim=c(0,1),ylim=c(0,10000),axes=F,col=color)
   axis(1,pos=0,cex.axis=2)
   if(i %in% c(1,5,9,13)){
-    axis(2,pos=0,las=1,cex.axis=2)
+    axis(2,pos=0,las=1,cex.axis=2,labels = seq(0,10,2),at=seq(0,10000,2000))
   }else{
     axis(2,pos=0,las=1,labels = FALSE,cex.axis=2)
     }
   mtext(pop.labs[i],3,col=color,cex=2*0.75,line=-1)
 }
-mtext("Reference Allele Frequency",1,outer=TRUE,cex=0.75)
-mtext("Number of SNPs",2,outer = TRUE,cex=0.75,line=1)
+mtext("Reference Allele Frequency",1,outer=TRUE,cex=1.75*0.75)
+mtext("Number of SNPs (x 1000)",2,outer = TRUE,cex=1.75*0.75,line=1)
 dev.off()
 ## ---- end
 #################################OUTLIERS####################################
@@ -595,30 +595,11 @@ for(i in 1:length(chroms2plot)){
   points(this.df$BP[this.df$BP %in% fw.sig.reg$BP],
          this.df$Corrected.AMOVA.Fst[this.df$BP %in% fw.sig.reg$BP],
          pch=8,cex=2,col="orchid4",lwd=3)
-  if(i == 1){
-    txt.locs<-data.frame(starts=unique(g$StartBP),name=g$Gene[!duplicated(g$StartBP)])
-    txt.locs<-txt.locs[order(txt.locs$starts),]
-    txt.locs[3,"starts"]<-txt.locs[3,"starts"]-500000
-    txt.locs[4,"starts"]<-txt.locs[4,"starts"]+500000
-    txt.locs[6,"starts"]<-txt.locs[6,"starts"]-500000
-    txt.locs[7,"starts"]<-txt.locs[7,"starts"]+500000
-    txt.locs<-txt.locs[-5,]
-    text(x=txt.locs$starts,y=0.35,cex=2,labels=txt.locs$name,srt=90,xpd=T)  
-  }
-  if(i == 4){
-    if(nrow(g)>0){
-    txt.locs<-data.frame(starts=unique(g$StartBP),name=g$Gene[!duplicated(g$StartBP)])
-    txt.locs<-txt.locs[order(txt.locs$starts),]
-    txt.locs<-txt.locs[-4,]
-    text(x=txt.locs$starts,y=0.35,cex=2,labels=txt.locs$name,srt=90,xpd=T) 
-    }
-  }
-  if(!i %in% c(1,4)){
-    if(nrow(g)>0){
+  
+  if(nrow(g)>0){
     txt.locs<-data.frame(starts=unique(g$StartBP),name=g$Gene[!duplicated(g$StartBP)])
     txt.locs<-txt.locs[order(txt.locs$starts),]
     text(x=txt.locs$starts,y=0.35,cex=2,labels=txt.locs$name,srt=90,xpd=T)
-    }
   }
   #axes etc
    axis(1,pos=-0.2,c(xmin,xmax),
@@ -1087,6 +1068,8 @@ points(bs.sal[bs.sal$SNP %in% sal.bf.sig$SNP,"plot.pos"],
 clip(0,max(bs.sal$plot.pos),-3,241)
 abline(v=fwswf.fst$plot.pos[fwswf.fst$Locus.ID %in% all.shared],col="gray47")
 mtext("log(Salinity BF)",2,cex=0.75,line=2.1)
+labs<-tapply(bs.sal$plot.pos,bs.sal$scaffold,median)
+text(x=labs[lgs],y=-5,labels=lgn,xpd=TRUE)
 #points(bs.sal[bs.sal$SNP %in% stacks.sig$SNP,"plot.pos"],
 #       bs.sal[bs.sal$SNP %in% stacks.sig$SNP,"logSal"],
 #       col="cornflowerblue",cex=1.3)
@@ -1094,9 +1077,7 @@ mtext("log(Salinity BF)",2,cex=0.75,line=2.1)
 #     min(bs.sal$logSal),max(bs.sal$logSal))
 #abline(h=log(bf.co["Salinity_BF"]),col="cornflowerblue",lwd=2)
 
-#add chromosome labels
-labs<-tapply(bs.sal$plot.pos,bs.sal$scaffold,median)
-text(x=labs[lgs],y=-25,labels=lgn,xpd=TRUE)
+
 dev.off()
 ## ---- end
 

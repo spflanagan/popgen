@@ -1,13 +1,16 @@
 ---
 title: "FWSW with smallest dataset"
-output: 
-  pdf_document: default
-  html_document: default
 author: "Sarah P. Flanagan"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
-description: "Re-running the freshwater-saltwater analysis using only the dataset from pairwise population comparisons"
-editor_options: 
+output:
+  html_document: default
+  pdf_document:
+    fig_caption: yes
+graphics: yes
+editor_options:
   chunk_output_type: console
+description: Re-running the freshwater-saltwater analysis using only the dataset from
+  pairwise population comparisons
 ---
 
 In my initial analysis of the freshwater-saltwater dataset, I had three vcf files: 
@@ -653,16 +656,18 @@ Here, I compare the Fst outliers and $\delta$-divergence outliers to putative ge
 put.genes<-read.delim("putative_genes.txt",header=TRUE,sep='\t')
 #ld info
 ld<-read.delim("p4.ld_info_fwsw.txt")
+
+gff.name<-"ssc_2016_12_20_chromlevel.gff.gz"
 ```
 ```{r gff,eval=FALSE}
 #genome annotations
-gff.name<-"ssc_2016_12_20_chromlevel.gff.gz"
 if(length(grep("gz",gff.name))>0){
   gff<-read.delim(gzfile(paste("../../scovelli_genome/",gff.name,sep="")),header=F)
 } else{
   gff<-read.delim(paste("../../scovelli_genome/",gff.name,sep=""),header=F)
 }
 colnames(gff)<-c("seqname","source","feature","start","end","score","strand","frame","attribute")
+genome.blast<-read.csv("../../scovelli_genome/ssc_2016_12_20_cds_nr_blast_results.csv",skip=1,header=T)#I saved it as a csv
 ```
 
 ### Define some functions
@@ -700,7 +705,7 @@ ssc.fwsw.fstsig<-function(tx, la, al, fl, cutoff)
 }
 
 #' extract the significant regions from the gff file
-sig.region.ann<-function(fw.shared.chr,gff)
+sig.region.ann<-function(fw.shared.chr,gff,genome.blast)
 {
   fw.sig.reg<-do.call(rbind,apply(fw.shared.chr,1,function(sig){
     this.gff<-gff[as.character(gff$seqname) %in% as.character(unlist(sig["Chr"])),]
@@ -794,7 +799,7 @@ About `r length(counts[counts>0])/length(counts)*100`% of the putative genes hav
 $D'$ was calculated using a custom C++ program (found at https://github.com/spflanagan/SCA/tree/master/programs/pairwise_ld_vcf) using the formula:
 
 $$D' = \sum_{i=1}^m\sum_{j=1}^n \frac{p_iq_j|D_{ij}|}{D_{max}},$$
-where $m$ is the number of alleles at locus and $n$ is the number of alleles at locus B. $D_{ij}$ was calculated as $f_{ij}-p_iq_j$, where $f_{ij}$ is the frequency of the $A_iB_j$ haplotype, $p_i$ is the frequency of allele $i$, and $q_j$ is the frequency of allele $j$. $D_{max}$ is the lesser of $p_iq_j$ or $(1-p_i)(1-q_j)$ when $D_{ij}$ < 0 and is the minimum of (1 - $p_{i}$)$q_{i}$ or $p_i(1-q_i)$ when $D_{ij} \gt 0$.
+where $m$ is the number of alleles at locus and $n$ is the number of alleles at locus B. $D_{ij}$ was calculated as $f_{ij}-p_iq_j$, where $f_{ij}$ is the frequency of the $A_iB_j$ haplotype, $p_i$ is the frequency of allele $i$, and $q_j$ is the frequency of allele $j$. $D_{max}$ is the lesser of $p_iq_j$ or $(1-p_i)(1-q_j)$ when $D_{ij}$ < 0 and is the minimum of (1 - $p_{i}$)$q_{i}$ or $p_i(1-q_i)$ when $D_{ij}$ > 0.
 
 In the data.frame `ld`, the locus IDs (`LocIDA` and `LocIDB`) are the positions on the chromosome.
 
@@ -1054,27 +1059,37 @@ jost.nb<-outlier.nearby(jd.bp.smooth[[1]],put.reg,chrom.ld,oChrom = "Chrom",oBP=
 put.reg$jostd.nb<-jost.nb
 put.reg$jostd.in<-jost.in
 ```
-So `r length(jost.in[jost.in!="NA"])` loci are located within putative freshwater genes, but `r length(jost.nb[jost.nb!="NA"])` are within the LD region of the putative genes, representing `r length(jost.nb[jost.nb!="NA"])/nrow(put.reg)*100` of the putative gene annotations and `r length(unique(put.reg[put.reg$jostd.nb != "NA", "Gene"]))` genes
+
+So $`r length(jost.in[jost.in!="NA"])`$ loci are located within putative freshwater genes, but $`r length(jost.nb[jost.nb!="NA"])`$ are within the LD region of the putative genes, representing $`r length(jost.nb[jost.nb!="NA"])/nrow(put.reg)*100`$ of the putative gene annotations and $`r length(unique(put.reg[put.reg$jostd.nb != "NA", "Gene"]))`$ genes.
 
 ### Combining all of those analyses
 
-*Genes containing shared Fst outliers: `r unique(put.reg[put.reg$fst.in != "NA",c("Gene","Chrom")])`
+```{r summary_tables}
+ kable(unique(put.reg[put.reg$fst.in != "NA",c("Gene","Chrom")]),caption = "Putative genes containing Fst outliers",row.names = FALSE)
+ kable(unique(put.reg[put.reg$sdd.in != "NA",c("Gene","Chrom")]),
+       caption="Putative genes containing delta divergence outliers",row.names = FALSE)
+ kable(unique(put.reg[put.reg$jostd.in !="NA",c("Gene","Chrom")]),
+       caption="Putative genes containing Jost's D outliers",row.names = FALSE)
+ kable(unique(put.reg[put.reg$bfs.in != "NA",c("Gene","Chrom")]),
+       caption="Putative genes containing salinity-associated SNPs",row.names = FALSE)
+ kable(unique(put.reg[put.reg$fst.in != "NA",c("Gene","Chrom")])[
+                            unique(put.reg[put.reg$fst.in != "NA","Gene"]) %in% unique(put.reg[put.reg$sdd.in != "NA","Gene"])&
+                              unique(put.reg[put.reg$fst.in != "NA","Gene"]) %in% unique(put.reg[put.reg$bfs.in != "NA","Gene"])],
+       caption="Putative genes containing all of those outliers",row.names=FALSE)
+ kable(unique(put.reg[put.reg$fst.in != "NA",c("Gene","Chrom")])[
+                            unique(put.reg[put.reg$fst.in != "NA","Gene"]) %in% unique(put.reg[put.reg$sdd.in != "NA","Gene"])&
+                              unique(put.reg[put.reg$fst.in != "NA","Gene"]) %in% unique(put.reg[put.reg$jostd.in != "NA","Gene"])],
+       caption="Putative genes containing divergence outliers (Fst, deltad, D)",row.names = FALSE)
+ kable(unique(put.reg[put.reg$nearby.rad != "NA","Gene"])[
+                            unique(put.reg[put.reg$nearby.rad != "NA","Gene"]) %in% unique(put.reg[put.reg$sdd.nb != "NA","Gene"])&
+                              unique(put.reg[put.reg$nearby.rad != "NA","Gene"]) %in% unique(put.reg[put.reg$jostd.in!= "NA","Gene"])],
+       caption="Putative genes near divergence outliers (Fst, deltad, D)",row.names=FALSE)
 
-*Genes containing $\delta$ -divergence outliers: `r unique(put.reg[put.reg$sdd.in != "NA",c("Gene","Chrom")])`
+```
 
-*Genes containing Salinity-associated outliers: `r unique(put.reg[put.reg$bfs.in != "NA",c("Gene","Chrom")])`
-
-*Genes containing Jost D outliers: `r unique(put.reg[put.reg$jostd.in !="NA",c("Gene","Chrom")])`
-
-*Overlap: `r unique(put.reg[put.reg$fst.in != "NA","Gene"])[unique(put.reg[put.reg$fst.in != "NA","Gene"]) %in% unique(put.reg[put.reg$sdd.in != "NA","Gene"]) &unique(put.reg[put.reg$fst.in != "NA","Gene"]) %in% unique(put.reg[put.reg$bfs.in != "NA","Gene"])]`
-
-*Divergence analyses: `r unique(put.reg[put.reg$fst.in != "NA","Gene"])[unique(put.reg[put.reg$fst.in != "NA","Gene"]) %in% unique(put.reg[put.reg$sdd.in != "NA","Gene"]) &unique(put.reg[put.reg$fst.in != "NA","Gene"]) %in% unique(put.reg[put.reg$jostd.in != "NA","Gene"])]` 
-
-*Near divergence analyses: `r unique(put.reg[put.reg$nearby.rad != "NA","Gene"])[unique(put.reg[put.reg$nearby.rad != "NA","Gene"]) %in% unique(put.reg[put.reg$sdd.nb != "NA","Gene"]) &unique(put.reg[put.reg$nearby.rad != "NA","Gene"]) %in% unique(put.reg[put.reg$jostd.in!= "NA","Gene"])]` 
 
 *But looking at `put.reg[put.reg$Gene =="RHOGTP8","rad.loci"]`, it's obvious that Rho GTPase-activating proteins are distributed throughout the genome (on chromosomes `r unique(put.reg[put.reg$Gene=="RHOGTP8","Chrom"])`).*
 
-`
 
 ## Figure 6
 
@@ -1140,6 +1155,26 @@ chrom.ld<-tapply(ld[ld$D.>0.5,"pos.diff"],ld[ld$D. >0.5,"Chrom"],mean)
 #fav.genes<-c("TNS1","CAII","TRIM14","VATPase")
 fav.genes<-c("ARHGEF3", "mucin", "NHE", "TAAR")
 genes2plot<-put.reg[put.reg$Gene %in% fav.genes,]
+genes2plot$Gene<-as.character(genes2plot$Gene)
+genes2plot$Gene[genes2plot$Gene=="ARHGEF3"]<-"ARHGEF" #rename
+#shift LG3 names
+genes2plot$StartBP[genes2plot$Chrom=="LG3" & genes2plot$Gene=="ARHGEF"]<-
+  genes2plot$StartBP[genes2plot$Chrom=="LG3" & genes2plot$Gene=="ARHGEF"]+200000
+genes2plot$StartBP[genes2plot$Chrom=="LG3" & genes2plot$Gene=="mucin"]<-
+  genes2plot$StartBP[genes2plot$Chrom=="LG3" & genes2plot$Gene=="mucin"]-100000
+#shift LG7 names
+genes2plot$StartBP[genes2plot$Chrom=="LG7" & genes2plot$Gene=="ARHGEF"]<-
+  genes2plot$StartBP[genes2plot$Chrom=="LG7" & genes2plot$Gene=="ARHGEF"]+200000
+genes2plot$StartBP[genes2plot$Chrom=="LG7" & genes2plot$Gene=="NHE"]<-
+  genes2plot$StartBP[genes2plot$Chrom=="LG7" & genes2plot$Gene=="NHE"]-200000
+#shift LG14 names
+genes2plot$StartBP[genes2plot$Chrom=="LG14" & genes2plot$Gene=="ARHGEF"]<-
+  genes2plot$StartBP[genes2plot$Chrom=="LG14" & genes2plot$Gene=="ARHGEF"]+550000
+genes2plot$StartBP[genes2plot$Chrom=="LG14" & genes2plot$Gene=="NHE"]<-
+  genes2plot$StartBP[genes2plot$Chrom=="LG14" & genes2plot$Gene=="NHE"]-600000
+#get rid of the final ARHGEF
+genes2plot<-genes2plot[-which(genes2plot$Chrom=="LG14" & genes2plot$Gene=="ARHGEF" & genes2plot$StartBP>23022883),]
+
 #shared Fst outliers
 fw.sig.reg<-read.csv("p4.StacksFWSWOutliers_annotatedByGenome.csv")
 h.pi.name<-"HandPi_subgenes.png"
@@ -1170,7 +1205,7 @@ HandPiName<-expression(Large~pi~and~italic(H))
 ```
 ```{r plotHandPi}
 ```
-![Figure 6. Low \delta-divergence and high \pi](fwsw_results/HandPi_subgenes.png)
+![Figure 6. Low $\delta$-divergence and high $\pi$](fwsw_results/HandPi_subgenes.png)
 
 
 ### Look for regions of reduced diversity as evidence of selective sweeps.
@@ -1756,11 +1791,13 @@ outside.legend<-function(...){
 #set up legend parameters
 leg.text<-c(expression(TX~FWSW~italic(F)[ST]),expression(LA~FWSW~italic(F)[ST]),
             expression(AL~FWSW~italic(F)[ST]),expression(FL~FWSW~italic(F)[ST]),
-            expression(delta~-divergence),expression(Shared~italic(F)[ST]~Outliers),
+            expression(delta~-divergence),expression("Jost's"~italic(D)),
+            expression(Shared~italic(F)[ST]~Outliers),
             "Salinity-associated SNPs")
-leg.pchs<-c(rep(32,5),124,25,124)
-leg.ltys<-c(1,1,2,1,1,0,0,0)
-leg.cols<-c(colors,"cornflowerblue","black","black","indianred")
+leg.pchs<-c(rep(32,6),124,25,124)
+leg.ltys<-c(1,1,2,1,1,1,0,0,0)
+leg.cols<-c(colors,comp.col["deltad"],comp.col["D"],"black","black","indianred")
+
 
 png("ARGHEF3.png",height=8,width=10,units="in",res=300)       
 par(mfrow=c(5,3),oma=c(2,2,3,2),mar=c(2,2,1,1))
@@ -1968,14 +2005,15 @@ g<-put.reg[put.reg$Chrom %in% chrom,]
   g<-g[order(g$StartBP),]
 ## Model 1
 source("../programs/dmc-master/getMCLE.R")
-dmc.pattern<-"p4LG4_1000000_2_8"
+dmc.pattern<-"p4LG4_100000_2_9_forReal"
 positions<-readRDS("dmc/selectedRegionPositions_p4LG4.RDS")
-selSite = positions[seq(1, length(positions[positions<12000000]), length.out = 100)]
-sels<-c(1e-4, 1e-3, 0.01, seq(0.02, 0.14, by = 0.01), seq(0.15, 0.3, by = 0.05), 
-                           seq(0.4, 0.6, by = 0.1))
+selSite = positions[seq(1, length(positions[positions<10000000]), length.out = 100)]
+sels = c(1e-4, 1e-3, 0.01, seq(0.02, 0.14, by = 0.01), seq(0.15, 0.3, by = 0.05), 
+             seq(0.4, 0.6, by = 0.1))
 times = c(0, 5, 25, 50, 100, 500, 1000, 1e4, 1e6)
 migs = c(10^-(seq(5, 1, by = -2)), 0.5, 1)
-Ne<-1000000
+Ne<-100000
+rec=2*10^-9
 sources<-c(3,5,7,16)
 gs<-c(1/(2*Ne), 10^-(4:1))
 compLikelihood_ind<-readRDS(paste("dmc/compLikelihood_ind_",dmc.pattern,".RDS",sep=""))
@@ -2153,7 +2191,7 @@ lines(selSite, max.likes[grep("sv\\d+",names(max.likes))],cex=2, col = "#2b83ba"
 lines(selSite, max.likes[grep("migInd",names(max.likes))],cex=2,#orange
         col = "#fdae61", lty = 2, type = "b")
 lines(selSite, max.likes[grep("svInd",names(max.likes))],cex=2,#green
-        col = "#abdda4", lty = 2, type = "b")
+        col = "#91cf60", lty = 2, type = "b")
 legend("topright", col = c("black", "#d7191c", "#2b83ba", "#fdae61", "#abdda4"),
            lty = c(rep(1, 3), rep(2, 2)), sapply(1 : 5, function(i) paste("Model", i)),
        bty='n',cex=1.5,lwd=2)
@@ -2161,7 +2199,7 @@ mtext("Composite Log Likelihood",2,line=3.75,cex=1.5*0.75)
 mtext("Position on LG4 (Mb)",1,line=2.2,cex=1.5*0.75)
 abline(v=mcle_ind[1],lty=2,lwd=2,col="black",xpd=FALSE)
 abline(v=mcle_sv[1],lty=2,lwd=2,col="#2b83ba",xpd=FALSE)
-abline(v=mcle_mixed_svInd[1],lty=2,lwd=2,col="#abdda4",xpd=FALSE)
+abline(v=mcle_mixed_svInd[1],lty=2,lwd=2,col="#91cf60",xpd=FALSE)
   
 ### add legend
 #create the legend text, and parameters
@@ -2184,3 +2222,41 @@ dev.off()
 ```
 
 ![LG 4 Figure](fwsw_results/LG4.png)
+
+The loci that are the most likely targets of selection in models 3 and 5 are located at $`r mcle_sv[1]`$ and $`r mcle_mixed_svInd[1]`$, respectively. Let's use the gff file to annotate them.
+
+```{r annotate_dmc}
+#read in the gff if necessary
+if(!("gff" %in% ls())){
+  if(length(grep("gz",gff.name))>0){
+    gff<-read.delim(gzfile(paste("../../scovelli_genome/",gff.name,sep="")),header=F)
+  } else{
+    gff<-read.delim(paste("../../scovelli_genome/",gff.name,sep=""),header=F)
+  }
+  colnames(gff)<-c("seqname","source","feature","start","end","score","strand","frame","attribute")
+}
+#get the blast matches
+genome.blast<-read.csv("../../scovelli_genome/ssc_2016_12_20_cds_nr_blast_results.csv",skip=1)
+
+#where are the loci?
+gff[gff$seqname=="LG4" & gff$start <= mcle_sv[1] & gff$end >= mcle_sv[1],]
+gff[gff$seqname=="LG4" & gff$start <= mcle_mixed_svInd[1] & gff$end >= mcle_mixed_svInd[1],]
+
+dmc.genes<-data.frame(Locus.ID=c("Mod3","Mod5"),Chr=c("LG4","LG4"),BP=c(mcle_sv[1],mcle_mixed_svInd[1]),Column=c(1,1)) #format it appropriately
+dmc.ann<-sig.region.ann(dmc.genes,gff,genome.blast)
+
+kable(dmc.ann[,c("Locus","description")],row.names = FALSE)
+
+```
+
+Finally, I will write the putative gene regions to a file to be supplemental table 2.
+
+```{r supp_Table2}
+#Provide more informative names
+colnames(put.reg)<-c("Gene","Function","Chromosome_CitedSpeices","CitedSpecies","Citation","Scovelli_geneID",
+                     "My_Annotation_Notes","Scovelli_Chrom","Scovelli_StartBP","Scovelli_StopBP",
+                     "Contains_RAD_locus","Near_RAD_locus","Contains_DeltaDivergence","Near_DeltaDivergence",
+                     "Contains_BayenvSalinity","Contains_BayenvTemp","Contains_BayenvSeagrass",
+                     "Near_JostD","Contains_JostD","Contains_Fst")
+write.table(put.reg,"putative_genes_annotated.txt",sep='\t',col.names = TRUE,row.names = FALSE,quote=FALSE)
+```
