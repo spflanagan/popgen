@@ -62,6 +62,7 @@ pwise.fst.all<-read.table("stacks/fwsw_fst_summary.txt",header=T,row.names=1,sep
 pwise.fst.sub<-read.table("stacks/fwsw_fst_summary_subset.txt",header=T,row.names=1,sep='\t')
   colnames(pwise.fst.sub)<-pop.labs
   rownames(pwise.fst.sub)<-pop.labs
+print(paste("Average Pairwise Fst is ",mean(pwise.fst.sub[upper.tri(pwise.fst.sub)]),sep=""))
 ## ---- end
   
 ## ---- P4plink
@@ -121,7 +122,7 @@ text(y=25.5,x=-98.5,"Mexico",cex=1.75)
 text(x=-91,y=31,"USA",cex=1.75)
 text(x=-78,y=29.5,"Atlantic Ocean",cex=1.75)
 text(x=-96.5,y=26,"TXSP",font=2,cex=1.75)
-text(x=-96.9,y=27.2,"TXCC",font=2,cex=1.75)
+text(x=-96.7,y=27.2,"TXCC",font=2,cex=1.75)
 text(x=-96,y=28.3,"TXFW",font=2,col="cornflowerblue",cex=1.75)
 text(x=-94.7,y=29,"TXCB",font=2,cex=1.75)
 text(x=-90.2,y=30.3,"LAFW",font=2,col="cornflowerblue",cex=1.75)
@@ -132,10 +133,10 @@ text(x=-83.5,y=29.2,"FLKB",font=2,cex=1.75)
 text(x=-83.2,y=27.6,"FLFD",font=2,cex=1.75)
 text(x=-82.2,y=26,"FLSI",font=2,cex=1.75)
 text(x=-80,y=24.8,"FLAB",font=2,cex=1.75)
-text(x=-79.5,y=26.8,"FLPB",font=2,cex=1.75)
-text(x=-79.7,y=27.2,"FLHB",font=2,cex=1.75)
-text(x=-80.2,y=28.2,"FLCC",font=2,cex=1.75)
-text(x=-80.9,y=29.3,"FLFW",font=2,col="cornflowerblue",cex=1.75)
+text(x=-79.3,y=26.8,"FLPB",font=2,cex=1.75)
+text(x=-79.5,y=27.2,"FLHB",font=2,cex=1.75)
+text(x=-80.2,y=28,"FLCC",font=2,cex=1.75)
+text(x=-80.9,y=29.5,"FLFW",font=2,col="cornflowerblue",cex=1.75)
 dev.off()
 ## ---- end
 
