@@ -1779,10 +1779,13 @@ points(glNA(dat.plink), rep(0, nLoc(dat.plink)), pch="|", col="blue")
 pca1<-glPca(dat.plink, parallel=FALSE,nf=10)
 
 #discriminant analysis of principal components (DAPC)
-dat.clust<-find.clusters(dat.plink, max.n.clust=16) #retain 400 PCs and 6 clusters
-                         #parallel=FALSE, n.pca=20, n.clust=NULL,	choose.n.clust=FALSE
-dapc1<-dapc(dat.plink, dat.clust$grp, parallel=F) #kept 12 clusters
-
+dat.clust<-find.clusters(dat.plink, max.n.clust=16,parallel=FALSE) #retain 400 PCs and 6 clusters
+                         #n.pca=20, n.clust=NULL,	choose.n.clust=FALSE
+dapc1<-dapc(dat.plink, dat.clust$grp, parallel=F) #kept 6 clusters and 40 PCs
+saveRDS(dapc1,"dapc1.RDS")#save it
+## ---- end-Adegenet
+## ---- dapcData
+dapc1<-readRDS("dapc1.RDS")
 ind.names<-rownames(dapc1$ind.coord)
 pop<-substr(ind.names, 8,11)
 colors<-pop
@@ -1791,27 +1794,22 @@ colors[colors %in% fw.list]<-"#2166ac"
 pop.pch<-pop
 pop.pch[pop.pch=="TXSP"]<-"0"
 pop.pch[pop.pch=="TXCC"]<-"1"
-pop.pch[pop.pch=="TXFW"]<-"3"
-pop.pch[pop.pch=="TXCB"]<-"5"
-pop.pch[pop.pch=="LAFW"]<-"4"
-pop.pch[pop.pch=="ALST"]<-"16"
-pop.pch[pop.pch=="ALFW"]<-"8"
-pop.pch[pop.pch=="FLSG"]<-"17"
-pop.pch[pop.pch=="FLKB"]<-"18"
-pop.pch[pop.pch=="FLFD"]<-"19"
-pop.pch[pop.pch=="FLSI"]<-"21"
-pop.pch[pop.pch=="FLAB"]<-"22"
-pop.pch[pop.pch=="FLPB"]<-"23"
-pop.pch[pop.pch=="FLHB"]<-"24"
-pop.pch[pop.pch=="FLCC"]<-"25"
-pop.pch[pop.pch=="FLLG"]<-"13"
+pop.pch[pop.pch=="TXFW"]<-"21"
+pop.pch[pop.pch=="TXCB"]<-"2"
+pop.pch[pop.pch=="LAFW"]<-"24"
+pop.pch[pop.pch=="ALST"]<-"3"
+pop.pch[pop.pch=="ALFW"]<-"23"
+pop.pch[pop.pch=="FLSG"]<-"4"
+pop.pch[pop.pch=="FLKB"]<-"5"
+pop.pch[pop.pch=="FLFD"]<-"6"
+pop.pch[pop.pch=="FLSI"]<-"7"
+pop.pch[pop.pch=="FLAB"]<-"9"
+pop.pch[pop.pch=="FLPB"]<-"10"
+pop.pch[pop.pch=="FLHB"]<-"11"
+pop.pch[pop.pch=="FLCC"]<-"12"
+pop.pch[pop.pch=="FLLG"]<-"22"
 #pop plot info
-ppi<-data.frame(Pop=pop.labs,cols = all.colors,pch=c(0,1,3,5,4,15,8,17,18,19,21,22,23,24,25,13))
-
-#png("adegenet.dapc.png",height=7,width=7,units="in",res=300)
-scatter(dapc1, scree.da=FALSE, bg="white", posi.pca="topleft", legend=TRUE,cell=0)
-#dev.off()
-compoplot(dapc1)
+ppi<-data.frame(Pop=pop.labs,cols = all.colors,pch=c(0,1,21,2,24,3,23,4,5,6,7,9,10,11,12,22))
 
 da<-data.frame(Individual=rownames(dapc1$ind.coord),Pop=substr(rownames(dapc1$ind.coord),8,11),
                LD1=dapc1$ind.coord[,1],LD2=dapc1$ind.coord[,2],
@@ -1827,6 +1825,13 @@ da$pch<-da$Pop
 for(i in 1:nrow(da)){
   da[i,"pch"]<-as.numeric(ppi[ppi$Pop %in% da[i,"Pop"],"pch"])
 }
+## ---- end-dapcData
+
+## ---- adegenetPlots
+#png("adegenet.dapc.png",height=7,width=7,units="in",res=300)
+scatter(dapc1, scree.da=FALSE, bg="white", posi.pca="topleft", legend=TRUE,cell=0)
+#dev.off()
+compoplot(dapc1)
 
 jpeg("subset.adegenet.dapc.jpeg",res=300,height=10.5/3,width=10.5,units="in")
 par(mfrow=c(1,3),oma=c(2,2,2,2),mar=c(2,2,2,2))
@@ -1885,14 +1890,15 @@ plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
 legend("top", legend=ppi$Pop, pch=as.numeric(ppi$pch), pt.cex=1.5,cex=0.85,
        col=alpha(ppi$cols, 0.5),pt.bg=alpha(ppi$cols,0.25), ncol=8,bty='n')
 dev.off()
-## ---- end-adegenet
+## ---- end-adegenetPlots
 
 ## ---- pcadapt
 library(pcadapt)
 filename<-read.pcadapt("stacks/subset.ped",type="ped")
-x<-pcadapt("stacks/subset.pcadapt", K=20)
+x<-pcadapt(filename, K=20)
+saveRDS(x,"pcadapt.RDS")
 plot(x,option="screeplot")#K=6
-pops<-gsub("sample_(\\w{4}).*","\\1",ped.sub$V2)
+pops<-gsub("sample_(\\w{4}).*","\\1",ped.sub[,2])
 grp<-pops
 grp[grp=="TXFW" | grp=="LAFW" | grp=="ALFW" | grp=="FLLG"]<-"freshwater"
 grp[grp!="freshwater"]<-"saltwater"
@@ -1903,7 +1909,7 @@ plot(x,option="scores",i=7,j=8,pop=pops)#should show no patterns
 
 
 
-pa<-pcadapt("stacks/subset.pcadapt",K=6)
+pa<-pcadapt(filename,K=6)
 pap<-data.frame(Pop=pops,cols=pops,pch=pops,grp=grp,stringsAsFactors = F)
 pap$Pop[pap$Pop == "FLLG"]<-"FLFW"
 for(i in 1:nrow(pap)){
@@ -1912,6 +1918,7 @@ for(i in 1:nrow(pap)){
 for(i in 1:nrow(pap)){
   pap[i,"pch"]<-as.numeric(ppi[ppi$Pop %in% pap[i,"Pop"],"pch"])
 }
+write.table(pap,"pap_pcadapt.txt",col.names=TRUE,row.names=FALSE,quote=FALSE,sep='\t')
 pa.props<-round((pa$singular.values/sum(pa$singular.values))*100,2)
 png("pcadapt.pc1-6.2017.png",height=8,width=10.5,units="in",res=300)
 par(mfrow=c(2,3),oma=c(2,2,2,2),mar=c(2,2,2,2))

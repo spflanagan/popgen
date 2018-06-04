@@ -89,7 +89,7 @@ The first figure in the paper is a map of the collection sites.
 
 ## Figure 2
 
-The second figure in the paper is showing population structure, using STRUCTURE, adegenet, and PCAdapt. These analyses were run as exactly written in `fwsw_analysis.R`, so I won't reproduce that code here.
+The second figure in the paper is showing population structure, using STRUCTURE, adegenet, and PCAdapt. These analyses were run as exactly written in `002_fwsw_analysis.R`, so I won't reproduce that code here. 
 
 ```{r Adegenet, eval=FALSE, echo=FALSE}
 ```
@@ -102,8 +102,121 @@ The second figure in the paper is showing population structure, using STRUCTURE,
 ```{r PopStructurePlot, eval=FALSE, echo=FALSE}
 ```
 
+
 ![Figure 2. Population Structure](fwsw_results/pop_structure_comb.jpeg)
 
+
+Now I need to re-make the figure...
+
+```{r dapcData}
+```
+```{r rereadFiles, echo=FALSE}
+pa<-readRDS("pcadapt.RDS")
+pap<-read.delim("pap_pcadapt.txt",header=TRUE)
+structure.k2<-read.table(
+  "structure//fwsw//admix//Results//admix_run_2_f_clusters.txt",
+  sep='\t', header=F)
+structure.k2$V1<-sub('sample_([A-Z]{4})','\\1', structure.k2$V1)
+tapply(structure.k2$V2,structure.k2$V1,max) #V2 has TX group
+
+structure.k6<-read.table(
+  "structure//fwsw//admix//Results//admix_run_6_f_clusters.txt",
+  sep='\t', header=F)
+structure.k6$V1<-sub('sample_([A-Z]{4})','\\1', structure.k6$V1)
+structure.k6[structure.k6[,1]=="FLLG",1]<-"FLFW"
+structure.k6<-data.frame(structure.k6$V1,structure.k6$V3,structure.k6$V4,structure.k6$V2,
+                 structure.k6$V5,structure.k6$V7,structure.k6$V6,stringsAsFactors = F)
+
+
+```
+```{r combinedFig2}
+npop<-length(pop.list)
+pseq<-1:npop
+m<-matrix(c(1:32,rep(33,7),rep(34,7),rep(0,2),
+            rep(35,7),rep(36,7),rep(0,2)),
+          nrow=4,ncol=npop,byrow = T)
+jpeg("combinedStructure.jpeg",res=300,height=8,width=8,units="in")
+layout(mat=m,heights=c(1,1,6,6))
+#STRUCTURE
+par(oma=c(1.5,3.5,1,1),mar=c(1,0,0,0))
+plotting.structure(structure.k2,2,pop.list, make.file=FALSE, xlabcol = all.colors,plot.new=F,
+                   colors=grp.colors[c(1,6)],xlabel=F,
+                   ylabel=expression(atop(italic(K)==2,358.9)))
+plotting.structure(structure.k6,2,pop.labs, make.file=FALSE,
+                   plot.new=F,colors=grp.colors,xlabel=T,
+                   xlabcol = all.colors,
+                   ylabel=expression(atop(italic(K)==6,326.1)))
+#PCADAPT
+par(mar=c(2,2,2,2))
+plot(pa$scores[,1],pa$scores[,2],col=alpha(pap$cols,0.5),bg=alpha(pap$cols,0.75),
+     pch=as.numeric(pap$pch),	cex=2,bty="L",xlab="",ylab="",cex.axis=1.5)
+#points(pa$scores[grp=="freshwater",1],pa$scores[grp=="freshwater",2],
+#       col=alpha(pap$cols[pap$grp=="freshwater"],0.5),
+#       bg=alpha(pap$cols[pap$grp=="freshwater"],0.75),pch=as.numeric(pap$pch[pap$grp=="freshwater"]),
+#       cex=2) #to highlight the fw pops
+mtext(paste("PC1 (",pa.props[1],"%)",sep=""),1,line = 2.5,cex=1)
+mtext(paste("PC2 (",pa.props[2],"%)",sep=""),2,line = 2.5,cex=1)
+
+plot(pa$scores[,3],pa$scores[,4],col=alpha(pap$cols,0.5),bg=alpha(pap$cols,0.75),pch=as.numeric(pap$pch),
+     cex=2,	bty="L",xlab="",ylab="",cex.axis=1.5)
+#points(pa$scores[grp=="freshwater",3],pa$scores[grp=="freshwater",4],
+#     col=alpha(pap$cols[pap$grp=="freshwater"],0.5),
+#     bg=alpha(pap$cols[pap$grp=="freshwater"],0.75),pch=as.numeric(pap$pch[pap$grp=="freshwater"]),
+#     cex=2)
+mtext(paste("PC3 (",pa.props[3],"%)",sep=""),1,line = 2.5,cex=1)
+mtext(paste("PC4 (",pa.props[4],"%)",sep=""),2,line = 2.5,cex=1)
+
+# plot(pa$scores[,5],pa$scores[,6],col=alpha(pap$cols,0.5),bg=alpha(pap$cols,0.75),pch=as.numeric(pap$pch),
+#      cex=1.5,bty="L",xlab="",ylab="")
+# points(pa$scores[grp=="freshwater",5],pa$scores[grp=="freshwater",6],
+#        col=alpha(pap$cols[pap$grp=="freshwater"],0.5),
+#        bg=alpha(pap$cols[pap$grp=="freshwater"],0.75),pch=as.numeric(pap$pch[pap$grp=="freshwater"]),
+#        cex=1.5)
+# mtext(paste("PC5 (",pa.props[5],"%)",sep=""),1,line = 2,cex=0.75)
+# mtext(paste("PC6 (",pa.props[6],"%)",sep=""),2,line = 2,cex=0.75)
+
+# ADEGENET
+par(mar=c(2,2,2,2))
+plot(da$LD1,da$LD2,col=alpha(da$colors,0.5),pch=as.numeric(da$pch),cex=2,lwd=1.3,
+     bg=alpha(da$colors,0.75),xlab="",ylab="",xlim=c(-10,25),ylim=c(-10,15),bty="n",cex.axis=1.5)
+par(lwd=3,bty='n')
+s.class(dapc1$ind.coord,fac=factor(da$Group), clabel=0,cstar=0,cellipse=2.5,
+        addaxes = F,pch="",grid=F,axesel=F,add.plot = T,col=grp.colors[c(1,5,6,3,2,4)],xlim=c(-10,25),ylim=c(-10,15))
+mtext(paste("DAPC 1 (", round(dapc1$eig[1]/sum(dapc1$eig)*100, 2), "%)", sep=""),
+      1, line = 2.5,cex=1)
+mtext(paste("DAPC 2 (", round(dapc1$eig[2]/sum(dapc1$eig)*100, 2), "%)", sep=""),
+      2, line = 2.1,cex=1)
+
+
+plot(da$LD3,da$LD4,col=alpha(da$colors,0.5),pch=as.numeric(da$pch),cex=2,lwd=1.3,
+     bg=alpha(da$colors,0.75),xlab="",ylab="",xlim=c(-10,10),ylim=c(-10,5),cex.axis=1.5,bty="n")
+par(lwd=3,bty='n')
+s.class(dapc1$ind.coord[,3:4],fac=factor(da$Group), clabel=0,cstar=0,cellipse=2.5,
+        addaxes = F,pch="",grid=F,axesel=F,add.plot = T,col=grp.colors[c(1,5,6,3,2,4)],xlim=c(-10,10),ylim=c(-10,5))
+mtext(paste("DAPC 3 (", round(dapc1$eig[3]/sum(dapc1$eig)*100, 2), "%)", sep=""),
+      1, line = 2.5,cex=1)
+mtext(paste("DAPC 4 (", round(dapc1$eig[4]/sum(dapc1$eig)*100, 2), "%)", sep=""),
+      2, line = 2.1,cex=1)
+
+# plot(da$LD4,da$LD5,col=alpha(da$colors,0.5),pch=as.numeric(da$pch),cex=2,lwd=1.3,
+#      bg=alpha(colors,0.25),xlab="",ylab="",xlim=c(-5,15),ylim=c(-10,5))
+# par(lwd=3,bty='n')
+# s.class(dapc1$ind.coord[,4:5],fac=factor(da$Group), clabel=0,cstar=0,cellipse=2.5,
+#         addaxes = F,pch="",grid=F,axesel=F,add.plot = T,col=grp.colors[c(3,5,6,4,2,1)],xlim=c(-5,15),ylim=c(-10,5))
+# mtext(paste("DAPC 4 (", round(dapc1$eig[4]/sum(dapc1$eig)*100, 2), "%)", sep=""),
+#       1, line = 2,cex=0.75)
+# mtext(paste("DAPC 5 (", round(dapc1$eig[5]/sum(dapc1$eig)*100, 2), "%)", sep=""),
+#       2, line = 2,cex=0.75)
+
+par(fig = c(0, 1, 0, 1), oma=c(2,1,0,1), mar = c(0, 0, 0, 0), new = TRUE,
+    cex=1,lwd=1.3)
+plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
+legend(x=0.75,y=0.5, legend=ppi$Pop, pch=as.numeric(ppi$pch), pt.cex=1.5,cex=1,
+       col=alpha(ppi$cols, 0.5),pt.bg=alpha(ppi$cols,0.75), ncol=1,bty='n')
+#add delta K
+text(x=-1.02,y=0.7,srt=90,labels = expression(Delta~italic(K)==""))
+dev.off()
+```
 
 ## Figure 3
 
