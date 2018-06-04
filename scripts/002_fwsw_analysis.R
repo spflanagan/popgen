@@ -44,6 +44,7 @@ lgs<-c("LG1","LG2","LG3","LG4","LG5","LG6","LG7","LG8","LG9","LG10","LG11",
 lgn<-seq(1,22)
 all.colors<-c(rep("black",2),"#2166ac","black","#2166ac","black","#2166ac",
         rep("black",8),"#2166ac")
+#grp.colors<-c('#e41a1c','#377eb8','#4daf4a','#984ea3','#ffff33','#f781bf')
 grp.colors<-c('#762a83','#af8dc3','#e7d4e8','#d9f0d3','#7fbf7b','#1b7837')
 ## ---- end-of-FWSWsetup
 #######################**********FILES*********##############################
