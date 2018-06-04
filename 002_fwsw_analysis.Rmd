@@ -103,14 +103,13 @@ The second figure in the paper is showing population structure, using STRUCTURE,
 ```
 
 
-![Figure 2. Population Structure](fwsw_results/pop_structure_comb.jpeg)
+<!-- ![Figure 2. Population Structure](fwsw_results/pop_structure_comb.jpeg) -->
 
+Now for a combined figure:
 
-Now I need to re-make the figure...
-
-```{r dapcData}
+```{r dapcData,eval=FALSE}
 ```
-```{r rereadFiles, echo=FALSE}
+```{r rereadFiles, echo=FALSE,eval=FALSE}
 pa<-readRDS("pcadapt.RDS")
 pap<-read.delim("pap_pcadapt.txt",header=TRUE)
 structure.k2<-read.table(
@@ -129,7 +128,7 @@ structure.k6<-data.frame(structure.k6$V1,structure.k6$V3,structure.k6$V4,structu
 
 
 ```
-```{r combinedFig2}
+```{r combinedFig2,eval=FALSE}
 npop<-length(pop.list)
 pseq<-1:npop
 m<-matrix(c(1:32,rep(33,7),rep(34,7),rep(0,2),
@@ -217,6 +216,8 @@ legend(x=0.75,y=0.5, legend=ppi$Pop, pch=as.numeric(ppi$pch), pt.cex=1.5,cex=1,
 text(x=-1.02,y=0.7,srt=90,labels = expression(Delta~italic(K)==""))
 dev.off()
 ```
+
+![Figure 2. Population Structure](fwsw_results/combinedStructure.jpeg)
 
 ## Figure 3
 
@@ -1227,6 +1228,7 @@ balancing.sel<-function(pi.out,pi,ht.out,ht,
 bal<-balancing.sel(pi.pp.smooth[[1]],"plot.pos",ht.pp.smooth[[1]],"plot.pos",
                    dd.pp.smooth[[1]],"plot.pos",jd.pp.smooth[[1]],"plot.pos")
 
+
 shared.upp<-bal$div
 ```
 
@@ -1315,6 +1317,7 @@ xlims<-lapply(chroms2plot,function(lg,genes,vcf){
 },genes=shared.upp,vcf=vcf)
 names(xlims)<-chroms2plot
 HandPiName<-expression(Large~pi~and~italic(H))
+includeArrows<-FALSE
 ```
 ```{r plotHandPi}
 ```
@@ -1326,7 +1329,8 @@ To demonstrate these patterns, let's focus on the clearest signal, on LG8. I'll 
 ```{r}
 ## SETUP
 comp.col<-c(Het="#80cdc1",pi="#018571",Fst="black",D="#a6611a",deltad="#dfc27d")
-i<-2 #LG8 is the second in the 'chroms2plot' list
+this.chrom<-"LG8"
+i<-which(chroms2plot==this.chrom) #LG8 is the second in the 'chroms2plot' list
 this.df<-fwsw[fwsw$Chr %in% chroms2plot[i],]
 this.xlim<-xlims[[as.character(chroms2plot[i])]]
 xmin<-this.xlim[1]
@@ -1334,14 +1338,17 @@ xmax<-this.xlim[2]
 
 # Find the shared peak
 pos<-shared.upp$Pos[shared.upp$Chrom %in% chroms2plot[i]]
-regmin<-pos-mean(ld$pos.diff[ld$Chrom=="LG8" & ld$LocIDA==pos & ld$D. > 0.5])
-regmax<-pos+mean(ld$pos.diff[ld$Chrom=="LG8" & ld$LocIDA==pos & ld$D. > 0.5])
+regmin<-pos-mean(ld$pos.diff[ld$Chrom==this.chrom & ld$LocIDA==pos & ld$D. > 0.5])
+regmax<-pos+mean(ld$pos.diff[ld$Chrom==this.chrom & ld$LocIDA==pos & ld$D. > 0.5])
+
 
 # Find the putative gene regions
-g<-put.reg[put.reg$Chrom == "LG8",c("Gene","Chrom","StartBP","StopBP")]
+g<-put.reg[put.reg$Chrom == this.chrom,c("Gene","Chrom","StartBP","StopBP")]
 #remove duplicates
-g<-g[g$Gene !="ATP6V1A",] 
-g<-g[-which(g$Gene=="VATPase" & g$StartBP<3000000),]
+if(this.chrom=="LG8"){
+  g<-g[g$Gene !="ATP6V1A",] 
+  g<-g[-which(g$Gene=="VATPase" & g$StartBP<3000000),]
+}
 g<-g[!duplicated(g),]
 
 txt.locs<-data.frame(starts=unique(g$StartBP),name=as.character(g$Gene[!duplicated(g$StartBP)]),
@@ -1349,24 +1356,25 @@ txt.locs<-data.frame(starts=unique(g$StartBP),name=as.character(g$Gene[!duplicat
 txt.locs<-txt.locs[order(txt.locs$starts),]
 rownames(txt.locs)<-NULL
 #move the labels
-txt.locs$starts[12]<-txt.locs$starts[12]+100000 #VATPase
-txt.locs$starts[10]<-txt.locs$starts[10]-100000 #MKP8
-txt.locs$starts[11]<-txt.locs$starts[11]-100000 #mucin
-txt.locs$starts[txt.locs$name=="RHOGTP8"]<-txt.locs$starts[txt.locs$name=="RHOGTP8"]+50000 #RhoGTP
-txt.locs$starts[5]<-txt.locs$starts[5]+50000 #PRL2
-
-txt.locs$starts[1]<-txt.locs$starts[1]+90000 #TRIM14
-txt.locs$starts[2]<-txt.locs$starts[2]+100000 #VATPase
-txt.locs$starts[3]<-txt.locs$starts[3]+100000 #PRL1
-#rename
-txt.locs$name[txt.locs$name=="ATP6V0A1"]<-"VATPase"
-txt.locs$name[txt.locs$name=="RHOGTP8"]<-"RhoGTP"
-
+if(this.chrom=="LG8"){
+  txt.locs$starts[12]<-txt.locs$starts[12]+100000 #VATPase
+  txt.locs$starts[10]<-txt.locs$starts[10]-100000 #MKP8
+  txt.locs$starts[11]<-txt.locs$starts[11]-100000 #mucin
+  txt.locs$starts[txt.locs$name=="RHOGTP8"]<-txt.locs$starts[txt.locs$name=="RHOGTP8"]+50000 #RhoGTP
+  txt.locs$starts[5]<-txt.locs$starts[5]+50000 #PRL2
+  
+  txt.locs$starts[1]<-txt.locs$starts[1]+90000 #TRIM14
+  txt.locs$starts[2]<-txt.locs$starts[2]+100000 #VATPase
+  txt.locs$starts[3]<-txt.locs$starts[3]+100000 #PRL1
+  #rename
+  txt.locs$name[txt.locs$name=="ATP6V0A1"]<-"VATPase"
+  txt.locs$name[txt.locs$name=="RHOGTP8"]<-"RhoGTP"
+}
 
 ```
 ```{r}
 ## PLOT
-png("LG8_balancingsel.png",height=6,width=10,units="in",res=300)
+png(paste(this.chrom,"_balancingsel.png",sep=""),height=6,width=10,units="in",res=300)
 par(mfrow=c(3,1),oma=c(2,2,2,1),mar=c(1,2,1.5,2),xpd=TRUE)
 # Empty plot for H and pi
 plot(this.df$BP,this.df$Corrected.AMOVA.Fst, xlim=this.xlim,ylim=c(0,0.5),axes=F,ylab="",xlab="",type='n')
@@ -1379,13 +1387,13 @@ rect(xleft=as.numeric(g$StartBP),xright=as.numeric(g$StopBP),
 # Add Pi
 points(pi.bp.smooth[[2]][pi.bp.smooth[[2]][,"chr"]%in% chroms2plot[i],c("pos","smoothed.stats")],
      type="l",lwd=2,col=comp.col["pi"])
-upp.low.pts(smooth=pi.bp.smooth[[1]],target=pi.bp.smooth[[2]],chrom=chroms2plot[i],
-            color=comp.col["pi"],stat="Pi",pos.name="Pos")
+#upp.low.pts(smooth=pi.bp.smooth[[1]],target=pi.bp.smooth[[2]],chrom=chroms2plot[i],
+#            color=comp.col["pi"],stat="Pi",pos.name="Pos")
 # Add Het
 points(ht.bp.smooth[[2]][ht.bp.smooth[[2]][,"chr"]%in% chroms2plot[i],c("pos","smoothed.stats")],
        type="l",col=comp.col["Het"],lwd=2)
-upp.low.pts(smooth=ht.bp.smooth[[1]],target=ht.bp.smooth[[2]],chrom=chroms2plot[i],
-            color=comp.col["Het"],stat="Het",pos.name="Pos")  
+#upp.low.pts(smooth=ht.bp.smooth[[1]],target=ht.bp.smooth[[2]],chrom=chroms2plot[i],
+#            color=comp.col["Het"],stat="Het",pos.name="Pos")  
 # Add putative gene name
 #text(x=txt.locs$starts[4:12],y=c(0.25,rep(0.35,3),rep(0.25,5)),
 #     cex=2,labels=txt.locs$name[4:12],srt=90,xpd=T,font=2)
@@ -1408,17 +1416,17 @@ rect(xleft=as.numeric(g$StartBP),xright=as.numeric(g$StopBP),
 # Add deltad
 points(dd.bp.smooth[[2]][dd.bp.smooth[[2]][,"chr"]%in% chroms2plot[i],c("pos","smoothed.stats")],
        type="l",col=comp.col["deltad"],lwd=2)
-upp.low.pts(smooth=dd.bp.smooth[[1]],dd.bp.smooth[[2]],chrom=chroms2plot[i],
-            color=comp.col["deltad"],stat="deltad",pos.name="Pos")
+#upp.low.pts(smooth=dd.bp.smooth[[1]],dd.bp.smooth[[2]],chrom=chroms2plot[i],
+#            color=comp.col["deltad"],stat="deltad",pos.name="Pos")
 # Add Josts D
 points(jd.bp.smooth[[2]][jd.bp.smooth[[2]][,"chr"]%in% chroms2plot[i],c("pos","smoothed.stats")],
        type="l",col=comp.col["D"],lwd=2)
-upp.low.pts(smooth=jd.bp.smooth[[1]],jd.bp.smooth[[2]],chrom=chroms2plot[i],
-            color=comp.col["D"],stat="D",pos.name="Pos")
+#upp.low.pts(smooth=jd.bp.smooth[[1]],jd.bp.smooth[[2]],chrom=chroms2plot[i],
+#            color=comp.col["D"],stat="D",pos.name="Pos")
 # axes etc
 axis(1,pos=-0.1,c(xmin,xmax),labels = FALSE)
 axis(2,las=1,cex.axis=2,pos=xmin,at=c(-0.1,0.05,0.2))
-legend(0,0.4,legend=c(expression("Jost's"~italic(D)),expression(delta~-divergence)),
+legend(0,0.28,legend=c(expression("Jost's"~italic(D)),expression(delta~-divergence)),
        bty='n',lwd=c(2,2),lty=c(1,1),xpd=TRUE,ncol=2,x.intersp = 0.2,text.width = 1000000,
        cex = 2,col=c(comp.col["D"],comp.col["deltad"]))
 
@@ -1431,18 +1439,24 @@ rect(regmin,0,regmax,0.5,col=alpha("#543005",0.15),border=NA) #LD region
 rect(xleft=as.numeric(g$StartBP),xright=as.numeric(g$StopBP),
      ybottom=0,ytop=0.5,col="indianred",border="indianred")
 # Add Fsts
-points(fwsw.fl$BP[fwsw.fl$Chr=="LG8"],fwsw.fl$Smoothed.AMOVA.Fst[fwsw.fl$Chr=="LG8"],
+points(fwsw.fl$BP[fwsw.fl$Chr==this.chrom],fwsw.fl$Smoothed.AMOVA.Fst[fwsw.fl$Chr==this.chrom],
        type="l",col=grp.colors[6],lwd=2)
-points(fwsw.tx$BP[fwsw.tx$Chr=="LG8"],fwsw.tx$Smoothed.AMOVA.Fst[fwsw.tx$Chr=="LG8"],
+points(fwsw.tx$BP[fwsw.tx$Chr==this.chrom],fwsw.tx$Smoothed.AMOVA.Fst[fwsw.tx$Chr==this.chrom],
        type="l",col=grp.colors[1],lwd=2)
-points(fwsw.la$BP[fwsw.la$Chr=="LG8"],fwsw.la$Smoothed.AMOVA.Fst[fwsw.la$Chr=="LG8"],
+points(fwsw.la$BP[fwsw.la$Chr==this.chrom],fwsw.la$Smoothed.AMOVA.Fst[fwsw.la$Chr==this.chrom],
        type="l",col=grp.colors[2],lwd=2)
-points(fwsw.al$BP[fwsw.al$Chr=="LG8"],fwsw.al$Smoothed.AMOVA.Fst[fwsw.al$Chr=="LG8"],
+points(fwsw.al$BP[fwsw.al$Chr==this.chrom],fwsw.al$Smoothed.AMOVA.Fst[fwsw.al$Chr==this.chrom],
        type="l",col=grp.colors[2],lwd=2,lty=2)
 # Add putative gene name
-text(x=txt.locs$starts[4:12],y=c(0.25,rep(0.35,7),0.25),
-     cex=2,labels=txt.locs$name[4:12],srt=90,xpd=T,font=2)
-text(x=txt.locs$starts[1:3],y=c(0.43,0.3,0.15),cex=2,labels=txt.locs$name[1:3],xpd=T,font=2,pos=2)
+if(this.chrom=="LG8"){
+  text(x=txt.locs$starts[4:12],y=c(0.25,rep(0.35,7),0.25),
+      cex=2,labels=txt.locs$name[4:12],srt=90,xpd=T,font=2)
+
+  text(x=txt.locs$starts[1:3],y=c(0.43,0.3,0.15),cex=2,labels=txt.locs$name[1:3],xpd=T,font=2,pos=2)
+}else{
+  text(x=txt.locs$starts,y=rep(0.25,length(txt.locs$starts)),
+      cex=2,labels=txt.locs$name,srt=90,xpd=T,font=2)
+}
 # axes etc
 axis(1,pos=0,c(xmin,xmax),
    labels = c(round((xmin/1000000),2),round((xmax/1000000),2)),cex.axis=2)
@@ -1456,11 +1470,11 @@ legend(0,0.65,legend=c(expression("TX FWSW"~italic(F)[ST]),
        x.intersp = 0.2)
 
 # Add x-axis label
-mtext("Position on LG8 (Mb)",1,cex=2*0.75,line=1)
+mtext(paste("Position on",this.chrom,"(Mb)"),1,cex=2*0.75,line=1)
 
 dev.off()
 ```
-```{r}
+```{r, echo=FALSE}
 ## PLOT
 png("LG8_balancingsel_nogenes.png",height=6,width=10,units="in",res=300)
 par(mfrow=c(3,1),oma=c(2,2,2,1),mar=c(1,2,1.5,2),xpd=TRUE)
@@ -1541,6 +1555,7 @@ mtext("Position on LG8 (Mb)",1,cex=2*0.75,line=1)
 dev.off()
 ```
 
+![Figure 6. Low $\delta$-divergence and high $\pi$](fwsw_results/LG8_balancingsel.png)
 
 ### Look for regions of reduced diversity as evidence of selective sweeps.
 

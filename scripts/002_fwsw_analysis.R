@@ -22,13 +22,12 @@ library(maps);library(gplots)
 library(mapdata)
 library(vegan)
 library(boot)
-library(adegenet)
 library(scales)
 library(gdata)
 library(ape)
 library(lattice); library(RColorBrewer); library(grid)
 library(devtools)
-library(mmod)
+#library(mmod)
 ## ---- end-of-LoadFWSWpackages
 ## ---- FWSWsetup
 pop.list<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
@@ -573,30 +572,35 @@ for(i in 1:length(chroms2plot)){
   #Pi
   points(pi.bp.smooth[[2]][pi.bp.smooth[[2]][,"chr"]%in% chroms2plot[i],c("pos","smoothed.stats")],
        type="l",lwd=2,col=comp.col["pi"])
-  upp.low.pts(smooth=pi.bp.smooth[[1]],target=pi.bp.smooth[[2]],chrom=chroms2plot[i],
-              color=comp.col["pi"],stat="Pi",pos.name="Pos")
+  if(isTRUE(includeArrows)){
+    upp.low.pts(smooth=pi.bp.smooth[[1]],target=pi.bp.smooth[[2]],chrom=chroms2plot[i],
+                color=comp.col["pi"],stat="Pi",pos.name="Pos")
+  }
   #Het
   points(ht.bp.smooth[[2]][ht.bp.smooth[[2]][,"chr"]%in% chroms2plot[i],c("pos","smoothed.stats")],
          type="l",col=comp.col["Het"],lwd=2)
-  upp.low.pts(smooth=ht.bp.smooth[[1]],target=ht.bp.smooth[[2]],chrom=chroms2plot[i],
+  if(isTRUE(includeArrows)){
+    upp.low.pts(smooth=ht.bp.smooth[[1]],target=ht.bp.smooth[[2]],chrom=chroms2plot[i],
               color=comp.col["Het"],stat="Het",pos.name="Pos")
-  
+  }
   #deltad
   points(dd.bp.smooth[[2]][dd.bp.smooth[[2]][,"chr"]%in% chroms2plot[i],c("pos","smoothed.stats")],
          type="l",col=comp.col["deltad"],lwd=2)
-  upp.low.pts(smooth=dd.bp.smooth[[1]],dd.bp.smooth[[2]],chrom=chroms2plot[i],
+  if(isTRUE(includeArrows)){
+    upp.low.pts(smooth=dd.bp.smooth[[1]],dd.bp.smooth[[2]],chrom=chroms2plot[i],
               color=comp.col["deltad"],stat="deltad",pos.name="Pos")
-
+  }
   #Josts D
   points(jd.bp.smooth[[2]][jd.bp.smooth[[2]][,"chr"]%in% chroms2plot[i],c("pos","smoothed.stats")],
          type="l",col=comp.col["D"],lwd=2)
-  upp.low.pts(smooth=jd.bp.smooth[[1]],jd.bp.smooth[[2]],chrom=chroms2plot[i],
+  if(isTRUE(includeArrows)){
+    upp.low.pts(smooth=jd.bp.smooth[[1]],jd.bp.smooth[[2]],chrom=chroms2plot[i],
               color=comp.col["D"],stat="D",pos.name="Pos")
-  
+  }
   #shared Fst outliers
   points(this.df$BP[this.df$BP %in% fw.sig.reg$BP],
-         this.df$Corrected.AMOVA.Fst[this.df$BP %in% fw.sig.reg$BP],
-         pch=8,cex=2,col="orchid4",lwd=3)
+         rep(0.5,length(this.df$BP[this.df$BP %in% fw.sig.reg$BP])),
+         pch="|",cex=2,col="orchid4",lwd=3)
   
   if(nrow(g)>0){
     txt.locs<-data.frame(starts=unique(g$StartBP),name=g$Gene[!duplicated(g$StartBP)])
@@ -615,7 +619,7 @@ legend("topleft",xpd=TRUE,
        legend=c("Putative Gene",
                 expression(Shared~italic(F)[ST]~Outlier),
                 HandPiName),
-       bty='n',pch=c(15,8,15),#lwd=c(2,1,4,2,2,0,2,2),lty=c(1,0,1,1,1,0,1,1),
+       bty='n',pch=c(15,124,15),#lwd=c(2,1,4,2,2,0,2,2),lty=c(1,0,1,1,1,0,1,1),
        cex = 2,x.intersp = 0.5,y.intersp = 0.75,text.width=0.45,
        col=c("indianred","orchid4",alpha("#543005",0.75)))
 plot(0, 0, type='n', bty='n', xaxt='n', yaxt='n')
@@ -1712,13 +1716,14 @@ rev.colors<-c("cornflowerblue","lightgrey","grey","darkgrey","black")
 rev.pal<-colorRampPalette(rev.colors)
 rev.cols<-rev.pal(ncol)
 
-hm.height<-list(x=3.8,units="in")#2.2
-hm.width<-list(x=3.9,units="in")#2.4 in RStudio
+hm.height<-list(x=2,units="in")#2.2/3.8
+hm.width<-list(x=2.4,units="in")#2.4 in RStudio/3.9
 ## ---- end
 pwise.fst<-pwise.fst.sub
 heatmaps.name<-"heatmaps.png"
 ## ---- PlotHeatmaps
-png(heatmaps.name,height=11,width=11,units="in",res=300)
+#pdf("p4.heatmaps.pdf",height=11,width=11)
+png(heatmaps.name,height=6,width=8,units="in",res=300)
 fst.lv<-levelplot(as.matrix(pwise.fst),col.regions=cols,alpha.regions=0.7,
                   scales = list(x=list(rot=90),tck = 0),xlab="",ylab="")
 print(fst.lv,split=c(1,1,2,2),more=TRUE,panel.width=hm.width,
@@ -1757,6 +1762,8 @@ dev.off()
 ##############################POP STRUCTURE##################################
 
 ## ---- Adegenet
+
+library(adegenet)
 dat.plink<-read.PLINK("stacks/subset.raw",parallel=FALSE)
 #look at alleles
 glPlot(dat.plink, posi="topleft")
