@@ -1,0 +1,593 @@
+Population genetics Analysis Log File
+LAST UPDATED: 3 May 2016
+This is started after receving first round of reviews from Molecular Ecology
+22 February 2016
+
+The reviewers want a general re-structuring of the paper, plus I need to check/fix/add the following things:
+X-Migration analysis with MIGRATE
+X-Calculate isolation by distance on contigs or single SNP per contig
+X-use a more statistical approach to IBD
+X-only do IBD on neutral loci
+X-Look for the distribution of IBD across loci
+X-Use neutral loci to generate Fst CIs
+X-Test the association between Pst and Fst on a locus-by-locus basis or use morphological data in Bayenv
+X-Apply common subspace approach to complete set of population P-matrices
+X-use GIS to calculate distances instead of Google Maps
+X-Standardize the traits for size (possibly--or at least justify why not)
+X-Summary statistics output from stacks needs to be modified
+X-Report sequencing coverage
+X-How many of the 66 SNPs were unlinked?
+X-Better description of evaluating K from structure
+X-Why are there so many extreme Pst values (1)
+X-Did LD pruning work as expected? Are SNPs from the same RAD locus removed?
+X-Instead of mean temperature, use a temperature anomaly?
+
+#THE PIPELINE
+1. align with bowtie2
+2. ref_map.pl
+3. populations -r 0.75 -p 12 -a 0.05
+4. prune_snps.cpp
+5. plink --file pruned --hwe 0.001 --noweb --allow-no-sex --write-snplist
+	plink --file pruned --extract plink.snplist --recode --recodeA --recode-structure --out subset --noweb --allow-no-sex
+6. PCAdapt
+7. Adegenet
+8. FastStructure
+9. Structure
+	Structure Harvester
+10. Bayenv2
+11. calculate_global_fst
+##################################################################################################
+#####Monday, 2 May 2016
+I've re-done the analysis, blastx is running, and the supplemental has been re-done.
+
+Migrate map:
+	calculated by multiplying M2->1 by theta 1 for each arrow pointing to pop 1.
+	So for TXCC, it's got an arrow that's MTXCB->TXCC and MTXSP->TXCC, plus its own average theta. so I calculated Nm as:
+		Nm=((thetaTXCC*MTXCB->TXCC)+(thetaTXSP*MTXCB->TXCC))/2
+	OK, need Nm for each arrow.
+		(thetaTXCC*MTXCB->TXCC)/4
+
+#####Sunday, 1 May 2016
+Re-doing the Pst-Fst analysis with linear model instead of the anova.
+This changes things slightly.
+
+#####Tuesday, 12 April 2016
+Comparing analyses:
+
+summary(all.outliers[all.outliers$SNP %in% band.sig$V1,"analysis"])
+CollectionSalinity     CollectionTemp                Fst           MeanTemp            PCAdapt           Salinity           Seagrass       TempVariance                XtX 
+                 2                  4                  0                  3                  0                  4                  1                  6                  1 
+> summary(all.outliers[all.outliers$SNP %in% head.sig$V1,"analysis"])
+CollectionSalinity     CollectionTemp                Fst           MeanTemp            PCAdapt           Salinity           Seagrass       TempVariance                XtX 
+                28                 36                 11                 38                  5                 31                 43                 34                 42 
+> summary(all.outliers[all.outliers$SNP %in% svl.sig$V1,"analysis"])
+CollectionSalinity     CollectionTemp                Fst           MeanTemp            PCAdapt           Salinity           Seagrass       TempVariance                XtX 
+                34                 35                  4                 33                  4                 29                 29                 26                 36 
+> summary(all.outliers[all.outliers$SNP %in% tail.sig$V1,"analysis"])
+CollectionSalinity     CollectionTemp                Fst           MeanTemp            PCAdapt           Salinity           Seagrass       TempVariance                XtX 
+                21                 23                  3                 23                  1                 23                 24                 19                 23 
+> 
+
+setwd("E:/ubuntushare/popgen/sw_results")
+
+all.outliers<-read.table("AllOutliers.txt",header=T)
+svl.sig<-read.table("pstfst/SVL_pstfst.txt")
+tail.sig<-read.table("pstfst/TailLength_pstfst.txt")
+band.sig<-read.table("pstfst/Bands_pstfst.txt")
+head.sig<-read.table("pstfst/HeadLength_pstfst.txt")
+
+length(levels(factor(svl.sig[svl.sig$V1 %in% all.outliers$SNP,])))
+length(levels(factor(tail.sig[tail.sig$V1 %in% all.outliers$SNP,])))
+length(levels(factor(head.sig[head.sig$V1 %in% all.outliers$SNP,])))
+length(levels(factor(band.sig[band.sig$V1 %in% all.outliers$SNP,])))
+
+summary(all.outliers[all.outliers$SNP %in% band.sig$V1,"analysis"])
+summary(all.outliers[all.outliers$SNP %in% head.sig$V1,"analysis"])
+summary(all.outliers[all.outliers$SNP %in% svl.sig$V1,"analysis"])
+summary(all.outliers[all.outliers$SNP %in% tail.sig$V1,"analysis"])
+
+bf.tempvar<-read.table("bayenv2/new_bayenv/tempvar_bf.txt",header=T)
+bf.dat<-read.table("bayenv2/new_bayenv/BF_summary.pruned_snps.txt",header=T)
+bf.dat$locus<-sub("./pruned_snps/(\\d+.*)","\\1",bf.dat$locus)
+bf.dat<-merge(bf.dat,bf.tempvar,by.x="locus",by.y="SNP")
+sub.map<-read.table("stacks/populations_subset/batch_1.plink.map")
+bf.scaff<-merge(sub.map, bf.dat, by.x="V2", by.y="locus")
+colnames(bf.scaff)[1:4]<-c("locus","scaffold","dist","BP")
+bf<-bf.scaff[,c(1,2,4,5,8,11,14,17,20)]
+bf.co<-apply(bf[,4:9],2,quantile,0.95)
+temp.bf.sig<-bf[bf$Temp_BF>bf.co["Temp_BF"],c(1,2,3,4)]
+sal.bf.sig<-bf[bf$Salinity_BF>bf.co["Salinity_BF"],c(1,2,3,5)]
+ctemp.bf.sig<-bf[bf$coll.temp_BF>bf.co["coll.temp_BF"],c(1,2,3,6)]
+csal.bf.sig<-bf[bf$coll.sal_BF>bf.co["coll.sal_BF"],c(1,2,3,7)]
+grass.bf.sig<-bf[bf$seagrass_BF>bf.co["seagrass_BF"],c(1,2,3,8)]
+tvar.bf.sig<-bf[bf$BFtempvar>bf.co["BFtempvar"],c(1,2,3,9)]
+
+bf.names<-c("CollectionTemp","TempVariance","Salinity","Seagrass",
+	"CollectionSalinity","MeanTemp")
+locad.out<-all.outliers[!(all.outliers$analysis %in% bf.names),]
+
+loc.bf<-c(as.character(temp.bf.sig[temp.bf.sig$locus %in% locad.out$SNP,"locus"]),
+	as.character(ctemp.bf.sig[ctemp.bf.sig$locus %in% locad.out$SNP,"locus"]),
+	as.character(tvar.bf.sig[tvar.bf.sig$locus %in% locad.out$SNP,"locus"]),
+	as.character(sal.bf.sig[sal.bf.sig$locus %in% locad.out$SNP,"locus"]),
+	as.character(csal.bf.sig[csal.bf.sig$locus %in% locad.out$SNP,"locus"]),
+	as.character(grass.bf.sig[grass.bf.sig$locus %in% locad.out$SNP,"locus"]))
+length(levels(factor(loc.bf)))
+
+
+#####Monday, 11 April 2016
+I need to do the summary stats. I'm thinking of just including more from the stacks output. That should be fine.
+I'm also re-making all of the figures to be pdfs, as per the molecular ecology instructions.
+
+#####Sunday, 10 April 2016
+OK, bayenv2 finished and provided useful output. There were 88 loci associated with variance in temperature, and 4 of those were also in the mean temperature analysis. What now? I should blast those four. And make a plot for the temperature comparisons. 
+
+Still to do: 
+-update paper
+-coverage analysis
+-summary statistics
+-use quantile() to ID outlier Fsts
+-update MS
+-organize files and annotate info on github
+
+I re-did the Fst analysis using quantile() and 0.99 and now there's one overlapping SNP. This is fine (there are 4 with quantile() and 0.95).
+
+I'm running coverage_from_stacks.
+
+Comparing loadings etc. from PCA:
+fem.pheno.pca (body traits)
+				   PC1      PC2      PC3        PC4      PC5       PC6
+	SVL         -7.8222 -2.67375 -0.13739  0.0003987 -0.01577 -0.002399
+	TailLength  -9.3092  2.28507 -0.07646 -0.0027316  0.02766 -0.001429
+	depth       -1.2765  0.02343  0.53818 -0.0644711 -0.48566 -0.007264
+	SnoutLength -0.9573 -0.20964  0.53620 -0.4570516  0.29055 -0.016289
+	SountDepth  -0.3009 -0.03534  0.07418 -0.0211756  0.01171  0.212012
+	HeadLength  -1.0488 -0.16777  0.53763  0.5230155  0.19467 -0.006552
+	Importance of components:
+							   PC1     PC2     PC3     PC4     PC5     PC6
+	Eigenvalue            101.3515 8.32052 0.59936 0.32565 0.24025 0.03030
+	Proportion Explained    0.9142 0.07505 0.00541 0.00294 0.00217 0.00027
+	Cumulative Proportion   0.9142 0.98922 0.99462 0.99756 0.99973 1.00000
+
+mal.pheno.pca
+					 PC1      PC2       PC3      PC4      PC5        PC6
+	SVL          -7.8154  2.10852  0.023154  0.08940 -0.03854  2.334e-04
+	TailLength  -10.7317 -1.60014 -0.018902  0.02363 -0.01443  2.294e-05
+	depth        -1.3536  0.12363  0.316103 -0.11005  0.34219  2.535e-02
+	SnoutLength  -1.0014  0.25384 -0.552500 -0.15971  0.16346  1.864e-02
+	SountDepth   -0.3602  0.05437 -0.005883 -0.05611  0.05398 -1.893e-01
+	HeadLength   -1.2963  0.19451  0.115248 -0.48074 -0.14682  1.015e-02
+	Importance of components:
+							   PC1     PC2     PC3     PC4    PC5     PC6
+	Eigenvalue            129.4529 5.10017 0.30013 0.20068 0.1216 0.02644
+	Proportion Explained    0.9575 0.03772 0.00222 0.00148 0.0009 0.00020
+	Cumulative Proportion   0.9575 0.99520 0.99742 0.99890 0.9998 1.00000
+
+band.pca
+				PC1      PC2
+	MBandArea 0.131 -0.74800
+	BandNum   5.593  0.01752
+	Importance of components:
+							 PC1     PC2
+	Eigenvalue            4.0198 0.07191
+	Proportion Explained  0.9824 0.01757
+	Cumulative Proportion 0.9824 1.00000
+
+The loadings of the eigenanalysis of each population are generally the same..
+Females:
+	the first eigenvector is mainly explained by SVL/TailLength, and second is also SVL/TailLength, with headlength and bnad num also having larger loadings. The third one is band num. There are some exceptions like FLHB,  FLSG, FLSI, TXCC, and TXSP which flip e2 and e3. 
+Males:
+	e1 is SVL/TailLength, e2 is also SVL/TailLength, and e3 is HeadLength, snoutlength, or body depth
+	
+These generally amtch the PCA results above. It also matches the eigenanalysis of the H matrix. I'm not sure if this is at all equivalent to the eigentensor analyses. 
+
+Looking at the tensor summary: 
+Females:
+	e11 is mostly SVL, e21 is mostly tail and SVL, e31 is mostly SVL, Tail, and Band num (look at tensorsummary)
+Males:
+	e11 is SVL and tail length, e21 is SVL and tail length, e31 is SVL and tail length.
+
+Coverage from Stacks summary:
+	Num individuals	524
+	Num loci	194294
+	Average per-locus coverage	7.07612
+	average per-individual coverage	10.0782
+	Num Loci with >=5x coverage 	95145
+	Num loci with >=10x coverage 	36227
+	Overall minimum per-locus coverage 	0
+	Overall maximum per-locus coverage 	6905
+
+dim(temp.bf.sig[temp.bf.sig$locus %in% locad.out,])
+[1] 10  4
+> dim(ctemp.bf.sig[ctemp.bf.sig$locus %in% locad.out,])
+[1] 14  4
+> dim(tvar.bf.sig[tvar.bf.sig$locus %in% locad.out,])
+[1] 14  4
+> dim(sal.bf.sig[sal.bf.sig$locus %in% locad.out,])
+[1] 21  4
+> dim(csal.bf.sig[csal.bf.sig$locus %in% locad.out,])
+[1] 20  4
+> dim(grass.bf.sig[grass.bf.sig$locus %in% locad.out,])
+[1] 18  4
+Total of 383 SNPs in all 6. 
+I made a table of all of the outliers..I should add the RAD sequences probably and share it as a supplement--did that!
+
+#####Saturday, 9 April 2016
+I changed the temperature variance file to have the unix line endings. Now I'm re-running Bayenv. It's still giving me nan...maybe I'll try it on the lab computer. Last time it didn't work right. It's still giving me nan...probably because it's not formatted correctly. I needed to remove the row and column names.  That seems to have fixed it!
+
+I've been updating the manuscript. I've also been running the pst-fst significant ones in blast2go to see if there are any differences/similarities.
+
+#####Friday, 8 April 2016
+Of course bayenv didn't run properly on the temp variance data and I didn't send myself the temp var data. So I'll have to figure that out back at home.
+
+So I guess that means I'll need to do the Pmatrix analysis instead. 
+I've output the P matrices and they are all pretty close to 1...the biggest differences seem to be related to body size, with FLFD and FLAB being different (because they're larger)
+
+A p matrix of just the bands yields all 1s..I think maybe because there are only two traits. or something. 
+
+In the Aguirre et al review, they compare eigenvectors of H to values from "a common set of principal components". They also have confidence intervals, which I don't know how they generated. Maybe it's in their supplement? They did MCMC resampling. Also this for the null: "The null model we use assumes the G are sampled from the same population, and hence the randomised G will have all subspaces in common up to sampling error. Thus, to compare our observed and null model we will apply the kr.subspace function to the first four eigenvectors of the randomised G array".
+
+Randomly re-assigned each individual to a population.
+For calculation of H I'm using the first 3 eigenvectors of each population.
+The angles between eac eigenvector of H and each of the p population subspaces quantify how close the corresponding eigenvector of H is to each population's subspace.
+Aguirre et al says "Insight into differences among populations in genetic variance associated with common subspaces can be gained in this context by using projection to find the genetic variance in each population for those bi that are judged to form part of the common subspace."
+
+I've made a new figure 7 and am working on a supplementary document with more tables and figures that will also help me with my interpretation. 
+
+#####Thursday, 7 April 2016
+I'm just reading in the fem.pheno and mal.pheno files from home. Re-doing the Pst analysis. This is slow, I had kind of forgotten that.
+
+Meanwhile, some of my blast searches have finished so I'll run them through blast2go.
+
+The eigenvalues of the female H are:
+[1] 11.973398525 11.374808392 10.489751252  1.851644007  0.191285884
+[6]  0.097418370  0.012777080  0.008916491
+eigenvalues of the male H are:
+[1] 11.9978140 11.8908686 10.9745211  0.6891948  0.3391816  0.1084199
+
+where the order is SVL,length, depth,snout length, snout depth, head length,
+	band area, band num 
+UMM this doesn't have the modifications! Maybe that's the difference between my heatmap results. Yep, that's it. FML.
+Both males and females differ quite a bit if we consider only the male and female body traits (excluding female bands). the heatmap is difficult to read and interpret. 
+New 
+female eigenvalues for H: [1] 11.9937325 11.6188491  7.4354786  3.2870541  1.6045495  0.0603361
+male eigenvalues for H: [1] 11.9972371 11.7489118  6.2810093  4.5904273  1.1963887  0.1860257
+Angles are <0.03. I don't know how to best depict this.
+
+####Wednesday, 6 April 2016
+I made a PCA plot of the phenotypes. It looks like what I'd expect. PC1 explains SVL/TailLength vs other traits, and the populations basically group by size. FLAB and FLFD are the largest. FLAB has a weird pattern in the bands pc on PC2 where it's separate from the rest.
+
+The p-matrix analysis is still reversed, and I don't know why. I'm wondering if I messed up the analysis before? But the calculations don't match exactly either so I can't explain it. It worked right on the files from home!weird.
+
+I wrote code plot migrate data with the arrows and points scaled to migration rate and theta. I also output a matrix with the migration rates...it should be similar to Fst matrix. I can make a heatmap of each and compare them.
+
+
+#####Tuesday, 5 April 2016
+Migrate finished running on my subset of data. It gives me a theta for each locus for each pop and a migration rate for each direction of travel from each pop to each pop. No estimates of Ne. Just these giant tables of posterior distributions. I don't know what theta is..OK, 4Nem
+
+I'm extracting the scaffolds with significant fst-pst loci. Ran subset_fasta_file and moved the scaffold-specific fasta files to pstfst/sig_regions. Then used extract_sequence_part to remove the 5kb region and then cat'ed the files together. Also extracted the rad regions using fasta_from_stacks_catalog. Submitted all of the merged results on TIGGS for blastx (xml output).
+
+
+
+#####Monday, 4 April 2016
+Working on the Pst-Fst by locus analysis:
+	798 of 1753 are significant in one or more female traits
+	277 of 1753 are significant in one or more male traits
+	Num Sig in males and females for each trait:
+		SVL	634
+		TailLength	414
+		BodyLength	782
+		SnoutLength	540
+		SnoutDepth	582
+		HeadLength	770
+		BandNum or BandArea	132
+	None are present in all of these.
+	
+315 loci are significant for IBD. None of those are in the above significant loci sets.
+I should export those loci and create a supplementary table of blast results for those.
+315 loci are significant for IBD. None of those are in the above significant loci sets.
+
+Are those that are significant in Fst-Pst comparison significantly IBD? NO! none of them have a significant IBD pattern. This fits.
+
+Exporting all of the rad loci to files and then I'll extract the RAD locus. Also should output the 5bk region...
+
+#####Friday, 1 April 2016
+Migrate quit but  it  didn't finish correctly. So I used plink to randomly sample 25% of the subsetted data (408 ish loci). Then re-ran migrate.
+
+I'm also working on the pst-fst analysis bylocus.
+
+#####Thursday, 31 March 2016
+I'm working of Fst-Pst and Fst-IBD locus-by-locus analyses. I'm running into an error message dueto some 0s in the Fst matrices that the distance matrix is non-euclidean, but I don't thinkthis affectsthe Mantel calculations.
+
+#####Wednesday, 30 March 2016
+For some reason my P-matrix Blows analysis is reversed--females are not as different as males!?! weird.
+
+The fst-pst analysis doesn't work on band area and band number when standardized...the pst matrix is all ones. I think it's because of a lack of variance? or something? It works for males. and female body stuff. Doing PCA on standardized traits, pst matrix for bands is all 1s. But the patterns look basically the same as before. AHA!!! BandNum and Band Area mean = 0. What if I standardize by trait/mean(trait) instead of trait/mean(trait)-1? Nope, that's not solving the problem. 
+
+:::::::RESULTS::::::
+STANDARDIZED
+ mal.fst.pst
+                    Obs      P
+SVL         -0.04095571 0.6062
+TailLength  -0.15937982 0.8618
+BodyDepth   -0.02983801 0.6011
+SnoutLength -0.09345849 0.7336
+SnoutDepth  -0.02595385 0.5703
+HeadLength  -0.06003236 0.6436
+
+> mal.pst.dist
+                   Obs      P
+SVL         0.19370982 0.0679
+TailLength  0.13618662 0.1826
+BodyDepth   0.03568641 0.4351
+SnoutLength 0.08921589 0.2981
+SnoutDepth  0.02090614 0.4442
+HeadLength  0.19282189 0.0818
+
+PCA versions:
+> mantel.rtest(as.dist(t(sband.pst)),as.dist(t(dist)), nrepet=9999)
+Monte-Carlo test
+Observation: 0.1785789 
+Call: mantel.rtest(m1 = as.dist(t(sband.pst)), m2 = as.dist(t(dist)), 
+    nrepet = 9999)
+Based on 9999 replicates
+Simulated p-value: 0.1261 
+> mantel.rtest(as.dist(t(sfem.pst)),as.dist(t(dist)), nrepet=9999)
+Monte-Carlo test
+Observation: -0.2014884 
+Call: mantel.rtest(m1 = as.dist(t(sfem.pst)), m2 = as.dist(t(dist)), 
+    nrepet = 9999)
+Based on 9999 replicates
+Simulated p-value: 0.8943 
+> mantel.rtest(as.dist(t(smal.pst)),as.dist(t(dist)), nrepet=9999)
+Monte-Carlo test
+Observation: 0.09107063 
+Call: mantel.rtest(m1 = as.dist(t(smal.pst)), m2 = as.dist(t(dist)), 
+    nrepet = 9999)
+Based on 9999 replicates
+Simulated p-value: 0.2882 
+
+> mantel.rtest(as.dist(t(sband.pst)),as.dist(t(pwise.fst)), nrepet=9999)
+Monte-Carlo test
+Observation: NA 
+Call: mantelnoneuclid(m1 = m1, m2 = m2, nrepet = nrepet)
+Based on 9999 replicates
+Simulated p-value: NA 
+There were 50 or more warnings (use warnings() to see the first 50)
+> mantel.rtest(as.dist(t(sfem.pst)),as.dist(t(pwise.fst)), nrepet=9999)
+Monte-Carlo test
+Observation: 0.01594444 
+Call: mantelnoneuclid(m1 = m1, m2 = m2, nrepet = nrepet)
+Based on 9999 replicates
+Simulated p-value: 0.4864 
+> mantel.rtest(as.dist(t(smal.pst)),as.dist(t(pwise.fst)), nrepet=9999)
+Monte-Carlo test
+Observation: -0.06373443 
+Call: mantelnoneuclid(m1 = m1, m2 = m2, nrepet = nrepet)
+Based on 9999 replicates
+Simulated p-value: 0.6768 
+
+UNSTANDARDIZED
+ fem.fst.upst
+                    Obs      P
+SVL          0.13144683 0.1799
+TailLength   0.08060939 0.3139
+BodyDepth    0.03756990 0.4288
+SnoutLength  0.02517979 0.4989
+SnoutDepth   0.09016056 0.3063
+HeadLength   0.05842674 0.3528
+BandArea     0.04007397 0.4444
+BandNum     -0.20954717 0.8187
+
+> mal.fst.upst
+                    Obs      P
+SVL          0.01723110 0.4743
+TailLength   0.01728534 0.4632
+BodyDepth    0.03865810 0.4595
+SnoutLength -0.06330220 0.6633
+SnoutDepth   0.04661631 0.4132
+HeadLength  -0.02334358 0.5645
+
+fem.upst.dist
+                    Obs      P
+SVL         -0.15632610 0.8695
+TailLength  -0.16330518 0.8806
+BodyDepth   -0.12692967 0.8576
+SnoutLength -0.20835525 0.8916
+SnoutDepth  -0.10891345 0.7732
+HeadLength  -0.14761062 0.8603
+BandArea     0.03079835 0.4718
+BandNum     -0.54223261 1.0000
+> mal.upst.dist
+                     Obs      P
+SVL         -0.001084414 0.5225
+TailLength   0.003154747 0.5085
+BodyDepth    0.028435422 0.4778
+SnoutLength -0.170531471 0.8571
+SnoutDepth  -0.052837081 0.6628
+HeadLength  -0.026574775 0.5902
+
+PCA versions:
+mantel.rtest(as.dist(t(band.pst)),as.dist(t(dist)), nrepet=9999)
+Monte-Carlo test
+Observation: -0.5409249 
+Call: mantel.rtest(m1 = as.dist(t(band.pst)), m2 = as.dist(t(dist)), 
+    nrepet = 9999)
+Based on 9999 replicates
+Simulated p-value: 1 
+> mantel.rtest(as.dist(t(fem.pst)),as.dist(t(dist)), nrepet=9999)
+Monte-Carlo test
+Observation: -0.1224953 
+Call: mantelnoneuclid(m1 = m1, m2 = m2, nrepet = nrepet)
+Based on 9999 replicates
+Simulated p-value: 0.8224 
+> mantel.rtest(as.dist(t(mal.pst)),as.dist(t(dist)), nrepet=9999)
+Monte-Carlo test
+Observation: -0.004192046 
+Call: mantelnoneuclid(m1 = m1, m2 = m2, nrepet = nrepet)
+Based on 9999 replicates
+Simulated p-value: 0.5284 
+> 
+> 
+> mantel.rtest(as.dist(t(band.pst)),as.dist(t(pwise.fst)), nrepet=9999)
+Monte-Carlo test
+Observation: -0.2099312 
+Call: mantelnoneuclid(m1 = m1, m2 = m2, nrepet = nrepet)
+Based on 9999 replicates
+Simulated p-value: 0.8218 
+> mantel.rtest(as.dist(t(fem.pst)),as.dist(t(pwise.fst)), nrepet=9999)
+Monte-Carlo test
+Observation: 0.1124728 
+Call: mantelnoneuclid(m1 = m1, m2 = m2, nrepet = nrepet)
+Based on 9999 replicates
+Simulated p-value: 0.238 
+> mantel.rtest(as.dist(t(mal.pst)),as.dist(t(pwise.fst)), nrepet=9999)
+Monte-Carlo test
+Observation: 0.01852087 
+Call: mantelnoneuclid(m1 = m1, m2 = m2, nrepet = nrepet)
+Based on 9999 replicates
+Simulated p-value: 0.4628 
+> 
+
+
+
+
+#####Tuesday, 29 March 2016
+There are 88 Bayes Factor outliers in the temperature analysis but 0 for the other environmental factors using the "quantile" function with a cutoff of 0.95.
+
+Now there aren't any overlapping outliers. Partly because XTX at 1% has 18 loci..let's try 5%?
+If I use 5% and the pruned Fsts then there's overlap. Whew.
+
+I think I need to present the outliers and the temperature-associated ones separately. Maybe when I do the anomaly analysis there will be something to show there?
+
+
+#####Monday, 28 March 2016
+I need to really try to finish up re-running things. First, I need to edit the fst summary file so that it's in the same order as the distance file (which is geographic order). 
+
+PCAdapt rho2 values are in the *.stats file, which I didn't read into R (I just looked it up and entered the correct values in the plotting of the graph)
+
+I made figure 3 in R (rather than piecing them together in gimp).
+
+Now i need to process the structure output and make the structure figure again.
+Reviewer 1 wants the colors to make more sense so that colors are consistent in each population. I think I've figured out a way to do this, but my faststructure output is a bit weird.
+
+I don't know why but the faststructure groupings are not very good. They also don't really match the distruct plots. I need to look at the distruct code/info to see what they use, maybe I'm just plotting the wrong values.
+
+I'm re-running bayenv on my work computer because the wrapper didn't work on all of the loci apparently and it didn't record the locus names. If I want to compare these outliers to others I need to record the runs!
+
+Meanwhile I'm stilla little stumped by the Pst-Fst comparison not working well.
+
+#####Saturday, 26 March 2016
+I found the original raw environmental file and re-standardized the variables. Now I'm running the bayenv wrapper using run_bayenv2_wrapper.sh... This seems to have worked.
+
+I'm also standardizing the traits by population (not by sex) by dividing each trait value by population mean.
+Now I'm trying to re-do the pst-fst comparisons.
+
+For the band area I'm getting Pst=1 because the sums of squares is so small.
+#####Friday, 25 March 2016
+I realized that the reason I was getting NAN values from Bayenv2 was because my standardized.env file was messed up--full of NANs. So I found the real version and am re-running bayenv2.
+
+Huh. for some reason it's getting overwritten or something because after running several bayenv2 runs it's back to having nans...
+
+And it doesn't look like it's standardized properly. I need to return to this when I can pay more attention to it.
+
+#####Monday, 21 March 2016
+I'm choosing a 5% cutoff for the XtX and Bayes Factors from Bayenv, same as before.
+That yields 88 of each.
+Something didn't work right with the environmental associations. 1633 of them have NAs and the rest, except one, all have the same BF value. Weird.
+
+Re-starting migrate with Bayesian inference with number of recorded steps in chain to 1000.
+
+On my home computer I found a more complete popgen analysis.
+
+
+#####Saturday, 19 March 2016
+My bayenv matrix was formatted incorrectly. Once I fixed it I was able to run the environmental correlations no problem.
+
+#####Friday, 11 March 2016
+Ran populations on the pruned SNPs to generate Fsts, summary stats, etc.
+	populations -b 1 -P ./stacks -M ./stacks/marine_map.txt -s -W ./stacks/populations/subset.whitelist.txt -t 2 --fstats --plink --vcf
+	
+#####Thursday, 10 March 2016
+I had to re-start structure because of a power outage.
+
+#***IBD***#
+Reading up on IBD: it can reflect population structure, and pop structure can reflect it. 
+In Meirmans 2012: One way to take the hierarchical structure into account is to use a stratified Mantel test in which the permutation scheme is changed to permute the locations of populations within the clusters (Oksanen et al. 2009)...it is advised to use clustering approaches that take the geographical position of the samples into account (e.g. François et al. 2006)...A partial Mantel test can also be of help here, testing the association between the matrix of genetic distances and a model matrix of cluster membership with the matrix of geographical distances as a covariate (Drummond & Hamilton 2007)
+
+#***MIGRATE***#
+I also downloaded migrate for Windows and am trying to run it but something's not working correctly.
+I'm running the hapmap format parameter...maybe theres a designation about filenames or something that I need to change. I'm trying replacing the locus ID with a locus count (an integer instead of a string)
+
+There are a number of loci that appear not to be polymorphic. I've added some code to add a 0 count if necessary. That didn't fix it (but it's certainly a good thing to do.) I found a post on the google forum that says, "the migrate manual contains an error and you will need to enter the maximal number of individual for each population in the population line." <-I'm pretty sure he means max number of alleles, since in the example the number preceding the pop name is the max number found in the 'total' column. That fixed it!!! Now it's running
+
+
+#####Wednesday, 9 March 2016
+I wrote plink_to_migrate to convert my subset.ped and subset.map files into a format compatible with migrate.
+I need to re-code the FamID part of the ped file probably to refer to the populations. I did that in R (popgen_analysis.R)
+
+#####Monday, 7 March 2016
+#***Bayenv2***#
+Working on Bayenv2:
+Once the subset files have been fixed up in R, in bayenv2/:
+plink --file bayenv.plink --freq --within plink.clust.txt --noweb --allow-no-sex --out subset.bayenv.plink
+saved new snpsfile as pruned.SNPSFILE in bayenv2/
+Now I'm running bayenv2 on pruned.SNPSFILE, 10 iterations, to generate a SNPS matrix.
+All of the matrices look the same. 
+plink --file ../stacks/populations/batch_1.plink --freq --within all.6348.clust.txt --allow-no-sex --noweb --out all.bayenv.plink
+Then turned it into all.SNPSFILE in R.
+~/Programs/bayenv_2/bayenv2 -i all.SNPSFILE -m matrix.1.out -n 1 -p 12 -k 1000000 -t -X -r 13425
+^^that doesn't work. I need to use individual snps from the pruned snps. It is better to use unlinked SNPs, so I should use the pruned dataset.
+
+So I need to split the file...did that in R.
+But now I'm getting a segmentation fault! Why??
+
+
+
+#***FastStructure***#
+To run faststructure, I needed to edit the plink --recode-structure output by removing the first two lines, which I did in jEdit. 
+but faststructure isn't finding the files..it has to be /home/sarah/sf_ubuntushare/popgen/... not ~/sf_ubuntushare/popgen/..
+Now it's running. distruct says, 
+	Model complexity that maximizes marginal likelihood = 2
+	Model components used to explain structure in data = 5
+So now I'm running it with K=2 to K=5 with logistic prior instead of --full. (This part probably isn't necessary).
+
+
+
+#####Saturday, 5 March 2016
+#***Structure***#
+Started running Structure with K=1 through K=12, 10 repetitions of each, with admixture model.
+
+#####Friday, 4 March 2016
+#***PRUNING***#
+The pruning seems to work, it retains 3802 loci. Now for HWE. Doing that in R, since I've already got a function to do it (I just have to modify it for a ped file).
+Only 838 pass my hwe pruning in R...1581 pass at 0.001 level, which is plink's default. Plink retains 1753.
+plink --file pruned --hwe 0.001 --noweb --allow-no-sex --recodeA --recode --out subset
+Plink is easier because I don't have to reformat the files myself, so I'll go with that.
+
+#***ADEGENET***#
+OK, I've done that. Now I need to run adegenet. Done!
+#***PCAdapt***#
+I apparently didn't save the pcadapt commands. No, I did, it was just in PCAdapt folder in ~/Programs/
+Now I'm running PCAdapt from ~/sf_ubuntushare/popgen/ directory with K = 1 through K = 12.
+K=4 was the best. So I'm running it 10 times with K=4. They're not super consistent but they're probably good enough. Good enough for the one to be a representative run.
+#***Bayenv***#
+For Bayenv2, I ran the R code to reformat plink. After first bit I ran plink --file subset --freq --within --plink.clust.txt --noweb --allow-no-sex --out subset.bayenv.plink. I'm having some problems with this.
+
+
+#####Thursday, 3 March 2016
+First thing I need to do is to re-prune to ensure that SNPs are not actually on the same locus. So, I'll take a PLINK file (pruned for hwe in PLINK) and then write a program that will read the file and for each locus randomly choose one of the SNPs to be the SNP for that locus. I will also evaluate how far RAD loci are from each other and only keep one SNP every ~2kb (so if a RAD locus is 1kb away from another locus in either direction I'll randomly choose one of those SNPs to keep, I guess). 
+
+#####28 February 2016
+I've fixed the map as per a reviewer's request. 
+Now for the hard part. First, I need to check to see if my pruned SNPs set does not include multiple SNPs per RAD locus and see how many are on the scaffold, and how far apart they are. (e.g. make sure the pruning actually worked).
+
+So...the 1833 SNPs are not all in individual RAD loci. They represent 1562 RAD loci. And 1248 scaffolds.
+
+So I think I need to consider re-doing that by taking one SNP from each RAD locus. Then I can do the HWE pruning and some LD pruning, maybe. 
+
+#####22 February 2016
+Thoughts on how to proceed:
+-should I just take one SNP from the RAD locus rather than do the pruning-for-LD-approach? 
+-I need to figure out which files I used for what and re-acquaint myself with these data.
+-Calculate average distance between RAD loci on the same scaffold??

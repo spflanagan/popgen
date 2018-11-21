@@ -1,0 +1,124 @@
+---
+title: "Neighbor Joining Trees"
+output: html_notebook
+---
+
+
+My initial analysis included neighbor joining trees but I decided to remove it from the analysis, but here's the analysis.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir='../fwsw_results/')
+```
+```{r source}
+source("../../gwscaR/R/gwscaR.R")
+source("../../gwscaR/R/gwscaR_plot.R")
+source("../../gwscaR/R/gwscaR_utility.R")
+source("../../gwscaR/R/gwscaR_fsts.R")
+source("../../gwscaR/R/gwscaR_popgen.R")
+source("../scripts/treemix_plotting_funcs.R")#I've modified these functions
+library(knitr)
+```
+
+```{r access_analysis, echo=FALSE}
+knitr::read_chunk("../scripts/fwsw_analysis.R")
+```
+```{r read_vcf,cache=TRUE}
+vcf<-parse.vcf("stacks/p4.vcf") #this is the smaller dataset
+```
+```{r vcfSetup, echo=TRUE}
+```
+
+#### Neighbor-joining trees
+
+I had originally calculated monophyletic trees using the regular vcf file with SNPs
+
+```{r NJTrees}
+```
+```{r recalc_trees, eval=FALSE}
+ftrees.snp<-calc.ftrees(vcf,mono.tips = c("TXFW","ALFW","LAFW","FLLG"),
+                        other.tips = pop.list[!pop.list %in% c("TXFW","ALFW","LAFW","FLLG")],out.file="p4.snp.ftrees.txt")
+
+
+hap.vcf<-parse.vcf("stacks/batch_2.haplotypes.vcf")
+hap.vcf$SNP<-paste(hap.vcf$`#CHROM`,hap.vcf$POS,sep=".")
+ftrees.hap<-calc.ftrees(hap.vcf,mono.tips = c("TXFW","ALFW","LAFW","FLLG"),
+                        other.tips = pop.list[!pop.list %in% c("TXFW","ALFW","LAFW","FLLG")],out.file="p4.hap.ftrees.txt")
+
+```
+```{r read_trees, echo=FALSE}
+ftrees.snp<-read.delim("p4.snp.ftrees.txt", sep=' ')
+ftrees.hap<-read.delim("p4.hap.ftrees.txt", sep=' ')
+```
+```{r id_monophyletic}
+ftsnp.mono<-ftrees.snp[ftrees.snp$FWMonophyletic == TRUE & !is.na(ftrees.snp$FWMonophyletic),]
+fthap.mono<-ftrees.hap[ftrees.hap$FWMonophyletic == TRUE & !is.na(ftrees.hap$FWMonophyletic),]
+```
+
+
+Compare the two:
+
+```{r compare_NJ}
+njcomp.table<-data.frame(SNP=c(nrow(ftrees.snp),nrow(ftrees.snp[is.na(ftrees.snp$FWMonophyletic),]),
+                             nrow(ftsnp.mono)),
+                       Haplotype=c(nrow(ftrees.hap),nrow(ftrees.hap[is.na(ftrees.hap$FWMonophyletic),]),
+                             nrow(fthap.mono)))
+rownames(njcomp.table)<-c("Number of Loci","Number w/ Missing Data", "Number with Monophyletic FW")
+kable(njcomp.table, format = "markdown")
+```
+
+The ones with missing data are those that had data missing from at least one population for that locus, and these were excluded.
+
+```{r get_hapvcf, echo=FALSE}
+if(!("hap.vcf" %in% ls())){
+  hap.vcf<-parse.vcf("stacks/batch_2.haplotypes.vcf")
+  hap.vcf$SNP<-paste(hap.vcf$`#CHROM`,hap.vcf$POS,sep=".")
+}
+if(length(grep("SNP",colnames(vcf)))==0){
+  vcf$SNP<-paste(vcf$`#CHROM`,vcf$POS,sep=".")
+}
+```
+```{r compare_loci_NJ}
+hap.mono.ids<-hap.vcf[hap.vcf$SNP %in% fthap.mono$SNP,c("SNP","ID")]
+snp.mono.ids<-vcf[vcf$SNP %in% ftsnp.mono$SNP,c("SNP","ID")]
+```
+
+They share `r nrow(hap.mono.ids[hap.mono.ids$ID %in% snp.mono.ids$ID,])` RAD loci. However, I don't really trust how the data are treated in the vcf haplotype format, so I'll just use the SNPs for now (and I'm analyzing the data with BEAST).
+
+Let's compare the genome-wide locations
+```{r echo=FALSE}
+ftmono<-ftsnp.mono
+```
+```{r plottingFunctions, echo=FALSE}
+```
+```{r Fig5dataSetup}
+```
+```{r prepNJ_plotting}
+ftsnp<-assign.plotpos(ftsnp.mono,plot.scaffs,bounds,df.bp="Pos")
+fthap<-assign.plotpos(fthap.mono,plot.scaffs,bounds,df.bp="Pos")
+
+par(mfrow=c(2,1), oma=c(1,1,1,1),mar=c(1,1,1,1))
+fwswt.fst<-fst.plot(fwsw.tx,fst.name = "Corrected.AMOVA.Fst", bp.name = "BP",chrom.name = "Chr", 
+                    scaffs.to.plot=plot.scaffs, y.lim = c(0,1),scaffold.widths = bounds,pch=19,
+                    pt.cols = c(grp.colors[1],grp.colors[2]),pt.cex=1,axis.size = 0,type='n')
+abline(v=ftsnp$plot.pos) 
+mtext("SNP-based \nFW monophyletic trees",2)
+lgbreaks<-tapply(fwswt.fst$plot.pos,fwswt.fst$Chr,min)
+lgbreaks<-c(lgbreaks[lgs],lgbreaks[23])
+axis(1,lgbreaks,labels = FALSE)
+meds<-NULL
+for(i in 1:22){
+  meds[i]<-lgbreaks[i]+((lgbreaks[i+1]-lgbreaks[i])/2)
+}
+#names(meds)<-plot.scaffs
+axis(1,at=meds,labels = lgs,cex.axis=0.5,tck=0,las=2,hadj=0.5)
+
+plot(c(min(fwswt.fst$plot.pos),max(fwswt.fst$plot.pos)),c(0,1),bty='n',type = 'n',axes=FALSE,xlab="",ylab="")
+abline(v=fthap$plot.pos) 
+mtext("haplotype-based \nFW monophyletic trees",2)
+axis(1,lgbreaks,labels = FALSE)
+axis(1,at=meds,labels = lgs,cex.axis=0.5,tck=0,las=2,hadj=0.5)
+```
+
+I don't really trust the haplotype calculations, actually. Let me see about using BEAST with the fasta output...
+`populations -b 2 -W fwsw_results/subset.whitelist.txt -P fwsw_results/stacks -M fwsw_pops_map.txt --fasta`
