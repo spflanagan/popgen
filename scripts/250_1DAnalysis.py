@@ -1,7 +1,7 @@
-"""
+'''
 Testing dadi with 1D demographic scenarios
 Run this from outside the dadi directory
-"""
+'''
 
 # Numpy is the numerical library dadi is built upon
 from numpy import array
@@ -11,8 +11,11 @@ import dadi
 
 
 # Load the data
-dd = dadi.Misc.make_data_dict ( "SCA.dadi" )
-fs = dadi.Spectrum.from_data_dict (dd , pop_ids =[ 'Pop1'],projections =[716] ,polarized = False ) #projections is sample size of alleles
+dd = dadi.Misc.make_data_dict ( "fwsw.dadi.snps" )
+#full: pop_ids =[ 'TXSP','TXCC','TXFW','TXCB','LAFW','ALST','ALFW','FLSG','FLKB','FLFD','FLSI','FLAB','FLPB','FLHB','FLCC','FLLG' ]
+#   projections=[][124,  82,  62,  72,  96,  94,  96,  88,  84,  80,  90,  84,  86,  82,  82,  94] #projections is sample size of alleles
+#let's start with FLFW
+fs = dadi.Spectrum.from_data_dict (dd , pop_ids =[ 'FLLG' ],projections =[94] ,polarized = False )  #ignore FutureWarning
 ns = fs.sample_sizes
 
 # set parameters 
@@ -21,7 +24,7 @@ T = 500 #2NA generations
 nuB = 0.1 #ratio of pop size after instantaneous change to ancient pop size
 nuF = 0.7 #ratio of pop size now to ancient pop size
 TB = 100 #length of bottleneck in 2Na generations
-TF = 100 #length of time sinze bottleneck recovery
+TF = 100 #length of time since bottleneck recovery
 
 # Single population models
 

@@ -32,12 +32,13 @@ source("../../gwscaR/R/gwscaR_plot.R")
 source("../../gwscaR/R/gwscaR_utility.R")
 source("../../gwscaR/R/gwscaR_fsts.R")
 source("../../gwscaR/R/gwscaR_popgen.R")
-source("../scripts/002_treemix_plotting_funcs.R")#I've modified these functions
+source("../../gwscaR/R/vcf2dadi.R")
+source("../R/203_treemix_plotting_funcs.R")#I've modified these functions
 library(knitr)
 ```
 
 ```{r access_analysis, echo=FALSE}
-knitr::read_chunk("../scripts/002_fwsw_analysis.R")
+knitr::read_chunk("../R/200_fwsw_analysis.R")
 ```
 
 ```{r LoadFWSWpackages, include=FALSE}
@@ -78,6 +79,13 @@ chosen.snps<-unlist(read.table("chosen.all.snps.txt"))
 ```
 
 There are `r length(chosen.snps)` SNPs that I'll use from the vcf file, from `r nrow(vcf)` RAD loci.
+
+Create a dadi SNPs file from the vcf
+
+```{r create_dadi}
+dadi<-vcf2dadiSNPs(vcf,pop.list = pop.list,filename = "dadi_analysis/fwsw.dadi.snps")
+projections<-unlist(lapply(pop.list,function(pop){ n<-length(grep(pop,colnames(vcf)))}))*2
+```
 
 ## Figure 1
 
