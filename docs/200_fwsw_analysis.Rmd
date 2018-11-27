@@ -85,6 +85,10 @@ Create a dadi SNPs file from the vcf
 ```{r create_dadi}
 dadi<-vcf2dadiSNPs(vcf,pop.list = pop.list,filename = "dadi_analysis/fwsw.dadi.snps")
 projections<-unlist(lapply(pop.list,function(pop){ n<-length(grep(pop,colnames(vcf)))}))*2
+
+names(projections)<-pop.list
+best.pops<-c("TXFW","TXCB","LAFW","ALST","ALFW","FLLG","FLCC","TXFW ","TXCB ","LAFW ","ALST ","ALFW ","FLLG ","FLCC ")
+dim(dadi[rowSums(dadi[,colnames(dadi) %in% best.pops])==sum(projections[best.pops[1:7]]),])
 ```
 
 ## Figure 1
