@@ -3,6 +3,8 @@ Testing dadi with 1D demographic scenarios
 Run this from outside the dadi directory
 '''
 
+#start with ipython -pylab
+
 # Numpy is the numerical library dadi is built upon
 from numpy import array
 
@@ -11,11 +13,11 @@ import dadi
 
 
 # Load the data
-dd = dadi.Misc.make_data_dict ( "fwsw.dadi.snps" )
+dd = dadi.Misc.make_data_dict ( "fwsw.dadi.pruned.snps" )
 #full: pop_ids =[ 'TXSP','TXCC','TXFW','TXCB','LAFW','ALST','ALFW','FLSG','FLKB','FLFD','FLSI','FLAB','FLPB','FLHB','FLCC','FLLG' ]
 #   projections=[][124,  82,  62,  72,  96,  94,  96,  88,  84,  80,  90,  84,  86,  82,  82,  94] #projections is sample size of alleles
 #let's start with FLFW
-fs = dadi.Spectrum.from_data_dict (dd , pop_ids =[ 'FLLG' ],projections =[94] ,polarized = False )  #ignore FutureWarning
+fs = dadi.Spectrum.from_data_dict(dd , pop_ids =[ 'FLLG' ],projections =[94] ,polarized = False )  #causes FutureWarning
 ns = fs.sample_sizes
 
 # set parameters 
