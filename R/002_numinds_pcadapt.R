@@ -99,8 +99,7 @@ popgen.sim<-function(npops=8,inds=10,nloc=10000,p=rep(0.01,8),outname="simulated
   
   # now run pcadapt
   filename<-read.pcadapt(outname,type="ped")
-  print(min(unlist(frqs)))
-  x<-pcadapt(filename,K=8,min.maf=min(unlist(frqs))-0.0001)
+  x<-pcadapt(filename,K=8,min.maf=0.001)
   png(paste(outname,".png",sep=""),height = 7, width = 7, units="in",res=300)
   plot(x,option="scores",pop=simped[,1])
   dev.off()
