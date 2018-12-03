@@ -36,9 +36,15 @@ pcasubs<-lapply(ns,pcadapt_subset,ped = ped)
 #' @param nloc The number of loci to simulate
 #' @param p A vector of average minor allele frequencies per locus to simulate
 #' @return A data.frame with ped data
-popgen.sim<-function(npops=8,inds=10,nloc=10000,p=rep(0.01,8),outname="simulated.ped"){
+popgen.sim<-function(npops=8,inds=10,nloc=10000,p=rep(0.01,8),outname="simulated.ped",analyze=TRUE){
 
-  library(pcadapt)
+  #install and load pcadapt if you haven't already
+  if("pcadapt" %in% rownames(installed.packages())){
+    do.call('library',list("pcadapt"))
+  }else{
+    install.packages(package,dependencies = TRUE)
+    do.call("library",list("pcadapt"))
+  }
   #create ped first columns
   simped<-data.frame(cbind(rep(1:npops,each=inds),rep(paste("Ind",rep(1:inds),sep=""),npops),
                            rep(0,inds*npops),rep(0,inds*npops),rep(0,inds*npops),rep(-9,inds*npops)),
@@ -96,18 +102,19 @@ popgen.sim<-function(npops=8,inds=10,nloc=10000,p=rep(0.01,8),outname="simulated
   }
   write.table(simped,outname,col.names = FALSE,row.names = FALSE,quote=FALSE,sep=" ")
 
-  
-  # now run pcadapt
-  filename<-read.pcadapt(outname,type="ped")
-  x<-pcadapt(filename,K=8,min.maf=0.001)
-  png(paste(outname,".png",sep=""),height = 7, width = 7, units="in",res=300)
-  plot(x,option="scores",pop=simped[,1])
-  dev.off()
-  
+  if(isTRUE(analyze)){
+    # now run pcadapt
+    filename<-read.pcadapt(outname,type="ped")
+    x<-pcadapt(filename,K=20,min.maf=0.001)
+    png(paste(outname,".png",sep=""),height = 7, width = 7, units="in",res=300)
+    plot(x,option="scores",pop=simped[,1])
+    dev.off()
+  }
   return(simped)
 }
 
 # Run the simulations
+setwd("~/Research/popgen/simulations/")
 ns<-c(10,20,30,40,50)
 sims<-lapply(ns,function(n){
   sim<-popgen.sim(npops=8,inds=n,nloc=10000,p=rep(0.05,8),outname=paste("sim",n,"i.ped",sep=""))
