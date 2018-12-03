@@ -115,12 +115,11 @@ popgen.sim<-function(npops=8,inds=10,nloc=10000,p=rep(0.01,8),outname="simulated
 
 # Run the simulations
 setwd("~/Research/popgen/simulations/")
-ns<-c(10,20,30,40,50)
+ns<-c(12,24,48,96)
 sims<-lapply(ns,function(n){
-  sim<-popgen.sim(npops=8,inds=n,nloc=10000,p=rep(0.05,8),outname=paste("sim",n,"i.ped",sep=""))
+  sim<-popgen.sim(npops=8,inds=n,nloc=5000,p=rep(0.05,8),outname=paste("sim",n,"i.ped",sep=""))
   return(sim)
 })
-
 
 
 
