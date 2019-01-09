@@ -17,19 +17,46 @@ import dadi
 
 
 # Load the data
-dd = dadi.Misc.make_data_dict ( "fwsw.dadi.pruned.snps" )
-#full: pop_ids =[ 'TXSP','TXCC','TXFW','TXCB','LAFW','ALST','ALFW','FLSG','FLKB','FLFD','FLSI','FLAB','FLPB','FLHB','FLCC','FLLG' ]
-#   projections=[][124,  82,  62,  72,  96,  94,  96,  88,  84,  80,  90,  84,  86,  82,  82,  94] #projections is sample size of alleles
+dd = dadi.Misc.make_data_dict ( "fwsw75.dadi.snps" )
+#projections is sample size of alleles
 #need to use MINIMUM projections
+pops = ['FLLG', 'FLCC', 'ALFW','ALST','LAFW','TXFW','TXCC']
+projs = [70,61,72,70,72,46,61]
+
+
+#=================================================================================================#
+#									CHECK THE FREQUENCY SPECTRA 								  #
+#=================================================================================================#
+
+#save each figure to a file
+fllg = dadi.Spectrum.from_data_dict(dd , pop_ids =[ 'FLLG' ],projections =[70] ,polarized = False )  
+dadi.Plotting.plot_1d_fs(fllg)
+
+flcc = dadi.Spectrum.from_data_dict(dd , pop_ids =[ 'FLCC' ],projections =[61] ,polarized = False )  
+dadi.Plotting.plot_1d_fs(flcc)
+
+alfw = dadi.Spectrum.from_data_dict(dd , pop_ids =[ 'ALFW' ],projections =[72] ,polarized = False )  
+dadi.Plotting.plot_1d_fs(alfw)
+
+alst = dadi.Spectrum.from_data_dict(dd , pop_ids =[ 'ALST' ],projections =[70] ,polarized = False )  
+dadi.Plotting.plot_1d_fs(alst)
+
+lafw = dadi.Spectrum.from_data_dict(dd , pop_ids =[ 'LAFW' ],projections =[72] ,polarized = False )  
+dadi.Plotting.plot_1d_fs(lafw)
+
+txfw = dadi.Spectrum.from_data_dict(dd , pop_ids =[ 'TXFW' ],projections =[46] ,polarized = False )  
+dadi.Plotting.plot_1d_fs(txfw)
+
+txcc = dadi.Spectrum.from_data_dict(dd , pop_ids =[ 'TXCC' ],projections =[61] ,polarized = False )  
+dadi.Plotting.plot_1d_fs(txcc)
+
 
 #=================================================================================================#
 #										LOOP TO OPTIMIZE 										  #
 #=================================================================================================#
 
 
-#focus on these pops:
-pops = ['FLLG', 'FLCC', 'ALFW','ALST','LAFW','TXFW','TXCB']
-projs = [70,60,72,70,72,46,54]
+
 
 for i in range(len(pops)):
 	print(pops[i])
@@ -66,29 +93,6 @@ nuB = 0.1 #ratio of pop size after instantaneous change to ancient pop size
 nuF = 0.7 #ratio of pop size now to ancient pop size
 TB = 100 #length of bottleneck in 2Na generations
 TF = 100 #length of time since bottleneck recovery
-
-
-fllg = dadi.Spectrum.from_data_dict(dd , pop_ids =[ 'FLLG' ],projections =[70] ,polarized = False )  
-dadi.Plotting.plot_1d_fs(fllg)
-
-flcc = dadi.Spectrum.from_data_dict(dd , pop_ids =[ 'FLCC' ],projections =[60] ,polarized = False )  
-dadi.Plotting.plot_1d_fs(flcc)
-
-alfw = dadi.Spectrum.from_data_dict(dd , pop_ids =[ 'ALFW' ],projections =[72] ,polarized = False )  
-dadi.Plotting.plot_1d_fs(alfw)
-
-alst = dadi.Spectrum.from_data_dict(dd , pop_ids =[ 'ALST' ],projections =[70] ,polarized = False )  
-dadi.Plotting.plot_1d_fs(alst)
-
-lafw = dadi.Spectrum.from_data_dict(dd , pop_ids =[ 'LAFW' ],projections =[72] ,polarized = False )  
-dadi.Plotting.plot_1d_fs(lafw)
-
-txfw = dadi.Spectrum.from_data_dict(dd , pop_ids =[ 'TXFW' ],projections =[46] ,polarized = False )  
-dadi.Plotting.plot_1d_fs(txfw)
-
-txcb = dadi.Spectrum.from_data_dict(dd , pop_ids =[ 'TXCB' ],projections =[54] ,polarized = False )  
-dadi.Plotting.plot_1d_fs(txcb)
-
 
 # Single population models
 
