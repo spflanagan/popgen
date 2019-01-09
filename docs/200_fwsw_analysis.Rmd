@@ -109,6 +109,28 @@ write.table(dadi[dadi$GeneID %in% rownames(keepers),],"dadi_analysis/fwsw.dadi.p
             col.names = c("Ingroup","Outgroup","Allele1","TXFW","TXCB","LAFW","ALST","ALFW","FLLG","FLCC","Allele2","TXFW","TXCB","LAFW","ALST","ALFW","FLLG","FLCC","GeneID","Position"))
 ```
 
+```{r check_dadis}
+vcf.files<-c("stacks/populations_subset50/batch_2.vcf",
+             "stacks/populations_subset75/batch_2.vcf",
+             "stacks/populations_subset85/batch_2.vcf",
+             "stacks/populations_subset90/batch_2.vcf",
+             "stacks/populations_subset95/batch_2.vcf",
+             "stacks/populations_subset100/batch_2.vcf")
+
+dadis<-lapply(vcf.files,function(file){
+  full.vcf<-parse.vcf(file)
+  vcf<-choose.one.snp(full.vcf)
+  vcf.out.name<-gsub("batch_2.vcf","batch_2.pruned.vcf",file)
+  write.table(x = vcf,file = vcf.out.name,quote = FALSE,sep='\t',row.names = FALSE,col.names = TRUE)
+  dadi.out<-paste("dadi_analysis/fwsw",gsub("populations_subset(\\d+)","\\1",file),".dadi.snps",sep="")
+  pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
+  dadi<-vcf2dadiSNPs(vcf,pop.list = pop.list,filename = "dadi_analysis/fwsw.dadi.snps")
+  return(dadi)
+})
+
+pander(cbind(file=vcf.files,numer_snps=unlist(lapply(dadis,nrow))))
+```
+
 ## Figure 1
 
 The first figure in the paper is a map of the collection sites.
