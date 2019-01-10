@@ -69,17 +69,17 @@ for i in range(len(pops)):
 	pts = projs[i]+10
 
 	p_labels = "nu, T"
-	Optimize_Routine(fs, pts, pops[i], "two_epoch", dadi.Demographics1D.two_epoch, 5,2, fs_folded=True)
-	Optimize_Routine(fs, pts, pops[i], "growth", dadi.Demographics1D.growth, 5,2, fs_folded=True)
+	Optimize_Routine(fs, pts, pops[i], "two_epoch", dadi.Demographics1D.two_epoch, 5,2, fs_folded=True, param_labels = p_labels)
+	Optimize_Routine(fs, pts, pops[i], "growth", dadi.Demographics1D.growth, 5,2, fs_folded=True, param_labels = p_labels)
 	p_labels = "nuB, nuF, T"
-	Optimize_Routine(fs, pts, pops[i], "bottlegrowth", dadi.Demographics1D.bottlegrowth, 5,3, fs_folded=True)
+	Optimize_Routine(fs, pts, pops[i], "bottlegrowth", dadi.Demographics1D.bottlegrowth, 5,3, fs_folded=True, param_labels = p_labels)
 	p_labels = "nuB, nuF, TB, TF"
-	Optimize_Routine(fs, pts, pops[i], "bottlegrowth", dadi.Demographics1D.three_epoch, 5,4, fs_folded=True)
+	Optimize_Routine(fs, pts, pops[i], "bottlegrowth", dadi.Demographics1D.three_epoch, 5,4, fs_folded=True, param_labels = p_labels)
 	os.chdir("../")
 
 
 
-#This seems to work.
+#This seems to work. Now how do I get the best fit parameters?
 
 
 
