@@ -1,6 +1,8 @@
 ---
 title: "FWSW analysis with dadi"
 output: html_notebook
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -76,24 +78,27 @@ I'm going to use th 75% of individuals dataset.
 
 ## Analyze 1D dadi results
 
-I ran the optimize functions from (dportik's dadi pipeline)[https://github.com/dportik/dadi_pipeline] for each of the 7 populations. Now I need to see what the optimal parameters are.
+I ran the optimize functions from (dportik's dadi pipeline)[https://github.com/dportik/dadi_pipeline] for each of the 7 populations. Now I need to see what the optimal parameters are (with lowest AIC).
 
 ```{r}
-lapply(pop.list, function(pop,dadi.dir="dadi_analysis"){
+opt.params<-do.call(rbind,lapply(pop.list, function(pop,dadi.dir="dadi_analysis"){
   if(length(grep("/^",dadi.dir))==0){
     dadi.dir<-paste(dadi.dir,"/",sep="")
   }
   path<-paste(dadi.dir,pop,sep="")
-  opt.files<-list.files(path = path,pattern = "optimized.txt",full.names = TRUE)
-  opts<-lapply(opt.files,function(opt.file){
+  opt.files<-list.files(path = path,pattern = "optimized",full.names = TRUE)
+  opts<-do.call(rbind,lapply(opt.files,function(opt.file){
     model.opt<-read.delim(opt.file,sep='\t',header=TRUE)
     model.opt<-model.opt[-which(model.opt$Model=="Model"),]
-    model.opt[which.min(as.numeric(as.character(model.opt$AIC))),]
-  })
-})
+    opt<-model.opt[which.min(as.numeric(as.character(model.opt$AIC))),]
+    return(opt)
+  }))
+  opts$pop<-pop
+  return(opts)
+}))
 ```
 
-Once I have that, then I'll run the optimal set and do model comparison to choose the most likely single-population scenarios.
+Once I have that, then I'll run the optimal set and do model comparison to choose the most likely single-population scenarios. How do I choose the best model? Maybe use the dadi imaging functions to look at model fits. Also, likelihood ratio tests could be useful. 
 
 
 
