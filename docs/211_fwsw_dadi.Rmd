@@ -78,7 +78,7 @@ I'm going to use th 75% of individuals dataset.
 
 ## Analyze 1D dadi results
 
-I ran the optimize functions from (dportik's dadi pipeline)[https://github.com/dportik/dadi_pipeline] for each of the 7 populations. Now I need to see what the optimal parameters are (with lowest AIC).
+I ran the optimize functions from (dportik's dadi pipeline)[https://github.com/dportik/dadi_pipeline] for each of the 7 populations. Now I need to see what the optimal parameters are (with maximum log likelihood).
 
 ```{r}
 opt.params<-do.call(rbind,lapply(pop.list, function(pop,dadi.dir="dadi_analysis"){
@@ -87,18 +87,28 @@ opt.params<-do.call(rbind,lapply(pop.list, function(pop,dadi.dir="dadi_analysis"
   }
   path<-paste(dadi.dir,pop,sep="")
   opt.files<-list.files(path = path,pattern = "optimized",full.names = TRUE)
+  #find the best parameter set for each model using maximum log likelihood
   opts<-do.call(rbind,lapply(opt.files,function(opt.file){
     model.opt<-read.delim(opt.file,sep='\t',header=TRUE)
-    model.opt<-model.opt[-which(model.opt$Model=="Model"),]
-    opt<-model.opt[which.min(as.numeric(as.character(model.opt$AIC))),]
+    if(length(grep("Model",model.opt$Model))>0){  #THERE SHOULDN'T BE REPEATED HEADER ROWS
+      model.opt<-model.opt[-which(model.opt$Model=="Model"),]
+      warning('The model has been run multiple times and output has been concatenated') 
+    }
+    opt<-model.opt[which.max(as.numeric(as.character(model.opt$log.likelihood))),]
+    opt$params<-gsub("\\.\\.",",",gsub("optimized_params.(.*)","\\1",colnames(opt)[7]))
+    colnames(opt)[7]<-"optimized_params"
     return(opt)
   }))
+  #rank them by AIC
+  opts$rank<-rank(opts$AIC)
   opts$pop<-pop
+  opts<-opts[order(opts$rank),]
   return(opts)
 }))
+write.table(opt.params,"dadi_analysis/1D_optimal_parameters.txt",sep='\t',quote=FALSE,col.names = TRUE,row.names = FALSE)
 ```
 
-Once I have that, then I'll run the optimal set and do model comparison to choose the most likely single-population scenarios. How do I choose the best model? Maybe use the dadi imaging functions to look at model fits. Also, likelihood ratio tests could be useful. 
+
 
 
 
