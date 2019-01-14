@@ -1,0 +1,9 @@
+﻿Build started 10/5/2016 7:39:36 PM.
+     1>Project "B:\ubuntushare\popgen\programs\prune_snps\prune_snps.vcxproj" on node 2 (Build target(s)).
+     1>Link:
+         prune_snps.vcxproj -> B:\ubuntushare\popgen\programs\prune_snps\Release\prune_snps.exe
+     1>Done Building Project "B:\ubuntushare\popgen\programs\prune_snps\prune_snps.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:00.03
