@@ -1,0 +1,247 @@
+Population genetics Analysis (FW-SW) Log File
+LAST UPDATED: 2 Oct 2016
+DATE STARTED: 5 June 2016
+
+#GOAL: DESCRIBE DIFFERENCES BETWEEN FRESHWATER AND SALTWATER POPULATIONS OF S. SCOVELLI
+
+#THE PIPELINE
+1. align with bowtie2
+2. ref_map.pl
+3. populations -r 0.75 -p 16 -a 0.05
+4. prune_snps.cpp
+5. plink --file pruned --hwe 0.001 --noweb --allow-no-sex --write-snplist
+	plink --file pruned --extract plink.snplist -recode-structure --out subset --noweb --allow-no-sex
+	plink --file pruned --extract plink.snplist --recodeA --out subsetA --noweb --allow-no-sex
+	plink --file pruned --extract plink.snplist --recode --out subset --noweb --allow-no-sex
+6. PCAdapt
+7. Adegenet
+8. FastStructure 
+9. Structure
+	Structure Harvester
+10. Bayenv2
+11. calculate_global_fst
+
+###############################################################################################
+#####Wednesday, 21 February 2018
+Rendering fwsw_dmc.Rmd on abies using Rscript -e 'Sys.setenv(RSTUDIO_PANDOC="/usr/lib/rstudio/bin/pandoc"); library(rmarkdown); rmarkdown::render("fwsw_dmc.Rmd", "html_document")' to run the models.
+
+
+#####Wednesday, 9 August 2017
+Most of my notes are in a notebook...
+but I want to run populations with a whitelist -- needs LocID and column
+populations -b 2 -W fwsw_results/subset.whitelist.txt -P fwsw_results/stacks -M fwsw_pops_map.txt --structure
+
+
+#####Tuesday, 21 February 2017
+I'd been using the wrong populations map, which is why it didn't work
+->doing this to get a new vcf file, cuz the ones I have aren't any good.
+**Hopefully this is ok re: previously done analyses.
+
+meanwhile, what's going on with bayenv?
+->the clusters hadn't been created properly. need to re-run the plink code and reformat using R then try again.
+
+#####Monday, 20 February 2017
+To run bayenv:
+	plink --ped bayenv.plink.ped --map ../stacks/populations/subset.map \
+	--out bayenv --noweb --allow-no-sex --recode \
+	--freq --within ../stacks/plink.clust.txt 
+OK, something weird is happening - bayenv isn't running right, and populations is asking for zipped files. Unsure how to fix this.
+#####Tuesday, 7 February 2017
+Returning to these analyses.
+Structure clearly shows that FLLG, TXFW, and ALFW/LAFW have different genetic histories.
+It returns either K=2 (Gulf vs Atlantic) or K=6 (gradient) as the best fits
+
+#####Sunday, 2 October 2016
+Starting to run it in structure. Running it once each with K=1 through K=16, then I'll narrow down the K range and run it multiple times.
+Using admixture model w/ 10000 burnins and 10000 MCMCs, allele freqs can be correlated.
+
+
+#####Monday, 25 July 2016
+Running IBD per locus using the subsetted ped file..we'll see if it works.
+
+#####Friday, 22 July 2016
+Running PCAdapt in R (following vignette https://cran.r-project.org/web/packages/pcadapt/vignettes/pcadapt.html):
+	Reading file stacks/subset.pcadapt...
+	Number of SNPs: 9820
+	Number of individuals: 698
+	Number of SNPs with minor allele frequency lower than 0.05 ignored: 2048
+	2835120 out of 6854360 missing data ignored.
+
+The scree plot seems to level off around 7 PCs, so we keep K=6.
+	Reading file stacks/subset.pcadapt...
+	Number of SNPs: 9820
+	Number of individuals: 698
+	Number of SNPs with minor allele frequency lower than 0.05 ignored: 2048
+	2835120 out of 6854360 missing data ignored.
+
+They seem to group by IBD but each FW pop has its own group (although LAFW and ALFW are sort of together)
+	PC1: Atlantic vs Gulf
+	PC2: FL vs TX
+	PC3: FLLG vs all others
+	PC4: TXFW vs all others
+	PC5: northern Gulf FL vs. southern Gulf FL
+	PC6: TX vs AL/LA
+
+I'm thinking of using this one primarily and not adegenet.
+
+What if I run dapc with k=6??
+
+#####Thursday, 21 July 2016
+Pruning the stacks run where they have to be in 4 populations.
+Starting: 57252, keeping 27528 SNPs, and then 25805 SNPs not within 2kb of each other
+plink --file pruned --hwe 0.001 --noweb --allow-no-sex --write-snplist
+This excluded 15985 markers, so keeping 9820.
+
+Running structure on those 9820 with K=2-16 with 10 reps each.
+
+IBD on the subset:
+	Monte-Carlo test
+	Observation: 0.7007163 
+	Call: mantelnoneuclid(m1 = m1, m2 = m2, nrepet = nrepet)
+	Based on 99 replicates
+	Simulated p-value: 0.01 
+	
+Also running adegenet.
+
+#####Wednesday, 20 July 2016
+IBD with all the fsts:
+	Monte-Carlo test
+	Observation: 0.6381267 
+	Call: mantelnoneuclid(m1 = m1, m2 = m2, nrepet = nrepet)
+	Based on 99 replicates
+	Simulated p-value: 0.01 
+Ran prune_snps...the original dataset had 3901 and 2546 Snps retained one per locus and 2538 SNPs were retained overall after 2kb pruning.
+
+Weird, HWE pruning does odd things: threshold of 0.05 increases the number of SNPs excluded (2137) compared to 0.001 (1723 excluded).
+
+I'm thinking that I will try populations with a lower populations inclusion threshold
+	populations -b 2 -P ./fwsw_results/stacks/ -t 3 -M ./fwsw_pops_map.txt -s -r 0.75 -p 4 -a 0.05 --fstats --vcf --genomic --plink
+
+#####Monday, 18 July 2016
+Running populations:
+	populations -b 2 -P ./fwsw_results/stacks/ -t 3 -M ./fwsw_pops_map.txt -s -r 0.75 -p 16 -a 0.05 --fstats --vcf --genomic --plink
+
+#####Monday, 13 June 2016
+Running cstacks without that one individual.
+This seems to have worked. Now sstacks. I'm giving it a try with the problematic one too.
+
+So far I'm just excluding the FLLGNP3 sample because it's super problematic apparently.
+
+populations -b 2 -P ./fwsw_results/stacks -M ./fwsw_map.txt -r 0.75 -p 16 -a 0.05 -t 3 --vcf --fstats --plink 
+
+#####Thursday, 9 June 2016
+Male phenotype PCA:
+	Partitioning of variance:
+				  Inertia Proportion
+	Total           123.6          1
+	Unconstrained   123.6          1
+
+	Eigenvalues, and their contribution to the variance 
+
+	Importance of components:
+							   PC1     PC2     PC3    PC4     PC5     PC6
+	Eigenvalue            117.7219 5.07283 0.38212 0.2220 0.14085 0.02961
+	Proportion Explained    0.9527 0.04105 0.00309 0.0018 0.00114 0.00024
+	Cumulative Proportion   0.9527 0.99373 0.99682 0.9986 0.99976 1.00000
+
+	Scaling 2 for species and site scores
+	* Species are scaled proportional to eigenvalues
+	* Sites are unscaled: weighted dispersion equal on all dimensions
+	* General scaling constant of scores:  15.83642 
+
+
+	Species scores
+
+					PC1      PC2      PC3      PC4       PC5        PC6
+	SVL          8.8667 -2.55921 -0.04341  0.11615  0.026320  0.0008413
+	TailLength  12.4342  1.89719 -0.02704  0.03031  0.008606  0.0018388
+	depth        1.4183 -0.17784  0.59931 -0.11483 -0.357814 -0.0538443
+	SnoutLength  1.1955 -0.24008 -0.54153 -0.44024 -0.224181 -0.0161109
+	SountDepth   0.3893 -0.08002  0.12496 -0.09359 -0.071118  0.2378501
+	HeadLength   1.4509 -0.22607  0.32384 -0.46946  0.318990 -0.0188108
+
+Female phenotype PCA:
+	Partitioning of variance:
+				  Inertia Proportion
+	Total           114.4          1
+	Unconstrained   114.4          1
+
+	Eigenvalues, and their contribution to the variance 
+
+	Importance of components:
+							   PC1     PC2     PC3     PC4     PC5     PC6
+	Eigenvalue            104.0851 8.84083 0.62620 0.50907 0.30629 0.06790
+	Proportion Explained    0.9095 0.07726 0.00547 0.00445 0.00268 0.00059
+	Cumulative Proportion   0.9095 0.98681 0.99228 0.99673 0.99941 1.00000
+
+	Scaling 2 for species and site scores
+	* Species are scaled proportional to eigenvalues
+	* Sites are unscaled: weighted dispersion equal on all dimensions
+	* General scaling constant of scores:  14.59949 
+
+
+	Species scores
+
+					PC1        PC2      PC3       PC4       PC5        PC6
+	SVL          8.7132  3.1147395  0.08561  0.099386  0.037970 -7.219e-05
+	TailLength  10.6424 -2.5894404  0.07414  0.060240 -0.004039  1.511e-03
+	depth        1.3816  0.0135563 -0.76434 -0.357294  0.434611  5.454e-02
+	SnoutLength  1.0807  0.1697296  0.32627 -0.873386 -0.195996  6.070e-02
+	SountDepth   0.3172  0.0003717  0.01283 -0.210261  0.098791 -3.440e-01
+	HeadLength   1.2285  0.1759639 -0.68021 -0.002336 -0.576174 -3.850e-02
+
+Female bands:		
+		Partitioning of variance:
+				  Inertia Proportion
+	Total           4.965          1
+	Unconstrained   4.965          1
+
+	Eigenvalues, and their contribution to the variance 
+
+	Importance of components:
+							 PC1     PC2
+	Eigenvalue            4.8842 0.08030
+	Proportion Explained  0.9838 0.01617
+	Cumulative Proportion 0.9838 1.00000
+
+	Scaling 2 for species and site scores
+	* Species are scaled proportional to eigenvalues
+	* Sites are unscaled: weighted dispersion equal on all dimensions
+	* General scaling constant of scores:  6.662956 
+
+
+	Species scores
+
+				  PC1      PC2
+	MBandArea -0.1555 -0.84715
+	BandNum   -6.6070  0.01994
+
+
+	**THESE ARE FOR ALL INDIVIDUALS, NOT JUST THOSE THAT WERE GENOTYPED
+	**ALSO FEMALES INCLUDE DEVELOPING BANDS INDS AND MALES ARE BOTH PREG AND NON PREG
+	
+Ran the P-matrix analysis too! It's so easy to run now that I've figured out all the code
+#####Wednesday, 8 June 2016
+I got an error from stacks, "Catalog construction failed."
+The log says,
+	"Error parsing ./fwsw_results/stacks/sample_FLLGNP3.tags.tsv at line: 41014. (1 fields).
+	Failed to load sample 571"
+There's nothing obviously wrong with that file, so it's likely a different issue (like running out of memory?)
+
+I'll try running just cstacks on a sample. Used R to randomly sample each population and took 10, and then added FLLGNP3 to the list. We'll see if that works. If it does, then I had just run out of memory.
+
+I got the same error!
+Error parsing ./fwsw_results/stacks/sample_FLLGNP3.tags.tsv at line: 41014. (1 fields).
+Failed to load sample 161
+
+So maybe there's something actually off with FLLGNP3..maybe try cstacks with all of them except this one?
+
+#####Tuesday, 7 June 2016
+Started ref_map.pl run with all individuals (699).
+
+#####Monday, 6 June 2016
+I missed some of the individuals so I'm running the fwsw_align_to_scovelli_genome.sh script again with a different list of individuals.
+
+#####Sunday, 5 June 2016
+Installed bowtie2 v 2-2.2.9 and ran bowtie2-build -f SSC_integrated.fa ssc_chromonome in sf_ubuntushare/scovelli_genome
+Ran fwsw_align_to_scovelli_genome.sh to align to the new genome
