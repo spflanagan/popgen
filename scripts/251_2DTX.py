@@ -17,7 +17,7 @@ from datetime import datetime
 #get the optimize functions
 %load ../../programs/dadi_pipeline-master/Two_Population_Pipeline/Optimize_Functions.py
 %load ../../programs/dadi_pipeline-master/Two_Population_Pipeline/Models_2D.py
-#%load ../../programs/dadi_pipeline-master/Two_Population_Pipeline/dadi_Run_2D_Set.py
+%load ../../scripts/250_custom_dadi_models.py
 
 
 # Load the data
