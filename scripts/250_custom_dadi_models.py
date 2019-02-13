@@ -121,7 +121,7 @@ def  growth_twoep_no_mig(params,ns,pts):
         nu1: Ratio of contemporary to population 1 size after split
         nu2: Ratio of contemporary to population 2 size after split
         T    : Total time since the split
-        Tc   : Time at which the size change happened
+        Tc   : Time at which the size change happened as a proportion of time since split
     """
 
     # get the params 
@@ -139,7 +139,7 @@ def  growth_twoep_no_mig(params,ns,pts):
     #pop 1 has exponential growth
     nu1_func = lambda t: numpy.exp(numpy.log(nu1) * t/T)
     #second epoch
-    phi = Integration.two_pops(phi, xx, T-Tc, nu1_func, nu2, m12=0, m21=0)
+    phi = Integration.two_pops(phi, xx, T*Tc, nu1_func, nu2, m12=0, m21=0)
 
     # computing fs
     fs = dadi.Spectrum.from_phi(phi, ns, (xx,xx))
@@ -157,7 +157,7 @@ def  growth_twoep_sym_mig(params,ns,pts):
         nu2: Ratio of contemporary to population 2 size after split
         m  : Migration rate
         T    : Total time since the split
-        Tc   : Time at which the size change happened
+        Tc   : Time at which the size change happened as a proportion of time since split
     """
 
    # get the params 
@@ -175,7 +175,7 @@ def  growth_twoep_sym_mig(params,ns,pts):
     #pop 1 has exponential growth
     nu1_func = lambda t: numpy.exp(numpy.log(nu1) * t/T)
     #second epoch
-    phi = Integration.two_pops(phi, xx, T-Tc, nu1_func, nu2, m12=m, m21=m)
+    phi = Integration.two_pops(phi, xx, T*Tc, nu1_func, nu2, m12=m, m21=m)
 
     # computing fs
     fs = dadi.Spectrum.from_phi(phi, ns, (xx,xx))
@@ -194,7 +194,7 @@ def  growth_twoep_asym_mig(params,ns,pts):
         m12: Migration rate from pop 1 to pop 2
         m21: Migration rate from pop 2 to pop 1
         T    : Total time since the split
-        Tc   : Time at which the size change happened
+        Tc   : Time at which the size change happened as a proportion of time since split
     """
 
    # get the params 
@@ -212,7 +212,7 @@ def  growth_twoep_asym_mig(params,ns,pts):
     #pop 1 has exponential growth
     nu1_func = lambda t: numpy.exp(numpy.log(nu1) * t/T)
     #second epoch
-    phi = Integration.two_pops(phi, xx, T-Tc, nu1_func, nu2, m12=m12, m21=m21)
+    phi = Integration.two_pops(phi, xx, T*Tc, nu1_func, nu2, m12=m12, m21=m21)
 
     # computing fs
     fs = dadi.Spectrum.from_phi(phi, ns, (xx,xx))
@@ -235,8 +235,8 @@ def  growth_bottle_no_mig(params,ns,pts):
         nu2b: Ratio of bottleneck population size to split population size for pop 2
         nu2f: Ratio of contemporary to split population size for pop 2
         T    : Total time since the split
-        Tc   : Time at which the size change happened
-    """
+        Tc   : Time at which the size change happened as a proportion of time since split
+    """ 
 
     # get the params 
     s,nu1,nu2,T,Tc = params
@@ -255,7 +255,7 @@ def  growth_bottle_no_mig(params,ns,pts):
     #pop 2 has bottleneck
     nu2_func = lambda t: nu2b*numpy.exp(numpy.log(nu2f/nu2b) * t/T)
     #second epoch
-    phi = Integration.two_pops(phi, xx, T-Tc, nu1_func, nu2_func, m12=0, m21=0)
+    phi = Integration.two_pops(phi, xx, T*Tc, nu1_func, nu2_func, m12=0, m21=0)
 
     # computing fs
     fs = dadi.Spectrum.from_phi(phi, ns, (xx,xx))
@@ -274,7 +274,7 @@ def  growth_bottle_sym_mig(params,ns,pts):
         nu2f: Ratio of contemporary to split population size for pop 2
         m: migration rate
         T    : Total time since the split
-        Tc   : Time at which the size change happened
+        Tc   : Time at which the size change happened as a proportion of time since split
     """
 
     # get the params 
@@ -294,7 +294,7 @@ def  growth_bottle_sym_mig(params,ns,pts):
     #pop 2 has bottleneck
     nu2_func = lambda t: nu2b*numpy.exp(numpy.log(nu2f/nu2b) * t/T)
     #second epoch
-    phi = Integration.two_pops(phi, xx, T-Tc, nu1_func, nu2_func, m12=m, m21=m)
+    phi = Integration.two_pops(phi, xx, T*Tc, nu1_func, nu2_func, m12=m, m21=m)
 
     # computing fs
     fs = dadi.Spectrum.from_phi(phi, ns, (xx,xx))
@@ -314,7 +314,7 @@ def  growth_bottle_asym_mig(params,ns,pts):
         m12: migration rate from pop 1 to pop 2
         m21: migration rate from pop 2 to pop 1
         T    : Total time since the split
-        Tc   : Time at which the size change happened
+        Tc   : Time at which the size change happened as a proportion of time since split
     """
 
     # get the params 
@@ -334,7 +334,7 @@ def  growth_bottle_asym_mig(params,ns,pts):
     #pop 2 has bottleneck
     nu2_func = lambda t: nu2b*numpy.exp(numpy.log(nu2f/nu2b) * t/T)
     #second epoch
-    phi = Integration.two_pops(phi, xx, T-Tc, nu1_func, nu2_func, m12=m12, m21=m21)
+    phi = Integration.two_pops(phi, xx, T*Tc, nu1_func, nu2_func, m12=m12, m21=m21)
 
     # computing fs
     fs = dadi.Spectrum.from_phi(phi, ns, (xx,xx))

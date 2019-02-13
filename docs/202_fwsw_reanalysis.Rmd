@@ -1,0 +1,48 @@
+---
+title: "Revising FWSW paper"
+author: "Sarah P. Flanagan"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document: default
+  pdf_document:
+    fig_caption: yes
+graphics: yes
+editor_options:
+  chunk_output_type: console
+description: Re-analyzing the freshwater-saltwater data based on reviewer comments (2018)
+---
+
+The initial analyses are in `200_fwsw_analysis.Rmd` and conducted the analyses on a dataset generated from comparing lumped 'freshwater' and 'saltwater' populations, containing SNPs found in 50% of individuals and with a minor allele frequency of at least 5%. The revised paper will instead focus on two datasets:
+
+1. A set of all 16 populations
+2. A set containing only the 4 freshwater populations (TXFW, LAFW, ALFW, FLFW) and their 4 nearest saltwater populations (TXCC, ALST, ALST, FLCC)
+
+## Map of the populations
+
+First, we'll plot these populations on a map
+
+
+
+## Population structure of all 16 populations
+
+Show STRUCTURE and PCAdapt results
+Maybe add Fst heatmap here too?
+
+
+## Trees: Treemix and Poptree
+
+
+## Demographic history inference: dadi
+
+
+## Demographic history inference: dmc
+
+
+## Outliers: Fsts from Stacks, fsts tested against dadi results, PCadapt
+
+
+## Putative genes??
+
+## LG8??
+
+

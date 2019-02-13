@@ -80,41 +80,89 @@ I'm going to use th 75% of individuals dataset.
 
 I ran the optimize functions from (dportik's dadi pipeline)[https://github.com/dportik/dadi_pipeline] for each of the 7 populations. Now I need to see what the optimal parameters are (with maximum log likelihood).
 
+```{r dadi.optimal}
+dadi.optimal<-function(opt.file){
+  model.opt<-read.delim(opt.file,sep='\t',header=TRUE)
+  if(length(grep("Model",model.opt$Model))>0){  #THERE SHOULDN'T BE REPEATED HEADER ROWS
+    model.opt<-model.opt[-which(model.opt$Model=="Model"),]
+    warning('The model has been run multiple times and output has been concatenated') 
+  }
+  opt<-model.opt[which.max(as.numeric(as.character(model.opt$log.likelihood))),]
+  opt$params<-gsub("\\.\\.",",",gsub("optimized_params.(.*)","\\1",colnames(opt)[7]))
+  colnames(opt)[7]<-"optimized_params"
+  return(opt)
+}
+
+```
+
+```{r dadi.modelcomp}
+dadi.modelcomp<-function(path,pattern,id){
+  opt.files<-list.files(path = path,pattern = pattern,full.names = TRUE)
+  #find the best parameter set for each model using maximum log likelihood
+  opts<-do.call(rbind,lapply(opt.files,dadi.optimal))
+  #rank them by AIC
+  opts$rank<-rank(opts$AIC)
+  opts$id<-id
+  opts<-opts[order(opts$rank),]
+}
+```
+
 ```{r}
 opt.params<-do.call(rbind,lapply(pop.list, function(pop,dadi.dir="dadi_analysis"){
   if(length(grep("/^",dadi.dir))==0){
     dadi.dir<-paste(dadi.dir,"/",sep="")
   }
   path<-paste(dadi.dir,pop,sep="")
-  opt.files<-list.files(path = path,pattern = "optimized",full.names = TRUE)
-  #find the best parameter set for each model using maximum log likelihood
-  opts<-do.call(rbind,lapply(opt.files,function(opt.file){
-    model.opt<-read.delim(opt.file,sep='\t',header=TRUE)
-    if(length(grep("Model",model.opt$Model))>0){  #THERE SHOULDN'T BE REPEATED HEADER ROWS
-      model.opt<-model.opt[-which(model.opt$Model=="Model"),]
-      warning('The model has been run multiple times and output has been concatenated') 
-    }
-    opt<-model.opt[which.max(as.numeric(as.character(model.opt$log.likelihood))),]
-    opt$params<-gsub("\\.\\.",",",gsub("optimized_params.(.*)","\\1",colnames(opt)[7]))
-    colnames(opt)[7]<-"optimized_params"
-    return(opt)
-  }))
-  #rank them by AIC
-  opts$rank<-rank(opts$AIC)
-  opts$pop<-pop
-  opts<-opts[order(opts$rank),]
+  opts<-dadi.modelcomp(path=path,pattern="optimized")
   return(opts)
 }))
 write.table(opt.params,"dadi_analysis/1D_optimal_parameters.txt",sep='\t',quote=FALSE,col.names = TRUE,row.names = FALSE)
 ```
+```{r}
+opt.params<-read.delim("dadi_analysis/1D_optimal_parameters.txt",header = TRUE)
+kable(opt.params)
+```
 
 
 
+## Analyze 2D FL optimization results
 
 
+I ran the optimize functions from (dportik's dadi pipeline)[https://github.com/dportik/dadi_pipeline] for a set of 2D demographic models for the Florida populations (FLFW and FLCC):
 
+* Split into two populations, no migration (distributed with `dadi-pipeline`)
+* Split into two populations, with continuous symmetric migration (distributed with `dadi-pipeline`)
+* Split into two populations, with continuous asymmetric migration (distributed with `dadi-pipeline`)
+* Split into two pops, isolation with migration model (distributed with `dadi`)
+* Split into two pops, growth in one pop and two epoch in another, no migration (custom model specified in `scripts/250_custom_dadi_models.py`)
+* Split into two pops, growth in one pop and two epoch in another, symmetric migration (custom model specified in `scripts/250_custom_dadi_models.py`)
+* Split into two pops, growth in one pop and two epoch in another, asymmetric migration (custom model specified in `scripts/250_custom_dadi_models.py`)
 
+At least some of the runs in all of these do not work well (result in "WARNING:Numerics:Extrapolation may have failed. Check resulting frequency spectrum for unexpected results; WARNING:Inference:Model is masked in some entries where data is not"), but the output will tell me more about how frequently it occurs (by parameters showing up as 'nan' instead of values)
 
+Now I need to see what the optimal parameters are for these 7 different runs so that I can run those models for additional iterations and/or compare model fits -- after which I will simulate data with `ms`.
 
+```{r}
+fl.opts<-dadi.modelcomp(path = "dadi_analysis",pattern="fl.*optimized.*",id="FL2D")
+kable(fl.opts,caption = "'Best' runs of each of the models for the Florida populations 2D demographic inference")
+```
 
+This doesn't tell us about which models had trouble converging, though, so let's tally up the number of 'nan's in each file.
 
+```{r dadi.nan}
+dadi.nan<-function(opt.file){
+  model.opt<-read.delim(opt.file,sep='\t',header=TRUE)
+  if(length(grep("Model",model.opt$Model))>0){  #THERE SHOULDN'T BE REPEATED HEADER ROWS
+    model.opt<-model.opt[-which(model.opt$Model=="Model"),]
+    warning('The model has been run multiple times and output has been concatenated') 
+  }
+  nn<-nrow(model.opt[is.na(model.opt$AIC),])
+  nr<-nrow(model.opt)
+  return(data.frame(Model=unique(model.opt$Model),NumReps=nr,NumNan=nn))
+}
+  
+```
+
+```{r}
+fl.nans<-do.call(rbind,lapply(list.files(path = "dadi_analysis",pattern="fl.*optimized.*",full.names = TRUE),dadi.nan))
+```
