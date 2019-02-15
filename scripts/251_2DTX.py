@@ -3,7 +3,7 @@ Running 2D model for TX pops
 Run this from outside the dadi directory
 '''
 
-#start with ipython -pylab from ~/Research/popgen/fwsw_results/dadi_analysis
+#start with ipython -pylab from ~/Research/popgen/fwsw_results/dadi_analysis/TX2D
 
 # Numpy is the numerical library dadi is built upon
 import sys
@@ -30,6 +30,7 @@ dd = dadi.Misc.make_data_dict ( "fwsw75.dadi.snps" )
 
 tx = dadi.Spectrum.from_data_dict(dd , pop_ids =[ 'TXFW','TXCC' ],projections =[46,61] ,polarized = False )  #polarized = False creates folded spectrum
 
+os.chdir("TX2D")
 dadi.Plotting.plot_single_2d_sfs(tx,vmin=0.01)
 
 
@@ -47,6 +48,7 @@ fs_folded = True
 prefix = "tx"
 
 for i in range(1,6):
+	prefix = "V5_Number_{}".format(i)
 	# Split into two populations, no migration.
 	Optimize_Routine(tx, pts, prefix, "no_mig", no_mig, rounds, 3, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds, param_labels = "nu1, nu2, T",in_upper=[15,15,10],in_lower=[1,1,0])
 

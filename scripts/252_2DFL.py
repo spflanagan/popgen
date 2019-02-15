@@ -33,6 +33,7 @@ dd = dadi.Misc.make_data_dict ( "fwsw75.dadi.snps" )
 
 fl = dadi.Spectrum.from_data_dict(dd , pop_ids =[ 'FLLG','FLCC' ],projections =[70,61] ,polarized = False )  #polarized = False creates folded spectrum
 
+os.chdir("FL2D")
 dadi.Plotting.plot_single_2d_sfs(fl,vmin=0.01)
 
 
@@ -51,7 +52,7 @@ prefix = "fl"
 
 for i in range(1,6):
 	prefix = "V5_Number_{}".format(i)
-	"""	
+		
 	# Split into two populations, no migration.
 	Optimize_Routine(fl, pts, prefix, "no_mig", no_mig, rounds, 3, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds, param_labels = "nu1, nu2, T",in_upper=[15,5,10],in_lower=[1,1,0])
 
@@ -63,7 +64,7 @@ for i in range(1,6):
 
 	# Split into two pops, isolation with migration model
 	Optimize_Routine(fl, pts, prefix, "IM", dadi.Demographics2D.IM, rounds, 6, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds, param_labels = "s, nu1, nu2, T, m12, m21",in_upper=[10,15,5,10,10,10],in_lower=[0,0.1,1,1,0,0])
-	"""
+	
 	# Split into two pops, growth in one pop and two epoch in another
 	Optimize_Routine(fl, pts, prefix, "growth_twoep_no", growth_twoep_no_mig, rounds, 4, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds, param_labels = "nu1, nu2,T,Tc",in_upper=[15,5,10,1],in_lower=[1,1,0,0])
 
