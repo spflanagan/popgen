@@ -51,7 +51,7 @@ all.colors<-c(rep("black",2),"#2166ac","black","#2166ac","black","#2166ac",
 grp.colors<-c('#762a83','#af8dc3','#e7d4e8','#d9f0d3','#7fbf7b','#1b7837')
 col_vector<-c(red='#e6194b', green='#3cb44b', blue='#4363d8',yellow='#ffe119', cyan='#46f0f0',orange='#f58231', teal='#008080', purple='#911eb4',  magenta='#f032e6', lime='#bcf60c', pink='#fabebe',  lavendar='#e6beff', brown='#9a6324', olive='#808000', apricot='#ffd8b1',maroon='#800000', mint='#aaffc3', navy='#000075', beige='#fffac8', grey='#808080', white='#ffffff', black='#000000')
 
-col_vector<-c('#762a83',"#2166ac",'#762a83','#762a83',"#2166ac",'#af8dc3',"#2166ac",'#e7d4e8','#e7d4e8','#e7d4e8','#e7d4e8','#7fbf7b','#1b7837','#1b7837','#1b7837',"#2166ac")
+col_vector<-c('#762a83','#762a83',"#2166ac",'#762a83',"#2166ac",'#af8dc3',"#2166ac",'#e7d4e8','#e7d4e8','#e7d4e8','#e7d4e8','#7fbf7b','#1b7837','#1b7837','#1b7837',"#2166ac")
 #ppi<-data.frame(Pop=pop.labs,cols = all.colors,pch=c(0,1,21,2,24,3,23,4,5,6,7,9,10,11,12,22))
 ppi<-data.frame(Pop=pop.labs,cols = col_vector,pch=rep(c(15,16,17,18),4))
 ```
@@ -427,69 +427,87 @@ clcolr[c(6,19,20,21,22)]<-all.colors[3]
 ```{r combinedFig2,eval=FALSE}
 npop<-length(pop.list)
 pseq<-1:npop
-m<-matrix(c(rep(1,16),rep(2,4),
-            3:18,rep(2,4),
-            19:34,rep(2,4),
-            rep(35,8),rep(36,8),rep(2,4)),
-          nrow=4,ncol=npop+4,byrow = T)
-#jpeg("NewPopStructure.jpeg",res=300,height=8,width=10,units="in")
+m<-matrix(c(rep(1,16),rep(2,6),
+            3:18,rep(2,6),
+            19:34,rep(2,6),
+            rep(35,8),rep(36,8),rep(37,6)),
+          nrow=4,ncol=npop+6,byrow = T)
+jpeg("NewPopStructure_v1.jpeg",res=300,height=8,width=10,units="in")
 #set the layout
 layout(mat=m,heights=c(6,1,1,6))
 #MAP
 #open an empty plot window with coordinates
-par(oma=c(1.5,3.5,1,1),mar=c(0,0,0,0),xpd=NA)
-plot(1:10,ty="n",axes=FALSE,xlab="",ylab="",xpd=TRUE)
+par(oma=c(1.5,3.5,1,2),mar=c(0,0,0,0),xpd=NA)
+plot(1:14,ty="n",axes=FALSE,xlab="",ylab="",xpd=TRUE)
 #specify the position of the image through bottom-left and top-right coords
-rasterImage(img,0,0,12,10,xpd=TRUE)
+rasterImage(img,1,1,14,14,xpd=TRUE)
 
 #PopTree
 par(mar=c(0,0,0,1))
-plot.phylo(pt.subtree,tip.color = pt.colors,cex=5,
+plot.phylo(pt.subtree,tip.color = pt.colors,cex=2,
            edge.color = clcolr,edge.width = 2,label.offset = 0.0015)
 
 #STRUCTURE
 par(mar=c(1,0,0,0))#
 plotting.structure(structure.k2,2,pop.list, make.file=FALSE, xlabcol = all.colors,plot.new=FALSE,
                    colors=grp.colors[c(1,6)],xlabel=FALSE,
-                   ylabel=expression(atop(italic(K)==2,358.9)))
+                   ylabel=expression(atop(italic(K)==2,358.9)),lab.cex=0.85)
 plotting.structure(structure.k6,2,pop.labs, make.file=FALSE,
                    plot.new=FALSE,colors=grp.colors,xlabel=TRUE,
                    xlabcol = all.colors,
-                   ylabel=expression(atop(italic(K)==6,326.1)))
+                   ylabel=expression(atop(italic(K)==6,326.1)),lab.cex=0.85)
 #PCADAPT
 par(mar=c(2,2,2,2))
 plot(pa$scores[,1],pa$scores[,2],col=alpha(pap$cols,0.5),bg=alpha(pap$cols,0.75),
-     pch=as.numeric(pap$pch),	cex=2,bty="L",xlab="",ylab="",cex.axis=1.5)
+     pch=as.numeric(pap$pch),	cex=3,bty="L",xlab="",ylab="",cex.axis=1.5)
 
 mtext(paste("PC1 (",pa.props[1],"%)",sep=""),1,line = 2.5,cex=1)
 mtext(paste("PC2 (",pa.props[2],"%)",sep=""),2,line = 2.5,cex=1)
 
 plot(pa$scores[,3],pa$scores[,4],col=alpha(pap$cols,0.5),bg=alpha(pap$cols,0.75),pch=as.numeric(pap$pch),
-     cex=2,	bty="L",xlab="",ylab="",cex.axis=1.5)
+     cex=3,	bty="L",xlab="",ylab="",cex.axis=1.5)
 
 mtext(paste("PC3 (",pa.props[3],"%)",sep=""),1,line = 2.5,cex=1)
 mtext(paste("PC4 (",pa.props[4],"%)",sep=""),2,line = 2.5,cex=1)
 
-
-#dev.off()
+plot(1:10,ty="n",axes=FALSE,xlab="",ylab="",xpd=TRUE)
+legend("bottom", legend=ppi$Pop, pch=as.numeric(ppi$pch), pt.cex=3,cex=1.5,
+       col=alpha(ppi$cols, 0.5),pt.bg=alpha(ppi$cols,0.25), ncol=2,bty='n')
+dev.off()
 ```
 
-![Figure 2. Population Structure](fwsw_results/combinedStructure.jpeg)
+![Figure 2. Population Structure](fwsw_results/NewPopStructure_v1.jpeg)
 
 
 ## Demographic history inference
 
 
-### dmc
 
 ### dadi
 
 
 ## Outliers: Fsts from Stacks, fsts tested against dadi results, PCadapt
 
+### PCAdapt
+
+```{r}
+pa<-readRDS("pcadapt.RDS")
+plot(pa,option = "stat.distribution")
+library(qvalue)
+qval <- qvalue(pa$pvalues)$qvalues
+alpha <- 0.1
+outliers <- which(qval < alpha)
+length(outliers)
+snp_pc<-get.pc(pa,outliers)
+
+snp_info<-read.delim("subset.map",header=FALSE)
+```
+
+
+### dmc & LG8?
 
 ## Putative genes??
 
-## LG8??
+
 
 
