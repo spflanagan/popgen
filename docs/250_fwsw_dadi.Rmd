@@ -143,7 +143,7 @@ At least some of the runs in all of these do not work well (result in "WARNING:N
 Now I need to see what the optimal parameters are for these 7 different runs so that I can run those models for additional iterations and/or compare model fits -- after which I will simulate data with `ms`.
 
 ```{r}
-fl.opts<-dadi.modelcomp(path = "dadi_analysis",pattern="fl.*optimized.*",id="FL2D")
+fl.opts<-dadi.modelcomp(path = "dadi_analysis/FL2D",pattern=".*optimized.*",id="FL2D")
 kable(fl.opts,caption = "'Best' runs of each of the models for the Florida populations 2D demographic inference")
 ```
 
@@ -164,5 +164,5 @@ dadi.nan<-function(opt.file){
 ```
 
 ```{r}
-fl.nans<-do.call(rbind,lapply(list.files(path = "dadi_analysis",pattern="fl.*optimized.*",full.names = TRUE),dadi.nan))
+fl.nans<-do.call(rbind,lapply(list.files(path = "dadi_analysis/FL2D",pattern=".*optimized.*",full.names = TRUE),dadi.nan))
 ```
