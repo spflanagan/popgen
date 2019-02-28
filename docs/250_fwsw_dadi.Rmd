@@ -81,15 +81,20 @@ I'm going to use th 75% of individuals dataset.
 I ran the optimize functions from (dportik's dadi pipeline)[https://github.com/dportik/dadi_pipeline] for each of the 7 populations. Now I need to see what the optimal parameters are (with maximum log likelihood).
 
 ```{r dadi.optimal}
-dadi.optimal<-function(opt.file){
-  model.opt<-read.delim(opt.file,sep='\t',header=TRUE)
+parse_dadi_opt<-function(opt.file){
+  model.opt<-read.delim(opt.file,sep='\t',header=TRUE,stringsAsFactors = FALSE)
+  model.opt$params<-gsub("\\.\\.",",",gsub("optimized_params.(.*)","\\1",colnames(model.opt)[7]))
+  colnames(model.opt)[7]<-"optimized_params"
   if(length(grep("Model",model.opt$Model))>0){  #THERE SHOULDN'T BE REPEATED HEADER ROWS
     model.opt<-model.opt[-which(model.opt$Model=="Model"),]
     warning('The model has been run multiple times and output has been concatenated') 
   }
+  
+  return(model.opt)
+}
+dadi.optimal<-function(opt.file){
+  model.opt<-parse_dadi_opt(opt.file)
   opt<-model.opt[which.max(as.numeric(as.character(model.opt$log.likelihood))),]
-  opt$params<-gsub("\\.\\.",",",gsub("optimized_params.(.*)","\\1",colnames(opt)[7]))
-  colnames(opt)[7]<-"optimized_params"
   return(opt)
 }
 
@@ -104,6 +109,7 @@ dadi.modelcomp<-function(path,pattern,id){
   opts$rank<-rank(opts$AIC)
   opts$id<-id
   opts<-opts[order(opts$rank),]
+  return(opts)
 }
 ```
 
@@ -165,4 +171,45 @@ dadi.nan<-function(opt.file){
 
 ```{r}
 fl.nans<-do.call(rbind,lapply(list.files(path = "dadi_analysis/FL2D",pattern=".*optimized.*",full.names = TRUE),dadi.nan))
+```
+
+Ok, but what about convergence? Are the replicates (Numbers 1-5) converging on likelihoods and parameter values?
+
+```{r}
+library(scales)
+library(sm)
+models<-unique(fl.opts$Model)
+par(mfrow=c(3,3))
+l<-lapply(models,function(mod){
+  files<-list.files(path="dadi_analysis/FL2D",pattern = paste(".*\\.",mod,".optimized.*",sep=""),full.names = TRUE)
+  all_reps<-do.call(rbind,lapply(files, parse_dadi_opt))
+  lines_per_rep<-nrow(all_reps)/length(files)
+  all_reps$rep<-rep(1:length(files),each=lines_per_rep)
+  #get the parameter values
+  params<-do.call(rbind,lapply(all_reps$optimized_params,function(x){
+    p<-as.numeric(as.character(rbind(unlist(strsplit(x,",")))))
+    return(p)
+  }))
+  colnames(params)<-unlist(strsplit(unlist(strsplit(all_reps$params[1],",")),"\\."))
+  all_reps<-cbind(all_reps,params)
+  
+  #plot
+  par(xpd=TRUE,mar=c(2,6,2,2))
+  plot(0:(ncol(params)*2),xlim=c(0,2*(ncol(params))),ylim=c(min(all_reps$log.likelihood),max(all_reps[,colnames(params)])),bty="L",axes=FALSE,ann=FALSE,type='n')
+  gwsca.vioplot(all_reps$log.likelihood,col="grey",add=TRUE,xpd=TRUE,at=0)
+  points(jitter(rep(0,nrow(all_reps)),2.5),all_reps$log.likelihood,col=alpha(all_reps$rep,0.5),pch=19)
+  axis(2,las=1,pos=-0.5)
+  axis(1,lwd=0,label="log likelihood",at=0)
+  #mapply(function(param,counts) browser(),colnames(params),2:(ncol(params)+1))
+  p<-mapply(function(param,counts){
+    par(new=TRUE)
+    plot(0:(ncol(params)*2),xlim=c(0,2*(ncol(params))),ylim=c(min(all_reps[,param]),max(all_reps[,param])),bty="L",axes=FALSE,ann=FALSE,type='n')
+    gwsca.vioplot(all_reps[,param],col="grey",add=TRUE,xpd=TRUE,ylim=c(min(all_reps[,param]),max(all_reps[,param])),at=counts)
+    points(jitter(rep(counts,nrow(all_reps)),2.5),all_reps[,param],col=alpha(all_reps$rep,0.5),pch=19)
+    axis(2,las=1,pos=counts-0.75)
+    axis(1,lwd=0,label=param,at=counts)
+  },colnames(params),seq(2,(ncol(params)*2),by=2))
+  mtext(mod,3)
+  
+})
 ```
