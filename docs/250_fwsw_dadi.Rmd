@@ -20,14 +20,63 @@ library(knitr)
 pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 ```
 
+Some useful functions:
 
+```{r dadi.optimal}
+parse_dadi_opt<-function(opt.file){
+  model.opt<-read.delim(opt.file,sep='\t',header=TRUE,stringsAsFactors = FALSE)
+  model.opt$params<-gsub("\\.\\.",",",gsub("optimized_params.(.*)","\\1",colnames(model.opt)[7]))
+  colnames(model.opt)[7]<-"optimized_params"
+  if(length(grep("Model",model.opt$Model))>0){  #THERE SHOULDN'T BE REPEATED HEADER ROWS
+    model.opt<-model.opt[-which(model.opt$Model=="Model"),]
+    warning('The model has been run multiple times and output has been concatenated') 
+  }
+  
+  return(model.opt)
+}
+dadi.optimal<-function(opt.file){
+  model.opt<-parse_dadi_opt(opt.file)
+  opt<-model.opt[which.max(as.numeric(as.character(model.opt$log.likelihood))),]
+  return(opt)
+}
+
+```
+
+```{r dadi.modelcomp}
+dadi.modelcomp<-function(path,pattern,id){
+  opt.files<-list.files(path = path,pattern = pattern,full.names = TRUE)
+  #find the best parameter set for each model using maximum log likelihood
+  opts<-do.call(rbind,lapply(opt.files,dadi.optimal))
+  #rank them by AIC
+  opts$rank<-rank(opts$AIC)
+  opts$id<-id
+  opts<-opts[order(opts$rank),]
+  return(opts)
+}
+```
+
+```{r dadi.nan}
+dadi.nan<-function(opt.file){
+  model.opt<-read.delim(opt.file,sep='\t',header=TRUE)
+  if(length(grep("Model",model.opt$Model))>0){  #THERE SHOULDN'T BE REPEATED HEADER ROWS
+    model.opt<-model.opt[-which(model.opt$Model=="Model"),]
+    warning('The model has been run multiple times and output has been concatenated') 
+  }
+  nn<-nrow(model.opt[is.na(model.opt$AIC),])
+  nr<-nrow(model.opt)
+  return(data.frame(Model=unique(model.opt$Model),NumReps=nr,NumNan=nn))
+}
+  
+```
 
 # Create a dadi SNPs file from the vcf
 
-```{r create_dadi}
+```{r create_dadi, eval=FALSE}
+vcf<-parse.vcf("stacks/populations_subset75/batch_2.vcf")
 dadi<-vcf2dadiSNPs(vcf,pop.list = pop.list,filename = "dadi_analysis/fwsw.dadi.snps")
 dadi<-read.delim("dadi_analysis/fwsw.dadi.snps")
 projections<-unlist(lapply(pop.list,function(pop){ n<-length(grep(pop,colnames(vcf)))}))*2
+
 
 names(projections)<-pop.list
 best.pops<-c("TXFW","TXCB","LAFW","ALST","ALFW","FLLG","FLCC","TXFW ","TXCB ","LAFW ","ALST ","ALFW ","FLLG ","FLCC ")
@@ -80,38 +129,6 @@ I'm going to use th 75% of individuals dataset.
 
 I ran the optimize functions from (dportik's dadi pipeline)[https://github.com/dportik/dadi_pipeline] for each of the 7 populations. Now I need to see what the optimal parameters are (with maximum log likelihood).
 
-```{r dadi.optimal}
-parse_dadi_opt<-function(opt.file){
-  model.opt<-read.delim(opt.file,sep='\t',header=TRUE,stringsAsFactors = FALSE)
-  model.opt$params<-gsub("\\.\\.",",",gsub("optimized_params.(.*)","\\1",colnames(model.opt)[7]))
-  colnames(model.opt)[7]<-"optimized_params"
-  if(length(grep("Model",model.opt$Model))>0){  #THERE SHOULDN'T BE REPEATED HEADER ROWS
-    model.opt<-model.opt[-which(model.opt$Model=="Model"),]
-    warning('The model has been run multiple times and output has been concatenated') 
-  }
-  
-  return(model.opt)
-}
-dadi.optimal<-function(opt.file){
-  model.opt<-parse_dadi_opt(opt.file)
-  opt<-model.opt[which.max(as.numeric(as.character(model.opt$log.likelihood))),]
-  return(opt)
-}
-
-```
-
-```{r dadi.modelcomp}
-dadi.modelcomp<-function(path,pattern,id){
-  opt.files<-list.files(path = path,pattern = pattern,full.names = TRUE)
-  #find the best parameter set for each model using maximum log likelihood
-  opts<-do.call(rbind,lapply(opt.files,dadi.optimal))
-  #rank them by AIC
-  opts$rank<-rank(opts$AIC)
-  opts$id<-id
-  opts<-opts[order(opts$rank),]
-  return(opts)
-}
-```
 
 ```{r}
 opt.params<-do.call(rbind,lapply(pop.list, function(pop,dadi.dir="dadi_analysis"){
@@ -155,19 +172,7 @@ kable(fl.opts,caption = "'Best' runs of each of the models for the Florida popul
 
 This doesn't tell us about which models had trouble converging, though, so let's tally up the number of 'nan's in each file.
 
-```{r dadi.nan}
-dadi.nan<-function(opt.file){
-  model.opt<-read.delim(opt.file,sep='\t',header=TRUE)
-  if(length(grep("Model",model.opt$Model))>0){  #THERE SHOULDN'T BE REPEATED HEADER ROWS
-    model.opt<-model.opt[-which(model.opt$Model=="Model"),]
-    warning('The model has been run multiple times and output has been concatenated') 
-  }
-  nn<-nrow(model.opt[is.na(model.opt$AIC),])
-  nr<-nrow(model.opt)
-  return(data.frame(Model=unique(model.opt$Model),NumReps=nr,NumNan=nn))
-}
-  
-```
+
 
 ```{r}
 fl.nans<-do.call(rbind,lapply(list.files(path = "dadi_analysis/FL2D",pattern=".*optimized.*",full.names = TRUE),dadi.nan))
@@ -213,3 +218,77 @@ l<-lapply(models,function(mod){
   
 })
 ```
+
+
+## Analyze 2D TX optimization results
+
+
+I ran the optimize functions from (dportik's dadi pipeline)[https://github.com/dportik/dadi_pipeline] for a set of 2D demographic models for the Texas populations (TXFW and TXCC):
+
+* Split into two populations, no migration (distributed with `dadi-pipeline`)
+* Split into two populations, with continuous symmetric migration (distributed with `dadi-pipeline`)
+* Split into two populations, with continuous asymmetric migration (distributed with `dadi-pipeline`)
+* Split into two pops, instantaneous size change and no migration (distributed with `dadi-pipeline`)
+* Split into two pops, instantaneous size change and continuous symmetric migration (distributed with `dadi-pipeline`)
+* Split into two pops with symmetrical gene flow, instantaneous size change and no migration (distributed with `dadi-pipeline`)
+* Split into two pops with asymmetrical gene flow, instantaneous size change and no migration (distributed with `dadi-pipeline`)
+
+At least some of the runs in all of these do not work well (result in "WARNING:Numerics:Extrapolation may have failed. Check resulting frequency spectrum for unexpected results; WARNING:Inference:Model is masked in some entries where data is not"), but the output will tell me more about how frequently it occurs (by parameters showing up as 'nan' instead of values)
+
+Now I need to see what the optimal parameters are for these 7 different runs so that I can run those models for additional iterations and/or compare model fits -- after which I will simulate data with `ms`.
+
+```{r}
+tx.opts<-dadi.modelcomp(path = "dadi_analysis/TX2D",pattern=".*optimized.*",id="TX2D")
+kable(tx.opts,caption = "'Best' runs of each of the models for the Texas populations 2D demographic inference")
+```
+
+This doesn't tell us about which models had trouble converging, though, so let's tally up the number of 'nan's in each file.
+
+
+
+```{r}
+tx.nans<-do.call(rbind,lapply(list.files(path = "dadi_analysis/TX2D",pattern=".*optimized.*",full.names = TRUE),dadi.nan))
+```
+
+Ok, but what about convergence? Are the replicates (Numbers 1-5) converging on likelihoods and parameter values?
+
+```{r}
+library(scales)
+library(sm)
+models<-unique(tx.opts$Model)
+par(mfrow=c(3,3))
+l<-lapply(models,function(mod){
+  files<-list.files(path="dadi_analysis/TX2D",pattern = paste(".*\\.",mod,".optimized.*",sep=""),full.names = TRUE)
+  all_reps<-do.call(rbind,lapply(files, parse_dadi_opt))
+  lines_per_rep<-nrow(all_reps)/length(files)
+  all_reps$rep<-rep(1:length(files),each=lines_per_rep)
+  #get the parameter values
+  params<-do.call(rbind,lapply(all_reps$optimized_params,function(x){
+    p<-as.numeric(as.character(rbind(unlist(strsplit(x,",")))))
+    return(p)
+  }))
+  colnames(params)<-unlist(strsplit(unlist(strsplit(all_reps$params[1],",")),"\\."))
+  all_reps<-cbind(all_reps,params)
+  
+  #plot
+  par(xpd=TRUE,mar=c(2,6,2,2))
+  plot(0:(ncol(params)*2),xlim=c(0,2*(ncol(params))),ylim=c(min(all_reps$log.likelihood),max(all_reps[,colnames(params)])),bty="L",axes=FALSE,ann=FALSE,type='n')
+  gwsca.vioplot(all_reps$log.likelihood,col="grey",add=TRUE,xpd=TRUE,at=0)
+  points(jitter(rep(0,nrow(all_reps)),2.5),all_reps$log.likelihood,col=alpha(all_reps$rep,0.5),pch=19)
+  axis(2,las=1,pos=-0.5)
+  axis(1,lwd=0,label="log likelihood",at=0)
+  #mapply(function(param,counts) browser(),colnames(params),2:(ncol(params)+1))
+  p<-mapply(function(param,counts){
+    par(new=TRUE)
+    plot(0:(ncol(params)*2),xlim=c(0,2*(ncol(params))),ylim=c(min(all_reps[,param]),max(all_reps[,param])),bty="L",axes=FALSE,ann=FALSE,type='n')
+    gwsca.vioplot(all_reps[,param],col="grey",add=TRUE,xpd=TRUE,ylim=c(min(all_reps[,param]),max(all_reps[,param])),at=counts)
+    points(jitter(rep(counts,nrow(all_reps)),2.5),all_reps[,param],col=alpha(all_reps$rep,0.5),pch=19)
+    axis(2,las=1,pos=counts-0.75)
+    axis(1,lwd=0,label=param,at=counts)
+  },colnames(params),seq(2,(ncol(params)*2),by=2))
+  mtext(mod,3)
+  
+})
+```
+
+

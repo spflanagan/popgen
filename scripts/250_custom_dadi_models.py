@@ -153,8 +153,8 @@ def  growth_twoep_sym_mig(params,ns,pts):
         Split with symmetric migration
         Exponential growth in one population and instantaneous size change in the other
         
-        nu1: Ratio of contemporary to population 1 size after split
-        nu2: Ratio of contemporary to population 2 size after split
+        nu1: Ratio of contemporary to population 1 size in second epoch
+        nu2: Ratio of contemporary to population 2 size in second epoch
         m  : Migration rate
         T    : Total time since the split
         Tc   : Time at which the size change happened as a proportion of time since split
