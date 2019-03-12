@@ -191,7 +191,7 @@ for(i in 1:nrow(pap)){
 for(i in 1:nrow(pap)){
   pap[i,"pch"]<-as.numeric(ppi[ppi$Pop %in% pap[i,"Pop"],"pch"])
 }
-write.table(pap,"pca_pcadapt.txt",header=TRUE)
+write.table(pap,"pca_pcadapt.txt",col.names=TRUE)
 #plot
 par(mfrow=c(2,3),oma=c(2,2,2,2),mar=c(2,2,2,2))
 plot(pa$scores[,1],pa$scores[,2],col=alpha(pap$cols,0.5),bg=alpha(pap$cols,0.75),
@@ -488,21 +488,71 @@ dev.off()
 
 ## Outliers: Fsts from Stacks, fsts tested against dadi results, PCadapt
 
-### PCAdapt
+### Stacks
 
 ```{r}
-pa<-readRDS("pcadapt.RDS")
-plot(pa,option = "stat.distribution")
+alal<-read.delim("stacks/populations_subset75/batch_2.fst_ALFW-ALST.tsv")
+alla<-read.delim("stacks/populations_subset75/batch_2.fst_ALST-LAFW.tsv")
+txtx<-read.delim("stacks/populations_subset75/batch_2.fst_TXCC-TXFW.tsv")
+flfl<-read.delim("stacks/populations_subset75/batch_2.fst_FLCC-FLFW.tsv")
+```
+
+
+### PCAdapt
+
+For this analysis we'll use the subset of populations rather than the full population set
+
+```{r}
+library(pcadapt)
+pap<-read.delim("pca_pcadapt.txt",sep=" ")
+#snp_info<-read.delim("subset.map",header=FALSE)
+
+filename<-read.pcadapt("stacks/populations_subset75/batch_2.plink.ped",type="ped") #need to remove the first line with a # 
+x<-pcadapt(filename, K=20)
+plot(x,option="screeplot")
+```
+
+*K=4* seems like the best choice here.
+
+```{r}
+res<-pcadapt(filename,K=4)
+plot(res)
+```
+
+We need to choose a cutoff for outlier detection. I'll start with the qvalue approach.
+```{r}
 library(qvalue)
 qval <- qvalue(pa$pvalues)$qvalues
 alpha <- 0.1
 outliers <- which(qval < alpha)
 length(outliers)
 snp_pc<-get.pc(pa,outliers)
-
-snp_info<-read.delim("subset.map",header=FALSE)
 ```
 
+What about LD thinning appraoch? They recommend displaying the loadings and evaluate if loadings are clustered in single or several genomic regions
+
+```{r}
+par(mfrow = c(2, 2))
+for (i in 1:4)
+  plot(res$loadings[, i], pch = 19, cex = .3, ylab = paste0("Loadings PC", i))
+```
+
+This suggests that loadings are not clustered (assuming these are grouped by space). Now let's look chromosome by chromosome:
+
+```{r}
+map<-read.delim("stacks/populations_subset75/batch_2.plink.map",header = FALSE,comment.char = "#")
+par(mfrow=c(6,4),mar=c(3,3,2,1.5))
+l<-lapply(lgs, function(lg,map){
+  plot(res$loadings[which(map$V1 %in% lg), 1], pch = 19, cex = .3, xlab = paste0("Position on ", lg), ylab = "Loadings PC 1")
+  mtext(lg,3,outer=FALSE)
+},map=map)
+```
+
+None of the LGs seem to have huge clusters of outliers.
+
+### Model-based outlier estimation
+
+[Rougemont et al 2016](https://onlinelibrary.wiley.com/doi/full/10.1111/mec.13664) used model parameters estimated by $\delta_A\delta_I$ to simulate data under a neutral model with `MSSTATSFST` (a coalescent simulator). $F_{ST}$ values were calculated for each population using `vcftools` and those were compared to the simulated netural markers. They counted the number of shared outliers between connected pairs and performed randomization tests to test whether the number was greter than expected by chance, and then constructed coplots of $F_{ST}$/$F_{ST}$ between population pairs to visualize the extent of outlier sharing and parallelism. They used custom R scripts, which might be available??
 
 ### dmc & LG8?
 

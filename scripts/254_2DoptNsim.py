@@ -17,6 +17,7 @@ from datetime import datetime
 #get the optimize functions
 execfile("../../programs/dadi_pipeline-master/Two_Population_Pipeline/Optimize_Functions.py")
 execfile("../../programs/dadi_pipeline-master/Two_Population_Pipeline/Models_2D.py")
+execfile("../../programs/dadi_pipeline-master/Goodness_of_Fit/Optimize_Functions_GOF.py")
 execfile("../../scripts/250_custom_dadi_models.py")
 
 
@@ -53,7 +54,7 @@ fs_folded = True
 #Fit the model using these parameters and return the folded model SFS (scaled by theta).
 #Here, you will want to change the "sym_mig" and sym_mig arguments to match your model function,
 #but everything else can stay as it is. See above for argument explanations.
-scaled_fl = Optimize_Functions_GOF.Optimize_Empirical(fl, pts, "Empirical", "growth_twoep_sym", growth_twoep_sym_mig, emp_params, fs_folded=fs_folded)
+scaled_fl = Optimize_Empirical(fl, pts, "Empirical", "growth_twoep_sym", growth_twoep_sym_mig, emp_params, fs_folded=fs_folded)
 
 
 #=======================================PERFORM SIMULATIONS=======================================#
@@ -77,7 +78,7 @@ maxiters = [5,10,20]
 folds = [3,2,1]
 
 #Execute the optimization routine for each of the simulated SFS.
-Optimize_Functions_GOF.Perform_Sims(sims, scaled_fl, pts, "growth_twoep_sym", growth_twoep_sym_mig, rounds, p_num, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds)
+Perform_Sims(sims, scaled_fl, pts, "growth_twoep_sym", growth_twoep_sym_mig, rounds, p_num, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds)
 
 
 
@@ -103,7 +104,7 @@ fs_folded = True
 #Fit the model using these parameters and return the folded model SFS (scaled by theta).
 #Here, you will want to change the "sym_mig" and sym_mig arguments to match your model function,
 #but everything else can stay as it is. See above for argument explanations.
-scaled_tx = Optimize_Functions_GOF.Optimize_Empirical(tx, pts, "Empirical", "sym_mig_size", sym_mig_size, emp_params, fs_folded=fs_folded)
+scaled_tx = Optimize_Empirical(tx, pts, "Empirical", "sym_mig_size", sym_mig_size, emp_params, fs_folded=fs_folded)
 
 
 #=======================================PERFORM SIMULATIONS=======================================#
@@ -127,4 +128,4 @@ maxiters = [5,10,20]
 folds = [3,2,1]
 
 #Execute the optimization routine for each of the simulated SFS.
-Optimize_Functions_GOF.Perform_Sims(sims, scaled_tx, pts, "growth_twoep_sym", growth_twoep_sym_mig, rounds, p_num, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds)
+Perform_Sims(sims, scaled_tx, pts, "growth_twoep_sym", growth_twoep_sym_mig, rounds, p_num, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds)

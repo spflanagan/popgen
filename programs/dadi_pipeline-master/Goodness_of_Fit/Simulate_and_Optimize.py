@@ -4,7 +4,7 @@ import numpy
 import dadi
 import pylab
 from datetime import datetime
-import Optimize_Functions_GOF
+execfile("../../programs/dadi_pipeline-master/Goodness_of_Fit/Optimize_Functions_GOF.py")
 
 '''
 Usage: python Simulate_and_Optimize.py
