@@ -724,6 +724,14 @@ There are `r length(unique(all_shared))` RAD loci with shared outliers in all of
 
 I think I need to run it again - but here's what I did previously.
 
+```{r compareEnvVar}
+env.data<-read.csv("bayenv/env_data_raw.csv",row.names = 1)
+env.data<-rbind(env.data,pop=c(rep("SW",12),rep("FW",4)))
+env.data<-as.data.frame(t(env.data))
+wilcox.test(as.numeric(env.data$temp)~env.data$pop) #ties, but p=0.539
+wilcox.test(as.numeric(env.data$seagrass)~env.data$pop) #ties, but p=0.897
+```
+
 
 ```{r bayenv}
 #taken directly from fwsw_analysis.R
