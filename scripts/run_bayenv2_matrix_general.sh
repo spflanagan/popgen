@@ -8,6 +8,7 @@ PED_NAME="$2" #stacks/populations_subset75/batch_2.plink.ped
 MAP_NAME="$3" #stacks/populations_subset75/batch_2.plink.map
 OUT_DIR="$4" #bayenv
 BAYENV_DIR="$5" # ~/Programs/bayenv/
+
 ############## 		Then run plink 		 ##################
 ~/Programs/plink-1.07-x86_64/plink --ped "$PED_NAME" --map "$MAP_NAME" \
 --out "$OUT_DIR"/bayenv --noweb --allow-no-sex --recode --freq --within "$CLUST_NAME"
