@@ -45,7 +45,7 @@ dadi.Plotting.plot_single_2d_sfs(fl,vmin=0.01)
 #=================================================================================================#
 #										LOOP TO OPTIMIZE 										  #
 #=================================================================================================#
-pts = [ 200,220,240 ]
+pts = [ 220,240 ]
 rounds=4
 #define the lists for optional arguments
 #you can change these to alter the settings of the optimization routine
@@ -59,25 +59,25 @@ for i in range(1,6):
 	prefix = "V5_Number_{}".format(i)
 		
 	# Split into two populations, no migration.
-	Optimize_Routine(fl, pts, prefix, "no_mig", no_mig, rounds, 3, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds, param_labels = "nu1, nu2, T",in_upper=[15,5,10],in_lower=[1,1,0])
+	Optimize_Routine(fl, pts, prefix, "no_mig", no_mig, rounds, 3, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds, param_labels = "nu1, nu2, T",in_upper=[15,5,10],in_lower=[1,1,0.01])
 
 	# Split into two populations, with continuous symmetric migration.
-	Optimize_Routine(fl, pts, prefix, "sym_mig", sym_mig, rounds, 4, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds, param_labels = "nu1, nu2, m, T",in_upper=[15,5,5,10],in_lower=[1,1,0,0])
+	Optimize_Routine(fl, pts, prefix, "sym_mig", sym_mig, rounds, 4, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds, param_labels = "nu1, nu2, m, T",in_upper=[15,5,5,10],in_lower=[1,1,0.01,0.01])
 	
 	# Split into two populations, with continuous asymmetric migration.
-	Optimize_Routine(fl, pts, prefix, "asym_mig", asym_mig, rounds, 5, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds, param_labels = "nu1, nu2, m12, m21, T",in_upper=[15,5,10,10,10],in_lower=[1,1,0,0,0])
+	Optimize_Routine(fl, pts, prefix, "asym_mig", asym_mig, rounds, 5, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds, param_labels = "nu1, nu2, m12, m21, T",in_upper=[15,5,10,10,10],in_lower=[1,1,0.01,0.01,0.01])
 
 	# Split into two pops, isolation with migration model
-	Optimize_Routine(fl, pts, prefix, "IM", dadi.Demographics2D.IM, rounds, 6, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds, param_labels = "s, nu1, nu2, T, m12, m21",in_upper=[10,15,5,10,10,10],in_lower=[0,0.1,1,1,0,0])
+	Optimize_Routine(fl, pts, prefix, "IM", dadi.Demographics2D.IM, rounds, 6, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds, param_labels = "s, nu1, nu2, T, m12, m21",in_upper=[10,15,5,10,10,10],in_lower=[0.01,0.1,1,1,0.01,0.01])
 	
 	# Split into two pops, growth in one pop and two epoch in another
-	Optimize_Routine(fl, pts, prefix, "growth_twoep_no", growth_twoep_no_mig, rounds, 4, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds, param_labels = "nu1, nu2,T,Tc",in_upper=[15,5,10,1],in_lower=[1,1,0,0])
+	Optimize_Routine(fl, pts, prefix, "growth_twoep_no", growth_twoep_no_mig, rounds, 4, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds, param_labels = "nu1, nu2,T,Tc",in_upper=[15,5,10,1],in_lower=[1,1,0.01,0.01])
 
 	# Split into two pops, growth in one pop and two epoch in another
-	Optimize_Routine(fl, pts, prefix, "growth_twoep_sym", growth_twoep_sym_mig, rounds, 5, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds, param_labels = "nu1, nu2,m, T,Tc",in_upper=[15,15,10,10,1],in_lower=[1,1,0,0,0])
+	Optimize_Routine(fl, pts, prefix, "growth_twoep_sym", growth_twoep_sym_mig, rounds, 5, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds, param_labels = "nu1, nu2,m, T,Tc",in_upper=[15,15,10,10,1],in_lower=[1,1,0.01,0.01,0.01])
 
 	# Split into two pops, growth in one pop and two epoch in another
-	Optimize_Routine(fl, pts, prefix, "growth_twoep_asym", growth_twoep_asym_mig, rounds, 6, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds, param_labels = "nu1, nu2,m12,m21, T,Tc",in_upper=[15,15,10,10,10,1],in_lower=[1,1,0,0,0,0])
+	Optimize_Routine(fl, pts, prefix, "growth_twoep_asym", growth_twoep_asym_mig, rounds, 6, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds, param_labels = "nu1, nu2,m12,m21, T,Tc",in_upper=[15,15,10,10,10,1],in_lower=[1,1,0.01,0.01,0.01,0.01])
 	
 	"""
 	# Split with no migration, then instantaneous size change with no migration.

@@ -47,7 +47,7 @@ if florida is True:
 	#===================================FIT MODEL TO EMPIRICAL DATA ==================================#
 
 	#Make sure to define your extrapolation grid size.
-	pts = [ 200,220,240 ]
+	pts = [ 220,240 ]
 
 	#Provide best optimized parameter set for empirical data.
 	#These will come from previous analyses you have already completed (above)
@@ -83,7 +83,7 @@ if florida is True:
 	folds = [3,2,1]
 
 	#Execute the optimization routine for each of the simulated SFS.
-	Perform_Sims(sims, scaled_fl, pts, "growth_twoep_sym", growth_twoep_sym_mig, rounds, p_num, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds)
+	Perform_Sims(sims, scaled_fl, pts, "growth_twoep_sym", growth_twoep_sym_mig, rounds, p_num, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds, param_labels = "nu1, nu2,m, T,Tc",in_upper=[15,15,10,10,1],in_lower=[1,1,0,0,0])
 
 
 
@@ -97,7 +97,7 @@ if texas is True:
 	#===================================FIT MODEL TO EMPIRICAL DATA ==================================#
 
 	#Make sure to define your extrapolation grid size.
-	pts = [ 300,320,340 ]
+	pts = [ 320,340 ]
 
 	#Provide best optimized parameter set for empirical data.
 	#These will come from previous analyses you have already completed (above)
@@ -133,4 +133,4 @@ if texas is True:
 	folds = [3,2,1]
 
 	#Execute the optimization routine for each of the simulated SFS.
-	Perform_Sims(sims, scaled_tx, pts, "sym_mig_size", sym_mig_size, rounds, p_num, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds)
+	Perform_Sims(sims, scaled_tx, pts, "sym_mig_size", sym_mig_size, rounds, p_num, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds, param_labels = "nu1a, nu2a, nu1b, nu2b, m, T1, T2",in_upper=[15,15,15,15,10,10,10],in_lower=[1,1,1,1,0.01,0,0])
