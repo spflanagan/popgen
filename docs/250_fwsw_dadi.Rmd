@@ -238,17 +238,129 @@ At least some of the runs in all of these do not work well (result in "WARNING:N
 Now I need to see what the optimal parameters are for these 7 different runs so that I can run those models for additional iterations and/or compare model fits -- after which I will simulate data with `ms`.
 
 ```{r}
-tx.opts<-dadi.modelcomp(path = "dadi_analysis/TX2D",pattern=".*optimized.*",id="TX2D")
-kable(tx.opts,caption = "'Best' runs of each of the models for the Texas populations 2D demographic inference")
+tx.best<-dadi.modelcomp(path = "dadi_analysis/TX2D",pattern="V2.*optimized.*",id="TX2D")
+kable(tx.best,caption = "'Best' runs of each of the models for the Texas populations 2D demographic inference")
 ```
 
 This doesn't tell us about which models had trouble converging, though, so let's tally up the number of 'nan's in each file.
 
+```{r}
+tx.nans<-do.call(rbind,lapply(list.files(path = "dadi_analysis/TX2D",pattern="V2.*optimized.*",full.names = TRUE),dadi.nan))
+```
 
+Still not useful, let's extract warning messages from the log file!
+```{r}
+dadi_warnings<-function(logname){
+  log_txt<-scan(logname,what = "character",sep = '\n')
+  models<-grep("Model",log_txt[grep("====",log_txt)+1],value = TRUE)
+  model_locs<-unique(unlist(lapply(models,grep,x=log_txt)))
+  names(model_locs)<-unique(unlist(lapply(models,grep,x=log_txt,value=TRUE)))
+  model_locs<-model_locs[order(model_locs)]
+  model_locs<-c(model_locs,end=length(log_txt))
+  
+  prob_reps<-data.frame(Model=NULL,Replicate=NULL)
+  for(i in 1:(length(model_locs)-1)){
+    prob_rounds<-grep("Round",log_txt[model_locs[i]:model_locs[i+1]][grep("WARNING",log_txt[model_locs[i]:model_locs[i+1]])-1],value=TRUE)
+    prob_rep<-gsub(".*(Round) (\\d+) (Replicate) (\\d+) of \\d+:","\\1_\\2_\\3_\\4",prob_rounds)
+    prob_reps<-rbind(prob_reps,cbind(Model=gsub("Model (.*)","\\1",names(model_locs[i])),Replicate=prob_rep))
+  }
+  return(prob_reps)
+}
+
+```
 
 ```{r}
-tx.nans<-do.call(rbind,lapply(list.files(path = "dadi_analysis/TX2D",pattern=".*optimized.*",full.names = TRUE),dadi.nan))
+tx.warnings<-dadi_warnings("dadi_analysis/251_2DTXb.log")
+tx.warnings$Warning<-TRUE
+tx.opts<-do.call(rbind,lapply(list.files(path = "dadi_analysis/TX2D",pattern="V2.*optimized.*",full.names = TRUE),parse_dadi_opt))
+tx.dat<-merge(tx.opts,tx.warnings,by=c("Model","Replicate"),all = TRUE)
+
 ```
+
+Do I get vastly different parameter estimates for the ones with warnings?
+
+```{r extractParams}
+extract_dadi_params<-function(opt_dat){
+  #need to do this separately for each model
+  mod_params<-lapply(unique(opt_dat$Model), function(mod){ #browser()
+     params<-do.call(rbind,mapply(function(param_est,params){ #browser()
+      p<-data.frame(rbind(as.numeric(as.character(rbind(unlist(strsplit(param_est,",")))))))
+      colnames(p)<-unlist(strsplit(unlist(strsplit(params,",")),"\\."))
+      p<-p[order(colnames(p))]
+      p$Model<-mod
+      return(p)
+    },param_est=opt_dat$optimized_params[opt_dat$Model %in% mod],params=opt_dat$params[opt_dat$Model %in% mod],SIMPLIFY = FALSE))
+    this_dat<-cbind(opt_dat[opt_dat$Model %in% mod,],params)
+    return(this_dat[-ncol(this_dat)])
+  })
+  return(mod_params)
+}
+```
+```{r plotParams}
+
+plot_params<-function(dat,params,pt.col="dark grey"){ 
+  plot(0:(length(params)*2),xlim=c(0,2*(length(params))),
+       ylim=c(min(dat$log.likelihood),max(dat[,params])),
+       bty="L",axes=FALSE,ann=FALSE,type='n')
+  gwsca.vioplot(dat$log.likelihood,col="grey",add=TRUE,xpd=TRUE,at=0)
+  points(jitter(rep(0,nrow(dat)),2.5),dat$log.likelihood,
+         col=alpha(pt.col,0.5),pch=19)
+  axis(2,las=1,pos=-0.5)
+  axis(1,lwd=0,label="log likelihood",at=0)
+  #mapply(function(param,counts) browser(),colnames(params),2:(ncol(params)+1))
+  p<-mapply(function(param,counts){
+    par(new=TRUE)
+    plot(0:(length(params)*2),xlim=c(0,2*(length(params))),
+         ylim=c(min(dat[,param]),max(dat[,param])),bty="L",axes=FALSE,ann=FALSE,type='n')
+    gwsca.vioplot(dat[,param],col="grey",add=TRUE,xpd=TRUE,ylim=c(min(dat[,param]),max(dat[,param])),at=counts)
+    points(jitter(rep(counts,nrow(dat)),2.5),dat[,param],col=alpha(pt.col,0.5),pch=19)
+    axis(2,las=1,pos=counts-0.75)
+    axis(1,lwd=0,label=param,at=counts)
+  },params,seq(2,(length(params)*2),by=2))
+  mtext(unique(dat$Model),3)
+}
+```
+
+```{r}
+tx_dat<-extract_dadi_params(tx.dat)
+par(xpd=TRUE,mar=c(2,6,2,2),mfrow=c(length(tx_dat),2))
+pl<-lapply(tx_dat,function(dat){ 
+  require(scales)
+  require(sm)
+  params<-colnames(dat)[(which(colnames(dat)=="Warning")+1):ncol(dat)]
+  plot_params(dat[!is.na(dat$Warning),],params,pt.col = "coral")
+  legend("topleft",paste("N=",nrow(dat[!is.na(dat$Warning),])),bty='n')
+  plot_params(dat[is.na(dat$Warning),],params,pt.col = "grey")
+  legend("topleft",paste("N=",nrow(dat[is.na(dat$Warning),])),bty='n')
+})
+
+
+```
+
+What's the best model if I remove ones with warnings?
+
+```{r}
+tx.bests<-lapply(tx_dat,function(dat){ 
+  keep<-dat[is.na(dat$Warning),]
+  best<-keep[which.max(keep$log.likelihood),]
+})
+tx.bests[[which.min(unlist(lapply(tx.bests,function(x){ return(x$AIC) })))]]
+```
+
+Are the multiple rounds improving the model fit?
+
+```{r}
+par(xpd=TRUE,mar=c(2,6,2,2),mfrow=c(length(tx_dat),1))
+l<-lapply(tx_dat, function(dat){ 
+  dat$rounds<-as.numeric(gsub("Round_(\\d+)_Replicate_(\\d+)","\\1",dat$Replicate))
+  plot(dat$rounds,dat$log.likelihood,xlab="Round",axes=FALSE,ylab="Log likelihood")
+  axis(1,seq(1,4))
+  axis(2,las=1)
+})
+```
+
+Yes they are!
+
 
 Ok, but what about convergence? Are the replicates (Numbers 1-5) converging on likelihoods and parameter values?
 
