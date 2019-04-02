@@ -134,11 +134,12 @@ def  growth_twoep_no_mig(params,ns,pts):
     phi = dadi.PhiManip.phi_1D_to_2D(xx, phi)
     
     #pop 1 has exponential growth
-    nu1_func = lambda t: numpy.exp(numpy.log(nu1) * t/(T*(1-Tc)))
+    nu1_func = nu1**(t/T)
     #first epoch
     phi = Integration.two_pops(phi, xx, T*(1-Tc), nu1_func, 1, m12=0, m21=0)
     #pop 1 has exponential growth
-    nu1_func = lambda t: numpy.exp(numpy.log(nu1) * t/T)
+    nu1_intermediate = nu1_func(T*(1-Tc))
+    nu1_func = nu1_intermediate*(nu1/nu1_intermediate)**(t/(T*Tc))
     #second epoch
     phi = Integration.two_pops(phi, xx, T*Tc, nu1_func, nu2, m12=0, m21=0)
 
@@ -170,11 +171,13 @@ def  growth_twoep_sym_mig(params,ns,pts):
     phi = dadi.PhiManip.phi_1D(xx)
     phi = dadi.PhiManip.phi_1D_to_2D(xx, phi)
     
+    nu1_func = nu1**(t/T)
     
     #first epoch
-    phi = Integration.two_pops(phi, xx, T, 1, 1, m12=m, m21=m)
+    phi = Integration.two_pops(phi, xx, T, nu1_func, 1, m12=m, m21=m)
     #pop 1 has exponential growth
-    nu1_func = lambda t: numpy.exp(numpy.log(nu1) * t/T)
+    nu1_intermediate = nu1_func(T*(1-Tc))
+    nu1_func = nu1_intermediate*(nu1/nu1_intermediate)**(t/(T*Tc))
     #second epoch
     phi = Integration.two_pops(phi, xx, T*Tc, nu1_func, nu2, m12=m, m21=m)
 
@@ -207,11 +210,12 @@ def  growth_twoep_asym_mig(params,ns,pts):
     phi = dadi.PhiManip.phi_1D(xx)
     phi = dadi.PhiManip.phi_1D_to_2D(xx, phi)
     
-    
+    nu1_func = nu1**(t/T)
     #first epoch
-    phi = Integration.two_pops(phi, xx, T, 1, 1, m12=m12, m21=m21)
+    phi = Integration.two_pops(phi, xx, T, nu1_func, 1, m12=m12, m21=m21)
     #pop 1 has exponential growth
-    nu1_func = lambda t: numpy.exp(numpy.log(nu1) * t/T)
+    nu1_intermediate = nu1_func(T*(1-Tc))
+    nu1_func = nu1_intermediate*(nu1/nu1_intermediate)**(t/(T*Tc))
     #second epoch
     phi = Integration.two_pops(phi, xx, T*Tc, nu1_func, nu2, m12=m12, m21=m21)
 
