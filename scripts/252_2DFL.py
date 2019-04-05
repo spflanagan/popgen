@@ -39,7 +39,7 @@ os.chdir("FL2D")
 #										PLOT SPECTRA	 										  #
 #=================================================================================================#
 
-dadi.Plotting.plot_single_2d_sfs(fl,vmin=0.01)
+#dadi.Plotting.plot_single_2d_sfs(fl,vmin=0.01)
 
 
 #=================================================================================================#
@@ -55,8 +55,8 @@ folds = [3,2,2,1]
 fs_folded = True
 prefix = "fl"
 
-for i in range(1,6):
-	prefix = "V5_Number_{}".format(i)
+for i in range(1,2):
+	prefix = "V1_Number_{}".format(i)
 		
 	# Split into two populations, no migration.
 	Optimize_Routine(fl, pts, prefix, "no_mig", no_mig, rounds, 3, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds, param_labels = "nu1, nu2, T",in_upper=[15,5,10],in_lower=[1,1,0.01])
