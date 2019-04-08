@@ -166,17 +166,53 @@ At least some of the runs in all of these do not work well (result in "WARNING:N
 Now I need to see what the optimal parameters are for these 7 different runs so that I can run those models for additional iterations and/or compare model fits -- after which I will simulate data with `ms`.
 
 ```{r}
-fl.opts<-dadi.modelcomp(path = "dadi_analysis/FL2D",pattern=".*optimized.*",id="FL2D")
+fl.opts<-dadi.modelcomp(path = "dadi_analysis/FL2D",pattern="V1.*optimized.*",id="FL2D")
 kable(fl.opts,caption = "'Best' runs of each of the models for the Florida populations 2D demographic inference")
 ```
 
 This doesn't tell us about which models had trouble converging, though, so let's tally up the number of 'nan's in each file.
 
+```{r}
+fl.nans<-do.call(rbind,lapply(list.files(path = "dadi_analysis/FL2D",pattern="V1.*optimized.*",full.names = TRUE),dadi.nan))
+```
 
+How about the ones with warnings? (some of my models did not run, so I'm ignoring those for now. )
 
 ```{r}
-fl.nans<-do.call(rbind,lapply(list.files(path = "dadi_analysis/FL2D",pattern=".*optimized.*",full.names = TRUE),dadi.nan))
+fl.warnings<-dadi_warnings("dadi_analysis/252_2DFL_V1_1.log",mods=c("Model no_mig","Model sym_mig","Model asym_mig","Model IM"))
+fl.warnings$Warning<-TRUE
+fl.opts<-do.call(rbind,lapply(list.files(path = "dadi_analysis/FL2D",pattern="V1_Number_1.*[mM].*optimized.*",full.names = TRUE),parse_dadi_opt))
+fl.dat<-merge(fl.opts,fl.warnings,by=c("Model","Replicate"),all = TRUE)
+
 ```
+
+```{r}
+fl_dat<-extract_dadi_params(fl.dat)
+par(xpd=TRUE,mar=c(2,6,2,2),mfrow=c(length(fl_dat),2))
+pl<-lapply(fl_dat,function(dat){ 
+  require(scales)
+  require(sm)
+  params<-colnames(dat)[(which(colnames(dat)=="Warning")+1):ncol(dat)]
+  plot_params(dat[!is.na(dat$Warning),],params,pt.col = "coral")
+  legend("topleft",paste("N=",nrow(dat[!is.na(dat$Warning),])),bty='n')
+  plot_params(dat[is.na(dat$Warning),],params,pt.col = "grey")
+  legend("topleft",paste("N=",nrow(dat[is.na(dat$Warning),])),bty='n')
+})
+
+
+```
+
+The ones with warnings are pretty bad. What's the best model if I remove ones with warnings?
+
+```{r}
+fl.bests<-lapply(fl_dat,function(dat){ 
+  keep<-dat[is.na(dat$Warning),]
+  best<-keep[which.max(keep$log.likelihood),]
+})
+fl.bests[[which.min(unlist(lapply(fl.bests,function(x){ return(x$AIC) })))]]
+```
+
+I'll use the best parameter estimates to run the next round and see if that helps.
 
 Ok, but what about convergence? Are the replicates (Numbers 1-5) converging on likelihoods and parameter values?
 
@@ -220,6 +256,8 @@ l<-lapply(models,function(mod){
 ```
 
 
+
+
 ## Analyze 2D TX optimization results
 
 
@@ -250,9 +288,11 @@ tx.nans<-do.call(rbind,lapply(list.files(path = "dadi_analysis/TX2D",pattern="V2
 
 Still not useful, let's extract warning messages from the log file!
 ```{r}
-dadi_warnings<-function(logname){
+dadi_warnings<-function(logname, mods=NA){
   log_txt<-scan(logname,what = "character",sep = '\n')
+ # browser()
   models<-grep("Model",log_txt[grep("====",log_txt)+1],value = TRUE)
+  if(length(mods)>1 | !is.na(mods)){ models<-models[models %in% mods] }
   model_locs<-unique(unlist(lapply(models,grep,x=log_txt)))
   names(model_locs)<-unique(unlist(lapply(models,grep,x=log_txt,value=TRUE)))
   model_locs<-model_locs[order(model_locs)]
@@ -346,6 +386,20 @@ tx.bests<-lapply(tx_dat,function(dat){
 })
 tx.bests[[which.min(unlist(lapply(tx.bests,function(x){ return(x$AIC) })))]]
 ```
+
+Did a second round with better parameter inputs reduce the warnings?
+
+```{r}
+tx.warnings2<-dadi_warnings("dadi_analysis/251_2DTX_V2_2.log")
+tx.warnings2$Warning<-TRUE
+tx.opts<-do.call(rbind,lapply(list.files(path = "dadi_analysis/TX2D",pattern="V2.*optimized.*",full.names = TRUE),parse_dadi_opt))
+tx.dat<-merge(tx.opts,tx.warnings,by=c("Model","Replicate"),all = TRUE)
+
+```
+
+Nope! The first one had `r dim(tx.warnings[tx.warnings$Warning=="TRUE",])` and the second had `r dim(tx.warnings2[tx.warnings2$Warning=="TRUE",])` warnings. I think it might be time to try the other type of model. 
+
+
 
 Are the multiple rounds improving the model fit?
 
