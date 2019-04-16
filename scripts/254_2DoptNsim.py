@@ -14,8 +14,8 @@ import pylab
 from datetime import datetime
 
 #### SET THESE ####
-florida=False
-texas=True
+florida=True
+texas=False
 ###################
 
 #use dportik's functions
@@ -51,7 +51,7 @@ if florida is True:
 
 	#Provide best optimized parameter set for empirical data.
 	#These will come from previous analyses you have already completed (above)
-	emp_params = [1.01,11.6,0.1725,8.5,0.32]
+	emp_params = [0.1317,8.4225,0.7777,0.0561,0.1441]
 
 	#Indicate whether your frequency spectrum object is folded (True) or unfolded (False)
 	fs_folded = True
@@ -59,7 +59,7 @@ if florida is True:
 	#Fit the model using these parameters and return the folded model SFS (scaled by theta).
 	#Here, you will want to change the "sym_mig" and sym_mig arguments to match your model function,
 	#but everything else can stay as it is. See above for argument explanations.
-	scaled_fl = Optimize_Empirical(fl, pts, "Empirical", "growth_twoep_sym", growth_twoep_sym_mig, emp_params, fs_folded=fs_folded)
+	scaled_fl = Optimize_Empirical(fl, pts, "Empirical", "asym_mig", asym_mig, emp_params, fs_folded=fs_folded)
 
 
 	#=======================================PERFORM SIMULATIONS=======================================#
@@ -83,7 +83,7 @@ if florida is True:
 	folds = [3,2,1]
 
 	#Execute the optimization routine for each of the simulated SFS.
-	Perform_Sims(sims, scaled_fl, pts, "growth_twoep_sym", growth_twoep_sym_mig, rounds, p_num, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds, param_labels = "nu1, nu2,m, T,Tc",in_upper=[15,15,10,10,1],in_lower=[1,1,0,0,0])
+	Perform_Sims(sims, scaled_fl, pts, "asym_mig", asym_mig, rounds, p_num, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds, param_labels = "nu1, nu2, m12, m21, T",in_upper=[15,15,10,10,10],in_lower=[.1,.1,0.01,0.01,0.01])
 
 
 

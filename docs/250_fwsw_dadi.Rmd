@@ -156,12 +156,22 @@ tapply(fl.warnings3$Warning,fl.warnings3$Model,table)
 tapply(fl.warnings2$Warning,fl.warnings2$Model,table)
 tapply(fl.warnings$Warning,fl.warnings$Model,table)
 ```
+```{r}
+fl.warnings4<-dadi_warnings("dadi_analysis/252_2DFL_V1_4.log")
+fl.warnings4$Warning<-TRUE
+fl.opts4<-do.call(rbind,lapply(list.files(path = "dadi_analysis/FL2D",pattern="V1_Number_4.*optimized.*",full.names = TRUE),parse_dadi_opt))
+fl.dat4<-merge(fl.opts4,fl.warnings4,by=c("Model","Replicate"),all = TRUE)
+tapply(fl.warnings4$Warning,fl.warnings4$Model,table)
+tapply(fl.warnings3$Warning,fl.warnings3$Model,table)
+tapply(fl.warnings2$Warning,fl.warnings2$Model,table)
+tapply(fl.warnings$Warning,fl.warnings$Model,table)
+```
 
 
 Most of the warnings come from the IM model. 
 
 ```{r}
-fl_dat<-extract_dadi_params(rbind(fl.dat,fl.dat2,fl.dat3))
+fl_dat<-extract_dadi_params(rbind(fl.dat,fl.dat2,fl.dat3,fl.dat4))
 par(xpd=TRUE,mar=c(2,6,2,2),mfrow=c(length(fl_dat),2))
 pl<-lapply(fl_dat,function(dat){ 
   require(scales)
@@ -186,31 +196,9 @@ fl.bests<-lapply(fl_dat,function(dat){
 fl.bests[[which.min(unlist(lapply(fl.bests,function(x){ return(x$AIC) })))]]
 ```
 
-I'll use the best parameter estimates to run the next round and see if that helps.
+I used the best estimates to improve model fits each round.
 
-```{r}
-par(mfrow=c(3,3))
-lapply(fl_dat,function(all_reps){
-   par(xpd=TRUE,mar=c(2,6,2,2))
-  plot(0:(ncol(params)*2),xlim=c(0,2*(ncol(params))),ylim=c(min(all_reps$log.likelihood),max(all_reps[,colnames(params)])),bty="L",axes=FALSE,ann=FALSE,type='n')
-  gwsca.vioplot(all_reps$log.likelihood,col="grey",add=TRUE,xpd=TRUE,at=0)
-  points(jitter(rep(0,nrow(all_reps)),2.5),all_reps$log.likelihood,col=alpha(all_reps$rep,0.5),pch=19)
-  axis(2,las=1,pos=-0.5)
-  axis(1,lwd=0,label="log likelihood",at=0)
-  #mapply(function(param,counts) browser(),colnames(params),2:(ncol(params)+1))
-  p<-mapply(function(param,counts){
-    par(new=TRUE)
-    plot(0:(ncol(params)*2),xlim=c(0,2*(ncol(params))),ylim=c(min(all_reps[,param]),max(all_reps[,param])),bty="L",axes=FALSE,ann=FALSE,type='n')
-    gwsca.vioplot(all_reps[,param],col="grey",add=TRUE,xpd=TRUE,ylim=c(min(all_reps[,param]),max(all_reps[,param])),at=counts)
-    points(jitter(rep(counts,nrow(all_reps)),2.5),all_reps[,param],col=alpha(all_reps$rep,0.5),pch=19)
-    axis(2,las=1,pos=counts-0.75)
-    axis(1,lwd=0,label=param,at=counts)
-  },colnames(params),seq(2,(ncol(params)*2),by=2))
-  mtext(mod,3)
-})
-
-```
-
+Then I used teh best overall fit from 5 rounds to run simulations using dadi-pipeline-master.
 
 
 Ok, but what about convergence? Are the replicates (Numbers 1-5) converging on likelihoods and parameter values?
@@ -219,7 +207,7 @@ Ok, but what about convergence? Are the replicates (Numbers 1-5) converging on l
 ```{r}
 library(scales)
 library(sm)
-models<-unique(fl.opts$Model)
+models<-unlist(lapply(fl_dat,function(dat) unique(dat$Model)))
 par(mfrow=c(3,3))
 l<-lapply(models,function(mod){
   files<-list.files(path="dadi_analysis/FL2D",pattern = paste(".*\\.",mod,".optimized.*",sep=""),full.names = TRUE)
