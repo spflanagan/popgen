@@ -28,7 +28,7 @@ dd = dadi.Misc.make_data_dict ( "fwsw75.dadi.snps" )
 #pops = ['FLLG', 'FLCC', 'ALFW','ALST','LAFW','TXFW','TXCC']
 #projs = [70,      61,     72,     70,    72,    46,     61]
 
-tx = dadi.Spectrum.from_data_dict(dd , pop_ids =[ 'TXFW','TXCC' ],projections =[46,61] ,polarized = False )  #polarized = False creates folded spectrum
+tx = dadi.Spectrum.from_data_dict(dd , pop_ids =[ 'TXFW','TXCC' ],projections =[46,60] ,polarized = False )  #polarized = False creates folded spectrum
 
 os.chdir("TX2D")
 #=================================================================================================#
@@ -40,7 +40,7 @@ dadi.Plotting.plot_single_2d_sfs(tx,vmin=0.01)
 #=================================================================================================#
 #										LOOP TO OPTIMIZE 										  #
 #=================================================================================================#
-pts = [ 300,340 ]
+pts = [ 200,250,300,350 ]
 rounds=4
 #define the lists for optional arguments
 #you can change these to alter the settings of the optimization routine
@@ -50,7 +50,7 @@ folds = [3,2,2,1]
 fs_folded = True
 prefix = "tx"
 
-for i in range(2,3):
+for i in range(3,4):
 	prefix = "V1_Number_{}".format(i)
 	# Split into two populations, no migration.
 	Optimize_Routine_Extrap(tx, pts, prefix, "no_mig", no_mig, rounds, 3, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds, param_labels = "nu1, nu2, T",in_params=[1.01,9.73,0.25],in_upper=[20,20,10],in_lower=[1,1,0.01])

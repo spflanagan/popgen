@@ -340,10 +340,29 @@ tapply(tx.warnings1$Warning,tx.warnings1$Model,table)
 tapply(tx.warnings2$Warning,tx.warnings2$Model,table)
 tapply(tx.warnings$Warning,tx.warnings$Model,table)
 ```
+
+What about the final set?
+
+```{r}
+tx.warnings3<-dadi_warnings("dadi_analysis/251_2DTX_V1_2.log")
+tx.warnings3$Warning<-TRUE
+tx.opts3<-do.call(rbind,lapply(list.files(path = "dadi_analysis/TX2D",pattern="V1_Number_2.*optimized.*",full.names = TRUE),parse_dadi_opt))
+tx.dat3<-merge(tx.opts3,tx.warnings3,by=c("Model","Replicate"),all = TRUE)
+
+```
+
+
+```{r}
+tapply(tx.warnings1$Warning,tx.warnings1$Model,table)
+tapply(tx.warnings2$Warning,tx.warnings2$Model,table)
+tapply(tx.warnings$Warning,tx.warnings$Model,table)
+tapply(tx.warnings3$Warning,tx.warnings3$Model,table)
+```
+
 Unlike the Florida runs, no one model seems to be disproportionately receiving error messages. I should also note that the TX one takes longer to run. Perhaps some of the parameters are simply in a more challenging part of parameter space? To evaluate this, let's look at the best parameters so far
 
 ```{r}
-tx_dat<-extract_dadi_params(rbind(tx.dat,tx.dat2,tx.dat1))
+tx_dat<-extract_dadi_params(rbind(tx.dat,tx.dat2,tx.dat1,tx.dat3))
 par(xpd=TRUE,mar=c(2,6,2,2),mfrow=c(length(tx_dat),2))
 pl<-lapply(tx_dat,function(dat){ 
   require(scales)
@@ -384,6 +403,7 @@ l<-lapply(tx_dat, function(dat){
 ```
 
 Yes they are!
+
 
 
 Ok, but what about convergence? Are the replicates (Numbers 1-5) converging on likelihoods and parameter values?
