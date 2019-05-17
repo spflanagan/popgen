@@ -351,12 +351,34 @@ tx.dat3<-merge(tx.opts3,tx.warnings3,by=c("Model","Replicate"),all = TRUE)
 
 ```
 
+```{r}
+tx.warnings4<-dadi_warnings("dadi_analysis/251_2DTX_V1_3.log")
+tx.warnings4$Warning<-TRUE
+tx.opts4<-do.call(rbind,lapply(list.files(path = "dadi_analysis/TX2D",pattern="V1_Number_3.*optimized.*",full.names = TRUE),parse_dadi_opt))
+tx.dat4<-merge(tx.opts4,tx.warnings4,by=c("Model","Replicate"),all = TRUE)
+```
+Let's look at it over replicates etc.
+```{r}
+tx.warnings4$Round<-as.numeric(gsub("Round_(\\d+)_Replicate_(\\d+)","\\1",tx.warnings4$Replicate))
+tx.warnings4$Replicate<-as.numeric(gsub("Round_(\\d+)_Replicate_(\\d+)","\\2",tx.warnings4$Replicate))
+
+cols<-c('#7fc97f','#beaed4','#fdc086','#ffff99','#386cb0','#f0027f','#bf5b17','#666666')
+par(mfrow=c(2,4))
+for(i in 1:length(unique(tx.warnings4$Model))){
+  plot(tx.warnings4$Replicate[tx.warnings4$Model%in%unique(tx.warnings4$Model)[i]],
+       tx.warnings4$Round[tx.warnings4$Model%in%unique(tx.warnings4$Model)[i]],
+       col=cols[unique(tx.warnings4$Model)[i]],pch=19,xlab="Replicate",ylab="Round",main = unique(tx.warnings4$Model)[i],bty="L")
+}
+
+```
+
 
 ```{r}
 tapply(tx.warnings1$Warning,tx.warnings1$Model,table)
 tapply(tx.warnings2$Warning,tx.warnings2$Model,table)
 tapply(tx.warnings$Warning,tx.warnings$Model,table)
 tapply(tx.warnings3$Warning,tx.warnings3$Model,table)
+tapply(tx.warnings4$Warning,tx.warnings4$Model,table)
 ```
 
 Unlike the Florida runs, no one model seems to be disproportionately receiving error messages. I should also note that the TX one takes longer to run. Perhaps some of the parameters are simply in a more challenging part of parameter space? To evaluate this, let's look at the best parameters so far
