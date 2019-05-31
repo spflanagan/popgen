@@ -17,6 +17,19 @@ from datetime import datetime
 florida=True
 texas=False
 ###################
+fl_dir="FL2D"
+tx_dir="TX2D"
+if (len(sys.argv) == 2 and florida is True):
+	fl_dir=sys.argv[1]
+if (len(sys.argv) == 2 and texas is True):
+	fl_dir=sys.argv[1]
+if (len(sys.argv) == 3):
+	fl_dir=sys.argv[1]
+	tx_dir=sys.argv[2]
+
+print(fl_dir)
+print(tx_dir)
+
 
 #use dportik's functions
 #get the optimize functions
@@ -40,7 +53,7 @@ dd = dadi.Misc.make_data_dict ( "fwsw75.dadi.snps" )
 if florida is True:
 	fl = dadi.Spectrum.from_data_dict(dd , pop_ids =[ 'FLLG','FLCC' ],projections =[70,61] ,polarized = False )  #polarized = False creates folded spectrum
 
-	os.chdir("FL2D")
+	os.chdir(fl_dir)
 
 
 
@@ -68,7 +81,7 @@ if florida is True:
 	fs_folded = True
 
 	#Set the number of simulations to perform here. This should be ~100 or more.
-	sims = 100
+	sims = 20
 
 	#Enter the number of parameters found in the model to test.
 	p_num = 5
