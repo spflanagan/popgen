@@ -2,8 +2,8 @@
 
 #Change the path to your output files, which will have names specific to the model you labeled
 #These are for the example output files provided:
-sim_data <- read.delim("/Goodness_of_Fit/Empirical/Simulation_Results.txt", header = TRUE, sep = "\t")
-emp_data <- read.delim("/Goodness_of_Fit/Empirical/Empirical.sym_mig.optimized.txt", header = TRUE, sep = "\t")
+sim_data <- read.delim("/Goodness_of_Fit/Example_Data/Example_Outputs/Simulation_Results.txt", header = TRUE, sep = "\t")
+emp_data <- read.delim("/home/sarah/Research/popgen/programs/dadi_pipeline-master/Goodness_of_Fit/Example_Data/Example_Outputs/Empirical.sym_mig.optimized.txt", header = TRUE, sep = "\t")
 
 #check headers
 ls(sim_data)
@@ -34,13 +34,13 @@ emp_data$chi.squared
 
 #likelihood plot
 #change the bin settings below
-ll_seq<- seq(-100,-20,2)
+ll_seq<- seq(-1000,-200,20)
 hist(sim_data$log.likelihood, breaks=ll_seq, main = "Simulation Results - Log-likelihood distribution", xlab="log-likelihood", col="grey")
 abline(v=emp_data$log.likelihood, lwd = 3, col='blue')
 
 #chi-squared plot
 #change the bin settings below
-chi_seq<- seq(0,100,5)
+chi_seq<- seq(200,2000,50)
 hist(sim_data$chi.squared, breaks=chi_seq, main = "Simulation Results - Chi-squared distribution ", xlab="Chi-squared test statistic", col="grey")
 abline(v=emp_data$chi.squared, lwd = 3, col='blue')
 

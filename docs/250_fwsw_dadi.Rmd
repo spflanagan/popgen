@@ -243,8 +243,58 @@ l<-lapply(models,function(mod){
 })
 ```
 
+### Analyze Florida simulations
+
+```{r}
+sim_dirs<-grep("sims",list.dirs(path="dadi_analysis/FL2D",full.names = TRUE),value = TRUE)
+sims<-do.call(rbind,lapply(sim_dirs,function(x) {
+  dat<-read.delim(paste0(x,"/Simulation_Results.txt"),header=TRUE)
+  dat$sim<-x
+  return(dat)
+}))
+emps<-do.call(rbind,lapply(sim_dirs,function(x) {
+  dat<-read.delim(paste0(x,"/Empirical.asym_mig.optimized.txt"),header=TRUE)
+  dat$sim<-x
+  return(dat)
+}))
+
+summary(sims$log.likelihood)
+summary(sims$chi.squared)
+```
+
+Use distributions of log-likelihood and $\chi^2$ values from simulated datasets to evaluate whether the empircally-estimated values are contained within these distributions (following https://onlinelibrary.wiley.com/doi/full/10.1111/mec.14862). 
+
+```{r}
+### FROM dadi_pipeline's Plot_GOF.R
+#####################################
+#likelihood plot
+ll_seq<- seq(-1500,-900,20)
+hist(sims$log.likelihood, breaks=ll_seq, main = "Simulation Results - Log-likelihood distribution", xlab="log-likelihood", col="grey")
+abline(v=emps$log.likelihood, lwd = 3, col='blue')
+
+#chi-squared plot
+chi_seq<- seq(1500,5000,50)
+hist(sims$chi.squared, breaks=chi_seq, main = "Simulation Results - Chi-squared distribution ", xlab="Chi-squared test statistic", col="grey")
+abline(v=emps$chi.squared, lwd = 3, col='blue')
+
+#####################################
+#For log-transformed chi.squared
+
+#transform chi-squared test stat
+log_chi <- log(sims$chi.squared)
+emp_log_chi <- log(emps$chi.squared)
+summary(log_chi)
 
 
+#log transformed chi-squared plot
+lchi_seq<- seq(7,9,0.05)
+hist(log_chi, breaks=lchi_seq, main = "Simulation Results - Log Chi-squared distribution ", xlab="log Chi-squared test statistic", col="grey")
+abline(v=emp_log_chi, lwd = 3, col='blue')
+
+
+```
+
+But I would like to possibly model varying rates across the genome, and at the very least use the simulations to help ID outliers. 
 
 ## Analyze 2D TX optimization results
 

@@ -46,17 +46,17 @@ folds = [3,2,2,1]
 fs_folded = True
 prefix = "al"
 
-for i in range(1,2):
+for i in range(2,3):
 	prefix = "V1_Number_{}".format(i)
 	# Model with split between pop 1 and (2,3), gene flow does not occur. Period of symmetric secondary contact occurs between adjacent populations (ie 1<->2, 2<->3, but not 1<->3) after all splits are complete. 
-	Optimize_Routine(al, pts, prefix, "refugia_adj_1", refugia_adj_1, rounds, 9, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds, param_labels = "nu1, nuA, nu2, nu3, m1, m2, T1, T2, T3",in_upper=[10,10,10,10,5,5,5,5,5],in_lower=[0.5,0.5,0.5,0.5,0.01,0.01,0.01,0.01,0.01])
+	Optimize_Routine(al, pts, prefix, "refugia_adj_1", refugia_adj_1, rounds, 9, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds, param_labels = "nu1, nuA, nu2, nu3, m1, m2, T1, T2, T3",in_upper=[10,10,10,10,5,5,5,5,5],in_lower=[0.1,0.1,0.5,0.1,0.01,0.01,0.01,0.01,0.01])
 
 	# Model with split between pop 1 and (2,3), then split between 2 and 3. Symmetric migration
-	Optimize_Routine(al, pts, prefix, "split_symmig_all", split_symmig_all, rounds, 10, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds, param_labels = "nu1, nuA, nu2, nu3, mA, m1, m2, m3, T1, T2",in_upper=[10,10,10,10,5,5,5,5,5,5],in_lower=[0.5,0.5,0.5,0.5,0.01,0.01,0.01,0.01,0.01,0.01])
+	Optimize_Routine(al, pts, prefix, "split_symmig_all", split_symmig_all, rounds, 10, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds, param_labels = "nu1, nuA, nu2, nu3, mA, m1, m2, m3, T1, T2",in_upper=[10,10,10,10,5,5,5,5,5,5],in_lower=[0.1,0.1,0.1,0.1,0.01,0.01,0.01,0.01,0.01,0.01])
 
 	# Model with split between pop 1 and (2,3), then split between 2 and 3
-	Optimize_Routine(al, pts, prefix, "split_symmig_adjacent", refugia_adj_1, rounds, 9, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds, param_labels = "nu1, nuA, nu2, nu3, mA, m1, m2, T1, T2",in_upper=[10,10,10,10,5,5,5,5,5],in_lower=[0.5,0.5,0.5,0.5,0.01,0.01,0.01,0.01,0.01])
+	Optimize_Routine(al, pts, prefix, "split_symmig_adjacent", refugia_adj_1, rounds, 9, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds, param_labels = "nu1, nuA, nu2, nu3, mA, m1, m2, T1, T2",in_upper=[10,10,10,10,5,5,5,5,5],in_lower=[0.1,0.1,0.1,0.1,0.01,0.01,0.01,0.01,0.01])
 
 	# Model with split between pop 1 and (2,3), with gene flow, which then stops. Split between pops 2 and 3, gene flow does not occur at all.
-	Optimize_Routine(al, pts, prefix, "ancmig_adj_3", ancmig_adj_3, rounds, 10, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds, param_labels = "nu1, nuA, nu2, nu3, mA,m1, m2,  T1a, T1b, T2",in_upper=[10,10,10,10,5,5,5,5,5,5],in_lower=[0.5,0.5,0.5,0.5,0.01,0.01,0.01,0.01,0.01,0.01])
+	Optimize_Routine(al, pts, prefix, "ancmig_adj_3", ancmig_adj_3, rounds, 10, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds, param_labels = "nu1, nuA, nu2, nu3, mA,m1, m2,  T1a, T1b, T2",in_upper=[10,10,10,10,5,5,5,5,5,5],in_lower=[0.1,0.1,0.1,0.1,0.01,0.01,0.01,0.01,0.01,0.01])
 

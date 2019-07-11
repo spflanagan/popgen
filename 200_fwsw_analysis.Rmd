@@ -1,0 +1,19 @@
+---
+title: "FWSW lab Notebook"
+output: html_notebook
+---
+
+# 11 July 2019
+
+I'm not sure if this is the best way to go about doing this lab notebook thing, but I'm gonna give it a go. Today I'm trying to figure out how to analyze the $\delta_A\delta_I$ simulation results for the Florida populations. 
+
+Portik used the simulated data to simply evaluate whether the empirical log-likelihoods and $\chi^2$ values are in the simulated distributions -- which I've done using the dadi-pipeline GOF R functions.
+
+**How to implement heterogeneous migration, like in Tine et al. 2014 and Rougeux et al. 2017? $\delta_A\delta_I$??**
+* The $\delta_A\delta_I$ user group has this response from Gutenkunst: "In your function, run through two sfs calculations, to create sfs1 and sfs2, then return `p*sfs1 + (1-p)*sfs2`."
+
+**How to use simulations to analyze outlier data?**
+
+**Updates on other $\delta_A\delta_I$ analyses:**
+* Alabama & Louisiana analysis stopped after ~2.4 rounds of the first model results (possibly it's just slow, otherwise it could be an issue with the computer stalling)
+* TX has lots of warnings - I want to delve into what's causing those by looking at the model output for the warning rounds.
