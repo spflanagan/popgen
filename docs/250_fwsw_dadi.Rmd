@@ -520,3 +520,72 @@ l<-lapply(models,function(mod){
 ```
 
 
+## Troubleshooting warnings
+
+```{r}
+all_warnings<-lapply(list.files(pattern="251",path = "dadi_analysis",full.names = TRUE),dadi_warnings)
+names(all_warnings)<-list.files(pattern="251",path = "dadi_analysis",full.names = FALSE)
+
+#for now, focus on V1s
+all_warnings<-all_warnings[c("251_2DTX_V1_1.log","251_2DTX_V1_2.log","251_2DTX_V1_3.log")] 
+all_warnings<-lapply(all_warnings,function(dat) { 
+  dat$Warning<-TRUE
+  return(dat)
+})
+```
+
+Now let's get the parameters
+```{r}
+opt_files<-list.files(path = "dadi_analysis/TX2D",pattern="V.*optimized.*",full.names = TRUE)
+opt_files<-opt_files[grep("V1",opt_files)] #focus on V1s
+tx_opts<-do.call(rbind,lapply(opt_files,function(file){
+  dat<-parse_dadi_opt(file)
+  dat$file<-file
+  return(dat)
+}))
+```
+
+```{r}
+opt_warns<-do.call(rbind,mapply(function(warnings,name,opts){
+  key<-gsub("251_2DTX_(V\\d)_(\\d).log","\\1_Number_\\2",name)
+  dat<-merge(opts[grep(key,opts$file),],warnings,by=c("Model","Replicate"),all = TRUE)
+  dat$Warning[is.na(dat$Warning)]<-FALSE
+  return(dat)
+},all_warnings,names(all_warnings),MoreArgs = list(opts=tx_opts),SIMPLIFY = FALSE))
+```
+
+Now let's go model by model and identify parameter distributions that cause warnings and ones that don't.
+
+```{r}
+library(scales)
+library(sm)
+par(mfrow=c(length(unique(opt_warns$Model)),2),mar=c(2,2,2,2))
+model_params<-by(opt_warns,INDICES=factor(opt_warns$Model),function(x){
+  warn_params<-data.frame(extract_dadi_params(x[x$Warning=="TRUE",]))
+  ok_params<-data.frame(extract_dadi_params(x[x$Warning=="FALSE",]))
+  warn_params[c("log.likelihood","AIC","chi.squared","theta")]<-apply(warn_params[c("log.likelihood","AIC","chi.squared","theta")],2,as.numeric)
+  ok_params[c("log.likelihood","AIC","chi.squared","theta")]<-apply(ok_params[c("log.likelihood","AIC","chi.squared","theta")],2,as.numeric)
+  params<-colnames(warn_params)[(which(colnames(x)=="Warning")+1):ncol(warn_params)]
+  plot_params(warn_params,params,pt.col = "coral")
+  legend("topleft",paste("N=",nrow(warn_params)),bty='n')
+  plot_params(ok_params,params,pt.col = "grey")
+  legend("topleft",paste("N=",nrow(ok_params)),bty='n')
+  return(rbind(warn_params,ok_params))
+})
+```
+
+```{r}
+diffs<-lapply(model_params,function(dat){
+  params<-colnames(dat)[(which(colnames(dat)=="Warning")+1):ncol(dat)]
+  tests<-lapply(params,function(param,dat){
+    res<-wilcox.test(dat[dat$Warning=="TRUE",param],dat[dat$Warning=="FALSE",param])  
+    if(res$p.value<0.05) print(paste(param,"is different in",dat$Model[1]))
+    return(res)
+  },dat=dat)
+  names(tests)<-params
+  return(tests)
+})
+
+```
+
+OK, how can I deal with this? 

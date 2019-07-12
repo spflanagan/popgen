@@ -3,6 +3,40 @@ title: "FWSW lab Notebook"
 output: html_notebook
 ---
 
+# 12 July 2019
+
+So yesterday I did not get super far with the simulations, but today I'm going to focus first on the Texas population and dive into what parameter combinations are causing warnings. Meanwhile the 3D runs are going VERY slowly in the background.
+
+I used existing functions (form previous analyses of FL2D runs) to visualize the parameters for each model in runs with warnings and ones without warnings. However, there are no obvious patterns arising. A bunch of them are different according to a wilcoxon rank test:
+[1] "m21 is different in anc_asym_mig_size"
+[1] "nu1b is different in anc_asym_mig_size"
+[1] "nu2b is different in anc_asym_mig_size"
+[1] "T1 is different in anc_asym_mig_size"
+[1] "T2 is different in anc_asym_mig_size"
+[1] "m is different in anc_sym_mig_size"
+[1] "nu1b is different in anc_sym_mig_size"
+[1] "nu2a is different in anc_sym_mig_size"
+[1] "T2 is different in anc_sym_mig_size"
+[1] "m12 is different in asym_mig"
+[1] "m21 is different in asym_mig"
+[1] "nu1 is different in asym_mig"
+[1] "m21 is different in asym_mig_size"
+[1] "nu1b is different in asym_mig_size"
+[1] "nu2a is different in asym_mig_size"
+[1] "T1 is different in asym_mig_size"
+[1] "nu2a is different in no_mig_size"
+[1] "T1 is different in no_mig_size"
+[1] "m is different in sym_mig"
+[1] "nu2 is different in sym_mig"
+[1] "m is different in sym_mig_size"
+[1] "nu1a is different in sym_mig_size"
+[1] "nu2a is different in sym_mig_size"
+[1] "nu2b is different in sym_mig_size"
+
+but it's unclear to me how these issues can be fixed. All of these parameters seem to be ones that tend to be near the minimum or maximum values in parameter space.
+
+I could try using other models -- that's what Gutenkunst suggests in one post: https://groups.google.com/forum/#!searchin/dadi-user/warning$20numerics$20extrapolation%7Csort:date/dadi-user/esRqfOQ7Amc/LfxsS0eog0IJ
+
 # 11 July 2019
 
 I'm not sure if this is the best way to go about doing this lab notebook thing, but I'm gonna give it a go. Today I'm trying to figure out how to analyze the $\delta_A\delta_I$ simulation results for the Florida populations. 
