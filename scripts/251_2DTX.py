@@ -3,7 +3,7 @@ Running 2D model for TX pops
 Run this from outside the dadi directory
 '''
 
-#start with ipython -pylab from ~/Research/popgen/fwsw_results/dadi_analysis/TX2D
+#start with ipython -pylab from ~/Research/popgen/fwsw_results/dadi_analysis/
 
 # Numpy is the numerical library dadi is built upon
 import sys
@@ -40,7 +40,7 @@ dadi.Plotting.plot_single_2d_sfs(tx,vmin=0.01)
 #=================================================================================================#
 #										LOOP TO OPTIMIZE 										  #
 #=================================================================================================#
-pts = [ 200,250,300,350 ]
+pts = [ 200,250,300 ]
 rounds=4
 #define the lists for optional arguments
 #you can change these to alter the settings of the optimization routine

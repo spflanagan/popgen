@@ -1,7 +1,198 @@
 ---
 title: "FWSW lab Notebook"
 output: html_notebook
+editor_options: 
+  chunk_output_type: console
 ---
+
+# 18 July 2019
+
+I received a response back from Gutenkunst:
+
+```
+Hello Sarah,
+
+Sorry to hear you’re running into this. The one standout from your script is that your passing in a list of 4 grid points for extrapolation, rather than the typical 3. So you’re doing a cubic rather than a quadratic extrapolation. It’s possible that that is less well-behaved. It certainly hasn’t been tested.
+
+If you want to dig deeper, take one of the problematic parameter sets, evaluate the sfs for each individual grid point setting, and compare them with each other and with the eventual extrapolation. (For example, if you’re using pts=[20,30,40], you’d calculate with pts=[20], pts=[30], pts=[40] to get three spectra, then compare among them.) That will at least give you a more specific idea of where in the spectrum the problem is and what’s actually happening.
+
+Best,
+Ryan
+```
+
+So, now I have to figure out how to implement this. Some action items:
+
+1. Obviously, I'll remove the extra pts setting -- though that shouldn't be an issue, since I added it hoping it would fix the warnings problem. [I did this, removed the 350]
+2. Extract a problematic parameter set
+3. Run dadi on each individual grid point setting for those parameters and compare the spectra. This step should probably be run in the interactive python environment?
+
+From the 250_fwsw_dadi.Rmd: 
+
+```{r dadiSetup}
+knitr::opts_chunk$set(echo = TRUE,out.extra='',fig.pos="H")
+knitr::opts_knit$set(root.dir='./fwsw_results/')
+source("../../gwscaR/R/gwscaR.R")
+source("../../gwscaR/R/gwscaR_plot.R")
+source("../../gwscaR/R/gwscaR_utility.R")
+source("../../gwscaR/R/gwscaR_fsts.R")
+source("../../gwscaR/R/gwscaR_popgen.R")
+source("../../gwscaR/R/vcf2dadi.R")
+source("../R/250_dadi_analysis.R")
+library(knitr)
+pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
+```
+```{r getWarnings}
+all_warnings<-lapply(list.files(pattern="251",path = "dadi_analysis",full.names = TRUE),dadi_warnings)
+names(all_warnings)<-list.files(pattern="251",path = "dadi_analysis",full.names = FALSE)
+
+#for now, focus on V1s
+all_warnings<-all_warnings[c("251_2DTX_V1_1.log","251_2DTX_V1_2.log","251_2DTX_V1_3.log")] 
+all_warnings<-lapply(all_warnings,function(dat) { 
+  dat$Warning<-TRUE
+  return(dat)
+})
+```
+
+Now let's get the parameters
+```{r getParams}
+opt_files<-list.files(path = "dadi_analysis/TX2D",pattern="V.*optimized.*",full.names = TRUE)
+opt_files<-opt_files[grep("V1",opt_files)] #focus on V1s
+tx_opts<-do.call(rbind,lapply(opt_files,function(file){
+  dat<-parse_dadi_opt(file)
+  dat$file<-file
+  return(dat)
+}))
+```
+
+```{r MatchWarnings2params}
+opt_warns<-do.call(rbind,mapply(function(warnings,name,opts){
+  key<-gsub("251_2DTX_(V\\d)_(\\d).log","\\1_Number_\\2",name)
+  dat<-merge(opts[grep(key,opts$file),],warnings,by=c("Model","Replicate"),all = TRUE)
+  dat$Warning[is.na(dat$Warning)]<-FALSE
+  return(dat)
+},all_warnings,names(all_warnings),MoreArgs = list(opts=tx_opts),SIMPLIFY = FALSE))
+```
+
+Ok, so now I've got all the parameter combinations, let's choose a random set taht didn't work.
+
+```{r chooseRandWarn}
+opt_warns[sample(which(opt_warns$Warning==TRUE),size = 1),]
+```
+
+Ok, so looking at the manual, to run this chosen set of parameters:
+                         Model            Replicate log.likelihood     AIC  chi.squared  theta                  optimized_params             params
+251_2DTX_V1_2.log.243 asym_mig Round_3_Replicate_20       -1180.06 2370.12 -15550366.57 113.78 1.01,15.4299,0.9824,1.1719,3.6611 nu1,nu2,m12,m21,T.
+                                                                       file Warning
+251_2DTX_V1_2.log.243 dadi_analysis/TX2D/V1_Number_2.asym_mig.optimized.txt    TRUE
+
+I need to specify the model like this:
+
+```{python}
+asym_mig([1.01,15.4299,0.9824,1.1719,3.6611], ns=[46,60] , pts=[200]) #ns are sample sizes
+```
+
+
+# 15 July 2019
+
+I decided to post on the dadi forum regarding my 2D TX populations. Here is what I wrote:
+
+```
+Hi dadi community,
+
+I'm trying to compare the fit of several models for an analysis between two populations and I'm consistently getting warnings that say
+WARNING:Numerics:Extrapolation may have failed. Check resulting frequency spectrum for unexpected results.
+WARNING:Inference:Model is masked in some entries where data is not.
+These warnings do not go away as the model runs; they are just as likely in early runs as in later runs. Following answers to similar questions on this user group, I've tried increasing the number of points, narrowing the parameter bounds so that the model doesn't wander into difficult-to-escape parameter spaces, and using the make_extrap_func() instead of make_extrap_log_func(). However, I'm still getting these warnings pretty consistently, and not for any particular region of parameter space. I've attached a violin plot of the parameters for runs that produce warnings (left, red) and ones that don't produce warnings (right, grey) -- apologies for not making it a super pretty graph, but it conveys the idea that the parameter distributions are generally similar for the ones with warnings and the ones without. I'm getting these errors for both simple models (no migration) and complex models (ancient asymmetrical migration with population size changes). I chose the models after running 1D models for both populations, with the best fit for one population (TXCC) being growth or bottlegrowth and the best fit for the other population (TXFW) being either two_epoch or growth. The 2D frequency spectrum is attached as well.
+
+I'm using a modified version of Daniel Portik's dadi_pipeline (https://github.com/dportik/dadi_pipeline) using the attached script. The in_params settings are ones taken from previous runs that did not produce warnings, but I get warnings whether I include those or not.
+
+Can anyone help me understand why I'm getting these warnings and how to run the models successfully?
+
+Thank you in advance!
+```
+
+I attached this script:
+```{python, eval=FALSE}
+'''
+Running 2D model for TX pops
+Run this from outside the dadi directory
+'''
+
+#start with ipython -pylab from ~/Research/popgen/fwsw_results/dadi_analysis/TX2D
+
+# Numpy is the numerical library dadi is built upon
+import sys
+import os
+import numpy
+import dadi
+import pylab
+from datetime import datetime
+
+#use dportik's functions
+#get the optimize functions
+execfile("../../programs/dadi_pipeline-master/Two_Population_Pipeline/Optimize_Functions.py")
+execfile( "../../programs/dadi_pipeline-master/Two_Population_Pipeline/Models_2D.py")
+execfile("../../scripts/250_custom_dadi_models.py")
+
+
+# Load the data
+dd = dadi.Misc.make_data_dict ( "fwsw75.dadi.snps" )
+#projections is sample size of alleles
+#need to use MINIMUM projections
+
+#pops = ['FLLG', 'FLCC', 'ALFW','ALST','LAFW','TXFW','TXCC']
+#projs = [70,      61,     72,     70,    72,    46,     61]
+
+tx = dadi.Spectrum.from_data_dict(dd , pop_ids =[ 'TXFW','TXCC' ],projections =[46,60] ,polarized = False )  #polarized = False creates folded spectrum
+
+os.chdir("TX2D")
+#=================================================================================================#
+#										PLOT SPECTRA	 										  #
+#=================================================================================================#
+dadi.Plotting.plot_single_2d_sfs(tx,vmin=0.01)
+
+
+#=================================================================================================#
+#										LOOP TO OPTIMIZE 										  #
+#=================================================================================================#
+pts = [ 200,250,300,350 ]
+rounds=4
+#define the lists for optional arguments
+#you can change these to alter the settings of the optimization routine
+reps = [10,20,30,40]
+maxiters = [3,5,10,20]
+folds = [3,2,2,1]
+fs_folded = True
+prefix = "tx"
+
+for i in range(3,4):
+	prefix = "V1_Number_{}".format(i)
+	# Split into two populations, no migration.
+	Optimize_Routine_Extrap(tx, pts, prefix, "no_mig", no_mig, rounds, 3, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds, param_labels = "nu1, nu2, T",in_params=[1.01,9.73,0.25],in_upper=[20,20,10],in_lower=[1,1,0.01])
+
+	# Split into two populations, with continuous symmetric migration.
+	Optimize_Routine_Extrap(tx, pts, prefix, "sym_mig", sym_mig, rounds, 4, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds, param_labels = "nu1, nu2, m, T",in_params=[1.01,9.77,0.60,1.09],in_upper=[20,20,10,10],in_lower=[1,1,0.01,0.01])
+
+	# Split into two populations, with continuous asymmetric migration.
+	Optimize_Routine_Extrap(tx, pts, prefix, "asym_mig", asym_mig, rounds, 5, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds, param_labels = "nu1, nu2, m12, m21, T",in_params=[1.01,10.98,0.68,0.48,1.32],in_upper=[20,20,10,10,10],in_lower=[1,1,0.01,0.01,0.01])
+
+	# Split with no migration, then instantaneous size change with no migration.
+	Optimize_Routine_Extrap(tx, pts, prefix, "no_mig_size", no_mig_size, rounds, 6, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds, param_labels = "nu1a, nu2a, nu1b, nu2b, T1, T2",in_params=[6.88,14.20,1.01,9.69,0.02,0.24],in_upper=[20,20,20,20,10,10],in_lower=[1,1,1,1,0.01,0.01])
+
+	# Split with symmetric migration, then instantaneous size change with continuous symmetric migration.
+	Optimize_Routine_Extrap(tx, pts, prefix, "sym_mig_size", sym_mig_size, rounds, 7, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds, param_labels = "nu1a, nu2a, nu1b, nu2b, m, T1, T2",in_params=[14.75,2.53,1.01,14.93,0.50,0.98,0.60],in_upper=[20,20,20,20,10,10,10],in_lower=[1,1,1,1,0.01,0.01,0.01])
+
+	# Split with different migration rates, then instantaneous size change with continuous asymmetric migration.
+	Optimize_Routine_Extrap(tx, pts, prefix, "asym_mig_size", asym_mig_size, rounds, 8, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds, param_labels = "nu1a, nu2a, nu1b, nu2b, m12, m21, T1, T2",in_params=[1.01,9,1.01,9.92,0.63,0.51,0.16,1.15],in_upper=[20,20,20,20,10,10,10,10],in_lower=[1,1,1,1,0.01,0.01,0.01,0.01])
+
+	# Split with continuous symmetrical gene flow, followed by instantaneous size change with no migration.
+	Optimize_Routine_Extrap(tx, pts, prefix, "anc_sym_mig_size", anc_sym_mig_size, rounds, 7, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds, param_labels = "nu1a, nu2a, nu1b, nu2b, m, T1, T2",in_params=[1.88,10.50,1.01,15,6.95,1.77,0.24],in_upper=[20,20,20,20,10,10,10],in_lower=[1,1,1,1,0.01,0.01,0.01])
+
+	# Split with continuous asymmetrical gene flow, followed by instantaneous size change with no migration.
+	Optimize_Routine_Extrap(tx, pts, prefix, "anc_asym_mig_size", anc_asym_mig_size, rounds, 8, fs_folded=fs_folded, reps=reps, maxiters=maxiters, folds=folds, param_labels = "nu1a, nu2a, nu1b, nu2b, m12, m21, T1, T2",in_params=[1.34,7.49,1.01,15,9.76,7.66,1.34,0.25],in_upper=[20,20,20,20,10,10,10,10],in_lower=[1,1,1,1,0.01,0.01,0.01,0.01])
+
+
+```
 
 # 12 July 2019
 
