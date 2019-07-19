@@ -1,9 +1,176 @@
 ---
 title: "FWSW lab Notebook"
+author: "Sarah P. Flanagan"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: html_notebook
 editor_options: 
   chunk_output_type: console
 ---
+
+```{r setup}
+knitr::opts_knit$set(root.dir='../results/', fig.pos='H')
+```
+
+# 19 July 2019
+
+Ok, returning to how to actually run this stuff. I want to run something like:
+
+```{python asym_mig_goal}
+asym_mig(params=[1.01,15.4299,0.9824,1.1719,3.6611], ns=[46,60] , pts=[200]) #ns are sample sizes
+```
+
+but this throws an error, "TypeError: int() argument must be a string or a number, not 'list'"
+
+I'm not sure where this is going wrong, but it seems to be in the creation of the pts. Maybe I should run asym_mig step by step? This is asym_mig:
+
+```{python asym_migfxn}
+def asym_mig(params, ns, pts):
+    """
+    Split into two populations, with different migration rates.
+
+    nu1: Size of population 1 after split.
+    nu2: Size of population 2 after split.
+    T: Time in the past of split (in units of 2*Na generations) 
+    m12: Migration from pop 2 to pop 1 (2*Na*m12)
+    m21: Migration from pop 1 to pop 2
+	"""
+    nu1, nu2, m12, m21, T = params
+    xx = Numerics.default_grid(pts)
+    
+    phi = PhiManip.phi_1D(xx)
+    phi = PhiManip.phi_1D_to_2D(xx, phi)
+    
+    phi = Integration.two_pops(phi, xx, T, nu1, nu2, m12=m12, m21=m21)
+    fs = Spectrum.from_phi(phi, ns, (xx,xx))
+    
+    return fs    
+```
+
+```{python python_setup}
+import os
+import numpy
+import dadi
+import pylab
+from datetime import datetime
+
+#use dportik's functions
+#get the optimize functions
+execfile("../../programs/dadi_pipeline-master/Two_Population_Pipeline/Optimize_Functions.py")
+execfile( "../../programs/dadi_pipeline-master/Two_Population_Pipeline/Models_2D.py")
+execfile("../../scripts/250_custom_dadi_models.py")
+
+
+# Load the data
+dd = dadi.Misc.make_data_dict ( "fwsw75.dadi.snps" )
+#projections is sample size of alleles
+#need to use MINIMUM projections
+
+#pops = ['FLLG', 'FLCC', 'ALFW','ALST','LAFW','TXFW','TXCC']
+#projs = [70,      61,     72,     70,    72,    46,     61]
+
+tx = dadi.Spectrum.from_data_dict(dd , pop_ids =[ 'TXFW','TXCC' ],projections =[46,60] ,polarized = False )  #polarized = False creates folded spectrum
+
+```
+
+So I'll try, step by step in ipython (after loading python_setup):
+
+
+```{python asym_migfxn}
+nu1 = 1.01
+nu2 = 15.4299
+m12 = 0.9824
+m21 = 1.1719
+T = 3.6611
+ns = [46,60]
+
+# First set of points
+pts = 200
+xx = Numerics.default_grid(pts)
+phi = PhiManip.phi_1D(xx)
+phi = PhiManip.phi_1D_to_2D(xx, phi)
+phi = Integration.two_pops(phi, xx, T, nu1, nu2, m12=m12, m21=m21)
+fs200 = Spectrum.from_phi(phi, ns, (xx,xx))
+    
+```
+
+Incredibly, this seemed to work, so now I'll run the other points settings (250,300) and plot the resulting spectra.
+
+```{python pts}
+# Second set of points
+pts = 250
+xx = Numerics.default_grid(pts)
+phi = PhiManip.phi_1D(xx)
+phi = PhiManip.phi_1D_to_2D(xx, phi)
+phi = Integration.two_pops(phi, xx, T, nu1, nu2, m12=m12, m21=m21)
+fs250 = Spectrum.from_phi(phi, ns, (xx,xx))
+
+# Third set of points
+pts = 300
+xx = Numerics.default_grid(pts)
+phi = PhiManip.phi_1D(xx)
+phi = PhiManip.phi_1D_to_2D(xx, phi)
+phi = Integration.two_pops(phi, xx, T, nu1, nu2, m12=m12, m21=m21)
+fs300 = Spectrum.from_phi(phi, ns, (xx,xx))
+```
+
+
+```{python plot_pts_sfs}
+dadi.Plotting.plot_single_2d_sfs(fs200,vmin=0.01)
+dadi.Plotting.plot_single_2d_sfs(fs250,vmin=0.01)
+dadi.Plotting.plot_single_2d_sfs(fs300,vmin=0.01)
+```
+
+![SFS with 200 points]("dadi_analysis/TX2D/asym_mig_200ptsTest.png")
+![SFS with 250 points]("dadi_analysis/TX2D/asym_mig_250ptsTest.png")
+![SFS with 300 points]("dadi_analysis/TX2D/asym_mig_300ptsTest.png")
+
+I have no idea how to interpret these. They all look basically the same. I think maybe it's time to respond to Gutenkunst's suggestion.
+
+First, actually, I'll try the same set of code but with parameters that didn't give warnings (`r opt_warns[sample(which(opt_warns$Model=="asym_mig" & opt_warns$Warning=="FALSE"),1),]`).
+
+```{python asym_migGoodParams}
+nu1 = 1.0101
+nu2 = 8.5997
+m12 = 0.3722
+m21 = 0.8104
+T = 0.7221
+ns = [46,60]
+
+# First set of points
+pts = 200
+xx = Numerics.default_grid(pts)
+phi = PhiManip.phi_1D(xx)
+phi = PhiManip.phi_1D_to_2D(xx, phi)
+phi = Integration.two_pops(phi, xx, T, nu1, nu2, m12=m12, m21=m21)
+fs200 = Spectrum.from_phi(phi, ns, (xx,xx))
+    
+# Second set of points
+pts = 250
+xx = Numerics.default_grid(pts)
+phi = PhiManip.phi_1D(xx)
+phi = PhiManip.phi_1D_to_2D(xx, phi)
+phi = Integration.two_pops(phi, xx, T, nu1, nu2, m12=m12, m21=m21)
+fs250 = Spectrum.from_phi(phi, ns, (xx,xx))
+
+# Third set of points
+pts = 300
+xx = Numerics.default_grid(pts)
+phi = PhiManip.phi_1D(xx)
+phi = PhiManip.phi_1D_to_2D(xx, phi)
+phi = Integration.two_pops(phi, xx, T, nu1, nu2, m12=m12, m21=m21)
+fs300 = Spectrum.from_phi(phi, ns, (xx,xx))
+
+# Plot
+dadi.Plotting.plot_single_2d_sfs(fs200,vmin=0.01)
+dadi.Plotting.plot_single_2d_sfs(fs250,vmin=0.01)
+dadi.Plotting.plot_single_2d_sfs(fs300,vmin=0.01)
+```
+
+![Good Params SFS with 200 points]("dadi_analysis/TX2D/asym_mig_200ptsGoodParams.png")
+![Good Params SFS with 250 points]("dadi_analysis/TX2D/asym_mig_250ptsGoodParams.png")
+![Good Params SFS with 300 points]("dadi_analysis/TX2D/asym_mig_300ptsGoodParams.png")
+
+I posted these results on the dadi forum because I really have no idea what to make of them. https://groups.google.com/forum/#!topic/dadi-user/7DHNai6wDb4
 
 # 18 July 2019
 
