@@ -1,6 +1,8 @@
 '''
 Running asym_mig to compare frequency spectra
 '''
+from dadi import Numerics, PhiManip, Integration
+from dadi.Spectrum_mod import Spectrum
 
 import os
 import numpy
