@@ -9,6 +9,9 @@ import numpy
 import dadi
 import pylab
 from datetime import datetime
+from dadi import Numerics, PhiManip, Integration
+from dadi.Spectrum_mod import Spectrum
+
 
 
 def asym_mig(params, ns, pts):
