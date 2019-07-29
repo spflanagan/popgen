@@ -8,8 +8,49 @@ editor_options:
 ---
 
 ```{r setup}
-knitr::opts_knit$set(root.dir='../results/', fig.pos='H')
+knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
+
+# 29 July 2019
+
+Gutenkunst wrote back:
+
+```
+Hello Sarah,
+
+Attached is the script I used look at your spectra more. You’ll see that the negative values in each of the integrated spectra and the final spectrum itself are very small. If we look at the plot, the only values < 1e-12 (and thus all the negative values) are in the lower right-hand corner. If not much of your data lies in that corner, then you have nothing to worry about.
+
+Best,
+Ryan
+```
+
+with this script attached:
+
+```{python}
+from asym_mig_test import *
+
+print('Minimum value in fs200: {0}'.format(fs200.min()))
+print('Minimum value in fs250: {0}'.format(fs250.min()))
+print('Minimum value in fs300: {0}'.format(fs300.min()))
+
+spectra = [fs200,fs250,fs300]
+xs = [_.extrap_x for _ in spectra]
+fs_extrap = dadi.Numerics.quadratic_extrap(spectra, xs)
+
+print('Minimum value in extrapolated spectrum: {0}'.format(fs_extrap.min()))
+
+dadi.Plotting.plot_single_2d_sfs(fs_extrap, vmin=1e-12)
+
+```
+
+![2D asym_mig spectrum]("asym_mig_test.png")
+
+Just to double check that my data aren't in that lower right-hand corner, I re-plotted my TX data with vmin=1e-12 and got this:
+
+![2D data spectrum]("dadi_analysis/TX2D/TX_2d_sfs_smallvmin.png")
+
+And that plot also has empty space in the bottom right-hand corner, so I think it's ok. Which means that I can ignore the warnings and move forward with my analyses of the TX runs. How many have I run, and do I need to run more?
+
 
 # 22 July 2019
 
