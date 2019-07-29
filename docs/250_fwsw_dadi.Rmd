@@ -314,9 +314,99 @@ At least some of the runs in all of these do not work well (result in "WARNING:N
 Now I need to see what the optimal parameters are for these 7 different runs so that I can run those models for additional iterations and/or compare model fits -- after which I will simulate data with `ms`.
 
 ```{r}
-tx.best<-dadi.modelcomp(path = "dadi_analysis/TX2D",pattern="V2.*optimized.*",id="TX2D")
+tx.best<-dadi.modelcomp(path = "dadi_analysis/TX2D",pattern="V.*optimized.*",id="TX2D")
 kable(tx.best,caption = "'Best' runs of each of the models for the Texas populations 2D demographic inference")
 ```
+
+```{r}
+tx.opts<-do.call(rbind,lapply(list.files(path = "dadi_analysis/TX2D",pattern="V2.*optimized.*",full.names = TRUE),parse_dadi_opt))
+tx_dat<-extract_dadi_params(tx.opts)
+tx_dat<-lapply(tx_dat,function(dat){
+  dat$log.likelihood<-as.numeric(as.character(dat$log.likelihood))
+  return(dat)
+})
+par(xpd=TRUE,mar=c(2,6,2,2),mfrow=c(length(tx_dat),1))
+pl<-lapply(tx_dat,function(dat){ 
+  require(scales)
+  require(sm)
+  params<-colnames(dat)[(which(colnames(dat)=="params")+1):ncol(dat)]
+  plot_params(dat,params,pt.col = "grey")
+  legend("topleft",paste("N=",nrow(dat)),bty='n')
+})
+
+```
+
+
+Are the multiple rounds improving the model fit?
+
+```{r}
+par(xpd=TRUE,mar=c(2,6,2,2),mfrow=c(length(tx_dat),1))
+l<-lapply(tx_dat, function(dat){ 
+  dat$rounds<-as.numeric(gsub("Round_(\\d+)_Replicate_(\\d+)","\\1",dat$Replicate))
+  plot(dat$rounds,dat$log.likelihood,xlab="Round",axes=FALSE,ylab="Log likelihood")
+  axis(1,seq(1,4))
+  axis(2,las=1)
+})
+```
+
+Yes they are!
+
+
+Ok, but what about convergence? Are the replicates (Numbers 1-5) converging on likelihoods and parameter values?
+
+```{r}
+library(scales)
+library(sm)
+models<-unique(tx.opts$Model)
+par(mfrow=c(3,3))
+l<-lapply(models,function(mod){
+  files<-list.files(path="dadi_analysis/TX2D",pattern = paste(".*V.*\\.",mod,".optimized.*",sep=""),full.names = TRUE)
+  all_reps<-do.call(rbind,lapply(files, function(file){
+    dat<-parse_dadi_opt(file)
+    dat$rep<-gsub(paste0("dadi_analysis/TX2D/(.*).",mod,".optimized.txt"),"\\1",file)
+    return(dat)
+  }))
+  all_reps$rep<-as.numeric(as.factor(all_reps$rep))
+ # lines_per_rep<-nrow(all_reps)/length(files)
+  #all_reps$rep<-rep(1:length(files),each=lines_per_rep)
+  all_reps$log.likelihood<-as.numeric(as.character(all_reps$log.likelihood))
+  
+  #get the parameter values
+  params<-do.call(rbind,lapply(all_reps$optimized_params,function(x){
+    p<-as.numeric(as.character(rbind(unlist(strsplit(x,",")))))
+    return(p)
+  }))
+  colnames(params)<-unlist(strsplit(unlist(strsplit(all_reps$params[1],",")),"\\."))
+  all_reps<-cbind(all_reps,params)
+  
+  #plot
+  par(xpd=TRUE,mar=c(2,6,2,2))
+  plot(0:(ncol(params)*2),xlim=c(0,2*(ncol(params))),ylim=c(min(all_reps$log.likelihood),max(all_reps[,colnames(params)])),bty="L",axes=FALSE,ann=FALSE,type='n')
+  gwsca.vioplot(all_reps$log.likelihood,col="grey",add=TRUE,xpd=TRUE,at=0)
+  points(jitter(rep(0,nrow(all_reps)),2.5),all_reps$log.likelihood,col=alpha(all_reps$rep,0.5),pch=19)
+  axis(2,las=1,pos=-0.5)
+  axis(1,lwd=0,label="log likelihood",at=0)
+  #mapply(function(param,counts) browser(),colnames(params),2:(ncol(params)+1))
+  p<-mapply(function(param,counts){
+    par(new=TRUE)
+    plot(0:(ncol(params)*2),xlim=c(0,2*(ncol(params))),ylim=c(min(all_reps[,param]),max(all_reps[,param])),bty="L",axes=FALSE,ann=FALSE,type='n')
+    gwsca.vioplot(all_reps[,param],col="grey",add=TRUE,xpd=TRUE,ylim=c(min(all_reps[,param]),max(all_reps[,param])),at=counts)
+    points(jitter(rep(counts,nrow(all_reps)),2.5),all_reps[,param],col=alpha(all_reps$rep,0.5),pch=19)
+    axis(2,las=1,pos=counts-0.75)
+    axis(1,lwd=0,label=param,at=counts)
+  },colnames(params),seq(2,(ncol(params)*2),by=2))
+  mtext(mod,3)
+  
+})
+```
+
+```{r}
+tx.best[which.min(tx.best$AIC),]
+```
+
+So now I can run some simulations in dadi using the dadi-pipeline.
+
+## Troubleshooting warnings
 
 This doesn't tell us about which models had trouble converging, though, so let's tally up the number of 'nan's in each file.
 
@@ -462,65 +552,8 @@ tx.bests[[which.min(unlist(lapply(tx.bests,function(x){ return(x$AIC) })))]]
 nu2 estimates seem to be hitting the upper limit that I've set (15), so perhaps that's part of the issue. I'll run another round, increasing the upper limits, increasing the number of points, and updating the starting parameters.
 
 
-Are the multiple rounds improving the model fit?
-
-```{r}
-par(xpd=TRUE,mar=c(2,6,2,2),mfrow=c(length(tx_dat),1))
-l<-lapply(tx_dat, function(dat){ 
-  dat$rounds<-as.numeric(gsub("Round_(\\d+)_Replicate_(\\d+)","\\1",dat$Replicate))
-  plot(dat$rounds,dat$log.likelihood,xlab="Round",axes=FALSE,ylab="Log likelihood")
-  axis(1,seq(1,4))
-  axis(2,las=1)
-})
-```
-
-Yes they are!
 
 
-
-Ok, but what about convergence? Are the replicates (Numbers 1-5) converging on likelihoods and parameter values?
-
-```{r}
-library(scales)
-library(sm)
-models<-unique(tx.opts$Model)
-par(mfrow=c(3,3))
-l<-lapply(models,function(mod){
-  files<-list.files(path="dadi_analysis/TX2D",pattern = paste(".*\\.",mod,".optimized.*",sep=""),full.names = TRUE)
-  all_reps<-do.call(rbind,lapply(files, parse_dadi_opt))
-  lines_per_rep<-nrow(all_reps)/length(files)
-  all_reps$rep<-rep(1:length(files),each=lines_per_rep)
-  #get the parameter values
-  params<-do.call(rbind,lapply(all_reps$optimized_params,function(x){
-    p<-as.numeric(as.character(rbind(unlist(strsplit(x,",")))))
-    return(p)
-  }))
-  colnames(params)<-unlist(strsplit(unlist(strsplit(all_reps$params[1],",")),"\\."))
-  all_reps<-cbind(all_reps,params)
-  
-  #plot
-  par(xpd=TRUE,mar=c(2,6,2,2))
-  plot(0:(ncol(params)*2),xlim=c(0,2*(ncol(params))),ylim=c(min(all_reps$log.likelihood),max(all_reps[,colnames(params)])),bty="L",axes=FALSE,ann=FALSE,type='n')
-  gwsca.vioplot(all_reps$log.likelihood,col="grey",add=TRUE,xpd=TRUE,at=0)
-  points(jitter(rep(0,nrow(all_reps)),2.5),all_reps$log.likelihood,col=alpha(all_reps$rep,0.5),pch=19)
-  axis(2,las=1,pos=-0.5)
-  axis(1,lwd=0,label="log likelihood",at=0)
-  #mapply(function(param,counts) browser(),colnames(params),2:(ncol(params)+1))
-  p<-mapply(function(param,counts){
-    par(new=TRUE)
-    plot(0:(ncol(params)*2),xlim=c(0,2*(ncol(params))),ylim=c(min(all_reps[,param]),max(all_reps[,param])),bty="L",axes=FALSE,ann=FALSE,type='n')
-    gwsca.vioplot(all_reps[,param],col="grey",add=TRUE,xpd=TRUE,ylim=c(min(all_reps[,param]),max(all_reps[,param])),at=counts)
-    points(jitter(rep(counts,nrow(all_reps)),2.5),all_reps[,param],col=alpha(all_reps$rep,0.5),pch=19)
-    axis(2,las=1,pos=counts-0.75)
-    axis(1,lwd=0,label=param,at=counts)
-  },colnames(params),seq(2,(ncol(params)*2),by=2))
-  mtext(mod,3)
-  
-})
-```
-
-
-## Troubleshooting warnings
 
 ```{r}
 all_warnings<-lapply(list.files(pattern="251",path = "dadi_analysis",full.names = TRUE),dadi_warnings)

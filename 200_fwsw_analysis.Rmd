@@ -49,7 +49,9 @@ Just to double check that my data aren't in that lower right-hand corner, I re-p
 
 ![2D data spectrum]("dadi_analysis/TX2D/TX_2d_sfs_smallvmin.png")
 
-And that plot also has empty space in the bottom right-hand corner, so I think it's ok. Which means that I can ignore the warnings and move forward with my analyses of the TX runs. How many have I run, and do I need to run more?
+And that plot also has empty space in the bottom right-hand corner, so I think it's ok. Which means that I can ignore the warnings and move forward with my analyses of the TX runs. How many have I run, and do I need to run more? I don't think so, I have a lot of runs in the TX2D folder.
+
+Analyzing those, I find that sym_mig_size is the best model, with optimal parameters 5.6521,4.4595,1.0109,19.9392,0.4646,1.3392,0.4042 (nu1a,nu2a,nu1b,nu2b,m,T1,T2). So I've now started the simulation code (254_2DoptNsim.py) with the TX dataset. The next big question to answer (other than how can I speed up the 3D analysis?) is how to simulate data in a way that will help me interpret my Fst values. I'm not sure that I can easily do that with dadi, I might need to use ms.
 
 
 # 22 July 2019

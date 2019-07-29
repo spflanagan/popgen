@@ -14,8 +14,8 @@ import pylab
 from datetime import datetime
 
 #### SET THESE ####
-florida=True
-texas=False
+florida=False
+texas=True
 ###################
 fl_dir="FL2D"
 tx_dir="TX2D"
@@ -106,7 +106,7 @@ if florida is True:
 #=================================================================================================#
 if texas is True:
 	os.chdir("TX2D")
-	tx = dadi.Spectrum.from_data_dict(dd , pop_ids =[ 'TXFW','TXCC' ],projections =[46,61] ,polarized = False )  #polarized = False creates folded spectrum
+	tx = dadi.Spectrum.from_data_dict(dd , pop_ids =[ 'TXFW','TXCC' ],projections =[46,60] ,polarized = False )  #polarized = False creates folded spectrum
 	#===================================FIT MODEL TO EMPIRICAL DATA ==================================#
 
 	#Make sure to define your extrapolation grid size.
@@ -114,7 +114,7 @@ if texas is True:
 
 	#Provide best optimized parameter set for empirical data.
 	#These will come from previous analyses you have already completed (above)
-	emp_params = [1.01,3.5,1.01,14.5,0.5,0.85,0.4]
+	emp_params = [5.65,4.46,1.01,19.94,0.46,1.34,0.40] # 1.01,3.5,1.01,14.5,0.5,0.85,0.4
 
 	#Indicate whether your frequency spectrum object is folded (True) or unfolded (False)
 	fs_folded = True
