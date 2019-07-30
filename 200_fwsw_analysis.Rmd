@@ -11,6 +11,112 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 30 July 2019
+
+I'm moving forward thinking about how to use the dadi simulations to analyze my Fst results (with the FL population as my first pass).
+The dadi simulations only give me a sense of whether my parameters are 'good' or not, and I think they are (given the chi-squared distributions etc). I should maybe also look at the parameters as well. Once I'm confident in my parameter estimates, I'll use them to run ms. 
+
+So looking at histograms of the simulated values, the parameters I used definitely fall within the distributions. The m21 parameter seems a bit low comopared to many of the estimates, since the median estimate is 0.3838, the variance is 0.03662088, and my initial parameter was 0.0561. I'll run with it for now, but I should maybe test different runs of ms just to be sure.
+
+To run ms I need to estimate theta (which comes from the time parameter??) and 4N0m. Also, the population sizes need to be relative to N0. In the dadi manual, it states:
+```
+So to convert from a time in ∂a∂i to a time in ms, divide by 2.
+Migration rates are given in units of M ij = 2N ref m ij . Again, this differs from ms, where
+the scaling factor is 4N ref generations. So to get equivalent migration (m ij ) in ms for a given
+rate in ∂a∂i, multiply by 2
+```
+
+Therefore, for Florida, I need to use time = `0.1441/2`, m12 = `0.7777*2`, m21 = `0.0561*2`.  
+
+On the dadi forum was a question posed using this model (https://groups.google.com/forum/#!searchin/dadi-user/ms%7Csort:date/dadi-user/N623Qe75iDs/neuuqEyUAwAJ):
+
+```
+
+Forward in time dadi parameters:
+theta = 5911.67
+pop 1 relative pop size post divergence = .1009
+pop 2 relative pop size post divergence = .5933
+T1, time from divergence until gene flow ceases = 5.3655
+T2, time from cessation of gene flow until present = 0.0269
+m12 = migration from pop 2 into 1 = 1.1616
+m21 = migration from pop 1 into 2 = 0.4132
+pop 1 relative pop size after size change = 29.9198
+pop 2 relative pop size after size change = 8.7145
+
+To simulate unlinked RAD loci, I generate a single-locus ms command by adjusting theta to be locus specific: 5911.67 * 94/3451628, i.e. multiply theta x individual rad locus length/total estimated length (L).
+
+
+MS SIM SETUP
+Basically, I simulate the set of unlinked rad loci and sum their respective sfs:
+
+ms_fs = dadi.Spectrum.from_ms_file(popen('ms 306 56055 -t 0.160995617141 -I 2 91 215 -n 1 29.9198 -n 2 8.7145 -en 0.01345 1 0.1009 -en 0.01345 2 0.5933 -em 0.01345 1 2 0.8264 -em 0.01345 2 1 2.3232 -ej 2.6962 1 2),average=False)
+folded_sfs=dadi.Spectrum.fold(ms_fs)
+fig = pylab.figure(1)
+fig.clear()
+dadi.Plotting.plot_single_2d_sfs(folded_sfs,vmin=0.005)
+
+note that the vmin setting was the same used for the plotting of the data and dadi inferred sfs.
+
+MS ARGS IN DETAIL
+-n 1 29.9198 : relative pop size of pop 1 (post expansion) at present
+-n 2 8.7145 : relative pop size of pop 2 (post expansion) at present
+-en 0.01345 1 0.1009: going backward in time, pop 1 size changes, in ms units, at 0.0269/2 = 0.01345 to .1009
+-en 0.01345 2 0.5933 : similarly, pop 2 size changes at same time as pop 1 to .5933 
+
+### time parameter conversions ###
+dadi parameters are forward in time, while ms is backwards. m12-dadi, the fraction of pop 1 comprised of migrants from pop 2, is equivalent in coalescent terms to m21 for ms. thus, given that dadi rates are multiplied by 2 to get equivalent ms rates:
+
+ -em 0.1345 1 2 0.8264  : M12, the # of individuals from pop 1 comprised of backward in time migrants from pop 2
+ -em 0.1345 2 1 2.3232 : M21 the # of individuals from pop 2 comprised of backward in time migrants from pop 1
+ -ej 2.6962 1 2 : the full length of the genealogy in ms units is (T1+T2)/2 = (5.3655 + 0.0269)/2 = 2.6962, at which time all lineages from population 1 are moved to population 2
+ 
+```
+
+So what this tells me is that I can run ms from within dadi!
+And The conversions I need to make are not exactly what I had thought. Information I need: number of total RAD loci and length of RAD loci. 
+
+Then, I'll have the following parameters:
+
+nsam = n1 + n2 [82 + 94]
+nreps = NUMSNPS [12103]
+-t = `dadi-theta*Llocus/Ltotal` [`227.83*95/(12103*251339*95/1370051)=0.1026112`]
+-m 1 2 = `2*m12` [`2*0.7777`=1.5554]
+-m 2 1 = `2*m21` [`2*0.0561`=0.1122]
+-n 1 nu1 [0.1317] (size of pop 1 after split at time T)
+-n 2 nu2 [2 8.4225] (size of pop 2 after split at time T)
+-ej T/2 2 1 [`0.1441/2`=0.07205 2 1] (combine the populations at time T)
+
+According to the last version of the manuscript, I had 194294 RAD loci, which are 95 bp long, and I have 12103 SNPs in the analysis. 
+But according to the sstacks log, I have 251339 loci in the catalog, and there are 1370051 SNPs in batch_2.catalog.tags.tsv. So, I now have:
+
+ms 176 12103 -t 0.1026112 -I 2 82 94 -m 1 2 1.5554 -m 2 1 0.1122 -en 0.07205 1 0.1317 -en 0.07205 2 8.4225
+
+Ok, this is actually wrong -- the ns are the current population sizes, which formed at time T, so I need to use -ej. 
+This should be the code:
+ms 176 12103 -t 0.1026112 -I 2 82 94 -m 1 2 1.5554 -m 2 1 0.1122 -n 1 0.1317 -n 2 8.4225 -ej 0.07205 2 1
+
+Now the question is whether I use command-line ms, the ms built into dadi, or msprime (which was recommended by Gutenkunst on another forum post). 
+
+```{python}
+import os
+import dadi
+ms_fs=dadi.Spectrum.from_ms_file(os.popen('ms 176 12103 -t 0.1026112 -I 2 82 94 -m 1 2 1.5554 -m 2 1 0.1122 -n 1 0.1317 -n 2 8.4225 -ej 0.07205 2 1'))
+```
+Running the above does not work. But the same commands run in ms, and I was able to read them into dadi - but the spectrum looks off. I probably need to troubleshoot like the OP of the above information did, but I'm going to come back to that.
+
+I got this to work:
+
+
+```{python}
+import os
+import dadi
+command=dadi.Misc.ms_command(theta=0.1026112, ns=(82,94), core=core, iter=12103)
+```
+
+but I still get an error when trying to run ms in dadi. Tomorrow I will try to install msprime and give that a try.
+
+I also found some models for heterogeneous migration across the genome:  https://github.com/crougeux/Dadi_v1.6.3_modif/blob/master/Dadi_studied_model/00_inference/modeledemo_mis_new_models.py
+
 # 29 July 2019
 
 Gutenkunst wrote back:

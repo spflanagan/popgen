@@ -250,6 +250,9 @@ sim_dirs<-grep("sims",list.dirs(path="dadi_analysis/FL2D",full.names = TRUE),val
 sims<-do.call(rbind,lapply(sim_dirs,function(x) {
   dat<-read.delim(paste0(x,"/Simulation_Results.txt"),header=TRUE)
   dat$sim<-x
+  params<-do.call(rbind,strsplit(as.character(dat$optimized_params),","))
+  params<-apply(params,2,as.numeric)
+  dat<-cbind(dat,params)
   return(dat)
 }))
 emps<-do.call(rbind,lapply(sim_dirs,function(x) {
@@ -257,6 +260,8 @@ emps<-do.call(rbind,lapply(sim_dirs,function(x) {
   dat$sim<-x
   return(dat)
 }))
+
+start_params<-c(nu1=0.1317,nu2=8.4225,m12=0.7777,m21=0.0561,T=0.1441)
 
 summary(sims$log.likelihood)
 summary(sims$chi.squared)
@@ -294,7 +299,19 @@ abline(v=emp_log_chi, lwd = 3, col='blue')
 
 ```
 
-But I would like to possibly model varying rates across the genome, and at the very least use the simulations to help ID outliers. 
+Now let's check the parameter estimates
+```{r}
+par(mfrow=c(2,3),oma=c(2,2,2,2),mar=c(2,2,2,2))
+
+for(i in 1:length(start_params)){
+  hist(sims[,8+i], breaks=50, main = names(start_params)[i], xlab=names(start_params)[i], col="grey")
+  abline(v=start_params[i], lwd = 3, col='blue')
+}
+
+```
+
+
+But I would like to possibly model varying rates across the genome, and at the very least use the simulations to help ID outliers. So I'm going to run ms and possibly design some additional dadi models with heterogeneous migration across the genome. 
 
 ## Analyze 2D TX optimization results
 
