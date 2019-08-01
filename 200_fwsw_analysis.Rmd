@@ -11,6 +11,30 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 1 August 2019
+
+This is the response from Ryan Gutenkunst:
+```
+Hi Sarah,
+
+Your demographic parameter conversion looks fine to me. But I don’t follow the theta conversion formula you’re using. You want your bootstrap data sets to have the same total theta as your original data data set. Are you downsampling the ms simulations to get to one SNP per locus?
+
+It’s hard to tell whether your ms and dadi simulations agree, because the ms simulation is so sparse. Run many ms simulations then average the results to compare with the dadi model (and look at the residuals to see if there is systematic difference).
+
+Best,
+Ryan
+```
+
+And I find that response to be rather confusing. So....??? A few things to unpack:
+1. Check that I've calculated theta correctly and re-write the equation.
+2. How many SNPs per locus am I specifying in ms??
+3. Run more ms sims and average the results 
+4. How do I look at residuals? 
+    Using dadi.Plotting.plot_2d_comp_multinomial between the data (fl_optimized) and models looks like it should work. I was struggling at first because I'd used different projection #s but I think it's better now?
+    
+I'm finding this VERY frustrating so I'm going to move onto something else for right now.
+
+
 # 31 July 2019
 
 I got ms to work within dadi by adding the msdir to the $PATH (duh). The issue was that python couldn't find the ms program.

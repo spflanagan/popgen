@@ -31,7 +31,7 @@ dd = dadi.Misc.make_data_dict ( "fwsw75.dadi.snps" )
 #pops = ['FLLG', 'FLCC', 'ALFW','ALST','LAFW','TXFW','TXCC']
 #projs = [70,      60,     72,     70,    72,    46,     61]
 
-fl = dadi.Spectrum.from_data_dict(dd , pop_ids =[ 'FLLG','FLCC' ],projections =[70,61] ,polarized = False )  #polarized = False creates folded spectrum
+fl = dadi.Spectrum.from_data_dict(dd , pop_ids =[ 'FLLG','FLCC' ],projections =[70,60] ,polarized = False )  #polarized = False creates folded spectrum
 
 os.chdir("FL2D")
 

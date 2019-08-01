@@ -51,7 +51,7 @@ dd = dadi.Misc.make_data_dict ( "fwsw75.dadi.snps" )
 #											FLORIDA				 								  #
 #=================================================================================================#
 if florida is True:
-	fl = dadi.Spectrum.from_data_dict(dd , pop_ids =[ 'FLLG','FLCC' ],projections =[70,61] ,polarized = False )  #polarized = False creates folded spectrum
+	fl = dadi.Spectrum.from_data_dict(dd , pop_ids =[ 'FLLG','FLCC' ],projections =[70,60] ,polarized = False )  #polarized = False creates folded spectrum
 
 	os.chdir(fl_dir)
 
