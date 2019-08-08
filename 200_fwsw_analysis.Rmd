@@ -11,6 +11,52 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 8 August 2019
+
+I'm using the code in 257_debug_ms.py to make the comparison plots.
+
+Other things I can do: 
+1. re-evaluate calculation of theta by scouring the dadi user webpage
+2. run many mas sims and average the results (or increase iter?)
+
+regarding theta, on this group (https://groups.google.com/forum/#!searchin/dadi-user/dadi$20to$20ms|sort:date/dadi-user/DYrpTHCcC_I/nl3f2eGSAQAJ) Ryan says to use  `L = 3e6 * 56,343/123,797` for someone with 3 million sites (RAD loci), a total of 123797 SNPs, of which 56343 were used. That L should then get plugged into `4*Ne*mu*L`, and dadi's theta is `4*Ne*mu*L`. So to get the ms theta, which is `4*Ne*mu*L`, we divide dadi's theta by L. So what I need to do is get L. Let's write out the variables. `L = (num loci)*(num SNPs in analysis)*(total num SNPs)` - which is different from what I did (`dadi-theta*Llocus/Ltotal` [`227.83*95/(12103*251339*95/1370051)=0.1026112`]), and does not include the length of the loci.
+
+However, this post (https://groups.google.com/forum/#!searchin/dadi-user/dadi$20to$20ms|sort:date/dadi-user/1Chc8kXrWE0/NuB4d4X2BwAJ) uses the length of the SNPs. They did `dadi-theta*(length of sequence)/(total length of sequences used) `
+
+I've increased the iter substantially and it is very slow, but when it is done I will test out averaging spectra (just try doing mean() with two spectra objects I guess?). Using mean does not work! Nor does dadi.Spectrum.mean(fs1,fs2)
+
+So I posted this on the forum:
+
+```
+
+Thank you for your response! I have a few follow-up questions:
+
+  1.  To calculate theta I was following what the original post had done, which was: (dadi's theta estimate)*(individual rad locus length)/(total estimated length (L)), where L = (length of RAD loci)*(total number of RAD loci)*(number of SNPs in the analysis)/(total number of SNPs). Your response prompted me to scour the dadi-user group more thoroughly and I see that this estimate differs slightly from others that have been suggested. For instance, in this post, the conversion to ms theta is (daid-theta)*(length of sequence)/(total length of sequence used), and in this post, the conversion appears to be (dadi-theta)/L, where L = (total number of rad loci)*(number of SNPs in the analysis)*(total number of SNPs). What would you say is the best way to convert dadi's estimated theta to the input theta for ms for RAD-seq data?
+  2.  I think I am a bit confused about specifying the number of loci in ms. I thought the number of iterations is equivalent to the number of SNPs simulated by ms (and I had used the number of SNPs in my dataset) -- is there a different way to specify the number of SNPs, and the number of SNPs per locus, in ms?
+   3. How do you recommend that I average the spectra produced by multiple ms runs to compare the models?
+
+Thank you so much for your help and the time you put into answering all of the questions here on the forum!
+
+```
+
+And now I just need to wait for Gutenkunst to answer.
+
+He responded already! He said:
+
+```
+Maybe it’s time to back up here. Why are you running ms again? Typically we would only do coalescent simulations if we wanted to test how linkage affects our data. But if you’re simulating RAD seq loci independently and only taking one SNP per locus, then you’re generating data with no linkage anyways. In this case, the only difference between dadi and ms would be if you made an error in converting model specifications.
+
+If you’re assuming you’re loci are unlinked, then the likelihood dadi calculates is correct, and you can do model selection with likelihood ratio tests, etc.
+```
+
+So I responded:
+
+```
+I would like to compare the distribution of Fsts in the observed data to a null distribution, so I'm trying to simulate data using the best-inferred model for my dataset. I was under the impression that dadi does not simulate data that can be used for this purpose, so I'm trying to use ms to generate simulated data. Do you have a suggestion for a better way to do this?
+```
+
+Now it's the waiting game again
+
 # 1 August 2019
 
 This is the response from Ryan Gutenkunst:
