@@ -11,6 +11,73 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+
+# 9 August 2019
+
+Gutenkunst wrote back, saying "The suitability of dadi for this depends on what assumptions you’re willing to make. Are you assuming your RADseq loci are independent? If not, you’ll need a much more complex simulation scheme to capture that dependence anyways. If yes, then you don’t need to use coalescent simulations." I guess he doesn't want to just answer my questions. 
+
+But I guess it brings me back to the question of what I'm even doing, in a way. Maybe I should focus on running the models with heterogeneous selection first. Do I even need to identify outliers? probably not to this extent. Blargh. I should probably run some additional models. 
+
+I am looking at Rougeux's code: https://github.com/crougeux/Dadi_v1.6.3_modif/blob/master/Dadi_studied_model/00_inference/modeledemo_mis_new_models.py
+
+for inspiration about the heterogeneous effective population sizes.
+
+```{python}
+def SI2N(params, (n1,n2), pts):
+    nu1, nu2, Ts, nr, bf, O = params
+    """
+    Model with split and complete isolation, heterogenous effective population size
+        (2 classes, shared by the two populations = background selection)
+    nu1: Size of population 1 after split.
+    nu2: Size of population 2 after split.
+    Ts: The scaled time of the split
+    n1,n2: Size of fs to generate.
+    nr: Proportion of non/low-recombining regions
+    bf : Background factor (to which extent the effective population size is reduced in the non-recombining regions)
+    O: The proportion of accurate orientation
+    pts: Number of points to use in grid for evaluation.
+    """
+    # Define the grid we'll use
+    xx = dadi.Numerics.default_grid(pts)
+
+    # Spectrum of non-recombining regions
+    # phi for the equilibrium ancestral population
+    phinr = dadi.PhiManip.phi_1D(xx)
+    # Now do the divergence event
+    phinr = dadi.PhiManip.phi_1D_to_2D(xx, phinr)
+    # We set the population sizes after the split to nu1 and nu2	
+    phinr = dadi.Integration.two_pops(phinr, xx, Ts, nu1*bf, nu2*bf, m12=0, m21=0)
+    # Finally, calculate the spectrum.
+    # oriented
+    fsnrO = dadi.Spectrum.from_phi(phinr, (n1,n2), (xx,xx))
+    # mis-oriented
+    fsnrM = dadi.Numerics.reverse_array(fsnrO)
+    
+    
+	# Spectrum of recombining regions
+    # phi for the equilibrium ancestral population
+    phir = dadi.PhiManip.phi_1D(xx)
+    # Now do the divergence event
+    phir = dadi.PhiManip.phi_1D_to_2D(xx, phir)
+    # We set the population sizes after the split to nu1 and nu2
+    phir = dadi.Integration.two_pops(phir, xx, Ts, nu1, nu2, m12=0, m21=0)
+    # Finally, calculate the spectrum.
+    # oriented
+    fsrO = dadi.Spectrum.from_phi(phir, (n1,n2), (xx,xx))
+    # mis-oriented
+    fsrM = dadi.Numerics.reverse_array(fsrO)
+
+    ### Sum the two spectra in proportion O
+    fs= O*(nr*fsnrO + (1-nr)*fsrO) + (1-O) *(nr*fsnrM + (1-nr)*fsrM)
+
+    return fs
+
+```
+
+I should be able to adapt this in my code, but honestly 4:30pm on a Friday is not the time to be doing this. I will work on this on Monday, I think.
+
+Remember to be inspired by this paper: https://onlinelibrary.wiley.com/doi/full/10.1111/jeb.13482
+
 # 8 August 2019
 
 I'm using the code in 257_debug_ms.py to make the comparison plots.

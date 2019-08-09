@@ -8,6 +8,14 @@ import pylab
 from datetime import datetime
 from dadi import Numerics, PhiManip, Integration
 from dadi.Spectrum_mod import Spectrum
+execfile("../../programs/dadi_pipeline-master/Two_Population_Pipeline/Optimize_Functions.py")
+execfile("../../programs/dadi_pipeline-master/Two_Population_Pipeline/Models_2D.py")
+execfile("../../scripts/250_custom_dadi_models.py")
+execfile("../../programs/dadi_pipeline-master/Two_Population_Pipeline/Optimize_Functions.py")
+execfile("../../programs/dadi_pipeline-master/Two_Population_Pipeline/Models_2D.py")
+execfile("../../programs/dadi_pipeline-master/Goodness_of_Fit/Optimize_Functions_GOF.py")
+execfile("../../scripts/250_custom_dadi_models.py")
+
 
 
 def asym_mig(params, ns, pts):
@@ -74,13 +82,22 @@ scaled_fl = Optimize_Empirical(fl, pts, "Empirical", "asym_mig", asym_mig, emp_p
 
 dadi.Plotting.plot_2d_comp_Poisson(data=scaled_fl,model=asym_mig_folded,vmin=0.00001)
 dadi.Plotting.plot_2d_comp_Poisson(data=scaled_fl,model=folded_sfs,vmin=0.00001)
+dadi.Plotting.plot_2d_comp_Poisson(data=asym_mig_folded,model=folded_sfs,vmin=0.00001)
 
 
 
 
+# second ms run
+command=dadi.Misc.ms_command(theta=0.1026112, ns=(70,60), core=core, iter=12103)
+ms_fs2=dadi.Spectrum.from_ms_file(os.popen(command))
+folded_sfs2=dadi.Spectrum.fold(ms_fs2)
 
-
-
+# Bigger ms run
+command_big=dadi.Misc.ms_command(theta=0.1026112, ns=(70,60), core=core, iter=5e6)
+ms_fs_big=dadi.Spectrum.from_ms_file(os.popen(command_big))
+folded_sfs_big=dadi.Spectrum.fold(ms_fs_big)
+dadi.Plotting.plot_2d_comp_Poisson(data=scaled_fl,model=folded_sfs_big,vmin=0.00001)
+dadi.Plotting.plot_2d_comp_Poisson(data=asym_mig_folded,model=folded_sfs_big,vmin=0.00001)
 
 
 
