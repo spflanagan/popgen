@@ -44,7 +44,7 @@ def asym_mig_O(params, ns, pts):
 	
 	# Sum the two spectra in proportion O
     fs = O*fsO+(1-O)*fsM
-    return fs    
+    return fs
 
 def asym_mig_2N(params, ns, pts):
     """
@@ -88,7 +88,7 @@ def asym_mig_2N(params, ns, pts):
 	# Sum the two spectra in proportion O
     fs= O*(nr*fsnrO + (1-nr)*fsrO) + (1-O) *(nr*fsnrM + (1-nr)*fsrM)
 	
-    return fs   
+    return fs
 	
 
 def asym_mig_2m(params, ns, pts):
@@ -134,7 +134,7 @@ def asym_mig_2m(params, ns, pts):
 	# Sum the two spectra in proportion O
     fs = O*(P*fsNO + (1-P)*fsIO) + (1-O)*(P*fsNM + (1-P)*fsIM)
 	
-    return fs   
+    return fs
 	
 	
 def asym_mig_2N2m(params, ns, pts):
@@ -206,4 +206,6 @@ def asym_mig_2N2m(params, ns, pts):
 	# Sum the spectra
     fs = O*(Q*fslrO+(1-Q)*fsnrO+P*fsNO+(1-P)*fsIO) + (1-O)*(Q*fslrM+(1-Q)*fsnrM+P*fsNM+(1-P)*fsIM)
 	
-    return fs   
+    return fs
+
+
