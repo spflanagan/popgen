@@ -18,7 +18,9 @@ I've been putting off returning to this because I don't really know what to do. 
 1. Incorporate admixture into models. 
 2. Run models between freshwater populations, specifically TX vs FL, TX vs AL/LA, and FL vs AL/LA. I'm worried about a 3D model taking forever, so maybe run AL vs LA? Ugh this will take FOREVER. Maybe I can figure out how to run these on the server?
 
-Ok, I'm going to read that Rougeaux paper and consider using his models. 
+Ok, I'm going to read that Rougeux paper and consider using his models. Rougeux et al used 4 basic models with 13 extensions. They used strict isolation (SI), isolation with migration (IM) ancient migration (AM) and secondary contact (SC). The extensions capture effect of selection inducing reduced gene flow around loci associated with adaptive divergence. 
+
+The way this is written makes me think that they fit the basic models and then incorporated heterogeneous gene flow plus background selection (considering local variation in Ne). So, I'm going to try to use their code to add variation in migration and Ne across the genome into the asym_mig code. I think I've done this successfully! So now to run it for FL...I've updated the 252_2DFL.py script and now will try running it on my computer. 
 
 # 9 August 2019
 
