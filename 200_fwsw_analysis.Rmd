@@ -11,6 +11,14 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 14 August 2019
+
+I've been putting off returning to this because I don't really know what to do. With regards to dadi, I think there are a few things I need to do:
+
+1. Incorporate admixture into models. 
+2. Run models between freshwater populations, specifically TX vs FL, TX vs AL/LA, and FL vs AL/LA. I'm worried about a 3D model taking forever, so maybe run AL vs LA? Ugh this will take FOREVER. Maybe I can figure out how to run these on the server?
+
+Ok, I'm going to read that Rougeaux paper and consider using his models. 
 
 # 9 August 2019
 
