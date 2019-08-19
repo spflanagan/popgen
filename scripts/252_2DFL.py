@@ -117,7 +117,7 @@ if heterogeneous is True:
 	fs_folded = True
 	prefix = "flhet"
 
-	for i in range(1,2):
+	for i in range(2,6):
 		prefix = "V1_Number_{}".format(i)
 		
 		# Split into two populations, with continuous asymmetric migration.
