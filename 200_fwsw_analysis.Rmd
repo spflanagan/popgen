@@ -11,6 +11,11 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 19 August 2019
+
+I'm running the heterogeneous migration models for FL on my local machine and today requested that dadi be installed on abacus. I've also prepared scripts to run FLFW vs ALFW, FLFW vs TXFW, and TXFW vs ALFW. I may need to modify those scripts further if I'm going to run them on abacus, but for now they're a start.
+
+
 # 14 August 2019
 
 I've been putting off returning to this because I don't really know what to do. With regards to dadi, I think there are a few things I need to do:
