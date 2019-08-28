@@ -79,6 +79,22 @@ This is not working! I ended up re-writing some of the code that parses the gene
 
 However, this does not get past the issues, as far as I can tell. So perhaps I should retire the idea of using this package and/or post an issue on the github. I think I should maybe abandon this and perform permutations/bootstraps on my own. 
 
+So if I'm going to do permutations or bootstraps I might have to write it myself.
+
+```{r}
+popmap<-data.frame(pop=gsub("sample_([A-Z]{4}).*","\\1",colnames(vcf)[10:ncol(vcf)]),
+                   sample=colnames(vcf)[10:ncol(vcf)],stringsAsFactors = FALSE)
+
+```
+
+Ok, I want to do permutations but I can't think about how to implement it right now.
+
+### Pcadapt
+
+I managed to run pcadapt again but I need a better overall plan before doing anything with the outliers.
+
+
+
 # 27 August 2019
 
 I'm going to try the diveRsity package.

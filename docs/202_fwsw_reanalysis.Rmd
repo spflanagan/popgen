@@ -659,14 +659,26 @@ There are `r length(unique(all.shared))` outliers (as determined by Fisher's P f
 
 ### PCAdapt
 
-For this analysis we'll use the subset of populations rather than the full population set
+For this analysis we'll use the subset of populations rather than the full population set.
+
+First I need to add the fileformat line to the vcf
+
+```{r}
+vcf<-parse.vcf("stacks/populations_subset75/batch_2.pruned.vcf")
+write.table("##fileformat=VCFv","pcadapt_fw/fwsw.pruned.vcf",quote=FALSE,
+            col.names = FALSE,row.names = FALSE)
+suppressWarnings(write.table(vcf,"pcadapt_fw/fwsw.pruned.vcf",quote=FALSE,append = TRUE,
+            row.names = FALSE,col.names = TRUE,sep='\t'))
+```
+
+
 
 ```{r}
 library(pcadapt)
-pap<-read.delim("pca_pcadapt.txt",sep=" ")
+#pap<-read.delim("pca_pcadapt.txt",sep=" ")
 #snp_info<-read.delim("subset.map",header=FALSE)
 
-filename<-read.pcadapt("stacks/populations_subset75/batch_2.plink.ped",type="ped") #need to remove the first line with a # 
+filename<-read.pcadapt("pcadapt_fw/fwsw.pruned.vcf",type="vcf") #need to remove the first line with a # 
 x<-pcadapt(filename, K=20)
 plot(x,option="screeplot")
 ```
@@ -681,11 +693,11 @@ plot(res)
 We need to choose a cutoff for outlier detection. I'll start with the qvalue approach.
 ```{r}
 library(qvalue)
-qval <- qvalue(pa$pvalues)$qvalues
+qval <- qvalue(res$pvalues)$qvalues
 alpha <- 0.1
 outliers <- which(qval < alpha)
 length(outliers)
-snp_pc<-get.pc(pa,outliers)
+snp_pc<-get.pc(res,outliers)
 ```
 
 What about LD thinning appraoch? They recommend displaying the loadings and evaluate if loadings are clustered in single or several genomic regions
