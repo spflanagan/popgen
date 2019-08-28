@@ -11,6 +11,74 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 28 August 2019
+
+loading the file with diveRsity is pretty slow so I'm going to try subsetting it first. I'm gonna give the R package `genepopedit` a try.
+
+```{r, eval=FALSE}
+devtools::install_github("rystanley/genepopedit") #https://github.com/rystanley/genepopedit
+```
+
+```{r}
+library(genepopedit)
+source("../../gwscaR/R/gwscaR.R")
+source("../../gwscaR/R/gwscaR_plot.R")
+source("../../gwscaR/R/gwscaR_utility.R")
+source("../../gwscaR/R/gwscaR_fsts.R")
+source("../../gwscaR/R/gwscaR_popgen.R")
+source("../../gwscaR/R/vcf2dadi.R")
+library(fsthet)
+source("../R/203_treemix_plotting_funcs.R")#I've modified these functions
+library(knitr)
+library(scales)
+
+```
+```{r}
+gpop75<-my.read.genepop("stacks/populations_subset75/batch_2.genepop")
+vcf<-parse.vcf("stacks/populations_subset75/batch_2.pruned.vcf")
+```
+
+It's not clear to me how to match up the genepop locus names and the IDs in the vcf file. I'm guessing that the genepop ones are ID_BP but I'm not sure. 
+
+```{r}
+gpop_ids<-as.numeric(gsub("X(\\d+)_\\d+","\\1",colnames(gpop75)[3:ncol(gpop75)]))
+```
+ Yes I think that's the case. `r length(gpop_ids %in% vcf$ID)` of the `r length(gpop_ids)` IDs are in the vcf file. and `r length(vcf$ID %in% gpop_ids)` of the `r length(vcf$ID)` vcf IDs are in the genepop file. The issue is that I don't know which ones I chose! Because it was done randomly and the POS is not the same as the basepair tacked onto the genepop IDs -- POS indicates the position on the chromosome, whereas the number in the genepop names is the location on the 95-bp locus.
+ 
+The map file might be able to help me convert them
+
+```{r}
+map<-read.delim("stacks/populations_subset75/batch_2.plink.map",comment.char = "#",header=FALSE)
+colnames(map)<-c("CHROM","ID_BP","X","POS")
+map$ID<-as.numeric(gsub("(\\d+)_(\\d+)","\\1",map$ID_BP))
+map$BP<-as.numeric(gsub("(\\d+)_(\\d+)","\\2",map$ID_BP))
+# Map positions start from 1, vcf from 0
+map_pruned<-map[paste(map$POS+1,map$ID,sep="_") %in% paste(vcf$POS, vcf$ID,sep="_"),]
+gpop75_pruned<-gpop75[,c(colnames(gpop75)[1:2],colnames(gpop75)[colnames(gpop75) %in% paste0("X",map_pruned$ID_BP)])]
+```
+
+Woohoo, this seems to have worked!
+
+Now I need to turn this back into genepop file format to work with diveRsity...
+
+```{r}
+library(genepopedit)
+genepop_unflatten(gpop75_pruned,"stacks/populations_subset75/batch_2.pruned.genepop")
+
+```
+
+Ok, this seems to work. 
+
+```{r}
+library(diveRsity)
+source("../R/readGenepop_modified.R") # need to load this after divRsity to mask the package fx
+pop75_div<-fastDivPart(infile=gpop75_pruned,gp = 2) #readGenepop(infile="stacks/populations_subset75/batch_2.pruned.genepop",gp = 2)
+```
+
+This is not working! I ended up re-writing some of the code that parses the genepop files because diveRsity wasn't correctly parsing my genepop file for some reason (something to do with the POP specifications, as far as I can tell -- which came from genepopedit and before that from Stacks).
+
+However, this does not get past the issues, as far as I can tell. So perhaps I should retire the idea of using this package and/or post an issue on the github. I think I should maybe abandon this and perform permutations/bootstraps on my own. 
+
 # 27 August 2019
 
 I'm going to try the diveRsity package.
@@ -20,7 +88,7 @@ library(diveRsity)
 pop75<-readGenepop("stacks/populations_subset75/batch_2.genepop")
 vcf<-parse.vcf("stacks/populations_subset75/batch_2.pruned.vcf")
 
-divstats<-bigDivPart(pop75)
+divstats<-bigDivPart(gpop75)
 ```
 
 This is taking far too long. I should try this at work tomorrow.

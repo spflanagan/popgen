@@ -97,6 +97,7 @@ scaff.starts<-tapply(vcf$POS,vcf$`#CHROM`,max)
 scaff.starts<-data.frame(rbind(cbind(names(scaff.starts),scaff.starts)),stringsAsFactors = F)
 locus.info<-c(colnames(vcf[1:9]),"SNP")
 ```
+
 # Figure 1: Population structure + map
 
 ## Map of the populations
