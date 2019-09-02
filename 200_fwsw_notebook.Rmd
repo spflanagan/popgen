@@ -11,6 +11,10 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 2 September 2019
+
+Returning to the idea of permutations...
+
 # 28 August 2019
 
 loading the file with diveRsity is pretty slow so I'm going to try subsetting it first. I'm gonna give the R package `genepopedit` a try.
