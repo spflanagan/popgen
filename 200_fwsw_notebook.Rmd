@@ -85,8 +85,9 @@ Let's try it on a larger scale:
 
 ```{r}
 permuted_fsts<-lapply(pwise_maps,permute.gwsca,vcf=vcf,nperms=100)
+saveRDS(permuted_fsts,"permuted_fsts.RDS")
 ```
-
+Ok, I want to do permutations but I can't think about how to implement it right now. Looking at this, though there seems to be an issue, since Hs1 and Hs2 are non-zero but Hs, Ht, and Fst are 0 for some of these. I'll need to dig into this tomorrow.
 
 # 28 August 2019
 
@@ -164,7 +165,7 @@ popmap<-data.frame(pop=gsub("sample_([A-Z]{4}).*","\\1",colnames(vcf)[10:ncol(vc
 
 ```
 
-Ok, I want to do permutations but I can't think about how to implement it right now.
+
 
 ### Pcadapt
 
