@@ -11,9 +11,82 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
-# 2 September 2019
+# 5 September 2019
 
 Returning to the idea of permutations...
+
+I'll want to permute the labels in each pairwise comparison.
+
+```{r}
+vcf<-parse.vcf("stacks/populations_subset75/batch_2.pruned.vcf")
+
+```
+
+In some ways this might be easier to run in populations, but I want to try it here.
+
+My gwscaR code isn't quite right for this because the population lists must be found in the individual IDs. So I need to re-make this using a population map framework. So here's the population map:
+
+```{r}
+popmap<-data.frame(inds=colnames(vcf)[10:ncol(vcf)],
+                   pops=gsub("sample_(\\w{4}).*","\\1",colnames(vcf)[10:ncol(vcf)]),
+                   stringsAsFactors = FALSE)
+```
+
+Now I want to do pairwise comparisons and permute those. 
+
+```{r}
+pwise_maps<-list(popmap[popmap$pops %in% c("TXFW","TXCC"),],
+                 popmap[popmap$pops %in% c("FLLG","FLCC"),],
+                 popmap[popmap$pops %in% c("ALFW","ALST"),],
+                 popmap[popmap$pops %in% c("LAFW","ALST"),])
+```
+
+`gwscaR::fst.one.vcf` actually will work well -- as will `gwscaR::gwsca`. What I need to do for permutations is for each of these pairwise maps, I need to run a permutation. 
+
+```{r}
+permute.gwsca<-function(vcf,map1,nperms,z=1.96, maf.cutoff = 0.05,cov.thresh=0.2){
+  # calculate the actuals
+  actual_fsts<-gwsca(vcf,colnames(vcf)[1:9],
+                     map1[map1[,2] %in% unique(map1[,2])[1],1],
+                     map1[map1[,2] %in% unique(map1[,2])[2],1],
+                     maf.cutoff,cov.thresh)
+  # do the permutations
+  perm_fsts<-lapply(1:nperms,function(i,vcf,map1){
+    perm_map<-map1
+    perm_map[,2]<-perm_map[,2][permute::shuffle(perm_map[,2])]
+    return(gwsca(vcf,colnames(vcf)[1:9],
+                     perm_map[perm_map[,2] %in% unique(perm_map[,2])[1],1],
+                     perm_map[perm_map[,2] %in% unique(perm_map[,2])[2],1],
+                     maf.cutoff,cov.thresh))
+  },vcf=vcf,map1=map1)
+  # calculate stats
+  fsts<-t(do.call(rbind,lapply(perm_fsts,'[[',"Fst"))) #extract permuted fsts
+  perm_fst_mu<-rowMeans(fsts)
+  perm_fst_sd<-apply(fsts,1,sd)
+  perm_fst_ci<-z*perm_fst_sd/sqrt(nperms)
+  fst_dat<-data.frame(cbind(actual_fsts,
+                            n_perms=nperms,
+                            mean_perm=perm_fst_mu,
+                            low_ci=perm_fst_mu-perm_fst_ci,
+                            upp_ci=perm_fst_mu+perm_fst_ci))
+  return(fst_dat)
+}
+```
+
+```{r}
+TXmap<-popmap[popmap$pops %in% c("TXFW","TXCC"),]
+perm_test<-permute.gwsca(vcf,TXmap,10)
+
+```
+
+This seems like it will work, I think!
+
+Let's try it on a larger scale:
+
+```{r}
+permuted_fsts<-lapply(pwise_maps,permute.gwsca,vcf=vcf,nperms=100)
+```
+
 
 # 28 August 2019
 
