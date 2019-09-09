@@ -11,6 +11,75 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 9 September 2019
+
+Ok, so that permuted Fsts thing works for permutations, but I think something odd is going on with the Fst calculations.
+
+```{r}
+permute.gwsca<-function(vcf,map1,nperms,z=1.96, maf.cutoff = 0.05,cov.thresh=0.2){
+  # calculate the actuals
+  actual_fsts<-gwsca(vcf,colnames(vcf)[1:9],
+                     map1[map1[,2] %in% unique(map1[,2])[1],1],
+                     map1[map1[,2] %in% unique(map1[,2])[2],1],
+                     maf.cutoff=maf.cutoff,prop.ind.thresh=cov.thresh)
+  # do the permutations
+  perm_fsts<-lapply(1:nperms,function(i,vcf,map1){
+    perm_map<-map1
+    perm_map[,2]<-perm_map[,2][permute::shuffle(perm_map[,2])]
+    perm_dat<-gwsca(vcf,colnames(vcf)[1:9],
+                     perm_map[perm_map[,2] %in% unique(perm_map[,2])[1],1],
+                     perm_map[perm_map[,2] %in% unique(perm_map[,2])[2],1],
+                     maf.cutoff,cov.thresh)
+   
+    return(perm_dat)
+  },vcf=vcf,map1=map1)
+  # calculate stats
+  fsts<-t(do.call(rbind,lapply(perm_fsts,'[[',"Fst"))) #extract permuted fsts
+  perm_fst_mu<-rowMeans(fsts)
+  perm_fst_sd<-apply(fsts,1,sd)
+  perm_fst_ci<-z*perm_fst_sd/sqrt(nperms)
+  fst_dat<-data.frame(cbind(actual_fsts,
+                            n_perms=nperms,
+                            mean_perm=perm_fst_mu,
+                            low_ci=perm_fst_mu-perm_fst_ci,
+                            upp_ci=perm_fst_mu+perm_fst_ci))
+  return(fst_dat)
+}
+```
+```{r}
+source("../../gwscaR/R/gwscaR.R")
+source("../../gwscaR/R/gwscaR_plot.R")
+source("../../gwscaR/R/gwscaR_utility.R")
+source("../../gwscaR/R/gwscaR_fsts.R")
+source("../../gwscaR/R/gwscaR_popgen.R")
+source("../../gwscaR/R/vcf2dadi.R")
+```
+```{r}
+
+permuted_fsts<-readRDS("permuted_fsts.RDS")
+vcf<-parse.vcf("stacks/populations_subset75/batch_2.pruned.vcf")
+popmap<-data.frame(inds=colnames(vcf)[10:ncol(vcf)],
+                   pops=gsub("sample_(\\w{4}).*","\\1",colnames(vcf)[10:ncol(vcf)]),
+                   stringsAsFactors = FALSE)
+pwise_maps<-list(popmap[popmap$pops %in% c("TXFW","TXCC"),],
+                 popmap[popmap$pops %in% c("FLLG","FLCC"),],
+                 popmap[popmap$pops %in% c("ALFW","ALST"),],
+                 popmap[popmap$pops %in% c("LAFW","ALST"),])
+
+TXmap<-popmap[popmap$pops %in% c("TXFW","TXCC"),]
+perm_test<-permute.gwsca(vcf,TXmap,10,maf.cutoff=0,cov.thresh = 0)
+```
+
+Ok, now let's dive into this analysis. Using browser(), I deduced that this was a minimum allele frequency issue. Because the loci in this analysis have passed a global minor allele frequency threshold, I'm going to run with a maf=0. The other reason is that some of them are polymorphic only in one population, and the function currently only deals with loci that are polymoprhic in both populations. This is unfortunately most of them in the TX dataset so I might change the function. 
+
+Now it seems to be working correctly so I'll apply it to the larger dataset.
+
+```{r}
+permuted_fsts<-lapply(pwise_maps,permute.gwsca,vcf=vcf,nperms=100, maf.cutoff=0)
+saveRDS(permuted_fsts,"permuted_fsts.RDS")
+```
+
+
 # 5 September 2019
 
 Returning to the idea of permutations...
