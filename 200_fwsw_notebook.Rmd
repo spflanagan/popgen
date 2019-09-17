@@ -11,6 +11,56 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 17 September 2019
+
+My computer crashed -- 3DAL had been running for over 1600 hr and didn't even get through one replicate of one model. This is absolutely ridiculous. Luckily 254_2DoptNsim_TX_1 finished yesterday. Ah except it's not that it finished, it ran out of space! Crap. But it has finished 20 simulations so far. What's crazy to me is the variation in analysis times for the simulations -- from 5hr 49 min to 17 days! Once I restart my computer I'll run some more dadi combinations. maybe I can just do a bunch of 2D analyses and skip the 3D, unless Felipe sorts me out with something through MS Azure.
+
+In the meantime, I'm going to work on an aspect of these analyses that is more within my control -- the Fst permutations.
+
+```{r}
+permuted_fsts<-readRDS("permuted_fsts.RDS")
+```
+
+So one of the issues with the permutations is that many of the loci are only polymorphic in one population, causing Fst to be 0, based on my calculations (because average Hs is the same as Ht). I could try another Fst calculation method but I'm not sure that will really help. But this should come out in the permutations? Are the permutations not permuting the map reliably? I think it should be. 
+
+Looking at the variation in the Num1s after 10 permutations, it would seem that the permutations are working. What seems to be happening is that at some loci there is only one heterozygote so even if that individual gets switched it doesn't change things. 
+
+I suppose the question is whether these perhaps-problematic loci are also problematic in the fst comparisons. The Fst output from permute.gwsca is the ACTUAL fst so I could plot those with CIs.
+
+```{r gwscaPlot}
+pf1<-fst.plot(permuted_fsts[[1]],bp.name="Pos",pt.cex = 1,axis.size = 1,pch=19)
+# add lines
+pos_fsts<-pf1[pf1$Fst>0,]
+arrows(x0=pos_fsts$plot.pos,x1=pos_fsts$plot.pos,
+       y0=pos_fsts$low_ci, y1=pos_fsts$upp_ci,
+       col=c("darkgrey","lightgrey")[as.factor(pos_fsts$Chrom)],length=0)
+```
+
+Ok, so I calculated the confidence intervals around the permuted means, not the actual Fst values. 
+
+So, how do I present these results? possibly not CIs. A difference between actual and permuted?
+
+```{r}
+par(mfrow=c(2,1))
+pf1a<-fst.plot(permuted_fsts[[1]],fst.name = "Fst",bp.name="Pos",pt.cex = 1,axis.size = 1,pch=19,y.lim = c(0,1))
+pf1p<-fst.plot(permuted_fsts[[1]],fst.name = "mean_perm",bp.name="Pos",pt.cex = 1,axis.size = 1,pch=19,y.lim = c(0,1))
+arrows(x0=pf1p$plot.pos,x1=pf1p$plot.pos,
+       y0=pf1p$low_ci, y1=pf1p$upp_ci,
+       col=c("darkgrey","lightgrey")[as.numeric(pf1p$Chrom)%%2],length=0)
+```
+
+So they definitely are different. Maybe I can do a chi-squared test or something.
+
+
+```{r}
+fwsw.al<-read.delim("stacks/populations_subset75/batch_2.fst_ALFW-ALST.tsv")
+fwsw.la<-read.delim("stacks/populations_subset75/batch_2.fst_ALST-LAFW.tsv")
+fwsw.tx<-read.delim("stacks/populations_subset75/batch_2.fst_TXCC-TXFW.tsv")
+fwsw.fl<-read.delim("stacks/populations_subset75/batch_2.fst_FLCC-FLFW.tsv")
+```
+
+
+
 # 9 September 2019
 
 Ok, so that permuted Fsts thing works for permutations, but I think something odd is going on with the Fst calculations.
@@ -33,6 +83,7 @@ permute.gwsca<-function(vcf,map1,nperms,z=1.96, maf.cutoff = 0.05,cov.thresh=0.2
    
     return(perm_dat)
   },vcf=vcf,map1=map1)
+  
   # calculate stats
   fsts<-t(do.call(rbind,lapply(perm_fsts,'[[',"Fst"))) #extract permuted fsts
   perm_fst_mu<-rowMeans(fsts)
