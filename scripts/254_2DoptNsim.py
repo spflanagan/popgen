@@ -1,9 +1,10 @@
 '''
 Optimizing and simulating 2D models
 Run this from outside the dadi directory
+Run it for example like nohup python ../../scripts/254_2DoptNsim.py TX2D/sims2 > 254_2DoptNsim_TX_2.log &
 '''
 
-#start with ipython -pylab from ~/Research/popgen/fwsw_results/dadi_analysis
+
 
 # Numpy is the numerical library dadi is built upon
 import sys
@@ -19,13 +20,14 @@ texas=True
 ###################
 fl_dir="FL2D"
 tx_dir="TX2D"
-if (len(sys.argv) == 2 and florida is True):
-	fl_dir=sys.argv[1]
+# The first argument is the name of the script and indexing starts at 0
+if (len(sys.argv) == 2 and florida is True): 
+	fl_dir=sys.argv[1] # this is the florida directory
 if (len(sys.argv) == 2 and texas is True):
-	fl_dir=sys.argv[1]
+	tx_dir=sys.argv[1] # this is the texas directory
 if (len(sys.argv) == 3):
-	fl_dir=sys.argv[1]
-	tx_dir=sys.argv[2]
+	fl_dir=sys.argv[1] #florida directory comes first
+	tx_dir=sys.argv[2] # texas directory comes second
 
 print(fl_dir)
 print(tx_dir)
@@ -105,8 +107,9 @@ if florida is True:
 #											TEXAS				 								  #
 #=================================================================================================#
 if texas is True:
-	os.chdir("TX2D")
+	os.chdir(tx_dir)
 	tx = dadi.Spectrum.from_data_dict(dd , pop_ids =[ 'TXFW','TXCC' ],projections =[46,60] ,polarized = False )  #polarized = False creates folded spectrum
+
 	#===================================FIT MODEL TO EMPIRICAL DATA ==================================#
 
 	#Make sure to define your extrapolation grid size.
@@ -131,7 +134,7 @@ if texas is True:
 	fs_folded = True
 
 	#Set the number of simulations to perform here. This should be ~100 or more.
-	sims = 100
+	sims = 20
 
 	#Enter the number of parameters found in the model to test.
 	p_num = 7

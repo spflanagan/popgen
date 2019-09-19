@@ -489,18 +489,18 @@ dev.off()
 ### dadi
 
 
-## Outliers: Fsts from Stacks, fsts tested against dadi results, PCadapt
+## Outliers: Fsts from Stacks, permutations, PCadapt
 
 ### Stacks
 
-```{r}
+```{r stacks_fsts}
 fwsw.al<-read.delim("stacks/populations_subset75/batch_2.fst_ALFW-ALST.tsv")
 fwsw.la<-read.delim("stacks/populations_subset75/batch_2.fst_ALST-LAFW.tsv")
 fwsw.tx<-read.delim("stacks/populations_subset75/batch_2.fst_TXCC-TXFW.tsv")
 fwsw.fl<-read.delim("stacks/populations_subset75/batch_2.fst_FLCC-FLFW.tsv")
 ```
 
-```{r}
+```{r assignplotpos}
 assign.plotpos<-function(df, plot.scaffs, bounds, df.chrom="Chrom", df.bp="BP"){
   colnames(bounds)<-c("Chrom","End")
   new.dat<-data.frame(stringsAsFactors = F)
@@ -523,7 +523,8 @@ assign.plotpos<-function(df, plot.scaffs, bounds, df.chrom="Chrom", df.bp="BP"){
   new.dat$plot.pos<-as.numeric(as.character(new.dat$plot.pos))
   return(new.dat)
 }
-
+```
+```{r perlglines}
 perlg.add.lines<-function(fwsw.plot,lgs,width=NULL,lwds=4,color="cornflowerblue"){
  
   for(i in 1:length(lgs)){
@@ -541,7 +542,7 @@ perlg.add.lines<-function(fwsw.plot,lgs,width=NULL,lwds=4,color="cornflowerblue"
 ```
 
 
-```{r}
+```{r plotmultiplelgs}
 plot_multiple_LGs<-function(list_fsts,fst_name,chr_name,bp_name,lgs,plot_labs,pt_cols=NULL,plot_scaffs=NULL,addSmooth=TRUE,smoothFst="Smoothed.Fst",smoothcol="cornflowerblue",ncol=2,...){
   nrow<-length(list_fsts)/ncol
   
@@ -628,11 +629,8 @@ plot_multiple_LGs<-function(list_fsts,fst_name,chr_name,bp_name,lgs,plot_labs,pt
   },f=list_fsts,fst=fst_names,bp=bp_names,chr=chr_names,cols=pch_cols,plot_lab=plot_labs,smF=smoothFsts,MoreArgs = list(plot_scaffs=plot_scaffs,bounds=bounds, smoothcol=smoothcol,...))
   return(fsts)
 }
-
-
-
 ```
-```{r}
+```{r plot_stacks_fsts}
 fst_dat<-list(fwsw.al,fwsw.la,fwsw.tx,fwsw.fl)
 fsts<-plot_multiple_LGs(list_fsts = list_fsts,fst_name = "Corrected.AMOVA.Fst",bp_name="BP",chr_name="Chr",
                         lgs=lgs,plot_labs=list("ALFW vs ALST","ALST vs LAFW","TXFW vs TXCC","FLFW vs FLCC"),
@@ -643,7 +641,7 @@ fsts<-plot_multiple_LGs(list_fsts = list_fsts,fst_name = "Corrected.AMOVA.Fst",b
 
 So this generated a plot for each pairwise comparison. We could look for shared outliers and see if we can find anything
 
-```{r}
+```{r get_stacks_sig}
 tx.sig<-fwsw.tx[fwsw.tx$Fisher.s.P<0.01,"Locus.ID"]
 la.sig<-fwsw.la[fwsw.la$Fisher.s.P<0.01,"Locus.ID"]
 al.sig<-fwsw.al[fwsw.al$Fisher.s.P<0.01,"Locus.ID"]
@@ -655,6 +653,132 @@ all.shared<-fl.sig[fl.sig %in% la.sig & fl.sig %in% al.sig & fl.sig %in% tx.sig]
 ```
 
 There are `r length(unique(all.shared))` outliers (as determined by Fisher's P from stacks < 0.01) 
+
+### Permutations
+
+```{r permute.gwsca}
+permute.gwsca<-function(vcf,map1,nperms,z=1.96, maf.cutoff = 0.05,cov.thresh=0.2){
+  # calculate the actuals
+  actual_fsts<-gwsca(vcf,colnames(vcf)[1:9],
+                     map1[map1[,2] %in% unique(map1[,2])[1],1],
+                     map1[map1[,2] %in% unique(map1[,2])[2],1],
+                     maf.cutoff=maf.cutoff,prop.ind.thresh=cov.thresh)
+  # do the permutations
+  perm_fsts<-lapply(1:nperms,function(i,vcf,map1){
+    perm_map<-map1
+    perm_map[,2]<-perm_map[,2][permute::shuffle(perm_map[,2])]
+    perm_dat<-gwsca(vcf,colnames(vcf)[1:9],
+                     perm_map[perm_map[,2] %in% unique(perm_map[,2])[1],1],
+                     perm_map[perm_map[,2] %in% unique(perm_map[,2])[2],1],
+                     maf.cutoff,cov.thresh)
+   
+    return(perm_dat)
+  },vcf=vcf,map1=map1)
+  
+  # calculate stats
+  fsts<-t(do.call(rbind,lapply(perm_fsts,'[[',"Fst"))) #extract permuted fsts
+  perm_fst_mu<-rowMeans(fsts)
+  perm_fst_in<-NULL
+  for(i in 1:nrow(actual_fsts)){
+    pmax<-max(fsts[i,] )
+    pmin<-min(fsts[i,] )
+    if(actual_fsts[i,"Fst"] > pmax | actual_fsts[i,"Fst"] < pmin ){
+      perm_fst_in[i]<-1
+    }else{
+      perm_fst_in[i]<-0
+    }
+  }
+  
+  fst_dat<-data.frame(cbind(actual_fsts,
+                            n_perms=nperms,
+                            mean_perm=perm_fst_mu,
+                            act_in_perm=perm_fst_in))
+  return(fst_dat)
+}
+```
+```{r permuteVCF,eval=FALSE}
+vcf<-parse.vcf("stacks/populations_subset75/batch_2.pruned.vcf")
+popmap<-data.frame(inds=colnames(vcf)[10:ncol(vcf)],
+                   pops=gsub("sample_(\\w{4}).*","\\1",colnames(vcf)[10:ncol(vcf)]),
+                   stringsAsFactors = FALSE)
+pwise_maps<-list(popmap[popmap$pops %in% c("TXFW","TXCC"),],
+                 popmap[popmap$pops %in% c("FLLG","FLCC"),],
+                 popmap[popmap$pops %in% c("ALFW","ALST"),],
+                 popmap[popmap$pops %in% c("LAFW","ALST"),])
+
+permuted_fsts<-lapply(pwise_maps,permute.gwsca,vcf=vcf,nperms=1000, maf.cutoff=0)
+saveRDS(permuted_fsts,"permuted_fsts.RDS")
+```
+
+Now let's visualize it.
+
+```{r plot_fst_hists}
+plot_fst_hists<-function(perms,plot_lab=NULL,cols=NULL,permlab="mean_perm",reallab="Fst",baseplot=TRUE,inset=NULL){
+  require(scales)
+  if(is.null(plot_lab)){
+    plot_lab<-""
+  }
+  if(is.null(cols)){
+    cols<-c("grey","black")
+  } else if(length(cols)==1){
+    cols<-c("dark grey",cols)
+  }
+  #inset<-par()$fig
+  #browser()
+  if(isTRUE(baseplot)){
+    hist(perms[,permlab],col=alpha(cols[1],0.5),border = alpha(cols[1],0.5),
+         xlim=c(0,1),breaks = seq(0,1,0.01),main = plot_lab,xlab=expression(italic(F)[ST]),
+         ylab="Number of SNPs")
+    hist(perms[,reallab],col=alpha(cols[2],0.5),border = alpha(cols[2],0.5),
+         xlim=c(0,1),breaks = seq(0,1,0.01),main = "",xlab=expression(italic(F)[ST]),
+         ylab="Number of SNPs",add=TRUE)
+  }
+  if(!is.null(inset)){ # add an inset
+    # adjust the fig coordinates
+    ifig<-c(inset[1]+0.25*(inset[2]-inset[1]),inset[2], 
+            inset[3]+0.25*(inset[4]-inset[3]), inset[4])
+    par(fig = ifig,new=TRUE) # start x, end x, start y, end y (percent plotting space)
+    hist(perms[,permlab][perms[,reallab]>0],col=alpha(cols[1],0.5),border = alpha(cols[1],0.5),
+         xlim=c(0,1),breaks = seq(0,1,0.01),main = "",xlab="",
+         ylab="")
+    box() #give it a box
+    hist(perms[,reallab,][perms[,reallab]>0],col=alpha(cols[2],0.5),border = alpha(cols[2],0.5),
+         xlim=c(0,1),breaks = seq(0,1,0.01),main = "",xlab="",
+         ylab="",add=TRUE)
+  }
+  invisible(par()$fig)
+}
+
+```
+```{r plot_permutations, eval=FALSE}
+plot_labs<-list("TXFW vs TXCC","FLFW vs FLCC","ALFW vs ALST","ALST vs LAFW")
+pt_cols<-list(TXTX=grp.colors[1],FLFL=grp.colors[6],
+              ALAL=grp.colors[3],ALLA=grp.colors[2])
+png("../figs/permuted_fsts.png",pointsize = 16,height=7,width=8,units="in",res=300)
+par(mfrow=c(2,2),new=FALSE,mar=c(4,4,3,1))
+#plot the base
+pars<-mapply(plot_fst_hists,perms=permuted_fsts,plot_lab=plot_labs,cols=pt_cols,SIMPLIFY = FALSE)
+# add the insets
+ipars<-mapply(plot_fst_hists,perms=permuted_fsts,plot_lab=plot_labs,cols=pt_cols,
+              inset=pars,
+              MoreArgs = list(baseplot=FALSE))
+dev.off()
+```
+[Permuted Fsts](../figs/permuted_fsts.png)
+
+Now let's start to aggregate everything.
+
+```{r}
+vcf<-parse.vcf("stacks/populations_subset75/batch_2.pruned.vcf")
+fw_SNPinfo<-data.frame(ID=vcf$ID,Chrom=vcf$`#CHROM`,Pos=vcf$POS,BP=vcf$POS+1,
+                       REF=vcf$REF,ALT=vcf$ALT,
+                       perm_TX=permuted_fsts[[1]]$act_in_perm,
+                       perm_FL=permuted_fsts[[2]]$act_in_perm,
+                       perm_AL=permuted_fsts[[3]]$act_in_perm,
+                       perm_LA=permuted_fsts[[4]]$act_in_perm,
+                       stringsAsFactors = FALSE)
+```
+
 
 
 ### PCAdapt

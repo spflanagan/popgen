@@ -11,6 +11,249 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 19 September 2019
+
+1000 permutations took a while - finished ~20hrs later.
+
+Now I'm going take a look at those that are never found in permuted range.
+
+```{r}
+perm_out<-lapply(permuted_fsts,function(x){
+  outs<-x[x$act_in_perm==1,]
+  return(outs)
+})
+names(perm_out)<-list("TXFW vs TXCC","FLFW vs FLCC","ALFW vs ALST","ALST vs LAFW")
+```
+
+```{r}
+pf1a<-fst.plot(permuted_fsts[[1]],fst.name = "Fst",bp.name="Pos",pt.cex = 1,axis.size = 1,pch=19,y.lim = c(0,1))
+points(pf1a$plot.pos[pf1a$act_in_perm==1],pf1a$Fst[pf1a$act_in_perm==1],col="red")
+```
+
+Hmm, the points are all over, even small values. Let's look at all four comparison.
+
+```{r}
+par(mfrow=c(4,1),mar=c(2,2,2,2))
+lapply(permuted_fsts,function(perm_fst){
+  pf1a<-fst.plot(perm_fst,fst.name = "Fst",bp.name="Pos",pt.cex = 1,axis.size = 1,pch=19,y.lim = c(0,1))
+  points(pf1a$plot.pos[pf1a$act_in_perm==1],pf1a$Fst[pf1a$act_in_perm==1],col="red")
+})
+```
+
+The nice thing is that most of the extreme outliers are captured in this analysis. The next thing to do would be to compare all of the outliers. I also should start some dadi runs.
+
+I also started more TX simulations (4 sets of 20 sims). Hopefully none of them take 20 days! It would be really great if I could start a bunch of runs on the supercomputer or with Felipe or something. 
+
+Before I leave for the day, I'm going to start my 'master' list of SNPs and their outlier status info. The locus IDs are in the vcf, not in the permuted_fsts dataframes, so I'll start with that.
+
+```{r}
+vcf<-parse.vcf("stacks/populations_subset75/batch_2.pruned.vcf")
+fw_SNPinfo<-data.frame(ID=vcf$ID,Chrom=vcf$`#CHROM`,Pos=vcf$POS,
+                       REF=vcf$REF,ALT=vcf$ALT,
+                       perm_TX=permuted_fsts[[1]]$act_in_perm,
+                       perm_FL=permuted_fsts[[2]]$act_in_perm,
+                       perm_AL=permuted_fsts[[3]]$act_in_perm,
+                       perm_LA=permuted_fsts[[4]]$act_in_perm,
+                       stringsAsFactors = FALSE)
+saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
+```
+
+
+```{r stacks_fsts}
+fwsw.al<-read.delim("stacks/populations_subset75/batch_2.fst_ALFW-ALST.tsv")
+fwsw.la<-read.delim("stacks/populations_subset75/batch_2.fst_ALST-LAFW.tsv")
+fwsw.tx<-read.delim("stacks/populations_subset75/batch_2.fst_TXCC-TXFW.tsv")
+fwsw.fl<-read.delim("stacks/populations_subset75/batch_2.fst_FLCC-FLFW.tsv")
+```
+
+And we need to match these to the Stacks Fsts, which have multiple SNPs per locus. And of course the BP and Position don't match up between the two -- I **thought** it was BP = POS+1, but that doesn't seem to work in all cases. Ugh how frustrating. I really don't get it. 
+```{r}
+for(i in 1:nrow(fw_SNPinfo)){
+  browser()
+  fwsw.al$Fisher.s.P[which(fwsw.al$BP[which(fwsw.al$Locus.ID == fw_SNPinfo$ID[i])] == fw_SNPinfo$Pos[i]-1)]
+}
+test<-merge(fw_SNPinfo,fwsw.al,by.x=c("Chrom","BP"),by.y=c("Locus.ID","Chr","BP"),all.y = FALSE)
+```
+
+Hmm ok this is confusing and frustrating, I think I'm going to leave it at this and go home. 
+
+
+# 18 September 2019
+
+My goals for today are as follows:
+
+1. Make overlapping histograms of Fst distributions for permuted and actual values. 
+2. Use permutations to identify outliers (probability of actual value within permuted range?)
+3. Spawn more dadi runs - possibly in parallel?
+4. Create dataframe which contains for each locus:
+* its information
+* its stacks p-value
+* its permutation probabilities
+* its PCAdapt q-vale
+* its XTX outlier designation
+5. Make PCAdapt and Bayenv outlier plots 
+
+So for #1 I'll start with the existing permutation distributions, just to write the code. 
+
+```{r}
+permuted_fsts<-readRDS("permuted_fsts.RDS")
+
+```
+
+```{r}
+pop.list<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
+	"FLFD","FLSI","FLAB","FLPB","FLHB","FLCC","FLLG")
+pop.labs<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
+            "FLFD","FLSI","FLAB","FLPB","FLHB","FLCC","FLFW")
+fw.list<-c("TXFW","LAFW","ALFW","FLLG")
+sw.list<-c("TXSP","TXCC","TXCB","ALST","FLSG","FLKB",
+	"FLFD","FLSI","FLAB","FLPB","FLHB","FLCC")
+all.colors<-c(rep("black",2),"#2166ac","black","#2166ac","black","#2166ac",
+        rep("black",8),"#2166ac")
+#grp.colors<-c('#e41a1c','#377eb8','#4daf4a','#984ea3','#ffff33','#f781bf')
+grp.colors<-c('#762a83','#af8dc3','#e7d4e8','#d9f0d3','#7fbf7b','#1b7837')
+
+# used this order for permutations
+#pwise_maps<-list(popmap[popmap$pops %in% c("TXFW","TXCC"),],
+#                 popmap[popmap$pops %in% c("FLLG","FLCC"),],
+#                 popmap[popmap$pops %in% c("ALFW","ALST"),],
+#                 popmap[popmap$pops %in% c("LAFW","ALST"),])
+
+plot_labs<-list("TXFW vs TXCC","FLFW vs FLCC","ALFW vs ALST","ALST vs LAFW")
+pt_cols<-list(TXTX=grp.colors[1],FLFL=grp.colors[6],
+              ALAL=grp.colors[3],ALLA=grp.colors[2])
+```
+
+```{r}
+
+
+plot_fst_hists<-function(perms,plot_lab=NULL,cols=NULL,permlab="mean_perm",reallab="Fst",baseplot=TRUE,inset=NULL){
+  require(scales)
+  if(is.null(plot_lab)){
+    plot_lab<-""
+  }
+  if(is.null(cols)){
+    cols<-c("grey","black")
+  } else if(length(cols)==1){
+    cols<-c("dark grey",cols)
+  }
+  #inset<-par()$fig
+  #browser()
+  if(isTRUE(baseplot)){
+    hist(perms[,permlab],col=alpha(cols[1],0.5),border = alpha(cols[1],0.5),
+         xlim=c(0,1),breaks = seq(0,1,0.01),main = plot_lab,xlab=expression(italic(F)[ST]),
+         ylab="Number of SNPs")
+    hist(perms[,reallab],col=alpha(cols[2],0.5),border = alpha(cols[2],0.5),
+         xlim=c(0,1),breaks = seq(0,1,0.01),main = "",xlab=expression(italic(F)[ST]),
+         ylab="Number of SNPs",add=TRUE)
+  }
+  if(!is.null(inset)){ # add an inset
+    # adjust the fig coordinates
+    ifig<-c(inset[1]+0.25*(inset[2]-inset[1]),inset[2], 
+            inset[3]+0.25*(inset[4]-inset[3]), inset[4])
+    par(fig = ifig,new=TRUE) # start x, end x, start y, end y (percent plotting space)
+    hist(perms[,permlab][perms[,reallab]>0],col=alpha(cols[1],0.5),border = alpha(cols[1],0.5),
+         xlim=c(0,1),breaks = seq(0,1,0.01),main = "",xlab="",
+         ylab="")
+    box() #give it a box
+    hist(perms[,reallab,][perms[,reallab]>0],col=alpha(cols[2],0.5),border = alpha(cols[2],0.5),
+         xlim=c(0,1),breaks = seq(0,1,0.01),main = "",xlab="",
+         ylab="",add=TRUE)
+  }
+  invisible(par()$fig)
+}
+
+```
+```{r}
+png("../figs/permuted_fsts.png",pointsize = 16,height=7,width=8,units="in",res=300)
+par(mfrow=c(2,2),new=FALSE,mar=c(4,4,3,1))
+#plot the base
+pars<-mapply(plot_fst_hists,perms=permuted_fsts,plot_lab=plot_labs,cols=pt_cols,SIMPLIFY = FALSE)
+# add the insets
+ipars<-mapply(plot_fst_hists,perms=permuted_fsts,plot_lab=plot_labs,cols=pt_cols,
+              inset=pars,
+              MoreArgs = list(baseplot=FALSE))
+dev.off()
+```
+
+Ok, this works!
+
+
+I need to change the output a bit and somehow evaluate the likelihood that the actual value is within the range of permuted values.
+```{r}
+permute.gwsca<-function(vcf,map1,nperms,z=1.96, maf.cutoff = 0.05,cov.thresh=0.2){
+  # calculate the actuals
+  actual_fsts<-gwsca(vcf,colnames(vcf)[1:9],
+                     map1[map1[,2] %in% unique(map1[,2])[1],1],
+                     map1[map1[,2] %in% unique(map1[,2])[2],1],
+                     maf.cutoff=maf.cutoff,prop.ind.thresh=cov.thresh)
+  # do the permutations
+  perm_fsts<-lapply(1:nperms,function(i,vcf,map1){
+    perm_map<-map1
+    perm_map[,2]<-perm_map[,2][permute::shuffle(perm_map[,2])]
+    perm_dat<-gwsca(vcf,colnames(vcf)[1:9],
+                     perm_map[perm_map[,2] %in% unique(perm_map[,2])[1],1],
+                     perm_map[perm_map[,2] %in% unique(perm_map[,2])[2],1],
+                     maf.cutoff,cov.thresh)
+   
+    return(perm_dat)
+  },vcf=vcf,map1=map1)
+  
+  # calculate stats
+  fsts<-t(do.call(rbind,lapply(perm_fsts,'[[',"Fst"))) #extract permuted fsts
+  perm_fst_mu<-rowMeans(fsts)
+  perm_fst_in<-NULL
+  for(i in 1:nrow(actual_fsts)){
+    pmax<-max(fsts[i,] )
+    pmin<-min(fsts[i,] )
+    if(actual_fsts[i,"Fst"] > pmax | actual_fsts[i,"Fst"] < pmin ){
+      perm_fst_in[i]<-1
+    }else{
+      perm_fst_in[i]<-0
+    }
+  }
+  
+  fst_dat<-data.frame(cbind(actual_fsts,
+                            n_perms=nperms,
+                            mean_perm=perm_fst_mu,
+                            act_in_perm=perm_fst_in))
+  return(fst_dat)
+}
+```
+```{r}
+vcf<-parse.vcf("stacks/populations_subset75/batch_2.pruned.vcf")
+popmap<-data.frame(inds=colnames(vcf)[10:ncol(vcf)],
+                   pops=gsub("sample_(\\w{4}).*","\\1",colnames(vcf)[10:ncol(vcf)]),
+                   stringsAsFactors = FALSE)
+pwise_maps<-list(popmap[popmap$pops %in% c("TXFW","TXCC"),],
+                 popmap[popmap$pops %in% c("FLLG","FLCC"),],
+                 popmap[popmap$pops %in% c("ALFW","ALST"),],
+                 popmap[popmap$pops %in% c("LAFW","ALST"),])
+
+TXmap<-popmap[popmap$pops %in% c("TXFW","TXCC"),]
+perm_test<-permute.gwsca(vcf,TXmap,10,maf.cutoff=0,cov.thresh = 0)
+```
+
+Ok, this seems to have worked (it's a crude measure but let's go with it). Let's re-run this and generate many more permutations, then re-make the plots. 
+
+```{r}
+permuted_fsts<-lapply(pwise_maps,permute.gwsca,vcf=vcf,nperms=1000, maf.cutoff=0)
+saveRDS(permuted_fsts,"permuted_fsts.RDS")
+```
+```{r}
+png("../figs/permuted_fsts.png",pointsize = 16,height=7,width=8,units="in",res=300)
+par(mfrow=c(2,2),new=FALSE,mar=c(4,4,3,1))
+#plot the base
+pars<-mapply(plot_fst_hists,perms=permuted_fsts,plot_lab=plot_labs,cols=pt_cols,SIMPLIFY = FALSE)
+# add the insets
+ipars<-mapply(plot_fst_hists,perms=permuted_fsts,plot_lab=plot_labs,cols=pt_cols,
+              inset=pars,
+              MoreArgs = list(baseplot=FALSE))
+dev.off()
+```
+
+
+
 # 17 September 2019
 
 My computer crashed -- 3DAL had been running for over 1600 hr and didn't even get through one replicate of one model. This is absolutely ridiculous. Luckily 254_2DoptNsim_TX_1 finished yesterday. Ah except it's not that it finished, it ran out of space! Crap. But it has finished 20 simulations so far. What's crazy to me is the variation in analysis times for the simulations -- from 5hr 49 min to 17 days! Once I restart my computer I'll run some more dadi combinations. maybe I can just do a bunch of 2D analyses and skip the 3D, unless Felipe sorts me out with something through MS Azure.

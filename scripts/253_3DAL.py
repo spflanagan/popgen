@@ -36,7 +36,7 @@ os.chdir("AL3D")
 #=================================================================================================#
 #										LOOP TO OPTIMIZE 										  #
 #=================================================================================================#
-pts = [ 200,220,240,260 ]
+pts = [ 200,220,240 ]
 rounds=4
 #define the lists for optional arguments
 #you can change these to alter the settings of the optimization routine
