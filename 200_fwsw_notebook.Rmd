@@ -11,6 +11,10 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 20 September 2019
+
+Apparently my computer restarted last night so I re-started the TX 2D simultaions. 
+
 # 19 September 2019
 
 1000 permutations took a while - finished ~20hrs later.
