@@ -11,6 +11,111 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 25 September 2019
+
+Returning to my goal of having a 'master' data frame summarising my SNPs, I need to figure out the conversion between the stacks fst BP output and the vcf POS output. Why can't they all just be the same?!?!
+
+```{r stacks_fsts}
+fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
+fwsw.al<-read.delim("stacks/populations_subset75/batch_2.fst_ALFW-ALST.tsv")
+fwsw.la<-read.delim("stacks/populations_subset75/batch_2.fst_ALST-LAFW.tsv")
+fwsw.tx<-read.delim("stacks/populations_subset75/batch_2.fst_TXCC-TXFW.tsv")
+fwsw.fl<-read.delim("stacks/populations_subset75/batch_2.fst_FLCC-FLFW.tsv")
+```
+
+And we need to match these to the Stacks Fsts, which have multiple SNPs per locus. And of course the BP and Position don't match up between the two -- I **thought** it was BP = POS+1, but that doesn't seem to work in all cases. And of course the stacks manual is useless. The google groups says that "Stacks starts counting at 0" [unlike SAM files apparently] but this doesn't clarify the vcf vs fst output.  
+
+```{r}
+test<-merge(fw_SNPinfo,fwsw.al,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),all = FALSE) 
+```
+
+This test only has 6918 rows and it should have 12103. If we keep all of the fw_SNPinfo ones:
+
+```{r}
+test<-merge(fw_SNPinfo,fwsw.al,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),all.x=TRUE,all.y = FALSE) 
+head(test)
+```
+
+We can see that this is super inconsistent and confusing. Let's look at the first NA one.
+
+```{r}
+fwsw.al[which(fwsw.al$Locus.ID == fw_SNPinfo$ID[3]),]
+fw_SNPinfo[3,]
+```
+
+The locus is found in both but the BP is not! I wonder if some SNPs were removed from the Fst comparisons due to coverage issues or something. 
+
+```{r}
+testa<-merge(fw_SNPinfo,fwsw.al,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),all = FALSE) 
+testl<-merge(fw_SNPinfo,fwsw.la,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),all = FALSE) 
+testt<-merge(fw_SNPinfo,fwsw.tx,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),all = FALSE) 
+testf<-merge(fw_SNPinfo,fwsw.fl,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),all = FALSE) 
+```
+
+They've all got different numbers of rows - AL has 6918, LA has 7042, TX has 3687, and FL has 2049. UGH how annoying. Ok, well we'll just move forward with this, I can't waste my life trying to make sense of this weirdness. I *could* re-run populations, but I'd need to do that at home, so I'll consider that later.
+
+```{r}
+fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
+fw_SNPinfo<-merge(fw_SNPinfo,fwsw.al,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),all.x=TRUE,all.y = FALSE)[,c(colnames(fw_SNPinfo),"Fisher.s.P")] 
+colnames(fw_SNPinfo)[ncol(fw_SNPinfo)]<-"stacks_AL"
+fw_SNPinfo<-merge(fw_SNPinfo,fwsw.la,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),all.x=TRUE,all.y = FALSE)[,c(colnames(fw_SNPinfo),"Fisher.s.P")] 
+colnames(fw_SNPinfo)[ncol(fw_SNPinfo)]<-"stacks_LA"
+fw_SNPinfo<-merge(fw_SNPinfo,fwsw.tx,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),all.x=TRUE,all.y = FALSE)[,c(colnames(fw_SNPinfo),"Fisher.s.P")] 
+colnames(fw_SNPinfo)[ncol(fw_SNPinfo)]<-"stacks_TX"
+fw_SNPinfo<-merge(fw_SNPinfo,fwsw.fl,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),all.x=TRUE,all.y = FALSE)[,c(colnames(fw_SNPinfo),"Fisher.s.P")] 
+colnames(fw_SNPinfo)[ncol(fw_SNPinfo)]<-"stacks_FL"
+saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
+```
+
+Ok, I've added that to the main analysis document (which, by the way, I think I probably need to split into sections because it's so long!). Anyway, now let's add on PCAdapt and Bayenv outliers. I'm going to use the existing code in the doc to walk through PCAdapt.
+
+
+I should note that for some of these PCAdapt gives "NA" -- not sure what causes this behaviour but there it is. It's true for the residuals and everything else. It looks to be due to low allele frequencies -- though stacks should have been run with a minimum allele frequency cutoff, so this is perplexing.
+
+### Bayenv?
+
+Let's see what I did previously.
+
+```{r compareEnvVar}
+env.data<-read.csv("bayenv/env_data_raw.csv",row.names = 1)
+env.data<-rbind(env.data,pop=c(rep("SW",12),rep("FW",4)))
+env.data<-as.data.frame(t(env.data))
+wilcox.test(as.numeric(env.data$temp)~env.data$pop) #ties, but p=0.539
+wilcox.test(as.numeric(env.data$seagrass)~env.data$pop) #ties, but p=0.897
+```
+
+
+```{r bayenv}
+#taken directly from fwsw_analysis.R
+bf<-read.delim("bayenv/p4.bf.txt",header=T)
+bf$SNP<-paste(bf$scaffold,as.numeric(as.character(bf$BP))+1,sep=".")
+bf.co<-apply(bf[,5:7],2,quantile,0.99) #focus on Bayes Factors, because of Lotterhos & Whitlock (2015)
+temp.bf.sig<-bf[bf$Temp_BF>bf.co["Temp_BF"],c(1,2,4,8,5,9)]
+sal.bf.sig<-bf[bf$Salinity_BF>bf.co["Salinity_BF"],c(1,2,4,8,6,9)]
+grass.bf.sig<-bf[bf$seagrass_BF>bf.co["seagrass_BF"],c(1,2,4,8,7,9)]
+#get the log transformed Bayes Factors
+bf$logSal<-log(bf$Salinity_BF)
+bf$logTemp<-log(bf$Temp_BF)
+bf$logSeagrass<-log(bf$seagrass_BF)
+
+```
+
+There are `r nrow(temp.bf.sig[temp.bf.sig$locus %in% sal.bf.sig$locus & temp.bf.sig$locus %in% grass.bf.sig,])` overlapping outliers between temperature-, salinity-, and seagrass-associated loci.
+
+But if we only care about salinity ones, there are `r nrow(temp.bf.sig)` outliers.
+
+This used a different dataset, so let's see if ANY of the loci are the same 
+
+```{r}
+fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
+compare<-merge(fw_SNPinfo,bf,by.x = c("Chrom","BP"),by.y=c("scaffold","BP"))
+```
+... and `r nrow(compare)` are the same :cryface: 
+
+So I think I need to re-run Bayenv. It looks like I already tried to do this, as I've got a fw_sub75.clust file. The run_bayenv2_matrix_general seems to be the one I want. 
+
+It also looks like I need re-subset the ped and map files based on my vcf that I'm using.....and looking back at stuff, I think I'm currently using my dadi file, which maybe wasn't subsetted FML why is past me the worst???? Do I need to re-run dadi with a different dataset?!?!?!?!? goiajefpoiuh;oiaejoijevaoiejfoai 
+
 # 20 September 2019
 
 Apparently my computer restarted last night so I re-started the TX 2D simultaions. 
@@ -53,7 +158,7 @@ Before I leave for the day, I'm going to start my 'master' list of SNPs and thei
 ```{r}
 vcf<-parse.vcf("stacks/populations_subset75/batch_2.pruned.vcf")
 fw_SNPinfo<-data.frame(ID=vcf$ID,Chrom=vcf$`#CHROM`,Pos=vcf$POS,
-                       REF=vcf$REF,ALT=vcf$ALT,
+                       REF=vcf$REF,ALT=vcf$ALT,BP=vcf$POS-1,
                        perm_TX=permuted_fsts[[1]]$act_in_perm,
                        perm_FL=permuted_fsts[[2]]$act_in_perm,
                        perm_AL=permuted_fsts[[3]]$act_in_perm,

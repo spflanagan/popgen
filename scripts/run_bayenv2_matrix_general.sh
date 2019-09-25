@@ -21,20 +21,22 @@ SNPSFILE="$6"
 NUMPOPS="$7"
 
 ############## 		Then run plink 		 ##################
-~/Programs/plink-1.07-x86_64/plink --ped "$PED_NAME" --map "$MAP_NAME" \
---out "$OUT_DIR"/bayenv --noweb --allow-no-sex --recode --freq --within "$CLUST_NAME"
-
+if [ "$PLINK" = true ]; then
+	~/Programs/plink-1.07-x86_64/plink --ped "$PED_NAME" --map "$MAP_NAME" \
+	--out "$OUT_DIR"/bayenv --noweb --allow-no-sex --recode --freq --within "$CLUST_NAME"
+fi
 
 ############## 	   Create matrix files	 ##################
 #run this in the directory where you want the matrix files.
 cd ${OUT_DIR}
 
-
-for i in `seq 1 10`;
-do
-	echo "Running rep $i"
-	${BAYENV_DIR}/bayenv2 -i "$SNPSFILE" -p "$NUMPOPS" -k 100000 -r 628398 > matrix.$i.out
-done
+if [ "$MATRIX" = true ]; then
+	for i in `seq 1 10`;
+	do
+		echo "Running rep $i"
+		${BAYENV_DIR}/bayenv2 -i "$SNPSFILE" -p "$NUMPOPS" -k 100000 -r 628398 > matrix.$i.out
+	done
+fi
 
 ############## 	   		Run bayenv2	 	 ##################
 

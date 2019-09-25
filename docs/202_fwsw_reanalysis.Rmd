@@ -770,7 +770,7 @@ Now let's start to aggregate everything.
 
 ```{r}
 vcf<-parse.vcf("stacks/populations_subset75/batch_2.pruned.vcf")
-fw_SNPinfo<-data.frame(ID=vcf$ID,Chrom=vcf$`#CHROM`,Pos=vcf$POS,BP=vcf$POS+1,
+fw_SNPinfo<-data.frame(ID=vcf$ID,Chrom=vcf$`#CHROM`,Pos=vcf$POS,BP=vcf$POS-1,
                        REF=vcf$REF,ALT=vcf$ALT,
                        perm_TX=permuted_fsts[[1]]$act_in_perm,
                        perm_FL=permuted_fsts[[2]]$act_in_perm,
@@ -780,6 +780,17 @@ fw_SNPinfo<-data.frame(ID=vcf$ID,Chrom=vcf$`#CHROM`,Pos=vcf$POS,BP=vcf$POS+1,
 ```
 
 
+```{r}
+fw_SNPinfo<-merge(fw_SNPinfo,fwsw.al,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),all.x=TRUE,all.y = FALSE)[,c(colnames(fw_SNPinfo),"Fisher.s.P")] 
+colnames(fw_SNPinfo)[ncol(fw_SNPinfo)]<-"stacks_AL"
+fw_SNPinfo<-merge(fw_SNPinfo,fwsw.la,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),all.x=TRUE,all.y = FALSE)[,c(colnames(fw_SNPinfo),"Fisher.s.P")] 
+colnames(fw_SNPinfo)[ncol(fw_SNPinfo)]<-"stacks_LA"
+fw_SNPinfo<-merge(fw_SNPinfo,fwsw.tx,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),all.x=TRUE,all.y = FALSE)[,c(colnames(fw_SNPinfo),"Fisher.s.P")] 
+colnames(fw_SNPinfo)[ncol(fw_SNPinfo)]<-"stacks_TX"
+fw_SNPinfo<-merge(fw_SNPinfo,fwsw.fl,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),all.x=TRUE,all.y = FALSE)[,c(colnames(fw_SNPinfo),"Fisher.s.P")] 
+colnames(fw_SNPinfo)[ncol(fw_SNPinfo)]<-"stacks_FL"
+saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
+```
 
 ### PCAdapt
 
@@ -787,7 +798,7 @@ For this analysis we'll use the subset of populations rather than the full popul
 
 First I need to add the fileformat line to the vcf
 
-```{r}
+```{r convertVCF, eval=FALSE}
 vcf<-parse.vcf("stacks/populations_subset75/batch_2.pruned.vcf")
 write.table("##fileformat=VCFv","pcadapt_fw/fwsw.pruned.vcf",quote=FALSE,
             col.names = FALSE,row.names = FALSE)
@@ -807,24 +818,27 @@ x<-pcadapt(filename, K=20)
 plot(x,option="screeplot")
 ```
 
-*K=4* seems like the best choice here.
+*K=4* seems like the best choice here to keep values to the left of the straight line. 
+
+```{r}
+# Organize pop info
+pops<-gsub("sample_(\\w{4}).*","\\1",colnames(vcf)[10:ncol(vcf)])	
+grp<-pops
+grp[grp=="TXFW" | grp=="LAFW" | grp=="ALFW" | grp=="FLLG"]<-"freshwater"
+grp[grp!="freshwater"]<-"saltwater"
+```
+
 
 ```{r}
 res<-pcadapt(filename,K=4)
-plot(res)
+par(mfrow=c(2,2))
+plot(res, option="manhattan")
+plot(res, option="qqplot")
+plot(res, option="stat.distribution")
+plot(res, option="scores",pop=pops)
 ```
 
-We need to choose a cutoff for outlier detection. I'll start with the qvalue approach.
-```{r}
-library(qvalue)
-qval <- qvalue(res$pvalues)$qvalues
-alpha <- 0.1
-outliers <- which(qval < alpha)
-length(outliers)
-snp_pc<-get.pc(res,outliers)
-```
-
-What about LD thinning appraoch? They recommend displaying the loadings and evaluate if loadings are clustered in single or several genomic regions
+The vignette recommends displaying the loadings and evaluate if loadings are clustered in single or several genomic regions
 
 ```{r}
 par(mfrow = c(2, 2))
@@ -832,34 +846,47 @@ for (i in 1:4)
   plot(res$loadings[, i], pch = 19, cex = .3, ylab = paste0("Loadings PC", i))
 ```
 
-This suggests that loadings are not clustered (assuming these are grouped by space). Now let's look chromosome by chromosome:
+This suggests that loadings are not clustered (assuming these are grouped by space), so we don't need to worry about LD thinning. Now let's look chromosome by chromosome:
 
 ```{r}
-map<-read.delim("stacks/populations_subset75/batch_2.plink.map",header = FALSE,comment.char = "#")
 par(mfrow=c(6,4),mar=c(3,3,2,1.5))
-l<-lapply(lgs, function(lg,map){
-  plot(res$loadings[which(map$V1 %in% lg), 1], pch = 19, cex = .3, xlab = paste0("Position on ", lg), ylab = "Loadings PC 1")
+l<-lapply(lgs, function(lg,vcf){
+  plot(res$loadings[which(vcf$`#CHROM` %in% lg), 1], pch = 19, cex = .3, xlab = paste0("Position on ", lg), ylab = "Loadings PC 1")
   mtext(lg,3,outer=FALSE)
-},map=map)
+},vcf=vcf)
 ```
 
-None of the LGs seem to have huge clusters of outliers.
+None of the LGs seem to have huge clusters of outliers so we can move on, lumping them all together.
 
-#### Look for overlap
-
-To do this, we can use the map information but we need to slightly modify the locus ID
+We need to choose a cutoff for outlier detection. I'll use the qvalue approach, which identifies outliers with a false discovery rate of $\alpha$, which I'm setting here to 0.05.
 
 ```{r}
-map$LocID<-gsub("(\\d+)_\\d+","\\1",map$V2)
-snp_pc$ID<-map$LocID[outliers]
-all_shared<-snp_pc$ID[snp_pc$ID %in% as.character(all.shared)]
+library(qvalue)
+qval <- qvalue(res$pvalues)$qvalues
+alpha <- 0.05
+outliers <- which(qval < alpha)
+snp_pc<-get.pc(res,outliers) # Get the PCs associated with outliers
 ```
 
-There are `r length(unique(all_shared))` RAD loci with shared outliers in all of the Stacks analyses and in the PCAdapt outlier analysis. These RAD loci are located on chromosomes `r unique(map[map$LocID %in% all_shared,"V1"])`. This honestly isn't all that much overlap -- but the ones on LG12 are all right next to each other. 
+We identified `r length(outliers)` outliers with this analysis, which are associated with `r length(unique(snp_pc$PC))` of the 4 clusters. If we look at the distribution of these, though, we see that most are associated with PC 1
+
+```{r}
+summary(as.factor(snp_pc$SNP))
+```
+
+Now we can add the qvalues to the fw_SNPinfo dataframe
+
+```{r}
+fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
+fw_SNPinfo$pcadaptQ<-qval
+fw_SNPinfo$pcadaptPC<-get.pc(res,1:length(qval))$PC
+```
+
+I should note that for some of these PCAdapt gives "NA" -- not sure what causes this behaviour but there it is. It's true for the residuals and everything else. It looks to be due to low allele frequencies -- though stacks should have been run with a minimum allele frequency cutoff, so this is perplexing.
 
 ### Bayenv?
 
-I think I need to run it again - but here's what I did previously.
+Let's see what I did previously.
 
 ```{r compareEnvVar}
 env.data<-read.csv("bayenv/env_data_raw.csv",row.names = 1)
@@ -888,6 +915,8 @@ bf$logSeagrass<-log(bf$seagrass_BF)
 There are `r nrow(temp.bf.sig[temp.bf.sig$locus %in% sal.bf.sig$locus & temp.bf.sig$locus %in% grass.bf.sig,])` overlapping outliers between temperature-, salinity-, and seagrass-associated loci.
 
 But if we only care about salinity ones, there are `r nrow(temp.bf.sig)` outliers.
+
+
 
 **Are any of the Bayenv salinity outliers near the putative freshwater genes?**
 
