@@ -77,7 +77,7 @@ dadis<-lapply(vcf.files,function(file){
 kable(cbind(file=vcf.files,numer_snps=unlist(lapply(dadis,nrow))))
 ```
 
-I'm going to use th 75% of individuals dataset.
+I'm going to use the 75% of individuals dataset.
 
 ## Analyze 1D dadi results
 

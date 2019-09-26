@@ -11,6 +11,25 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 26 September 2019
+
+So I'm a bit concerned that I've been using the wrong vcf file to generate the dadi analyses and to do these outlier analyses. This is not a HUGE deal for the outliers, since I can fairly easily re-run them, but for dadi this is a bit concerning. I *think* I should be using `populations_subset75/batch_2.pruned.vcf`, but it looks like I used `populations_subset75/batch_2.vcf` instead. Of course, I didn't do a good job recording WHAT I pruned it for. 
+
+Let's compare them.
+
+```{r}
+vcf<-parse.vcf("stacks/populations_subset75/batch_2.vcf")
+pruned_vcf<-parse.vcf("stacks/populations_subset75/batch_2.pruned.vcf")
+```
+
+batch_2.vcf has 62497 loci, and pruned_vcf has 12103. Ok, looking more carefully at my dadi code, I see that I did subset them - whew. It was in making the dadi stuff that I created the pruned vcf. Yay former me! 
+
+Ok, let's work on subsetting the ped and map files then. Have I solved this problem before, and would the code be in gwscaR? It doesn't look like it. But plink probably does this? Yes, it does, but I have to figure out how again. 
+
+`plink --file data --exclude mysnps.txt`
+
+
+
 # 25 September 2019
 
 Returning to my goal of having a 'master' data frame summarising my SNPs, I need to figure out the conversion between the stacks fst BP output and the vcf POS output. Why can't they all just be the same?!?!
