@@ -880,6 +880,7 @@ Now we can add the qvalues to the fw_SNPinfo dataframe
 fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
 fw_SNPinfo$pcadaptQ<-qval
 fw_SNPinfo$pcadaptPC<-get.pc(res,1:length(qval))$PC
+saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
 ```
 
 I should note that for some of these PCAdapt gives "NA" -- not sure what causes this behaviour but there it is. It's true for the residuals and everything else. It looks to be due to low allele frequencies -- though stacks should have been run with a minimum allele frequency cutoff, so this is perplexing.

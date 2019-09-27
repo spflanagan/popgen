@@ -11,6 +11,97 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 27 September 2019
+
+`plink --file data --extract mysnps.txt`
+
+SNP names are different, though, in the map than in the vcf, so I've gotta convert them. 
+
+```{r}
+map<-read.table("stacks/populations_subset75/batch_2.plink.map",header=F)	
+vcf<-parse.vcf("stacks/populations_subset75/batch_2.pruned.vcf")
+map$id<-gsub("(\\d+)_\\d+","\\1",map$V2)
+map$pos<-map$V4+1
+
+loci<-map[which(map$id %in% vcf$ID & map$pos %in% vcf$POS),]
+```
+
+This has too many rows, which means that some of them are duplicated. Let's dig into this...
+
+```{r}
+dups<-loci[loci$id %in% loci$id[duplicated(loci$id)],]
+head(dups)
+vcf[vcf$ID==18109,1:3]
+```
+
+What this shows me is that the double %in% doesn't work right. 
+
+Ok, let's do this instead
+
+```{r}
+loci<-map[paste(map$id,map$pos,sep="_") %in% paste(vcf$ID,vcf$POS,sep="_"),]
+```
+
+That works! Now we need to write the list of snps to a file.
+
+```{r}
+write.table(loci$V2,"keptSNPs_plink.txt",quote=FALSE,col.names = FALSE,row.names = FALSE)
+```
+
+so then I ran ` ~/Programs/plink-1.07-x86_64/plink --file stacks/populations_subset75/batch_2.plink --extract keptSNPs_plink.txt --noweb --recode --out stacks/populations_subset75/batch_2.pruned`
+
+And it seems to have worked...
+
+```{r}
+ped<-read.delim("stacks/populations_subset75/batch_2.pruned.ped",sep=' ',header = FALSE)
+map<-read.delim("stacks/populations_subset75/batch_2.pruned.map",header = FALSE)
+```
+
+Except it seems to have removed the LG info from the map file. I can probably reconstruct this, though...
+
+```{r}
+map$V1<-vcf$`#CHROM`[paste(vcf$ID,vcf$POS,sep="_") %in% paste(gsub("(\\d+)_\\d+","\\1",map$V2),map$V4+1,sep="_")]
+write.table(map,"stacks/populations_subset75/batch_2.pruned.map",col.names = FALSE,row.names = FALSE,quote=FALSE,sep='\t')
+```
+
+Ok, awesome, now I can run bayenv.
+
+WAIT! these are runs with only the fw-sw pairs...do I want to use the whole populations set? If so, then maybe I don't have to run this again, but the loci probably won't match up. 
+
+If I do want to run it again, what do I need to do to specify populations? Put the Pop ID in the family line? Ah, no, with a cluster file (i.e., a pop map)
+
+```{r}
+clust<-ped[,1:2]
+clust$clust<-gsub("sample_(\\w{4}).*","\\1",clust$V2)
+write.table(clust,"bayenv/sub75.pruned.clust",col.names = FALSE,row.names = FALSE,quote=FALSE)
+```
+
+Ok, I ran 
+```
+../scripts/run_bayenv2_matrix_general.sh bayenv/sub75.pruned.clust stacks/populations_subset75/batch_2.pruned.ped stacks/populations_subset75/batch_2.pruned.map bayenv ~/Programs/bayenv/
+```
+But this doesn't quite work, it says 
+```
+===== BAYENV2.0 =====
+
+input file is set
+number of populations is set
+number of iterations is set
+seed is set
+
+!!!Missing or wrong options for chosen configuration.
+```
+
+This has to do with the script I'm using and the fact that it's not quite right and kind of janky.
+
+Also, the plink command in the script is not creating the SNPSFILE required by bayenv...Looking back at my notes from the popgen paper, I converted the plink output into bayenv SNPSFILE in R.
+
+I found the code and created a new script that I can run, SNPSFILEfromPLINKfrq.R, and that seems to work. 
+
+So now I'm generating the matrices. 
+
+What else? I really should figure out some way to plot the outliers but I'm feeling really lazy. 
+
 # 26 September 2019
 
 So I'm a bit concerned that I've been using the wrong vcf file to generate the dadi analyses and to do these outlier analyses. This is not a HUGE deal for the outliers, since I can fairly easily re-run them, but for dadi this is a bit concerning. I *think* I should be using `populations_subset75/batch_2.pruned.vcf`, but it looks like I used `populations_subset75/batch_2.vcf` instead. Of course, I didn't do a good job recording WHAT I pruned it for. 
@@ -26,7 +117,7 @@ batch_2.vcf has 62497 loci, and pruned_vcf has 12103. Ok, looking more carefully
 
 Ok, let's work on subsetting the ped and map files then. Have I solved this problem before, and would the code be in gwscaR? It doesn't look like it. But plink probably does this? Yes, it does, but I have to figure out how again. 
 
-`plink --file data --exclude mysnps.txt`
+`plink --file data --extract mysnps.txt`
 
 
 
