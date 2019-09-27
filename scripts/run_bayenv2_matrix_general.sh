@@ -42,6 +42,8 @@ if [ "$MATRIX" = true ]; then
 	do
 		echo "Running rep $i"
 		${BAYENV_DIR}bayenv2 -i SNPSFILE -p "$NUMPOPS" -k 100000 -r 628398 > matrix.$i.out
+		grep "ITER = 100000" matrix.$i.out -A ${NUMPOPS} > matrix.$i.last
+
 	done
 
 	# AFTER THIS IT IS IMPORTANT TO COMPARE MATRICES #
