@@ -20,7 +20,7 @@ files<-list.files(pattern="out.last",path = directory)
 png(name,height=8,width=6,units="in",res=300,pointsize = 1)
 par(mfrow=c(2,length(files)/2))
 dat<-lapply(files,function(f){
-  mat<-read.delim(f,skip = 1)
+  mat<-as.matrix(read.delim(f,skip = 1))
   image(mat)
 })
 dev.off()
