@@ -11,6 +11,31 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 30 September 2019
+
+On Saturday I wrote an R script (`plot_bayenv_matrices.R`) to plot the final matrix from each bayenv run. Now I'm going to update that script to randomly choose one and write it to `matrix` for the next bayenv step.
+
+Ok, I've created the SNPFILEs but something is up with the environmental file, it looks like. I need to reformat it!
+
+```{r}
+env_dat<-read.csv("bayenv/env_data_raw.csv",row.names = 1)
+std_dat<-t(apply(env_dat,1,function(x){
+  stands<-(x-mean(x))/sd(x)
+  return(stands)
+}))
+# make sure it's in the same order as the plinkfile
+freq<-read.table("bayenv/bayenv.frq.strat",header=T, stringsAsFactors=F)
+freq<-cbind(freq,freq$NCHROBS-freq$MAC)
+colnames(freq)[ncol(freq)]<-"NAC"
+pop.order<-levels(as.factor(freq$CLST))
+snp.names<-split(freq$SNP,freq$CLST)[[1]]
+
+
+write.table(std_dat[,pop.order],
+            "bayenv/env_data_sub75.txt",sep='\t',col.names = FALSE,row.names = FALSE)
+```
+
+
 # 27 September 2019
 
 `plink --file data --extract mysnps.txt`
