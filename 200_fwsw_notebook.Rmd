@@ -11,6 +11,16 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 7 October 2019
+
+The dadi TX simulations are almost done, but it turns out I haven't run the analyses with heterogeneous genomic migration rates. I also haven't run all of the other comparisons - maybe that's what I should run next. So I started the FLFW vs TXFW, FLFW vs ALFW, and ALFW vs TXFW. So now I've got 7 dadi runs going at once, and I'll start more eventually. 
+
+When I get back, these are the priorities:
+* Re-run populations to include all 16 populations but require more populations to be present.
+* Re-run structure and treemix
+* Re-run adegenet, PCAdapt, etc.
+
+
 # 30 September 2019
 
 On Saturday I wrote an R script (`plot_bayenv_matrices.R`) to plot the final matrix from each bayenv run. Now I'm going to update that script to randomly choose one and write it to `matrix` for the next bayenv step.
