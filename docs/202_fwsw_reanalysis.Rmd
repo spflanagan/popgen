@@ -885,9 +885,9 @@ saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
 
 I should note that for some of these PCAdapt gives "NA" -- not sure what causes this behaviour but there it is. It's true for the residuals and everything else. It looks to be due to low allele frequencies -- though stacks should have been run with a minimum allele frequency cutoff, so this is perplexing.
 
-### Bayenv?
+### Bayenv
 
-Let's see what I did previously.
+Investigate the environmental data
 
 ```{r compareEnvVar}
 env.data<-read.csv("bayenv/env_data_raw.csv",row.names = 1)
@@ -897,72 +897,107 @@ wilcox.test(as.numeric(env.data$temp)~env.data$pop) #ties, but p=0.539
 wilcox.test(as.numeric(env.data$seagrass)~env.data$pop) #ties, but p=0.897
 ```
 
+#### Bayenv with subsetted dataset
+
+This analysis is of just the freshwater and saltwater populations. First I ran bayenv using the script `run_bayenv2_matrix_general.sh`.
+
+```{bash}
+# set up correct file formats
+../../scripts/run_bayenv2_matrix_general.sh FILEMANIP bayenv/sub75.pruned.clust stacks/populations_subset75/batch_2.pruned.ped stacks/populations_subset75/batch_2.pruned.map bayenv ~/Programs/bayenv 7
+# estimate matrices
+../../scripts/run_bayenv2_matrix_general.sh MATRIX bayenv ~/Programs/bayenv/ 7
+```
+
+At this point I looked at the matrices
+
+[!Bayenv matrices]("bayenv/fwsw75_pruned.png")
+
+They all looked fine so I chose the randomly selected matrix (`matrix`).
+
+```{bash}
+# Create the SNPFILES
+../../scripts/run_bayenv2_matrix_general.sh SNPFILES SNPSFILE SNPFILES
+# Run bayenv
+nohup ../../scripts/run_bayenv2_matrix_general.sh BAYENV ~/Programs/bayenv/ matrix env_data_sub75.txt 7 3 SNPFILES > bayenv.log &
+```
+
+Now I can aggregate the output:
+
+```{r getBayenvResults}
+get_bayenv_results<-function(dir,env_vars){
+  # process the variable names
+  var_names<-unlist(lapply(env_vars,function(var){
+    nms<-c(paste0(var,"_BF"),paste0(var,"_rho"),paste0(var,"_rs"))
+    return(nms)
+  }))
+  # list all the files
+  bf.files<-list.files(pattern="bf",path = dir,full.names = TRUE)
+  xtx.files<-list.files(pattern="xtx",path=dir,full.names = TRUE)
+  # get the bf files
+  bf.dat<-do.call(rbind,lapply(bf.files,function(filename){
+    bf<-read.table(filename,header = FALSE)
+  }))
+  colnames(bf.dat)<-c("locus", var_names)
+  
+  # xtx files
+  xtx.files<-list.files(pattern="xtx",path=dir,full.names = TRUE)
+  xtx.dat<-do.call(rbind,lapply(xtx.files,function(filename){
+    xtx<-read.table(filename,header = FALSE,stringsAsFactors = FALSE)
+  }))
+  colnames(xtx.dat)<-c("locus","XtX")
+  
+  # combine the two
+  bayenv.dat<-merge(xtx.dat,bf.dat,by="locus")
+  return(bayenv.dat)
+}
+get_bayenv_results(dir="bayenv/SNPFILES",env_vars=c("temp","salinity","seagrass"))
+
+
+```
+
+The SNP names are uninformative, just the row number the SNP was in. We can make these better using the freq info
+
+```{r snpnames4bayenv}
+freq<-read.table("bayenv/bayenv.frq.strat",header=T, stringsAsFactors=F)
+#want to get $MAC for every snp at every pop 
+#and NCHROBS-MAC for every stnp at every pop
+freq<-cbind(freq,freq$NCHROBS-freq$MAC)
+colnames(freq)[ncol(freq)]<-"NAC"
+pop.order<-levels(as.factor(freq$CLST))
+snp.names<-split(freq$SNP,freq$CLST)[[1]]
+snp.names<-gsub("(\\d+)_\\d+","\\1",snp.names)
+
+loc<-as.numeric(gsub("SNPFILES/(\\d+)","\\1",bayenv.dat$locus))
+
+bayenv.dat$locus<-snp.names[loc]
+write.table(bayenv.dat,"bayenv/bayenv_output.txt",sep="\t",col.names = TRUE,row.names = FALSE,quote = FALSE)
+```
+
+Now we can investigate the outliers etc.
 
 ```{r bayenv}
 #taken directly from fwsw_analysis.R
-bf<-read.delim("bayenv/p4.bf.txt",header=T)
-bf$SNP<-paste(bf$scaffold,as.numeric(as.character(bf$BP))+1,sep=".")
-bf.co<-apply(bf[,5:7],2,quantile,0.99) #focus on Bayes Factors, because of Lotterhos & Whitlock (2015)
-temp.bf.sig<-bf[bf$Temp_BF>bf.co["Temp_BF"],c(1,2,4,8,5,9)]
-sal.bf.sig<-bf[bf$Salinity_BF>bf.co["Salinity_BF"],c(1,2,4,8,6,9)]
-grass.bf.sig<-bf[bf$seagrass_BF>bf.co["seagrass_BF"],c(1,2,4,8,7,9)]
+bayenv.dat<-read.delim("bayenv/bayenv_output.txt",header=T)
+# calculate quantiles for bayes factors
+bf.co<-apply(bayenv.dat[,grep("BF",colnames(bayenv.dat))],2,quantile,0.99) #focus on Bayes Factors, because of Lotterhos & Whitlock (2015)
+temp.bf.sig<-bayenv.dat[bayenv.dat$temp_BF>bf.co["temp_BF"],]
+sal.bf.sig<-bayenv.dat[bayenv.dat$salinity_BF>bf.co["salinity_BF"],]
+grass.bf.sig<-bayenv.dat[bayenv.dat$seagrass_BF>bf.co["seagrass_BF"],]
 #get the log transformed Bayes Factors
-bf$logSal<-log(bf$Salinity_BF)
-bf$logTemp<-log(bf$Temp_BF)
-bf$logSeagrass<-log(bf$seagrass_BF)
+bayenv.dat$logSal<-log(bayenv.dat$salinity_BF)
+bayenv.dat$logTemp<-log(bayenv.dat$temp_BF)
+bayenv.dat$logSeagrass<-log(bayenv.dat$seagrass_BF)
 
+# xtx
+xtx.sig<-bayenv.dat[bayenv.dat$XtX > quantile(bayenv.dat$XtX,0.99),]
 ```
 
 There are `r nrow(temp.bf.sig[temp.bf.sig$locus %in% sal.bf.sig$locus & temp.bf.sig$locus %in% grass.bf.sig,])` overlapping outliers between temperature-, salinity-, and seagrass-associated loci.
 
-But if we only care about salinity ones, there are `r nrow(temp.bf.sig)` outliers.
+But if we only care about salinity ones, there are `r nrow(sal.bf.sig)` outliers. Are any of those XtX outliers too? `r nrow(xtx.sig[xtx.sig$locus %in% sal.bf.sig$locus,])` overlap -- not bad!
 
 
 
-**Are any of the Bayenv salinity outliers near the putative freshwater genes?**
-
-```{r bayenv_sal}
-
-bfs.in<-outlier.in.region(sal.bf.sig,put.reg,"scaffold")
-bfs.nb<-outlier.nearby(sal.bf.sig,put.reg,chrom.ld,"scaffold")
-```
-Of the `r nrow(bf)` RAD loci analyzed by *Bayenv2* for associations with temperature, `r length(bfs.in[bfs.in!="NA"])/nrow(put.reg)*100`% are in putative freshwater genes and `r length(bfs.nb[bfs.nb!="NA"])/nrow(put.reg)*100`% are within the LD neighborhood.
-
-
-**Are any of the Bayenv temperature outliers near putative freshwater genes?**
-
-```{r bayenv_temp}
-
-bft.in<-outlier.in.region(temp.bf.sig,put.reg,"scaffold")
-bft.nb<-outlier.nearby(temp.bf.sig,put.reg,chrom.ld,"scaffold")
-```
-
-Of the `r nrow(bf)` RAD loci analyzed by *Bayenv2* for associations with temperature, `r length(bft.in[bft.in!="NA"])/nrow(put.reg)*100`% are in putative freshwater genes and `r length(bft.nb[bft.nb!="NA"])/nrow(put.reg)*100`% are within the LD neighborhood.
-
-**Are any of the loci associated with seagrass density in or near putative freshwater genes?**
-
-```{r bayenv_grass}
-
-bfg.in<-outlier.in.region(grass.bf.sig,put.reg,"scaffold")
-bfg.nb<-outlier.nearby(grass.bf.sig,put.reg,chrom.ld,"scaffold")
-```
-
-Of the `r nrow(bf)` RAD loci analyzed by *Bayenv2* for associations with temperature, `r length(bfg.in[bfg.in!="NA"])/nrow(put.reg)*100`% are in putative freshwater genes and `r length(bfg.nb[bfg.nb!="NA"])/nrow(put.reg)*100`% are within the LD neighborhood.
-
-#### Which putative genes contain each of those?
-
-```{r bayenv_genes}
-put.reg$bfs.in<-bfs.in
-put.reg$bft.in<-bft.in
-put.reg$bfg.in<-bfg.in
-
-unique(put.reg[put.reg$bfs.in !="NA","Gene"])
-unique(put.reg[put.reg$bft.in !="NA","Gene"])
-unique(put.reg[put.reg$bfg.in !="NA","Gene"])
-```
-
-
-All three BayEnv tests identified outliers in the genes `r unique(put.reg[put.reg$bfs.in !="NA","Gene"])[unique(put.reg[put.reg$bfs.in !="NA","Gene"]) %in% unique(put.reg[put.reg$bft.in !="NA","Gene"]) & unique(put.reg[put.reg$bfs.in !="NA","Gene"]) %in% unique(put.reg[put.reg$bfg.in !="NA","Gene"])]`. The temperature and grass also share `r unique(put.reg[put.reg$bft.in !="NA","Gene"])[unique(put.reg[put.reg$bft.in !="NA","Gene"]) %in% unique(put.reg[put.reg$bfg.in !="NA","Gene"])][1]`, and temperature and salinity share `r unique(put.reg[put.reg$bfs.in !="NA","Gene"])[unique(put.reg[put.reg$bfs.in !="NA","Gene"]) %in% unique(put.reg[put.reg$bft.in !="NA","Gene"])][1]`. 
 
 
 

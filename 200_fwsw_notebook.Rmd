@@ -11,6 +11,66 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 10 October 2019
+
+Bayenv is done, now let's see what the results are.
+
+```{r}
+
+get_bayenv_results<-function(dir,env_vars){
+  # process the variable names
+  var_names<-unlist(lapply(env_vars,function(var){
+    nms<-c(paste0(var,"_BF"),paste0(var,"_rho"),paste0(var,"_rs"))
+    return(nms)
+  }))
+  # list all the files
+  bf.files<-list.files(pattern="bf",path = dir,full.names = TRUE)
+  xtx.files<-list.files(pattern="xtx",path=dir,full.names = TRUE)
+  # get the bf files
+  bf.dat<-do.call(rbind,lapply(bf.files,function(filename){
+    bf<-read.table(filename,header = FALSE)
+  }))
+  colnames(bf.dat)<-c("locus", var_names)
+  
+  # xtx files
+  xtx.files<-list.files(pattern="xtx",path=dir,full.names = TRUE)
+  xtx.dat<-do.call(rbind,lapply(xtx.files,function(filename){
+    xtx<-read.table(filename,header = FALSE,stringsAsFactors = FALSE)
+  }))
+  colnames(xtx.dat)<-c("locus","XtX")
+  
+  # combine the two
+  bayenv.dat<-merge(xtx.dat,bf.dat,by="locus")
+  return(bayenv.dat)
+}
+get_bayenv_results(dir="bayenv/SNPFILES",env_vars=c("temp","salinity","seagrass"))
+
+
+```
+
+The SNP names are uninformative, just the row number the SNP was in. We can make these better using the freq info
+
+```{r}
+freq<-read.table("bayenv/bayenv.frq.strat",header=T, stringsAsFactors=F)
+#want to get $MAC for every snp at every pop 
+#and NCHROBS-MAC for every stnp at every pop
+freq<-cbind(freq,freq$NCHROBS-freq$MAC)
+colnames(freq)[ncol(freq)]<-"NAC"
+pop.order<-levels(as.factor(freq$CLST))
+snp.names<-split(freq$SNP,freq$CLST)[[1]]
+snp.names<-gsub("(\\d+)_\\d+","\\1",snp.names)
+
+loc<-as.numeric(gsub("SNPFILES/(\\d+)","\\1",bayenv.dat$locus))
+
+bayenv.dat$locus<-snp.names[loc]
+write.table(bayenv.dat,"bayenv/bayenv_output.txt",sep="\t",col.names = TRUE,row.names = FALSE,quote = FALSE)
+```
+
+Ok, I've added this to the 200_fwsw_reanalysis.Rmd document. Next step will be to plot it, which will require chromosome and bp info -- I could get this from the map file I suppose, or the vcf.
+
+
+
+
 # 9 October 2019
 
 I started a populations run at home requiring loci to be in all populations, we'll see if that runs or not.
