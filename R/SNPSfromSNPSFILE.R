@@ -19,7 +19,7 @@ if(length(grep("\\/$",directory))>0){
 }
 
 ## pull out each snp.
-for(i in 1:(nrow(snpsfile)-1)){
+for(i in seq(1,(nrow(snpsfile)-1),2)){
   write.table(snpsfile[i:(i+1),],paste(directory,rownames(snpsfile)[i],sep="/"),
               quote=F,col.names=F,row.names=F,sep='\t')
 }

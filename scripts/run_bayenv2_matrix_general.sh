@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Run from within the results directory
+# Run from within the bayenv directory
 
 ############## First create a clust file ##################
 # Do this manually

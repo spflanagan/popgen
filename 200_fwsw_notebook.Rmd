@@ -11,6 +11,142 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 9 October 2019
+
+I started a populations run at home requiring loci to be in all populations, we'll see if that runs or not.
+
+It looks like the initial runs of the FLAL, FLTX, and ALTX combinations ran without any problems, so I'll run another set, especially since the simulations are still running. I wonder if I should be doing all the pairwise comparisons. I should at least do LA compared to the others -- I've written that but will hold off running them until the simulations are done and I can re-start my computer.
+
+Now I'm going to focus back on bayenv analysis - I've successfully run bayenv, it seems, and I've got xtx and bf files in the SNPFILES/ directory. Now I need to aggregate them. Looking at code from the popgen paper, I can see that yes I've done this before. Now I'll just write a couple functions to do this. 
+
+```{r}
+dir="bayenv/SNPFILES"
+env_vars<-c("temp","salinity","seagrass")
+var_names<-unlist(lapply(env_vars,function(var){
+  nms<-c(paste0(var,"_BF"),paste0(var,"_rho"),paste0(var,"_BF"))
+  return(nms)
+}))
+bf.files<-list.files(pattern="bf",path = dir,full.names = TRUE)
+xtx.files<-list.files(pattern="xtx",path=dir,full.names = TRUE)
+
+bf.dat<-do.call(rbind,lapply(bf.files,function(filename){
+  bf<-read.table(filename,header = FALSE)
+}))
+
+colnames(bf.dat)<-c("locus", var_names)
+```
+
+Ok, I'm running into an interesting issue, which is that some of the files only have one number instead of three for each variable. The only problematic one seems to be 1776.freq.bf, as well as its neightbor 1776.freq.bf.freqs 
+
+```{r}
+bf.dat<-lapply(bf.files,function(filename){
+   bf<-read.table(filename,header = FALSE)
+  # if(ncol(bf)<10){ browser() }
+ })
+ncols<-lapply(bf.dat,ncol)
+which(ncols<10)
+
+bf.dat[which(ncols<10)]
+bf.files[which(ncols<10)]
+```
+
+
+this gives me an indication that possibly bayenv ran on 1776.freq.bf somehow and now has weird stuff going on. I think I need to re-run bayenv on it and delete the other files. 
+
+I re-ran that analysis using `~/Programs/bayenv/bayenv2 -i 1776 -m ../matrix -e ../env_data_sub75.txt -p 7 -k 100000 -n 3 -t -c -f -X -r 6842483 -o 1776.freq` and got this output
+
+```
+===== BAYENV2.0 =====
+
+input file is set
+matrix is set
+environment file is set
+number of populations is set
+number of iterations is set
+number of environmental variables is set
+TEST is set
+correlation output is set
+frequency output is set
+Calculating XtX
+seed is set
+output file is set
+TEST = 1 . So running test at a SNP
+number of environmental variables 3
+
+MCMC VER 0.71 (THREADED)
+ITERATIONS = 100000
+INPUT FILE = 1776
+MATRIX FILE = ../matrix
+SEED = -6842483
+
+ENVIRON FILE = ../env_data_sub75.txt
+reading environ
+num_alleles = 2.000000
+number of loci = 1
+```
+
+So now let's try the code above again...if it works, I can continue working on it. 
+
+```{r}
+dir="bayenv/SNPFILES"
+env_vars<-c("temp","salinity","seagrass")
+var_names<-unlist(lapply(env_vars,function(var){
+  nms<-c(paste0(var,"_BF"),paste0(var,"_rho"),paste0(var,"_BF"))
+  return(nms)
+}))
+
+bf.files<-list.files(pattern="bf",path = dir,full.names = TRUE)
+bf.dat<-do.call(rbind,lapply(bf.files,function(filename){
+  bf<-read.table(filename,header = FALSE,stringsAsFactors = FALSE)
+}))
+
+colnames(bf.dat)<-c("locus", var_names)
+
+xtx.files<-list.files(pattern="xtx",path=dir,full.names = TRUE)
+xtx.dat<-do.call(rbind,lapply(xtx.files,function(filename){
+  xtx<-read.table(filename,header = FALSE,stringsAsFactors = FALSE)
+}))
+colnames(xtx.dat)<-c("locus","XtX")
+
+bayenv.dat<-merge(xtx.dat,bf.dat,by="locus")
+
+
+```
+
+Let's get the SNP names to put in the bayenv dataframe...
+
+```{r}
+freq<-read.table("bayenv/bayenv.frq.strat",header=T, stringsAsFactors=F)
+#want to get $MAC for every snp at every pop 
+#and NCHROBS-MAC for every stnp at every pop
+freq<-cbind(freq,freq$NCHROBS-freq$MAC)
+colnames(freq)[ncol(freq)]<-"NAC"
+pop.order<-levels(as.factor(freq$CLST))
+snp.names<-split(freq$SNP,freq$CLST)[[1]]
+snp.names<-gsub("(\\d+)_\\d+","\\1",snp.names)
+
+bayenv.dat$locus<-snp.names
+```
+
+Huh, this highlights an interesting issue, that I somehow have 24205 bf files but should only have 12103 loci. I wonder if perhaps my bayenv thing wasn't set up properly...So the bayenv file should have two rows per locus. 
+
+I think the issue is how I created the SNPFILES -- I will need to re-do this. I think I've fixed it, so now it is 
+```{r}
+for(i in seq(1,(nrow(snpsfile)-1),2)){
+  write.table(snpsfile[i:(i+1),],paste0(directory,"/locus",rownames(snpsfile)[i]),
+              quote=F,col.names=F,row.names=F,sep='\t')
+}
+```
+
+Before running this I'm going to delete the old SNPSfiles and bayenv stuff. Ok, this works! `../../scripts/run_bayenv2_matrix_general.sh SNPFILES SNPSFILE SNPFILES `.
+
+Now to re-run bayenv...
+```{bash}
+nohup ../../scripts/run_bayenv2_matrix_general.sh BAYENV ~/Programs/bayenv/ matrix env_data_sub75.txt 7 3 SNPFILES > bayenv.log &
+```
+
+Ok, it's running! 
+
 # 7 October 2019
 
 The dadi TX simulations are almost done, but it turns out I haven't run the analyses with heterogeneous genomic migration rates. I also haven't run all of the other comparisons - maybe that's what I should run next. So I started the FLFW vs TXFW, FLFW vs ALFW, and ALFW vs TXFW. So now I've got 7 dadi runs going at once, and I'll start more eventually. 
