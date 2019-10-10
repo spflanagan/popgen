@@ -43,7 +43,7 @@ get_bayenv_results<-function(dir,env_vars){
   bayenv.dat<-merge(xtx.dat,bf.dat,by="locus")
   return(bayenv.dat)
 }
-get_bayenv_results(dir="bayenv/SNPFILES",env_vars=c("temp","salinity","seagrass"))
+bayenv_dat<-get_bayenv_results(dir="bayenv/SNPFILES",env_vars=c("temp","salinity","seagrass"))
 
 
 ```
@@ -60,15 +60,23 @@ pop.order<-levels(as.factor(freq$CLST))
 snp.names<-split(freq$SNP,freq$CLST)[[1]]
 snp.names<-gsub("(\\d+)_\\d+","\\1",snp.names)
 
-loc<-as.numeric(gsub("SNPFILES/(\\d+)","\\1",bayenv.dat$locus))
+loc<-as.numeric(gsub("SNPFILES/(\\d+)","\\1",bayenv_dat$locus))
 
-bayenv.dat$locus<-snp.names[loc]
+bayenv_dat$locus<-snp.names[loc]
 write.table(bayenv.dat,"bayenv/bayenv_output.txt",sep="\t",col.names = TRUE,row.names = FALSE,quote = FALSE)
 ```
 
-Ok, I've added this to the 200_fwsw_reanalysis.Rmd document. Next step will be to plot it, which will require chromosome and bp info -- I could get this from the map file I suppose, or the vcf.
+Ok, I've added this to the 200_fwsw_reanalysis.Rmd document. Next step will be to plot it, which will require chromosome and bp info -- I could get this from the map file I suppose, or the vcf. Easiest is probably from the pruned map.
 
+```{r}
+pmap<-read.delim("stacks/populations_subset75/batch_2.pruned.map",header = FALSE)
+pmap$locus<-gsub("(\\d+)_\\d+","\\1",pmap[,2])
 
+bayenv.dat<-read.delim("bayenv/bayenv_output.txt",header = TRUE,stringsAsFactors = FALSE)
+test<-merge(pmap[,c(1,4,5)],bayenv.dat,by="locus")
+```
+
+Hmm how are there locus names that are NA?? this is strange. Going back to the SNP name conversion above...I'll come back to this later.
 
 
 # 9 October 2019
