@@ -963,14 +963,20 @@ freq<-read.table("bayenv/bayenv.frq.strat",header=T, stringsAsFactors=F)
 #and NCHROBS-MAC for every stnp at every pop
 freq<-cbind(freq,freq$NCHROBS-freq$MAC)
 colnames(freq)[ncol(freq)]<-"NAC"
-pop.order<-levels(as.factor(freq$CLST))
 snp.names<-split(freq$SNP,freq$CLST)[[1]]
 snp.names<-gsub("(\\d+)_\\d+","\\1",snp.names)
 
-loc<-as.numeric(gsub("SNPFILES/(\\d+)","\\1",bayenv.dat$locus))
+snp_dat<-data.frame(ID=snp.names,loc=seq(1,length(snp.names)*2,2))
+bayenv_dat$locus<-as.numeric(gsub("SNPFILES\\/(\\d+)","\\1",bayenv_dat$locus))
+bayenv_dat<-bayenv_dat[order(bayenv_dat$locus),]
+bayenv_dat<-merge(snp_dat,bayenv_dat,by.x="loc",by.y="locus")
+colnames(bayenv_dat)[1:2]<-c("index","SNPID")
 
-bayenv.dat$locus<-snp.names[loc]
-write.table(bayenv.dat,"bayenv/bayenv_output.txt",sep="\t",col.names = TRUE,row.names = FALSE,quote = FALSE)
+pmap<-read.delim("stacks/populations_subset75/batch_2.pruned.map",header = FALSE)
+pmap$locus<-gsub("(\\d+)_\\d+","\\1",pmap[,2])
+
+bayenv_dat<-merge(pmap[,c(1,4,5)],bayenv_dat,by.x="locus",by.y="SNPID")
+write.table(bayenv_dat,"bayenv/bayenv_output.txt",sep="\t",col.names = TRUE,row.names = FALSE,quote = FALSE)
 ```
 
 Now we can investigate the outliers etc.
@@ -996,6 +1002,11 @@ There are `r nrow(temp.bf.sig[temp.bf.sig$locus %in% sal.bf.sig$locus & temp.bf.
 
 But if we only care about salinity ones, there are `r nrow(sal.bf.sig)` outliers. Are any of those XtX outliers too? `r nrow(xtx.sig[xtx.sig$locus %in% sal.bf.sig$locus,])` overlap -- not bad!
 
+Now, to plot.
+
+```{r}
+
+```
 
 
 
@@ -1003,7 +1014,7 @@ But if we only care about salinity ones, there are `r nrow(sal.bf.sig)` outliers
 
 ### Model-based outlier estimation
 
-[Rougemont et al 2016](https://onlinelibrary.wiley.com/doi/full/10.1111/mec.13664) used model parameters estimated by $\delta_A\delta_I$ to simulate data under a neutral model with `MSSTATSFST` (a coalescent simulator). $F_{ST}$ values were calculated for each population using `vcftools` and those were compared to the simulated netural markers. They counted the number of shared outliers between connected pairs and performed randomization tests to test whether the number was greter than expected by chance, and then constructed coplots of $F_{ST}$/$F_{ST}$ between population pairs to visualize the extent of outlier sharing and parallelism. They used custom R scripts, which might be available??
+[Rougemont et al 2016](https://onlinelibrary.wiley.com/doi/full/10.1111/mec.13664) used model parameters estimated by $\delta_A\delta_I$ to simulate data under a neutral model with `MSSTATSFST` (a coalescent simulator). $F_{ST}$ values were calculated for each population using `vcftools` and those were compared to the simulated netural markers. They counted the number of shared outliers between connected pairs and performed randomization tests to test whether the number was greter than expected by chance, and then constructed coplots of $F_{ST}$/$F_{ST}$ between population pairs to visualize the extent of outlier sharing and parallelism. They used custom R scripts, which might be available?? NOPE
 
 ### dmc & LG8?
 

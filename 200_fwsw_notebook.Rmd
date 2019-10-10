@@ -11,6 +11,128 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 11 October 2019
+
+Trying to get to the bottom of the weirdness with the locus names...
+
+```{r}
+get_bayenv_results<-function(dir,env_vars){
+  # process the variable names
+  var_names<-unlist(lapply(env_vars,function(var){
+    nms<-c(paste0(var,"_BF"),paste0(var,"_rho"),paste0(var,"_rs"))
+    return(nms)
+  }))
+  # list all the files
+  bf.files<-list.files(pattern="bf",path = dir,full.names = TRUE)
+  xtx.files<-list.files(pattern="xtx",path=dir,full.names = TRUE)
+  # get the bf files
+  bf.dat<-do.call(rbind,lapply(bf.files,function(filename){
+    bf<-read.table(filename,header = FALSE)
+  }))
+  colnames(bf.dat)<-c("locus", var_names)
+  
+  # xtx files
+  xtx.files<-list.files(pattern="xtx",path=dir,full.names = TRUE)
+  xtx.dat<-do.call(rbind,lapply(xtx.files,function(filename){
+    xtx<-read.table(filename,header = FALSE,stringsAsFactors = FALSE)
+  }))
+  colnames(xtx.dat)<-c("locus","XtX")
+  
+  # combine the two
+  bayenv.dat<-merge(xtx.dat,bf.dat,by="locus")
+  return(bayenv.dat)
+}
+bayenv_dat<-get_bayenv_results(dir="bayenv/SNPFILES",env_vars=c("temp","salinity","seagrass"))
+
+freq<-read.table("bayenv/bayenv.frq.strat",header=T, stringsAsFactors=F)
+#want to get $MAC for every snp at every pop 
+#and NCHROBS-MAC for every stnp at every pop
+freq<-cbind(freq,freq$NCHROBS-freq$MAC)
+colnames(freq)[ncol(freq)]<-"NAC"
+pop.order<-levels(as.factor(freq$CLST))
+snp.names<-split(freq$SNP,freq$CLST)[[1]]
+snp.names<-gsub("(\\d+)_\\d+","\\1",snp.names)
+
+snp_dat<-data.frame(ID=snp.names,loc=1:length(snp.names))
+
+loc<-as.numeric(gsub("SNPFILES\\/(\\d+)","\\1",bayenv_dat$locus))
+```
+
+Ah, I think I see the problem -- these are actually the SNP IDs, not row numbers like I though. Oops! if you look closely at the snp.names definition, it's taking the SNP ID and using that.
+
+OK, so let's see if we can match these things up. 
+
+
+```{r}
+pmap<-read.delim("stacks/populations_subset75/batch_2.pruned.map",header = FALSE)
+pmap$locus<-gsub("(\\d+)_\\d+","\\1",pmap[,2])
+
+bayenv_dat$locus<-as.numeric(gsub("SNPFILES\\/(\\d+)","\\1",bayenv_dat$locus))
+
+
+dim(pmap[pmap$V2 %in% freq$SNP,])
+dim(pmap[pmap$locus %in% snp.names,])
+dim(pmap[pmap$locus %in% bayenv_dat$locus,])
+dim(pmap[pmap$locus %in% loc,])
+```
+
+Ok, so there's something weird going on with the bayenv_dat SNP names - they don't match up properly with the locus names but snp.names do match up. So, I'm thinking that something gets lost in one conversion or another - could some of them have 1s added on the end? No, it doesn't look like it. 
+
+Ok, what are the rownames of the actual snps file?
+
+```{r}
+snpsfile<-read.delim("bayenv/SNPSFILE")
+```
+
+Ok, let's take some steps back. When creating the SNPSFILE, I used the rownames properly but then didn't write them to the file. Then when making the SNP files, I used rownames of the first row per locus to name the files, so I should have names 1:12103*2 by 2s. 
+
+```{r}
+summary(seq(1,12103*2,2))
+summary(as.numeric(bayenv_dat$locus))
+```
+
+Ok, and that is what I've got. Ok, so now I can do a better conversion.
+
+```{r}
+snp_dat<-data.frame(ID=snp.names,loc=seq(1,length(snp.names)*2,2))
+loc<-snp_dat[order(snp_dat$loc %in% bayenv_dat$locus),]
+```
+This doesn't work! ugh. 
+
+```{r}
+head(snp_dat[sort(as.character(snp_dat$loc)),])
+head(bayenv_dat[sort(bayenv_dat$locus),])
+```
+
+Ok, let's try another tactic
+
+```{r}
+bayenv_dat$locus<-as.numeric(bayenv_dat$locus)
+bayenv_dat<-bayenv_dat[order(bayenv_dat$locus),]
+bayenv_dat<-merge(snp_dat,bayenv_dat,by.x="loc",by.y="locus")
+colnames(bayenv_dat)[1:2]<-c("index","SNPID")
+```
+
+Whew ok that works! Now we can add on the chromosome info
+
+```{r}
+colnames(pmap)<-c("Chr","SNP","X","BP","locus")
+test<-merge(pmap[,c(1,4,5)],bayenv_dat,by.x="locus",by.y="SNPID")
+```
+
+Woohoo this works!
+
+```{r}
+bayenv_dat<-merge(pmap[,c(1,4,5)],bayenv_dat,by.x="locus",by.y="SNPID")
+write.table(bayenv_dat,"bayenv/bayenv_output.txt",sep="\t",col.names = TRUE,row.names = FALSE,quote = FALSE)
+```
+
+
+I've put the working bits into the 202_fwsw_reanalysis.Rmd document.
+
+Now onto plotting the results! I should be able to use functions I've written previously and are probably in gwscaR?
+
+
 # 10 October 2019
 
 Bayenv is done, now let's see what the results are.
@@ -72,7 +194,7 @@ Ok, I've added this to the 200_fwsw_reanalysis.Rmd document. Next step will be t
 pmap<-read.delim("stacks/populations_subset75/batch_2.pruned.map",header = FALSE)
 pmap$locus<-gsub("(\\d+)_\\d+","\\1",pmap[,2])
 
-bayenv.dat<-read.delim("bayenv/bayenv_output.txt",header = TRUE,stringsAsFactors = FALSE)
+bayenv_dat<-read.delim("bayenv/bayenv_output.txt",header = TRUE,stringsAsFactors = FALSE)
 test<-merge(pmap[,c(1,4,5)],bayenv.dat,by="locus")
 ```
 
