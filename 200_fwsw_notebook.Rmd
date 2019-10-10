@@ -132,6 +132,67 @@ I've put the working bits into the 202_fwsw_reanalysis.Rmd document.
 
 Now onto plotting the results! I should be able to use functions I've written previously and are probably in gwscaR?
 
+```{r}
+bayenv_dat<-read.delim("bayenv/bayenv_output.txt",header = TRUE)
+bayenv_dat$logSalBF<-log(bayenv_dat$salinity_BF)
+xp<-fst.plot(bayenv_dat,scaffs.to.plot = lgs,fst.name = "logSalBF",chrom.name = "Chr",bp.name = "BP")
+
+```
+
+This plot doesn't look so nice. 
+
+```{r}
+bounds<-tapply(as.numeric(as.character(bayenv_dat$BP)), bayenv_dat$Chr,max)
+bounds<-data.frame(Chrom=dimnames(bounds)[[1]],End=bounds,stringsAsFactors = FALSE)
+plot_dat<-assign.plotpos(bayenv_dat,plot.scaffs = lgs,bounds = bounds, df.chrom = "Chr")
+```
+
+Not sure why this is so annoying. 
+
+```{r}
+par(mfrow=c(2,1))
+plot(bayenv_dat$BP[bayenv_dat$Chr=="LG1"],bayenv_dat$XtX[bayenv_dat$Chr=="LG1"])
+plot(xp$plot.pos[xp$Chr=="LG1"],xp$XtX[xp$Chr=="LG1"])
+```
+
+these match....
+
+```{r}
+par(mfrow=c(2,1))
+plot(bayenv_dat$BP[bayenv_dat$Chr=="LG2"],bayenv_dat$XtX[bayenv_dat$Chr=="LG2"])
+plot(xp$plot.pos[xp$Chr=="LG2"],xp$XtX[xp$Chr=="LG2"])
+```
+
+Those are also ok, but the max of LG1's plot pos, `r max(xp$plot.pos[xp$Chr=="LG1"])` is much smaller than the minimum of LG2's plot pos `r min(xp$plot.pos[xp$Chr=="LG2"])` - this is causing the weirdness.
+
+```{r}
+xp<-fst.plot(bayenv_dat,scaffs.to.plot = lgs,fst.name = "logSalBF",chrom.name = "Chr",bp.name = "locus",axis.size = 0,pch=19)
+```
+
+Aha, if I use the locus it looks a lot beter! But locus doesn't have anything to do with BP necessarily.
+
+```{r}
+bf.co<-apply(bayenv_dat[,grep("BF",colnames(bayenv_dat))],2,quantile,0.99) #focus on Bayes Factors, because of Lotterhos & Whitlock (2015)
+temp.bf.sig<-bayenv_dat[bayenv_dat$temp_BF>bf.co["temp_BF"],]
+sal.bf.sig<-bayenv_dat[bayenv_dat$salinity_BF>bf.co["salinity_BF"],]
+grass.bf.sig<-bayenv_dat[bayenv_dat$seagrass_BF>bf.co["seagrass_BF"],]
+xtx.sig<-bayenv_dat[bayenv_dat$XtX > quantile(bayenv_dat$XtX,0.99),]
+```
+
+
+```{r}
+par(mfrow=c(2,1),mar=c(4,4,2,2))
+xp<-fst.plot(bayenv_dat,scaffs.to.plot = lgs,fst.name = "XtX",chrom.name = "Chr",bp.name = "index",axis.size = 0,pch=19)
+points(xp$plot.pos[xp$locus %in% xtx.sig$locus])
+sp<-fst.plot(bayenv_dat,scaffs.to.plot = lgs,fst.name = "logSalBF",chrom.name = "Chr",bp.name = "index",axis.size = 0,pch=19)
+```
+
+This is annoying...maybe I should just combine all my outlier info at the moment - do I need to actually show the results on a graph?
+
+```{r}
+
+```
+
 
 # 10 October 2019
 

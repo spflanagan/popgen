@@ -3,3 +3,5 @@ results/*
 *.Rhistory
 *results/*
 *results\*
+*pptx
+
