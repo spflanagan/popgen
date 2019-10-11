@@ -190,8 +190,105 @@ sp<-fst.plot(bayenv_dat,scaffs.to.plot = lgs,fst.name = "logSalBF",chrom.name = 
 This is annoying...maybe I should just combine all my outlier info at the moment - do I need to actually show the results on a graph?
 
 ```{r}
-
+bayenv_dat$logTemBF<-log(bayenv_dat$temp_BF)
+bayenv_dat$logSegBF<-log(bayenv_dat$seagrass_BF)
+fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
+fw_SNPinfo<-merge(fw_SNPinfo,bayenv_dat[,c("locus","XtX","logSalBF","logTemBF","logSegBF")],by.x="ID",by.y="locus")
+saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
 ```
+
+Ok, now what? I want to see if the ones that are outliers from bayenv are outliers in other things...
+
+```{r}
+summary(fw_SNPinfo[fw_SNPinfo$XtX>=quantile(fw_SNPinfo$XtX,0.99),])
+```
+
+What do I want to know? are certain chromosomes enriched?
+
+```{r}
+summary(factor(fw_SNPinfo[fw_SNPinfo$XtX>=quantile(fw_SNPinfo$XtX,0.99),"Chrom"]))
+summary(factor(fw_SNPinfo[fw_SNPinfo$logSalBF>=quantile(fw_SNPinfo$logSalBF,0.99),"Chrom"]))
+```
+
+It doesn't really seem like it. 
+
+Ok, what if I alter the plotting thing?
+
+```{r}
+pd<-do.call(rbind,lapply(lgs,function(lg,dat){
+  d<-dat[dat$Chrom %in% lg,] # grab loci on this chromosome
+  dsort<-d[order(d$Pos),]
+  dsort$plotpos<-seq(1:nrow(dsort))
+  return(dsort)
+},dat=fw_SNPinfo))
+bounds<-tapply(as.numeric(as.character(pd$plotpos)), pd$Chrom,max)
+bounds<-data.frame(Chrom=dimnames(bounds)[[1]],End=bounds,stringsAsFactors = FALSE)
+
+plot_dat<-assign.plotpos(pd,lgs,bounds,df.chrom = "Chrom",df.bp="plotpos")
+```
+
+```{r plotOutliers}
+library(scales)
+cols<-c(alpha('#e41a1c',0.75),alpha('#377eb8',0.75),alpha('#4daf4a',0.75),alpha('#984ea3',0.75))
+par(mfrow=c(2,1),oma=c(1,2,1,1),mar=c(2,2,1,1),xpd=TRUE)
+# plot XtX
+plot_dat<-fst.plot(plot_dat,scaffs.to.plot = lgs,fst.name = "XtX",chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19)
+points(plot_dat$plot.pos[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+       plot_dat$XtX[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+       col=cols[4],cex=0.75,pch=19)
+points(plot_dat$plot.pos[rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+       plot_dat$XtX[rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+       col=cols[1],cex=1,pch=4,lwd=2)
+points(plot_dat$plot.pos[plot_dat$stacks_AL < 0.05 & plot_dat$stacks_LA < 0.05 &
+                           plot_dat$stacks_TX < 0.05 & plot_dat$stacks_FL < 0.05],
+       plot_dat$XtX[plot_dat$stacks_AL < 0.05 & plot_dat$stacks_LA < 0.05 &
+                           plot_dat$stacks_TX < 0.05 & plot_dat$stacks_FL < 0.05],
+       col=cols[2],cex=1,pch=5,lwd=2)
+points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.05],
+       plot_dat$XtX[plot_dat$pcadaptQ<0.05],
+       col=cols[3],cex=1,pch=0,lwd=2)
+axis(2,las=1)
+mtext(expression(italic("X")^"T"~italic("X")),2,line=2)
+
+# add the LG labels
+midpts<-tapply(plot_dat$plot.pos,plot_dat$Chrom,median)
+text(x=midpts[lgs],y=0)
+
+# plot Bayes Factors
+plot_dat<-fst.plot(plot_dat,scaffs.to.plot = lgs,fst.name = "logSalBF",chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19)
+points(plot_dat$plot.pos[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+       plot_dat$logSalBF[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+       col=cols[4],cex=0.75,pch=19)
+points(plot_dat$plot.pos[rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+       plot_dat$logSalBF[rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+       col=cols[1],cex=1,pch=4,lwd=2)
+points(plot_dat$plot.pos[plot_dat$stacks_AL < 0.05 & plot_dat$stacks_LA < 0.05 &
+                           plot_dat$stacks_TX < 0.05 & plot_dat$stacks_FL < 0.05],
+       plot_dat$logSalBF[plot_dat$stacks_AL < 0.05 & plot_dat$stacks_LA < 0.05 &
+                           plot_dat$stacks_TX < 0.05 & plot_dat$stacks_FL < 0.05],
+       col=cols[2],cex=1,pch=5,lwd=2)
+points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.05],
+       plot_dat$logSalBF[plot_dat$pcadaptQ<0.05],
+       col=cols[3],cex=1,pch=0,lwd=2)
+axis(2,las=1)
+mtext("log(Salinity Bayes Factors)",2,line=2)
+
+# add the LG labels
+midpts<-tapply(plot_dat$plot.pos,plot_dat$Chrom,median)
+text(x=midpts[lgs],y=-5)
+
+# add outside legend
+
+opar <- par(fig=c(0, 1, 0, 1), oma=c(0, 0, 0, 0),
+            mar=c(0, 0, 0, 0), new=TRUE)
+on.exit(par(opar))
+plot(0, 0, type='n', bty='n', xaxt='n', yaxt='n')
+legend("top",c(expression("Permutation"~italic("F")["ST"]),
+         expression("Stacks"~italic("F")["ST"]),
+         "PCAdapt","BayEnv2"),lty = 1,xjust = 0.5,x.intersp = 0.5,
+       col = cols,pt.bg=cols,pch=c(4,5,0,19),bty='n',lwd = 2,ncol=2)
+```
+
 
 
 # 10 October 2019
