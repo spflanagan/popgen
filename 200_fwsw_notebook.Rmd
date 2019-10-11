@@ -244,8 +244,8 @@ points(plot_dat$plot.pos[plot_dat$stacks_AL < 0.05 & plot_dat$stacks_LA < 0.05 &
        plot_dat$XtX[plot_dat$stacks_AL < 0.05 & plot_dat$stacks_LA < 0.05 &
                            plot_dat$stacks_TX < 0.05 & plot_dat$stacks_FL < 0.05],
        col=cols[2],cex=1,pch=5,lwd=2)
-points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.05],
-       plot_dat$XtX[plot_dat$pcadaptQ<0.05],
+points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.01],
+       plot_dat$XtX[plot_dat$pcadaptQ<0.01],
        col=cols[3],cex=1,pch=0,lwd=2)
 axis(2,las=1)
 mtext(expression(italic("X")^"T"~italic("X")),2,line=2)
@@ -267,8 +267,8 @@ points(plot_dat$plot.pos[plot_dat$stacks_AL < 0.05 & plot_dat$stacks_LA < 0.05 &
        plot_dat$logSalBF[plot_dat$stacks_AL < 0.05 & plot_dat$stacks_LA < 0.05 &
                            plot_dat$stacks_TX < 0.05 & plot_dat$stacks_FL < 0.05],
        col=cols[2],cex=1,pch=5,lwd=2)
-points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.05],
-       plot_dat$logSalBF[plot_dat$pcadaptQ<0.05],
+points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.01],
+       plot_dat$logSalBF[plot_dat$pcadaptQ<0.01],
        col=cols[3],cex=1,pch=0,lwd=2)
 axis(2,las=1)
 mtext("log(Salinity Bayes Factors)",2,line=2)
@@ -285,8 +285,8 @@ on.exit(par(opar))
 plot(0, 0, type='n', bty='n', xaxt='n', yaxt='n')
 legend("top",c(expression("Permutation"~italic("F")["ST"]),
          expression("Stacks"~italic("F")["ST"]),
-         "PCAdapt","BayEnv2"),lty = 1,xjust = 0.5,x.intersp = 0.5,
-       col = cols,pt.bg=cols,pch=c(4,5,0,19),bty='n',lwd = 2,ncol=2)
+         "PCAdapt","BayEnv2"),xjust = 0.5,x.intersp = 0.5,
+       col = cols,pt.bg=cols,pch=c(4,5,0,19),bty='n',ncol=2)
 ```
 
 
