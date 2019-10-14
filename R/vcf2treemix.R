@@ -23,6 +23,6 @@ source(paste(gwscaR_dir,"R/gwscaR_popgen.R",sep="/"))
 
 # read the files and convert
 vcf<-parse.vcf(vcf_name)
-poplist<-unlistlist(read.delim(poplist_file,header = FALSE,stringsAsFactors = FALSE))
+poplist<-unlist(read.delim(poplist_file,header = FALSE,stringsAsFactors = FALSE))
 tm<-treemix.from.vcf(vcf,poplist)
 write.table(tm,treemix.name,col.names=TRUE,row.names=FALSE,quote=F,sep=' ')
