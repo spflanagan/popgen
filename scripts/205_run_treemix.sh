@@ -10,7 +10,7 @@ VCF="../filter_rad_20191014@1654/14_filtered/radiator_data_20191014@1710.vcf"
 cd "${0%/*}" # move to location of script
 cd ../fwsw_results/treemix
 
-Rscript ../../R/vcf2treemix.R ${VCF} "poplist" "fwsw_treemix"
+Rscript ../../R/vcf2treemix.R ${VCF} "poplist" "fwsw_treemix" "../../../gwscaR"
 gzip -c fwsw_treemix > fwsw_treemix.gz
 
 # run treemix
