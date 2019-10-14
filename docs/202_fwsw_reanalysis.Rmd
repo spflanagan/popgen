@@ -950,7 +950,9 @@ get_bayenv_results<-function(dir,env_vars){
   bayenv.dat<-merge(xtx.dat,bf.dat,by="locus")
   return(bayenv.dat)
 }
-get_bayenv_results(dir="bayenv/SNPFILES",env_vars=c("temp","salinity","seagrass"))
+bayenv_dat<-get_bayenv_results(dir="bayenv/SNPFILES",env_vars=c("temp","salinity","seagrass"))
+
+
 
 
 ```
@@ -976,7 +978,18 @@ pmap<-read.delim("stacks/populations_subset75/batch_2.pruned.map",header = FALSE
 pmap$locus<-gsub("(\\d+)_\\d+","\\1",pmap[,2])
 
 bayenv_dat<-merge(pmap[,c(1,4,5)],bayenv_dat,by.x="locus",by.y="SNPID")
+colnames(bayenv_dat)[2:3]<-c("Chrom","SNPID")
 write.table(bayenv_dat,"bayenv/bayenv_output.txt",sep="\t",col.names = TRUE,row.names = FALSE,quote = FALSE)
+```
+
+Merge it with other snp info
+```{r}
+bayenv_dat$logSalBF<-log(bayenv_dat$salinity_BF)
+bayenv_dat$logTemBF<-log(bayenv_dat$temp_BF)
+bayenv_dat$logSegBF<-log(bayenv_dat$seagrass_BF)
+fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
+fw_SNPinfo<-merge(fw_SNPinfo,bayenv_dat[,c("locus","XtX","logSalBF","logTemBF","logSegBF")],by.x="ID",by.y="locus")
+saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
 ```
 
 Now we can investigate the outliers etc.
@@ -1003,9 +1016,76 @@ There are `r nrow(temp.bf.sig[temp.bf.sig$locus %in% sal.bf.sig$locus & temp.bf.
 But if we only care about salinity ones, there are `r nrow(sal.bf.sig)` outliers. Are any of those XtX outliers too? `r nrow(xtx.sig[xtx.sig$locus %in% sal.bf.sig$locus,])` overlap -- not bad!
 
 Now, to plot.
+```{r plotOutliersSetup}
+library(scales)
+fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
+cols<-c(perm=alpha('#e41a1c',0.75),sal=alpha('#377eb8',0.75),pc=alpha('#4daf4a',0.75),xtx=alpha('#984ea3',0.75),stacks=alpha('#ff7f00',0.75))
+```
+```{r plotOutliers}
+par(mfrow=c(2,1),oma=c(1,2,1,1),mar=c(2,2,1,1),xpd=TRUE)
+# plot XtX
+plot_dat<-fst.plot(fw_SNPinfo,scaffs.to.plot = lgs,fst.name = "XtX",chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19)
+points(plot_dat$plot.pos[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+       plot_dat$XtX[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+       col=cols["xtx"],cex=0.75,pch=19)
+points(plot_dat$plot.pos[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+       plot_dat$XtX[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+       col=cols["sal"],cex=0.85,pch=17)
+points(plot_dat$plot.pos[rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+       plot_dat$XtX[rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+       col=cols["perm"],cex=1,pch=4,lwd=2)
+points(plot_dat$plot.pos[plot_dat$stacks_AL < 0.05 & plot_dat$stacks_LA < 0.05 &
+                           plot_dat$stacks_TX < 0.05 & plot_dat$stacks_FL < 0.05],
+       plot_dat$XtX[plot_dat$stacks_AL < 0.05 & plot_dat$stacks_LA < 0.05 &
+                           plot_dat$stacks_TX < 0.05 & plot_dat$stacks_FL < 0.05],
+       col=cols["stacks"],cex=1,pch=5,lwd=2)
+points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.01],
+       plot_dat$XtX[plot_dat$pcadaptQ<0.01],
+       col=cols["pc"],cex=1,pch=0,lwd=2)
+axis(2,las=1)
+mtext(expression(italic("X")^"T"~italic("X")),2,line=2)
 
-```{r}
+# add the LG labels
+midpts<-tapply(plot_dat$plot.pos,plot_dat$Chrom,median)
+text(x=midpts[lgs],y=0)
 
+# plot Bayes Factors
+plot_dat<-fst.plot(plot_dat,scaffs.to.plot = lgs,fst.name = "logSalBF",chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19)
+points(plot_dat$plot.pos[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+       plot_dat$logSalBF[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+       col=cols["sal"],cex=0.85,pch=17)
+points(plot_dat$plot.pos[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+       plot_dat$logSalBF[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+       col=cols["xtx"],cex=0.75,pch=19)
+points(plot_dat$plot.pos[rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+       plot_dat$logSalBF[rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+       col=cols["perm"],cex=1,pch=4,lwd=2)
+points(plot_dat$plot.pos[plot_dat$stacks_AL < 0.05 & plot_dat$stacks_LA < 0.05 &
+                           plot_dat$stacks_TX < 0.05 & plot_dat$stacks_FL < 0.05],
+       plot_dat$logSalBF[plot_dat$stacks_AL < 0.05 & plot_dat$stacks_LA < 0.05 &
+                           plot_dat$stacks_TX < 0.05 & plot_dat$stacks_FL < 0.05],
+       col=cols["stacks"],cex=1,pch=5,lwd=2)
+points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.01],
+       plot_dat$logSalBF[plot_dat$pcadaptQ<0.01],
+       col=cols["pc"],cex=1,pch=0,lwd=2)
+axis(2,las=1)
+mtext("log(Salinity Bayes Factors)",2,line=2)
+
+# add the LG labels
+midpts<-tapply(plot_dat$plot.pos,plot_dat$Chrom,median)
+text(x=midpts[lgs],y=-5)
+
+# add outside legend
+
+opar <- par(fig=c(0, 1, 0, 1), oma=c(0, 0, 0, 0),
+            mar=c(0, 0, 0, 0), new=TRUE)
+on.exit(par(opar))
+plot(0, 0, type='n', bty='n', xaxt='n', yaxt='n')
+legend("top",c(expression("Permutation"~italic("F")["ST"]),
+         expression("Stacks"~italic("F")["ST"]),
+         "PCAdapt",expression(italic("X")^T~italic("X")),"Salinity BF"),xjust = 0.5,x.intersp = 0.5,
+       col = cols[c("perm","stacks","pc","xtx","sal")],
+       pt.bg=cols[c("perm","stacks","pc","xtx","sal")],pch=c(4,5,0,19,17),bty='n',ncol=3)
 ```
 
 

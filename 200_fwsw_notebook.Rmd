@@ -11,6 +11,2091 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+
+# 14 October 2019
+
+At the moment I want to try to improve the plotting so I can send something nice to Adam and Emily. The first order of business is to improve the plots from Friday - I want to show both types of Bayenv outliers on both graphs. 
+
+
+```{r plotOutliersSetup}
+library(scales)
+fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
+cols<-c(perm=alpha('#e41a1c',0.75),sal=alpha('#377eb8',0.75),pc=alpha('#4daf4a',0.75),xtx=alpha('#984ea3',0.75),stacks=alpha('#ff7f00',0.75))
+```
+```{r plotOutliers}
+par(mfrow=c(2,1),oma=c(1,2,1,1),mar=c(2,2,1,1),xpd=TRUE)
+# plot XtX
+plot_dat<-fst.plot(fw_SNPinfo,scaffs.to.plot = lgs,fst.name = "XtX",chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19)
+points(plot_dat$plot.pos[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+       plot_dat$XtX[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+       col=cols["xtx"],cex=0.75,pch=19)
+points(plot_dat$plot.pos[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+       plot_dat$XtX[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+       col=cols["sal"],cex=0.85,pch=17)
+points(plot_dat$plot.pos[rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+       plot_dat$XtX[rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+       col=cols["perm"],cex=1,pch=4,lwd=2)
+points(plot_dat$plot.pos[plot_dat$stacks_AL < 0.05 & plot_dat$stacks_LA < 0.05 &
+                           plot_dat$stacks_TX < 0.05 & plot_dat$stacks_FL < 0.05],
+       plot_dat$XtX[plot_dat$stacks_AL < 0.05 & plot_dat$stacks_LA < 0.05 &
+                           plot_dat$stacks_TX < 0.05 & plot_dat$stacks_FL < 0.05],
+       col=cols["stacks"],cex=1,pch=5,lwd=2)
+points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.01],
+       plot_dat$XtX[plot_dat$pcadaptQ<0.01],
+       col=cols["pc"],cex=1,pch=0,lwd=2)
+axis(2,las=1)
+mtext(expression(italic("X")^"T"~italic("X")),2,line=2)
+
+# add the LG labels
+midpts<-tapply(plot_dat$plot.pos,plot_dat$Chrom,median)
+text(x=midpts[lgs],y=0)
+
+# plot Bayes Factors
+plot_dat<-fst.plot(plot_dat,scaffs.to.plot = lgs,fst.name = "logSalBF",chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19)
+points(plot_dat$plot.pos[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+       plot_dat$logSalBF[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+       col=cols["sal"],cex=0.85,pch=17)
+points(plot_dat$plot.pos[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+       plot_dat$logSalBF[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+       col=cols["xtx"],cex=0.75,pch=19)
+points(plot_dat$plot.pos[rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+       plot_dat$logSalBF[rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+       col=cols["perm"],cex=1,pch=4,lwd=2)
+points(plot_dat$plot.pos[plot_dat$stacks_AL < 0.05 & plot_dat$stacks_LA < 0.05 &
+                           plot_dat$stacks_TX < 0.05 & plot_dat$stacks_FL < 0.05],
+       plot_dat$logSalBF[plot_dat$stacks_AL < 0.05 & plot_dat$stacks_LA < 0.05 &
+                           plot_dat$stacks_TX < 0.05 & plot_dat$stacks_FL < 0.05],
+       col=cols["stacks"],cex=1,pch=5,lwd=2)
+points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.01],
+       plot_dat$logSalBF[plot_dat$pcadaptQ<0.01],
+       col=cols["pc"],cex=1,pch=0,lwd=2)
+axis(2,las=1)
+mtext("log(Salinity Bayes Factors)",2,line=2)
+
+# add the LG labels
+midpts<-tapply(plot_dat$plot.pos,plot_dat$Chrom,median)
+text(x=midpts[lgs],y=-5)
+
+# add outside legend
+
+opar <- par(fig=c(0, 1, 0, 1), oma=c(0, 0, 0, 0),
+            mar=c(0, 0, 0, 0), new=TRUE)
+on.exit(par(opar))
+plot(0, 0, type='n', bty='n', xaxt='n', yaxt='n')
+legend("top",c(expression("Permutation"~italic("F")["ST"]),
+         expression("Stacks"~italic("F")["ST"]),
+         "PCAdapt",expression(italic("X")^T~italic("X")),"Salinity BF"),xjust = 0.5,x.intersp = 0.5,
+       col = cols[c("perm","stacks","pc","xtx","sal")],
+       pt.bg=cols[c("perm","stacks","pc","xtx","sal")],pch=c(4,5,0,19,17),bty='n',ncol=3)
+```
+
+Ok, that's better. But what does this tell me? the outliers associated with salinity are generally not those associated withfst or pcadapt outliers, but they are sometimes with the xtx statistic from bayenv. This is not incredibly useful information. What do I do with this?
+
+The other thing is that I've re-run populations to require the loci be present in 16 populations and 75% of individuals. These results are in populations_all/
+
+It seems to have 104150 SNPs (using `grep -v "#" batch_2.vcf | wc -l`), but this seems like a lot! I need to prune for HWE anyway, and I need to make sure to do this on a population-by-population level. Last time I did this using plink but I wonder if vcftools or similar would be better. I'm going to look into some R packages 
+1. [HardyWeinberg](https://cran.r-project.org/web/packages/HardyWeinberg/vignettes/HardyWeinberg.pdf), but it doesn't seem to play all that nicely with regularly formatted data
+2. [snpStats](https://www.bioconductor.org/packages/release/bioc/html/snpStats.html), which seems to be designed for GWAS but might work well
+3. [adegenet](http://adegenet.r-forge.r-project.org/files/tutorial-basics.pdf) tests for HWE but I'm not sure if it does so per population. But I could probably make it do so.
+4. [radiator](https://rdrr.io/github/thierrygosselin/radiator/man/filter_hwe.html) seems to be focused on RADseq so this could be useful.
+
+I might try radiator
+
+```{r installRadiator}
+if (!require("devtools")) install.packages("devtools") # to install
+install.packages("tidyverse")
+devtools::install_github("thierrygosselin/grur")
+devtools::install_github("thierrygosselin/assigner")
+```
+
+First I need to create the strata file (stacks map with headers):
+```{r}
+vcf<-parse.vcf("stacks/populations_all/batch_2.vcf")
+strata<-data.frame(INDIVIDUALS=colnames(vcf)[10:ncol(vcf)],
+                   STRATA=gsub("sample_(\\w{4}).*","\\1",colnames(vcf)[10:ncol(vcf)]))
+write.table(strata,"../fwsw_pops_map.txt",sep='\t',quote = FALSE,row.names = FALSE,col.names = TRUE)
+```
+
+It has filter_rad, described as 'ONE FUNCTION TO RULE THEM ALL'. It's interactive and apparently enough?
+
+```{r}
+data<-radiator::filter_rad(data="stacks/populations_all/batch_2.vcf",
+                           strata="../fwsw_pops_map.txt")
+```
+
+I'm getting an error message saying that the function arguments names have changed, but what I'm doing matches the information in the help function...Ah, this was because I didn't have the right packages installed.
+
+According to this, it's going to blacklist individuals based on missingness threshold of 0.0730675, and this removed 141 individuals! It also removed 106 loci with monomorphic markers. choosing MAC threshold of 5, choosing coverage between 35 and 50. ...ok this might be too stringent it's left with only 401 loci. I think I'll do this again but in a better way. It's too bad it doesn't turn it into a single command that I could run multiple times in a non-interactive way. Here's what I did:
+
+```
+################################################################################
+############################# radiator::filter_rad #############################
+################################################################################
+The function arguments names have changed: please read documentation
+
+Execution date@time: 20191014@0939
+Folder created: filter_rad_20191014@0939
+Function call and arguments stored in: radiator_filter_rad_args_20191014@0939.tsv
+File written: random.seed (835230)
+Filters parameters file generated: filters_parameters_20191014@0939.tsv
+
+Reading a large VCF...you actually have time for coffee or tea!
+
+Data summary: 
+    number of samples: 698
+    number of markers: 104150
+done! timing: 6 sec
+
+Generating individual stats...
+Generating markers stats...
+
+
+Number of chromosome/contig/scaffold: 539
+Number of locus: 11155
+Number of markers: 104150
+Number of populations: 16
+Number of individuals: 698
+
+Number of ind/pop:
+ALFW = 48
+ALST = 47
+FLAB = 42
+FLCC = 41
+FLFD = 40
+FLHB = 41
+FLKB = 42
+FLLG = 47
+FLPB = 43
+FLSG = 44
+FLSI = 45
+LAFW = 48
+TXCB = 36
+TXCC = 41
+TXFW = 31
+TXSP = 62
+
+Number of duplicate id: 0
+radiator Genomic Data Structure (GDS) file: radiator_20191014@0939.gds
+################################################################################
+########################### radiator::filter_monomorphic #######################
+################################################################################
+Execution date@time: 20191014@0941
+Function call and arguments stored in: radiator_filter_monomorphic_args_20191014@0941.tsv
+Filters parameters file: initiated
+File written: blacklist.monomorphic.markers_20191014@0941.tsv
+Synchronizing markers.meta
+File written: whitelist.polymorphic.markers_20191014@0941.tsv
+Filters parameters file: updated
+################################### RESULTS ####################################
+
+Filter monomorphic markers
+Number of individuals / strata / chrom / locus / SNP:
+    Before: 698 / 16 / 539 / 11155 / 104150
+    Blacklisted: 0 / 0 / 1 / 3 / 10
+    After: 698 / 16 / 538 / 11152 / 104140
+
+Computation time, overall: 3 sec
+######################## filter_monomorphic completed ##########################
+################################################################################
+######################## radiator::filter_common_markers #######################
+################################################################################
+Execution date@time: 20191014@0941
+Function call and arguments stored in: radiator_filter_common_markers_args_20191014@0941.tsv
+Filters parameters file: initiated
+Scanning for common markers...
+Generating UpSet plot to visualize markers in common
+File written: whitelist.common.markers_20191014@0941.tsv
+Filters parameters file: updated
+################################### RESULTS ####################################
+
+Filter common markers:
+Number of individuals / strata / chrom / locus / SNP:
+    Before: 698 / 16 / 538 / 11152 / 104140
+    Blacklisted: 0 / 0 / 0 / 0 / 0
+    After: 698 / 16 / 538 / 11152 / 104140
+
+Computation time, overall: 11 sec
+####################### filter_common_markers completed ########################
+################################################################################
+######################### radiator::filter_individuals #########################
+################################################################################
+Execution date@time: 20191014@0941
+Function call and arguments stored in: radiator_filter_individuals_args_20191014@0941.tsv
+Interactive mode: on
+
+Step 1. Visualization
+Step 2. Missingness
+Step 3. Heterozygosity
+Step 4. Total Coverage (if available)
+
+
+Filters parameters file: initiated
+
+Step 1. Visualization of samples QC
+
+File written: individuals qc info and stats summary
+File written: individuals qc plot
+
+Step 2. Filtering markers based individual missingness/genotyping
+
+Do you want to blacklist samples based on missingness ? (y/n):
+y
+2 options to blacklist samples:
+1. based on the outlier statistics
+2. enter your own threshold
+1
+
+Removing outliers individuals based on genotyping statistics: 0.0730675
+Filters parameters file: updated
+################################### RESULTS ####################################
+
+Filter individuals based on missingness: 0.0730675
+Number of individuals / strata / chrom / locus / SNP:
+    Before: 698 / 16 / 538 / 11152 / 104140
+    Blacklisted: 141 / 0 / 0 / 0 / 0
+    After: 557 / 16 / 538 / 11152 / 104140
+
+Step 3. Filtering markers based on individual heterozygosity
+
+Do you want to blacklist samples based on heterozygosity ? (y/n):
+y
+2 options to blacklist samples:
+1. based on the outlier statistics
+2. enter your own threshold
+1
+
+Removing outliers individuals based on heterozygosity statistics: 0.005222 / 0.02875475
+    number of individuals blacklisted based on heterozygosity: 14
+Filters parameters file: updated
+################################### RESULTS ####################################
+
+Filter individuals based on heterozygosity: 0.005222 0.02875475
+Number of individuals / strata / chrom / locus / SNP:
+    Before: 557 / 16 / 538 / 11152 / 104140
+    Blacklisted: 0 / 0 / 0 / 0 / 0
+    After: 557 / 16 / 538 / 11152 / 104140
+
+Filter monomorphic markers
+Number of individuals / strata / chrom / locus / SNP:
+    Blacklisted: 0 / 0 / 6 / 106 / 5428
+
+Computation time, overall: 139 sec
+########################### completed filter_individuals #######################
+################################################################################
+############################## radiator::filter_mac ############################
+################################################################################
+Execution date@time: 20191014@0944
+Function call and arguments stored in: radiator_filter_mac_args_20191014@0944.tsv
+Interactive mode: on
+
+Step 1. Visualization and helper table
+Step 2. Filtering markers based on MAC
+
+
+Importing data ...
+Filters parameters file: initiated
+Calculating GLOBAL MAC
+File written: maf.global.tsv
+
+Step 1. MAC visualization and helper table
+
+File written: mac.summary.stats.tsv
+MAC range: [1 - 556]
+MAF range: [0.0009 - 0.4991]
+Generating MAC helper table...
+File written: maf.helper.table.tsv
+
+Step 2. Filtering markers based on MAC
+
+Choose the filter.mac threshold: 
+5
+File written: whitelist.markers.mac.tsv
+File written: blacklist.markers.mac.tsv
+Filters parameters file: updated
+################################### RESULTS ####################################
+
+Filter mac threshold: 5
+Number of individuals / strata / chrom / locus / SNP:
+    Before: 557 / 16 / 532 / 11046 / 98712
+    Blacklisted: 0 / 0 / 140 / 2953 / 75467
+    After: 557 / 16 / 392 / 8093 / 23245
+
+Computation time, overall: 111 sec
+############################ completed filter_mac ##############################
+################################################################################
+########################### radiator::filter_coverage ##########################
+################################################################################
+Execution date@time: 20191014@0946
+Function call and arguments stored in: radiator_filter_coverage_args_20191014@0946.tsv
+Interactive mode: on
+
+Step 1. Visualization and helper table
+Step 2. Filtering markers based on total coverage
+
+
+Importing data ...
+Filters parameters file: initiated
+
+Step 1. Coverage visualization and helper table
+
+Generating coverage statistics
+Generating coverage statistics: without outliers
+Generating mean coverage helper table...
+Files written: helper tables and plots
+
+Step 2. Filtering markers based on mean coverage
+
+Choose the min mean coverage threshold(e.g. 7 or 10): 
+35
+Choose the max mean coverage threshold (e.g. 100 or 300): 
+50
+File written: blacklist.markers.coverage_20191014@0946.tsv
+File written: whitelist.markers.coverage_20191014@0946.tsv
+Filters parameters file: updated
+################################### RESULTS ####################################
+
+Filter mean coverage thresholds: 35 / 50
+Number of individuals / strata / chrom / locus / SNP:
+    Before: 557 / 16 / 392 / 8093 / 23245
+    Blacklisted: 0 / 0 / 309 / 7673 / 21758
+    After: 557 / 16 / 83 / 420 / 1487
+
+Computation time, overall: 63 sec
+########################## completed filter_coverage ###########################
+################################################################################
+######################### radiator::filter_genotyping ##########################
+################################################################################
+Execution date@time: 20191014@0947
+Function call and arguments stored in: radiator_filter_genotyping_args_20191014@0947.tsv
+Interactive mode: on
+
+Step 1. Visualization and helper table
+Step 2. Filtering markers based on maximum missing proportion allowed
+
+
+Importing data ...
+Filters parameters file: initiated
+
+Step 1. Missing visualization and helper table
+
+Generating statistics
+Generating missingness/genotyping helper table...
+File written: markers.pop.missing.helper.table.tsv
+Files written: helper tables and plots
+
+Step 2. Filtering markers based on maximum missing proportion
+
+Choose the maximum missing proportion allowed: 
+0.1
+
+Removing markers based on genotyping statistic: 0.1
+File written: blacklist.markers.genotyping_20191014@0947.tsv
+File written: whitelist.markers.genotyping_20191014@0947.tsv
+Filters parameters file: updated
+################################### RESULTS ####################################
+
+Filter genotyping threshold: 0.1
+Number of individuals / strata / chrom / locus / SNP:
+    Before: 557 / 16 / 83 / 420 / 1487
+    Blacklisted: 0 / 0 / 0 / 0 / 1
+    After: 557 / 16 / 83 / 420 / 1486
+
+Computation time, overall: 59 sec
+######################## completed filter_genotyping ###########################
+################################################################################
+######################### radiator::filter_snp_position_read ###################
+################################################################################
+Execution date@time: 20191014@0948
+Function call and arguments stored in: radiator_filter_snp_position_read_args_20191014@0948.tsv
+2 steps to visualize and filter the data based on the number of SNP on the read/locus:
+Step 1. Visualization (boxplot, distribution
+Step 2. Threshold selection
+Filters parameters file: initiated
+COL info required, returning data
+
+Computation time, overall: 0 sec
+##################### completed filter_snp_position_read #######################
+################################################################################
+############################ radiator::filter_snp_number #######################
+################################################################################
+Execution date@time: 20191014@0948
+Function call and arguments stored in: radiator_filter_snp_number_args_20191014@0948.tsv
+Interactive mode: on
+2 steps to visualize and filter the data based on the number of SNP on the read/locus:
+Step 1. Impact of SNP number per read/locus (on individual genotypes and locus/snp number potentially filtered)
+Step 2. Choose the filtering thresholds
+Filters parameters file: initiated
+Generating statistics
+Generating helper table...
+Files written: helper tables and plots
+
+Step 2. Filtering markers based on the maximum of SNPs per locus
+
+Do you still want to blacklist markers? (y/n):
+y
+2 options to blacklist SNPs:
+1. based on the outlier statistics
+2. enter your own threshold
+2
+Enter the maximum number of SNP per locus allowed:
+10
+
+Removing markers based on the number of SNPs per locus statistic: 10
+File written: whitelist.markers.genotyping.tsv
+File written: blacklist.markers.genotyping.tsv
+Filters parameters file: updated
+################################### RESULTS ####################################
+
+Filter SNPs per locus threshold: 10
+Number of individuals / strata / chrom / locus / SNP:
+    Before: 557 / 16 / 83 / 420 / 1486
+    Blacklisted: 0 / 0 / 0 / 3 / 38
+    After: 557 / 16 / 83 / 417 / 1448
+
+Computation time, overall: 58 sec
+######################### completed filter_snp_number ##########################
+################################################################################
+############################## radiator::filter_ld #############################
+################################################################################
+Execution date@time: 20191014@0949
+Function call and arguments stored in: radiator_filter_ld_args_20191014@0949.tsv
+
+Interactive mode: on
+
+Step 1. Short distance LD threshold selection
+Step 2. Filtering markers based on short distance LD
+Step 3. Long distance LD pruning selection
+Step 4. Threshold selection
+Step 5. Filtering markers based on long distance LD
+
+
+Filters parameters file: initiated
+Minimizing short distance LD...
+    The range in the number of SNP/locus is: 1-10
+
+Step 1. Short distance LD threshold selection
+the goal is to keep only 1 SNP per read/locus
+Choose the filter.short.ld threshold
+Options include:
+1: mac (Not sure ? use mac...)
+2: random
+3: first
+4: middle
+5: last
+1
+
+Step 2. Filtering markers based on short distance LD
+filter.short.ld = mac
+File written: whitelist.short.ld.tsv
+File written: blacklist.short.ld.tsv
+Filters parameters file: updated
+################################### RESULTS ####################################
+
+Filter short ld threshold: mac
+Number of individuals / strata / chrom / locus / SNP:
+    Before: 557 / 16 / 83 / 417 / 1448
+    Blacklisted: 0 / 0 / 0 / 0 / 1031
+    After: 557 / 16 / 83 / 417 / 417
+
+Do you want to continue filtering using long distance ld  ? (y/n):
+y
+
+Step 3. Long distance LD pruning selection
+With a reference genome, pruning is done by chromosome/scaffolds
+Pruning method can randomly choose to keep 1 SNP or
+select the SNP based on missing data statistics
+
+Do you want to use missing data statistics ? (y/n):
+y
+
+Long distance LD pruning with missing data
+Computing LD by CHROM/scaffold (n = 83), with several LD thresholds
+Chrom: LG1 SNPs number: 32    (1/83)
+    LD threshold: 0.1, SNPs blacklisted: 4
+    LD threshold: 0.2, SNPs blacklisted: 1
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: LG10 SNPs number: 14    (2/83)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: LG11 SNPs number: 12    (3/83)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: LG12 SNPs number: 15    (4/83)
+    LD threshold: 0.1, SNPs blacklisted: 2
+    LD threshold: 0.2, SNPs blacklisted: 1
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: LG13 SNPs number: 14    (5/83)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: LG14 SNPs number: 12    (6/83)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: LG15 SNPs number: 11    (7/83)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: LG16 SNPs number: 14    (8/83)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: LG17 SNPs number: 11    (9/83)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: LG18 SNPs number: 11    (10/83)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: LG19 SNPs number: 11    (11/83)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: LG2 SNPs number: 30    (12/83)
+    LD threshold: 0.1, SNPs blacklisted: 3
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: LG20 SNPs number: 12    (13/83)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: LG21 SNPs number: 10    (14/83)
+    LD threshold: 0.1, SNPs blacklisted: 1
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: LG22 SNPs number: 1    (15/83)
+    SNPs blacklisted: 0
+Chrom: LG3 SNPs number: 32    (16/83)
+    LD threshold: 0.1, SNPs blacklisted: 1
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: LG4 SNPs number: 26    (17/83)
+    LD threshold: 0.1, SNPs blacklisted: 1
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: LG5 SNPs number: 16    (18/83)
+    LD threshold: 0.1, SNPs blacklisted: 1
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: LG6 SNPs number: 19    (19/83)
+    LD threshold: 0.1, SNPs blacklisted: 1
+    LD threshold: 0.2, SNPs blacklisted: 1
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: LG7 SNPs number: 16    (20/83)
+    LD threshold: 0.1, SNPs blacklisted: 2
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: LG8 SNPs number: 19    (21/83)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: LG9 SNPs number: 10    (22/83)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_1015 SNPs number: 1    (23/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_1043 SNPs number: 1    (24/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_1063 SNPs number: 1    (25/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_1070 SNPs number: 1    (26/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_1087 SNPs number: 1    (27/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_1103 SNPs number: 1    (28/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_1108 SNPs number: 1    (29/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_1148 SNPs number: 1    (30/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_1174 SNPs number: 1    (31/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_1735 SNPs number: 1    (32/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_174 SNPs number: 1    (33/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_1760 SNPs number: 1    (34/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_1877 SNPs number: 1    (35/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_1899 SNPs number: 1    (36/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_247 SNPs number: 1    (37/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_304 SNPs number: 1    (38/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_332 SNPs number: 1    (39/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_387 SNPs number: 1    (40/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_391 SNPs number: 1    (41/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_395 SNPs number: 1    (42/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_396 SNPs number: 1    (43/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_407 SNPs number: 2    (44/83)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_434 SNPs number: 2    (45/83)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_450 SNPs number: 1    (46/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_468 SNPs number: 2    (47/83)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_473 SNPs number: 2    (48/83)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_477 SNPs number: 1    (49/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_479 SNPs number: 1    (50/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_480 SNPs number: 1    (51/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_484 SNPs number: 1    (52/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_493 SNPs number: 1    (53/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_497 SNPs number: 1    (54/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_514 SNPs number: 1    (55/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_520 SNPs number: 1    (56/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_523 SNPs number: 1    (57/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_546 SNPs number: 1    (58/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_556 SNPs number: 1    (59/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_557 SNPs number: 1    (60/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_585 SNPs number: 1    (61/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_587 SNPs number: 1    (62/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_591 SNPs number: 1    (63/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_604 SNPs number: 1    (64/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_606 SNPs number: 1    (65/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_609 SNPs number: 1    (66/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_612 SNPs number: 2    (67/83)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_654 SNPs number: 1    (68/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_660 SNPs number: 2    (69/83)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_662 SNPs number: 2    (70/83)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_673 SNPs number: 1    (71/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_702 SNPs number: 1    (72/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_720 SNPs number: 1    (73/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_728 SNPs number: 1    (74/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_739 SNPs number: 1    (75/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_828 SNPs number: 1    (76/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_837 SNPs number: 1    (77/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_839 SNPs number: 1    (78/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_849 SNPs number: 2    (79/83)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_850 SNPs number: 1    (80/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_877 SNPs number: 1    (81/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_901 SNPs number: 1    (82/83)
+    SNPs blacklisted: 0
+Chrom: scaffold_915 SNPs number: 1    (83/83)
+    SNPs blacklisted: 0
+File written: whitelist(s) and blacklist(s)
+Generating figures...
+
+Step 4. Threshold selection
+Look at the boxplot, a threshold of 0.2 will blacklist more markers than a threshold of 0.8
+
+Enter the long LD threshold (filter.long.ld threshold, double/proportion):
+0.2
+
+Step 5. Filtering markers based on long distance LD
+Filters parameters file: updated
+################################### RESULTS ####################################
+
+Filter long ld threshold: 0.2
+Number of individuals / strata / chrom / locus / SNP:
+    Before: 557 / 16 / 83 / 417 / 417
+    Blacklisted: 0 / 0 / 0 / 0 / 0
+    After: 557 / 16 / 83 / 417 / 417
+
+Computation time, overall: 74 sec
+############################# completed filter_ld ##############################
+################################################################################
+######################## radiator::detect_mixed_genomes ########################
+################################################################################
+Execution date@time: 20191014@0950
+
+detect_mixed_genomes function call arguments:
+    data = SeqVarGDSClass
+    interactive.filter = TRUE
+    detect.mixed.genomes = FALSE
+    ind.heterozygosity.threshold = NULL
+    verbose = TRUE
+    parallel.core = 11
+
+dots-dots-dots ... arguments
+
+Arguments inside "..." assigned in detect_mixed_genomes:
+    internal = FALSE
+    parameters = list
+    path.folder = filter_rad_20191014@0939
+
+
+File written: radiator_detect_mixed_genomes_args_20191014@0950.tsv
+Filters parameters file: initiated
+Calculating heterozygosity statistics
+Generating plots
+
+The greatest value of a picture is when it forces us
+to notice what we never expected to see.
+
+John W. Tukey. Exploratory Data Analysis. 1977.
+
+
+Inspect plots and tables in folder created...
+    Do you want to exclude individuals based on heterozygosity ? (y/n): 
+n
+Filters parameters file: updated
+################################### RESULTS ####################################
+Detect mixed genomes: 0 1
+Number of individuals / strata / chrom / locus / SNP:
+    Before: 557 / 16 / 83 / 417 / 417
+    Blacklisted: 0 / 0 / 0 / 0 / 0
+    After: 557 / 16 / 83 / 417 / 417
+
+Computation time, overall: 125 sec
+######################## completed detect_mixed_genomes ########################
+
+################################################################################
+###################### radiator::detect_duplicate_genomes ######################
+################################################################################
+Execution date@time: 20191014@0952
+Function call and arguments stored in a file
+File written: radiator_detect_duplicate_genomes_args_20191014@0952.tsv
+File written: random.seed (835230)
+Filters parameters file: initiated
+Calculating manhattan distances between individuals...
+Generating summary statistics
+Generating plots
+
+Inspect tables and figures to decide if some individual(s) need to be blacklisted
+    Do you need to blacklist individual(s) (y/n): 
+n
+Filters parameters file: updated
+################################### RESULTS ####################################
+Detect duplicate genomes: 0
+Number of individuals / strata / chrom / locus / SNP:
+    Before: 557 / 16 / 83 / 417 / 417
+    Blacklisted: 0 / 0 / 0 / 0 / 0
+    After: 557 / 16 / 83 / 417 / 417
+
+Computation time, overall: 85 sec
+###################### completed detect_duplicate_genomes ######################
+Registered S3 methods overwritten by 'ggtern':
+  method           from   
+  +.gg             ggplot2
+  grid.draw.ggplot ggplot2
+  plot.ggplot      ggplot2
+  print.ggplot     ggplot2
+################################################################################
+############################# radiator::filter_hwe #############################
+################################################################################
+Execution date@time: 20191014@0953
+Interactive mode: on
+Function call and arguments stored in: radiator_filter_hwe_args_20191014@0953.tsv
+Filters parameters file: initiated
+    using tidy data frame of genotypes as input
+    skipping all filters
+Summarizing data
+File written: genotypes.summary.tsv
+HWE analysis for pop: ALFW
+  |=============================================| 100%, Elapsed 00:00
+HWE analysis for pop: ALST
+  |=============================================| 100%, Elapsed 00:00
+HWE analysis for pop: FLAB
+  |=============================================| 100%, Elapsed 00:00
+HWE analysis for pop: FLCC
+  |=============================================| 100%, Elapsed 00:00
+HWE analysis for pop: FLFD
+  |=============================================| 100%, Elapsed 00:00
+HWE analysis for pop: FLHB
+  |=============================================| 100%, Elapsed 00:00
+HWE analysis for pop: FLKB
+  |=============================================| 100%, Elapsed 00:00
+HWE analysis for pop: FLLG
+  |=============================================| 100%, Elapsed 00:00
+HWE analysis for pop: FLPB
+  |=============================================| 100%, Elapsed 00:00
+HWE analysis for pop: FLSG
+  |=============================================| 100%, Elapsed 00:00
+HWE analysis for pop: FLSI
+  |=============================================| 100%, Elapsed 00:00
+HWE analysis for pop: LAFW
+  |=============================================| 100%, Elapsed 00:00
+HWE analysis for pop: TXCB
+  |=============================================| 100%, Elapsed 00:00
+HWE analysis for pop: TXCC
+  |=============================================| 100%, Elapsed 00:00
+HWE analysis for pop: TXFW
+  |=============================================| 100%, Elapsed 00:00
+HWE analysis for pop: TXSP
+  |=============================================| 100%, Elapsed 00:00
+HWE analysis for pop: OVERALL
+  |=============================================| 100%, Elapsed 00:00
+File written: hw.pop.sum.tsv
+Plot written: hwd.plot.blacklist.markers.pdf
+Plot written: hwe.ternary.plots.missing.data.pdf
+Plot written: hwe.manhattan.plot.pdf
+
+Do you want to continue with the filtering ? (y/n):
+y
+
+Based on figures and tables enter the hw.pop.threshold (integer): 
+2
+
+Generating blacklists, whitelists and filtered tidy data...
+done!
+
+Choosing the final filtered dataset
+   select the mid p-value threshold (5 options):
+1: 0.05 *
+2. 0.01 **
+3. 0.001 ***
+4. 0.0001 ****
+5. 0.00001 *****
+1
+
+Final filtered tidy dataset: 
+tidy.filtered.hwe.0.05.mid.p.value.2.hw.pop.threshold.rad
+
+Using hw.pop.threshold/midp.threshold: 2/0.05
+Filters parameters file: updated
+################################### RESULTS ####################################
+Filter HWE: 2 / 0.05
+Number of individuals / strata / chrom / locus / SNP:
+    Before: 557 / 16 / 83 / 417 / 417
+    Blacklisted: 0 / 0 / 1 / 16 / 16
+    After: 557 / 16 / 82 / 401 / 401
+
+Computation time, overall: 47 sec
+############################# completed filter_hwe #############################
+
+Preparing output files...
+File written: whitelist.markers.tsv
+File written: blacklist.markers.tsv
+File written: blacklist.id.tsv
+Writing the filtered strata: strata.filtered.tsvstrata.filtered.tsv
+
+Generating statistics after filtering
+calculating individual stats...
+File written: individuals qc info and stats summary
+File written: individuals qc plot
+calculating markers stats...
+
+Transferring data to genomic converter...
+Synchronizing data and strata...
+    Number of strata: 16
+    Number of individuals: 557
+
+Writing tidy data set:
+radiator_data_20191014@0954.rad
+Data summary: 
+    number of samples: 557
+    number of markers: 401
+
+Computation time, overall: 922 sec
+############################# completed filter_rad #############################
+```
+
+The good news is that this program outputs a lot of information, so I can go back and look at what was not great and what was good and make different decisions.
+
+```{r}
+missingness<-read.delim("filter_rad_20191014@0939/04_filter_individuals/blacklist.individuals.missing_20191014@0941.tsv")
+het_black<-read.delim("filter_rad_20191014@0939/04_filter_individuals/blacklist.individuals.heterozygosity_20191014@0941.tsv")
+```
+
+I think I'll up the proportion of missingness allowed per individual, up the gneotyping missingness allowed, and reduce the minimum coverage.
+
+```{r}
+data<-radiator::filter_rad(data="stacks/populations_all/batch_2.vcf",
+                           strata="../fwsw_pops_map.txt",
+                           output=c("genepop","vcf","plink","structure"))
+```
+
+```
+Chrom: scaffold_612 SNPs number: 3    (213/345)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_620 SNPs number: 2    (214/345)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_622 SNPs number: 1    (215/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_625 SNPs number: 1    (216/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_627 SNPs number: 1    (217/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_629 SNPs number: 3    (218/345)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_631 SNPs number: 1    (219/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_632 SNPs number: 1    (220/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_638 SNPs number: 4    (221/345)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_639 SNPs number: 2    (222/345)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_641 SNPs number: 1    (223/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_643 SNPs number: 2    (224/345)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_647 SNPs number: 2    (225/345)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_650 SNPs number: 3    (226/345)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_651 SNPs number: 1    (227/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_654 SNPs number: 1    (228/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_660 SNPs number: 3    (229/345)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_662 SNPs number: 3    (230/345)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_665 SNPs number: 5    (231/345)
+    LD threshold: 0.1, SNPs blacklisted: 1
+    LD threshold: 0.2, SNPs blacklisted: 1
+    LD threshold: 0.3, SNPs blacklisted: 1
+    LD threshold: 0.4, SNPs blacklisted: 1
+    LD threshold: 0.5, SNPs blacklisted: 1
+    LD threshold: 0.6, SNPs blacklisted: 1
+    LD threshold: 0.7, SNPs blacklisted: 1
+    LD threshold: 0.8, SNPs blacklisted: 1
+    LD threshold: 0.9, SNPs blacklisted: 1
+Chrom: scaffold_668 SNPs number: 2    (232/345)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_669 SNPs number: 1    (233/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_672 SNPs number: 2    (234/345)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_673 SNPs number: 1    (235/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_674 SNPs number: 2    (236/345)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_677 SNPs number: 1    (237/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_680 SNPs number: 2    (238/345)
+    LD threshold: 0.1, SNPs blacklisted: 1
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_681 SNPs number: 1    (239/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_684 SNPs number: 1    (240/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_689 SNPs number: 4    (241/345)
+    LD threshold: 0.1, SNPs blacklisted: 1
+    LD threshold: 0.2, SNPs blacklisted: 1
+    LD threshold: 0.3, SNPs blacklisted: 1
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_697 SNPs number: 1    (242/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_698 SNPs number: 2    (243/345)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_702 SNPs number: 1    (244/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_703 SNPs number: 2    (245/345)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_705 SNPs number: 1    (246/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_706 SNPs number: 1    (247/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_708 SNPs number: 1    (248/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_710 SNPs number: 2    (249/345)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_712 SNPs number: 1    (250/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_717 SNPs number: 1    (251/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_720 SNPs number: 1    (252/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_721 SNPs number: 1    (253/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_724 SNPs number: 1    (254/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_728 SNPs number: 2    (255/345)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_730 SNPs number: 1    (256/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_732 SNPs number: 1    (257/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_734 SNPs number: 1    (258/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_736 SNPs number: 1    (259/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_737 SNPs number: 1    (260/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_738 SNPs number: 2    (261/345)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_739 SNPs number: 1    (262/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_744 SNPs number: 1    (263/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_747 SNPs number: 2    (264/345)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_748 SNPs number: 1    (265/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_753 SNPs number: 2    (266/345)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_756 SNPs number: 2    (267/345)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_758 SNPs number: 1    (268/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_763 SNPs number: 1    (269/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_764 SNPs number: 1    (270/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_765 SNPs number: 1    (271/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_767 SNPs number: 1    (272/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_769 SNPs number: 2    (273/345)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_775 SNPs number: 1    (274/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_776 SNPs number: 1    (275/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_777 SNPs number: 1    (276/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_780 SNPs number: 2    (277/345)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_784 SNPs number: 2    (278/345)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_785 SNPs number: 1    (279/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_787 SNPs number: 1    (280/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_788 SNPs number: 1    (281/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_792 SNPs number: 1    (282/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_794 SNPs number: 2    (283/345)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_797 SNPs number: 1    (284/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_798 SNPs number: 1    (285/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_799 SNPs number: 2    (286/345)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_800 SNPs number: 2    (287/345)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_801 SNPs number: 1    (288/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_807 SNPs number: 1    (289/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_813 SNPs number: 1    (290/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_815 SNPs number: 1    (291/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_816 SNPs number: 1    (292/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_826 SNPs number: 2    (293/345)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_827 SNPs number: 1    (294/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_828 SNPs number: 1    (295/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_829 SNPs number: 1    (296/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_831 SNPs number: 2    (297/345)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_833 SNPs number: 1    (298/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_835 SNPs number: 1    (299/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_837 SNPs number: 1    (300/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_839 SNPs number: 4    (301/345)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_840 SNPs number: 2    (302/345)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_846 SNPs number: 2    (303/345)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_847 SNPs number: 1    (304/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_848 SNPs number: 1    (305/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_849 SNPs number: 2    (306/345)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_850 SNPs number: 1    (307/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_851 SNPs number: 1    (308/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_852 SNPs number: 1    (309/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_857 SNPs number: 1    (310/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_862 SNPs number: 1    (311/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_870 SNPs number: 1    (312/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_873 SNPs number: 1    (313/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_874 SNPs number: 2    (314/345)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_875 SNPs number: 1    (315/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_876 SNPs number: 3    (316/345)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_877 SNPs number: 1    (317/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_878 SNPs number: 1    (318/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_891 SNPs number: 3    (319/345)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_895 SNPs number: 2    (320/345)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_899 SNPs number: 1    (321/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_900 SNPs number: 1    (322/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_901 SNPs number: 1    (323/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_905 SNPs number: 1    (324/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_909 SNPs number: 1    (325/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_912 SNPs number: 2    (326/345)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_914 SNPs number: 1    (327/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_915 SNPs number: 1    (328/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_916 SNPs number: 1    (329/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_918 SNPs number: 1    (330/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_920 SNPs number: 1    (331/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_922 SNPs number: 1    (332/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_923 SNPs number: 1    (333/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_925 SNPs number: 1    (334/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_933 SNPs number: 2    (335/345)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_937 SNPs number: 1    (336/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_940 SNPs number: 1    (337/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_942 SNPs number: 3    (338/345)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_943 SNPs number: 1    (339/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_948 SNPs number: 1    (340/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_962 SNPs number: 1    (341/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_967 SNPs number: 1    (342/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_969 SNPs number: 2    (343/345)
+    LD threshold: 0.1, SNPs blacklisted: 0
+    LD threshold: 0.2, SNPs blacklisted: 0
+    LD threshold: 0.3, SNPs blacklisted: 0
+    LD threshold: 0.4, SNPs blacklisted: 0
+    LD threshold: 0.5, SNPs blacklisted: 0
+    LD threshold: 0.6, SNPs blacklisted: 0
+    LD threshold: 0.7, SNPs blacklisted: 0
+    LD threshold: 0.8, SNPs blacklisted: 0
+    LD threshold: 0.9, SNPs blacklisted: 0
+Chrom: scaffold_978 SNPs number: 1    (344/345)
+    SNPs blacklisted: 0
+Chrom: scaffold_995 SNPs number: 1    (345/345)
+    SNPs blacklisted: 0
+File written: whitelist(s) and blacklist(s)
+Generating figures...
+
+Step 4. Threshold selection
+Look at the boxplot, a threshold of 0.2 will blacklist more markers than a threshold of 0.8
+
+Enter the long LD threshold (filter.long.ld threshold, double/proportion):
+0.2
+
+Step 5. Filtering markers based on long distance LD
+Filters parameters file: updated
+################################### RESULTS ####################################
+
+Filter long ld threshold: 0.2
+Number of individuals / strata / chrom / locus / SNP:
+    Before: 605 / 16 / 345 / 7670 / 7670
+    Blacklisted: 0 / 0 / 0 / 0 / 0
+    After: 605 / 16 / 345 / 7670 / 7670
+
+Computation time, overall: 162 sec
+############################# completed filter_ld ##############################
+################################################################################
+######################## radiator::detect_mixed_genomes ########################
+################################################################################
+Execution date@time: 20191014@1705
+
+detect_mixed_genomes function call arguments:
+    data = SeqVarGDSClass
+    interactive.filter = TRUE
+    detect.mixed.genomes = FALSE
+    ind.heterozygosity.threshold = NULL
+    verbose = TRUE
+    parallel.core = 11
+
+dots-dots-dots ... arguments
+
+Arguments inside "..." assigned in detect_mixed_genomes:
+    internal = FALSE
+    parameters = list
+    path.folder = filter_rad_20191014@1654
+
+
+File written: radiator_detect_mixed_genomes_args_20191014@1705.tsv
+Filters parameters file: initiated
+Calculating heterozygosity statistics
+Generating plots
+
+The greatest value of a picture is when it forces us
+to notice what we never expected to see.
+
+John W. Tukey. Exploratory Data Analysis. 1977.
+
+
+Inspect plots and tables in folder created...
+    Do you want to exclude individuals based on heterozygosity ? (y/n): 
+n
+Filters parameters file: updated
+################################### RESULTS ####################################
+Detect mixed genomes: 0 1
+Number of individuals / strata / chrom / locus / SNP:
+    Before: 605 / 16 / 345 / 7670 / 7670
+    Blacklisted: 0 / 0 / 0 / 0 / 0
+    After: 605 / 16 / 345 / 7670 / 7670
+
+Computation time, overall: 92 sec
+######################## completed detect_mixed_genomes ########################
+
+################################################################################
+###################### radiator::detect_duplicate_genomes ######################
+################################################################################
+Execution date@time: 20191014@1706
+Function call and arguments stored in a file
+File written: radiator_detect_duplicate_genomes_args_20191014@1706.tsv
+File written: random.seed (322915)
+Filters parameters file: initiated
+Calculating manhattan distances between individuals...
+Generating summary statistics
+Generating plots
+
+Inspect tables and figures to decide if some individual(s) need to be blacklisted
+    Do you need to blacklist individual(s) (y/n): 
+n
+Filters parameters file: updated
+################################### RESULTS ####################################
+Detect duplicate genomes: 0
+Number of individuals / strata / chrom / locus / SNP:
+    Before: 605 / 16 / 345 / 7670 / 7670
+    Blacklisted: 0 / 0 / 0 / 0 / 0
+    After: 605 / 16 / 345 / 7670 / 7670
+
+Computation time, overall: 83 sec
+###################### completed detect_duplicate_genomes ######################
+################################################################################
+############################# radiator::filter_hwe #############################
+################################################################################
+Execution date@time: 20191014@1708
+Interactive mode: on
+Function call and arguments stored in: radiator_filter_hwe_args_20191014@1708.tsv
+Filters parameters file: initiated
+    using tidy data frame of genotypes as input
+    skipping all filters
+Summarizing data
+File written: genotypes.summary.tsv
+HWE analysis for pop: ALFW
+  |=============================================| 100%, Elapsed 00:01
+HWE analysis for pop: ALST
+  |=============================================| 100%, Elapsed 00:01
+HWE analysis for pop: FLAB
+  |=============================================| 100%, Elapsed 00:01
+HWE analysis for pop: FLCC
+  |=============================================| 100%, Elapsed 00:01
+HWE analysis for pop: FLFD
+  |=============================================| 100%, Elapsed 00:01
+HWE analysis for pop: FLHB
+  |=============================================| 100%, Elapsed 00:01
+HWE analysis for pop: FLKB
+  |=============================================| 100%, Elapsed 00:01
+HWE analysis for pop: FLLG
+  |=============================================| 100%, Elapsed 00:01
+HWE analysis for pop: FLPB
+  |=============================================| 100%, Elapsed 00:01
+HWE analysis for pop: FLSG
+  |=============================================| 100%, Elapsed 00:01
+HWE analysis for pop: FLSI
+  |=============================================| 100%, Elapsed 00:01
+HWE analysis for pop: LAFW
+  |=============================================| 100%, Elapsed 00:01
+HWE analysis for pop: TXCB
+  |=============================================| 100%, Elapsed 00:01
+HWE analysis for pop: TXCC
+  |=============================================| 100%, Elapsed 00:01
+HWE analysis for pop: TXFW
+  |=============================================| 100%, Elapsed 00:01
+HWE analysis for pop: TXSP
+  |=============================================| 100%, Elapsed 00:01
+HWE analysis for pop: OVERALL
+  |=============================================| 100%, Elapsed 00:01
+File written: hw.pop.sum.tsv
+Plot written: hwd.plot.blacklist.markers.pdf
+Plot written: hwe.ternary.plots.missing.data.pdf
+Plot written: hwe.manhattan.plot.pdf
+
+Do you want to continue with the filtering ? (y/n):
+y
+
+Based on figures and tables enter the hw.pop.threshold (integer): 
+2
+
+Generating blacklists, whitelists and filtered tidy data...
+done!
+
+Choosing the final filtered dataset
+   select the mid p-value threshold (5 options):
+1: 0.05 *
+2. 0.01 **
+3. 0.001 ***
+4. 0.0001 ****
+5. 0.00001 *****
+1
+
+Final filtered tidy dataset: 
+tidy.filtered.hwe.0.05.mid.p.value.2.hw.pop.threshold.rad
+
+Using hw.pop.threshold/midp.threshold: 2/0.05
+Filters parameters file: updated
+################################### RESULTS ####################################
+Filter HWE: 2 / 0.05
+Number of individuals / strata / chrom / locus / SNP:
+    Before: 605 / 16 / 345 / 7670 / 7670
+    Blacklisted: 0 / 0 / 4 / 237 / 237
+    After: 605 / 16 / 341 / 7433 / 7433
+
+Computation time, overall: 97 sec
+############################# completed filter_hwe #############################
+
+Preparing output files...
+File written: whitelist.markers.tsv
+File written: blacklist.markers.tsv
+File written: blacklist.id.tsv
+Writing the filtered strata: strata.filtered.tsvstrata.filtered.tsv
+
+Generating statistics after filtering
+calculating individual stats...
+File written: individuals qc info and stats summary
+File written: individuals qc plot
+calculating markers stats...
+
+Transferring data to genomic converter...
+Synchronizing data and strata...
+    Number of strata: 16
+    Number of individuals: 605
+
+Writing tidy data set:
+radiator_data_20191014@1710.rad
+Calibrating REF/ALT alleles...
+    number of REF/ALT switch = 2
+Data summary: 
+    number of samples: 605
+    number of markers: 7433
+
+Computation time, overall: 1007 sec
+############################# completed filter_rad #############################
+> filt<-radiator::filter_rad(data="filter_rad_20191014@1654/14_filtered/radiator_data_20191014@1710.vcf",
++                            strata="filter_rad_20191014@1654/14_filtered/strata.filtered.tsv",
++                            output=c("genepop","vcf","plink","structure"))
+################################################################################
+############################# radiator::filter_rad #############################
+################################################################################
+The function arguments names have changed: please read documentation
+
+Execution date@time: 20191014@1713
+Folder created: filter_rad_20191014@1713
+Function call and arguments stored in: radiator_filter_rad_args_20191014@1713.tsv
+File written: random.seed (422581)
+Filters parameters file generated: filters_parameters_20191014@1713.tsv
+
+Reading VCF
+Data summary: 
+    number of samples: 605
+    number of markers: 7433
+done! timing: 3 sec
+
+Generating individual stats...
+Generating markers stats...
+
+
+Number of chromosome/contig/scaffold: 341
+Number of locus: 7433
+Number of markers: 7433
+Number of populations: 16
+Number of individuals: 605
+
+Number of ind/pop:
+ALFW = 37
+ALST = 43
+FLAB = 34
+FLCC = 31
+FLFD = 35
+FLHB = 41
+FLKB = 40
+FLLG = 42
+FLPB = 42
+FLSG = 43
+FLSI = 40
+LAFW = 39
+TXCB = 30
+TXCC = 36
+TXFW = 27
+TXSP = 45
+
+Number of duplicate id: 0
+radiator Genomic Data Structure (GDS) file: radiator_20191014@1713.gds
+################################################################################
+########################### radiator::filter_monomorphic #######################
+################################################################################
+Execution date@time: 20191014@1714
+Function call and arguments stored in: radiator_filter_monomorphic_args_20191014@1714.tsv
+Filters parameters file: initiated
+
+
+Computation time, overall: 1 sec
+######################## filter_monomorphic completed ##########################
+
+Computation time, overall: 11 sec
+############################# completed filter_rad #############################
+
+```
+
+Obviously I lost some of this history but here's some of it. I recorded all of my choices on a piece of paper.
+
+Ok, this retained a better number of loci. But there's a weird band in the detect_duplicate_genomes step, so I might try running that one again.
+
+```{r}
+filt<-radiator::detect_duplicate_genomes(data=data$output)
+```
+
+This resulted in keeping 353 individuals and 7411 loci
+
+```
+> filt<-radiator::detect_duplicate_genomes(data=data$gds)
+
+################################################################################
+###################### radiator::detect_duplicate_genomes ######################
+################################################################################
+Execution date@time: 20191014@1717
+Folder created: -7_detect_duplicate_genomes_20191014@1717
+Function call and arguments stored in a file
+File written: radiator_detect_duplicate_genomes_args_20191014@1717.tsv
+File written: random.seed (979520)
+Filters parameters file generated: filters_parameters_20191014@1717.tsv
+Filters parameters file: initiated
+Calculating manhattan distances between individuals...
+Generating summary statistics
+Generating plots
+
+Inspect tables and figures to decide if some individual(s) need to be blacklisted
+    Do you need to blacklist individual(s) (y/n): 
+y
+
+2 options to remove duplicates:
+    1. threshold: using the figure you choose a threshold. It's more powerful to fully remove duplicates
+    2. manually: the function generate a blacklist that you have to complete
+    Note: not sure ? Use option 1, it's more powerful to fully remove duplicates
+    Enter the option to remove duplicates (1/2): 
+1
+
+Enter the threshold to remove duplicates: (between 0 and 1)
+0.25
+
+2 options to remove duplicates involved in pairs from different strata/group:
+    (the black points on the figure, above your threshold)
+    1: blacklist both samples in the pair
+    2: blacklist only 1 sample, based on missingness
+    Enter 1/2: 
+2
+With threshold selected, 70 individual(s) blacklisted
+Written in the directory: blacklist.id.similar.tsv
+Blacklisted individuals: 70 ind.
+    Filtering with blacklist of individuals
+Filters parameters file: updated
+################################### RESULTS ####################################
+Detect duplicate genomes: 0.25
+Number of individuals / strata / chrom / locus / SNP:
+    Before: 605 / 16 / 341 / 7433 / 7433
+    Blacklisted: 70 / 0 / 0 / 0 / 0
+    After: 535 / 16 / 341 / 7433 / 7433
+
+Filter monomorphic markers
+Number of individuals / strata / chrom / locus / SNP:
+    Blacklisted: 0 / 0 / 1 / 22 / 22
+
+Computation time, overall: 71 sec
+###################### completed detect_duplicate_genomes ######################
+```
+
+This results in fewer individuals than in my first analysis. My goal here was to get a list of which individuals might be problematic
+
+```{r}
+similar_ids<-read.delim("-7_detect_duplicate_genomes_20191014@1717/blacklist.id.similar.tsv")
+```
+
+As I suspected, these are the FLFW individuals plus primarily individuals from the other FW populations. I think I'll leave them in the analysis for now (so I'll disregard this folder).
+
+I'm saving these folders to my external drive so I can analyse them some more while I'm away.
+
+
 # 11 October 2019
 
 Trying to get to the bottom of the weirdness with the locus names...
