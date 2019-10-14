@@ -49,7 +49,9 @@ tm<-treemix.from.vcf(vcf,poplist)
 write.table(tm,treemix.name,col.names=TRUE,row.names=FALSE,quote=F,sep=' ')
 ```
 
-I'm going to save a file to the treemix directory with the order of populations.
+Saved the above as vcf2treemix.R and included calling it in the run_treemix.sh file.
+
+I'm going to save a file to the treemix directory with the order of populations - did this remotely on C001KR too.
 ```{r}
 poplist<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST",
             "ALFW","FLSG","FLKB","FLFD","FLSI","FLAB",
