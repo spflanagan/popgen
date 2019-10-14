@@ -12,6 +12,15 @@ knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
 
+# 15 October 2019
+
+This morning I would like to re-do treemix but with the new file. Let's see if I can make that happen. RStudio was being glitchy, I think maybe due to cache associated with this document. So let's give this another try. I've managed to install treemix on C001KR remotely, woohoo. So now I just need to write a script to convert the files and run it there. Basically I just have to re-run it as I had before, I think, but improve the analysis. I think I can do this from my laptop, and at the moment I should run structure on this computer.
+
+
+```{r}
+
+```
+
 # 14 October 2019
 
 At the moment I want to try to improve the plotting so I can send something nice to Adam and Emily. The first order of business is to improve the plots from Friday - I want to show both types of Bayenv outliers on both graphs. 
