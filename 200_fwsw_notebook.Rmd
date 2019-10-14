@@ -16,10 +16,48 @@ knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 
 This morning I would like to re-do treemix but with the new file. Let's see if I can make that happen. RStudio was being glitchy, I think maybe due to cache associated with this document. So let's give this another try. I've managed to install treemix on C001KR remotely, woohoo. So now I just need to write a script to convert the files and run it there. Basically I just have to re-run it as I had before, I think, but improve the analysis. I think I can do this from my laptop, and at the moment I should run structure on this computer.
 
+Ok, running structure: it's got one row with locus names, one column with sample IDs and one with putative pop, and each sample is on two lines.
 
-```{r}
+I'm going to use the admixture model, not using sample locations as prior. Running with K=2 to K=16 with 1 iteration for now. 
 
+Now for treemix:
+
+I'm going to write a script that can be called from the command line, in the run_treemix file.
+
+```{r treemix}
+#!/usr/bin/env Rscript
+require(devtools)
+# need gwscaR tools
+devtools::install_github("https://github.com/spflanagan/gwscaR.git")
+library(gwscaR)
+#source("../../gwscaR/R/gwscaR.R")
+#source("../../gwscaR/R/gwscaR_plot.R")
+#source("../../gwscaR/R/gwscaR_utility.R")
+#source("../../gwscaR/R/gwscaR_fsts.R")
+#source("../../gwscaR/R/gwscaR_popgen.R")
+#source("../../gwscaR/R/vcf2dadi.R")
+
+# get the input
+args = commandArgs(trailingOnly = TRUE)
+vcf_name<-args[1]
+poplist_file<-args[2]
+treemix_name<-args[3]
+
+vcf<-parse.vcf(vcf_name)
+poplist<-read.delim(args[2])
+tm<-treemix.from.vcf(vcf,poplist)
+write.table(tm,treemix.name,col.names=TRUE,row.names=FALSE,quote=F,sep=' ')
 ```
+
+I'm going to save a file to the treemix directory with the order of populations.
+```{r}
+poplist<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST",
+            "ALFW","FLSG","FLKB","FLFD","FLSI","FLAB",
+            "FLPB","FLHB","FLCC","FLLG")
+write.table(poplist,"treemix/poplist",sep='\n',quote=FALSE,col.names = FALSE,row.names = FALSE)
+```
+
+
 
 # 14 October 2019
 
