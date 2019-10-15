@@ -159,10 +159,11 @@ dev.off()
 Ok, but how do I actually choose which number of migration edges to choose? Well, apparently [there's an R package for that!](https://rdrr.io/cran/OptM/#vignettes)
 
 ```{r}
-optM("treemix")
+tmOpt<-optM("treemix")
+plot_optM(tmOpt)
 ```
 
-Huh, apparently it's recommended to run more than 2 iterations for each m. I can do that!
+Huh, apparently it's recommended to run more than 2 iterations for each m. I can do that! And I have - it chooses m=2 as the best. Woohoo!
 
 
 What's next?
