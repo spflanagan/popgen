@@ -11,6 +11,17 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 16 October 2019
+
+I converted the tped files from radiator output into ped using `~/Programs/plink-1.07-x86_64/plink --tfile radiator_data_20191014@1710 --recode --noweb --allow-no-sex --missing-genotype '00' --out fwsw_all_filt` so that I can run admixture.
+
+Running a first test I get a "PLINK Input file error" message from admixture. But if I turn it into a bed file it works instead, using 
+```
+~/Programs/plink-1.07-x86_64/plink --file fwsw_all_filt --make-bed --noweb --allow-no-sex --missing-genotype '00' --out fwsw_all_filt
+~/Programs/admixture_linux-1.3.0/admixture fwsw_all_filt.bed 2
+```
+
+Now I'm working on a script that I can run to test multiple values of K.
 
 # 15 October 2019
 
