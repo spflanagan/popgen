@@ -23,6 +23,8 @@ Running a first test I get a "PLINK Input file error" message from admixture. Bu
 
 Now I'm working on a script that I can run to test multiple values of K.
 
+The manual isn't clear on whether it's good to run multiple instances of the model to get improved estimates, so I'll have to look at some papers that have used it before and/or tutorials online. for now though I'll run their test of Ks. I've got this working and running in the background at the moment.
+
 # 15 October 2019
 
 This morning I would like to re-do treemix but with the new file. Let's see if I can make that happen. RStudio was being glitchy, I think maybe due to cache associated with this document. So let's give this another try. I've managed to install treemix on C001KR remotely, woohoo. So now I just need to write a script to convert the files and run it there. Basically I just have to re-run it as I had before, I think, but improve the analysis. I think I can do this from my laptop, and at the moment I should run structure on this computer.
