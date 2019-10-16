@@ -25,6 +25,188 @@ Now I'm working on a script that I can run to test multiple values of K.
 
 The manual isn't clear on whether it's good to run multiple instances of the model to get improved estimates, so I'll have to look at some papers that have used it before and/or tutorials online. for now though I'll run their test of Ks. I've got this working and running in the background at the moment.
 
+Admixture has run successfully! The examples online that I've been able to find don't mention running multiple reps (e.g. [this one](https://gaworkshop.readthedocs.io/en/latest/contents/07_admixture/admixture.html))
+
+So I'll analyze the Ks first
+
+```{r}
+admixK<-read.delim("admixture/K_CVs.txt",header = FALSE)
+admixK$K<-as.numeric(gsub(".*\\(K=(\\d+)\\).*","\\1",admixK$V1))
+admixK$CV<-as.numeric(gsub("^.*\\: (\\d+\\.\\d+)$","\\1",admixK$V1))
+
+admixK<-admixK[order(admixK$K),]
+
+plot(admixK$K,admixK$CV,pch=19,type = "b",lty=1,xlab = "K",ylab="CV",las=1,lwd=2)
+
+```
+
+Looks like K=5 or K=7 are the best, let's look at those outputs.
+
+Adapting code from [the GA workshop](https://gaworkshop.readthedocs.io/en/latest/contents/07_admixture/admixture.html):
+
+```{r}
+library(RColorBrewer)
+qfile<-"admixture/fwsw_all_filt.5.Q"
+famfile<-"admixture/fwsw_all_filt.fam"
+poporderFile<-"treemix/poplist"
+K<-5
+
+# read files in 
+qtbl<-read.table(qfile,stringsAsFactors = F)
+famTable<- read.table(famfile,
+                      col.names = c("Pop","Ind","Father","Mother","Sex","phenotype"),stringsAsFactors = F)[1:2]
+poporder<-read.table(poporderFile,col.names = c("Pop"),stringsAsFactors = F)
+poporder$orderNum<-1:nrow(poporder)
+
+
+# create useful tables
+mergedAdmixtureTable <- cbind(qtbl, famTable)
+mergedAdmixTabOrderNs <- merge(mergedAdmixtureTable,poporder,by="Pop")
+ordered <- mergedAdmixTabOrderNs[order(mergedAdmixTabOrderNs$orderNum),]
+
+
+plotting.structure(ordered[,1:(ncol(ordered)-2)],k = 5,pop.order = poporder$Pop,make.file = FALSE)
+admixK5<-ordered[,1:(ncol(ordered)-2)]
+```
+
+```{r}
+qfile<-"admixture/fwsw_all_filt.7.Q"
+famfile<-"admixture/fwsw_all_filt.fam"
+poporderFile<-"treemix/poplist"
+K<-7
+
+# read files in 
+qtbl<-read.table(qfile,stringsAsFactors = F)
+famTable<- read.table(famfile,
+                      col.names = c("Pop","Ind","Father","Mother","Sex","phenotype"),stringsAsFactors = F)[1:2]
+poporder<-read.table(poporderFile,col.names = c("Pop"),stringsAsFactors = F)
+poporder$orderNum<-1:nrow(poporder)
+
+
+# create useful tables
+mergedAdmixtureTable <- cbind(qtbl, famTable)
+mergedAdmixTabOrderNs <- merge(mergedAdmixtureTable,poporder,by="Pop")
+ordered <- mergedAdmixTabOrderNs[order(mergedAdmixTabOrderNs$orderNum),]
+
+par(mar=c(1,0,0,0))
+plotting.structure(ordered[,1:(ncol(ordered)-2)],k = 7,pop.order = poporder$Pop,make.file = FALSE)
+admixK7<-ordered[,1:(ncol(ordered)-2)]
+plotting.structure(admixK7,k = 7,pop.order = poporder$Pop,make.file = FALSE)
+```
+
+So I could use this code which I put in the reanalysis doc, and change poptree to tree mix and run the PCadapt analysis here...I just need to load some things and do a bit of plotting stuff. 
+
+I need to do the PCAdapt analysis
+
+
+```{r}
+library(pcadapt)
+```
+
+````{r pcadapt_choose}
+filename<-read.pcadapt("filter_rad_20191014@1654/14_filtered/radiator_data_20191014@1710.vcf",type="vcf")
+x<-pcadapt(filename, K=20)
+plot(x,option="screeplot") #K=7
+
+```
+
+```{r pcadapt_analyze}
+pa<-pcadapt(filename,K=7)
+saveRDS(pa,"fwsw_all_pcadapt.RDS")
+pa.props<-round((pa$singular.values/sum(pa$singular.values))*100,2)
+pa.props
+
+ind_dat<-read.table("filter_rad_20191014@1654/14_filtered/individuals.qc.stats_20191014@1654.tsv",header=T,
+                    stringsAsFactors = F)
+pops<-ind_dat$STRATA	
+grp<-pops
+grp[grp=="TXFW" | grp=="LAFW" | grp=="ALFW" | grp=="FLLG"]<-"freshwater"
+grp[grp!="freshwater"]<-"saltwater"
+
+#colors
+pap<-data.frame(Pop=pops,cols=pops,pch=pops,grp=grp,stringsAsFactors = F)
+pap$Pop[pap$Pop == "FLLG"]<-"FLFW"
+for(i in 1:nrow(pap)){
+  pap[i,"cols"]<-as.character(ppi[ppi$Pop %in% pap[i,"Pop"],"cols"])
+}
+for(i in 1:nrow(pap)){
+  pap[i,"pch"]<-as.numeric(ppi[ppi$Pop %in% pap[i,"Pop"],"pch"])
+}
+write.table(pap,"pcadapt_colp.txt",col.names=TRUE)
+
+```
+
+
+
+```{r}
+# setup
+library(jpeg)
+img<-readJPEG("all_sites_map.jpg")
+
+source("../R/203_treemix_plotting_funcs.R") #I've modified the functions from treemix
+library(lattice); library(grid); library(RColorBrewer)
+poporder<-read.delim("treemix/poporder")
+colors<-poporder$colors
+poporder<-poporder$poporder
+
+```
+
+
+```{r}
+npop<-length(pop.list)
+pseq<-1:npop
+m<-matrix(c(rep(1,16),rep(2,6),
+            3:18,rep(2,6),
+            19:34,rep(2,6),
+            rep(35,8),rep(36,8),rep(37,6)),
+          nrow=4,ncol=npop+6,byrow = T)
+
+#set the layout
+layout(mat=m,heights=c(6,1,1,6))
+#MAP
+#open an empty plot window with coordinates
+par(oma=c(1.5,3.5,1,2),mar=c(0,0,0,0),xpd=NA)
+plot(1:14,ty="n",axes=FALSE,xlab="",ylab="",xpd=TRUE)
+#specify the position of the image through bottom-left and top-right coords
+rasterImage(img,1,1,14,14,xpd=TRUE)
+
+#Treemix
+par(mar=c(0,0,0,1))
+t2<-plot_tree("treemix/fwsw_k100bFLPBrm2",plus=0.05,scale=TRUE,mbar=TRUE)
+#plot.phylo(pt.subtree,tip.color = pt.colors,cex=2,
+#           edge.color = clcolr,edge.width = 2,label.offset = 0.0015)
+
+#STRUCTURE
+par(mar=c(1,0,0,0))
+plotting.structure(admixK5,5,pop.order = poporder$Pop, pop.list, make.file=FALSE, xlabcol = all.colors,plot.new=FALSE,
+                   colors=grp.colors[c(1:5)],xlabel=FALSE,
+                   ylabel=expression(atop(italic(K)==5)),lab.cex=0.85)
+plotting.structure(admixK7,7,pop.order = poporder$Pop,pop.labs, make.file=FALSE,
+                   plot.new=FALSE,colors=grp.colors,xlabel=TRUE,
+                   xlabcol = all.colors,
+                   ylabel=expression(atop(italic(K)==7)),lab.cex=0.85)
+#PCADAPT
+par(mar=c(2,2,2,2))
+plot(pa$scores[,1],pa$scores[,2],col=alpha(pap$cols,0.5),bg=alpha(pap$cols,0.75),
+     pch=as.numeric(pap$pch),	cex=3,bty="L",xlab="",ylab="",cex.axis=1.5)
+
+mtext(paste("PC1 (",pa.props[1],"%)",sep=""),1,line = 2.5,cex=1)
+mtext(paste("PC2 (",pa.props[2],"%)",sep=""),2,line = 2.5,cex=1)
+
+plot(pa$scores[,3],pa$scores[,4],col=alpha(pap$cols,0.5),bg=alpha(pap$cols,0.75),pch=as.numeric(pap$pch),
+     cex=3,	bty="L",xlab="",ylab="",cex.axis=1.5)
+
+mtext(paste("PC3 (",pa.props[3],"%)",sep=""),1,line = 2.5,cex=1)
+mtext(paste("PC4 (",pa.props[4],"%)",sep=""),2,line = 2.5,cex=1)
+
+plot(1:10,ty="n",axes=FALSE,xlab="",ylab="",xpd=TRUE)
+legend("bottom", legend=ppi$Pop, pch=as.numeric(ppi$pch), pt.cex=3,cex=1.5,
+       col=alpha(ppi$cols, 0.5),pt.bg=alpha(ppi$cols,0.25), ncol=2,bty='n')
+
+```
+
+
+
 # 15 October 2019
 
 This morning I would like to re-do treemix but with the new file. Let's see if I can make that happen. RStudio was being glitchy, I think maybe due to cache associated with this document. So let's give this another try. I've managed to install treemix on C001KR remotely, woohoo. So now I just need to write a script to convert the files and run it there. Basically I just have to re-run it as I had before, I think, but improve the analysis. I think I can do this from my laptop, and at the moment I should run structure on this computer.
