@@ -175,6 +175,8 @@ t2<-plot_tree("treemix/fwsw_k100bFLPBrm2",scale=T,mbar=T,cex = 1.5,
 
 Not sure how to include the bootstrap values or even where the output is located...maybe the *llik files?
 
+Well let's ignore this, just go with what I've got for now and worry about describing bootstrapping in the text or leave that for future me. I should update the 202_fwsw_reanalysis document next.
+
 # 16 October 2019
 
 I converted the tped files from radiator output into ped using `~/Programs/plink-1.07-x86_64/plink --tfile radiator_data_20191014@1710 --recode --noweb --allow-no-sex --missing-genotype '00' --out fwsw_all_filt` so that I can run admixture.

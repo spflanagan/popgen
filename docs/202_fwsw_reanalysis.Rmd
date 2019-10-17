@@ -159,32 +159,31 @@ Maybe add Fst heatmap here too?
 
 ### PCAdapt
 
+
 ```{r}
 library(pcadapt)
 ```
 
 ````{r pcadapt_choose}
-filename<-read.pcadapt("subset.ped",type="ped")
+filename<-read.pcadapt("filter_rad_20191014@1654/14_filtered/radiator_data_20191014@1710.vcf",type="vcf")
 x<-pcadapt(filename, K=20)
-plot(x,option="screeplot")#K=6
-pops<-gsub("sample_(\\w{4}).*","\\1",read.table("subset.ped",header=F)[,2])	
-grp<-pops
-grp[grp=="TXFW" | grp=="LAFW" | grp=="ALFW" | grp=="FLLG"]<-"freshwater"
-grp[grp!="freshwater"]<-"saltwater"
-plot(x,option="scores",pop=pops)
-plot(x,option="scores",i=1,j=3,pop=pops)
-plot(x,option="scores",i=5,j=6,pop=pops)
-plot(x,option="scores",i=7,j=8,pop=pops)#should show no patterns
+plot(x,option="screeplot") #K=7
+
 ```
 
 ```{r pcadapt_analyze}
-pa<-pcadapt(filename,K=6)
-saveRDS(pa,"pcadapt.RDS")
+pa<-pcadapt(filename,K=7)
+saveRDS(pa,"fwsw_all_pcadapt.RDS")
 pa.props<-round((pa$singular.values/sum(pa$singular.values))*100,2)
 pa.props
 
-```
-```{r plot_pcadapt_initial, fig.height=8,fig.width=10.5,fig.path="../figs/pcadapt.pc1-6",dev=c('png', 'pdf'),fig.dim="in"}
+ind_dat<-read.table("filter_rad_20191014@1654/14_filtered/individuals.qc.stats_20191014@1654.tsv",header=T,
+                    stringsAsFactors = F)
+pops<-ind_dat$STRATA	
+grp<-pops
+grp[grp=="TXFW" | grp=="LAFW" | grp=="ALFW" | grp=="FLLG"]<-"freshwater"
+grp[grp!="freshwater"]<-"saltwater"
+
 #colors
 pap<-data.frame(Pop=pops,cols=pops,pch=pops,grp=grp,stringsAsFactors = F)
 pap$Pop[pap$Pop == "FLLG"]<-"FLFW"
@@ -194,7 +193,13 @@ for(i in 1:nrow(pap)){
 for(i in 1:nrow(pap)){
   pap[i,"pch"]<-as.numeric(ppi[ppi$Pop %in% pap[i,"Pop"],"pch"])
 }
-write.table(pap,"pca_pcadapt.txt",col.names=TRUE)
+write.table(pap,"pcadapt_colp.txt",col.names=TRUE)
+
+```
+
+
+```{r plot_pcadapt_initial, fig.height=8,fig.width=10.5,fig.path="../figs/pcadapt.pc1-6",dev=c('png', 'pdf'),fig.dim="in"}
+
 #plot
 par(mfrow=c(2,3),oma=c(2,2,2,2),mar=c(2,2,2,2))
 plot(pa$scores[,1],pa$scores[,2],col=alpha(pap$cols,0.5),bg=alpha(pap$cols,0.75),
@@ -238,196 +243,211 @@ legend("top", legend=ppi$Pop, pch=as.numeric(ppi$pch), pt.cex=1.5,cex=0.85,
 ```
 
 
-### STRUCTURE
+### Admixture
 
 
-```{r readStructure}
-structure.k2<-read.table(
-  "structure//fwsw//admix//Results//admix_run_2_f_clusters.txt",
-  sep='\t', header=F)
-structure.k2$V1<-sub('sample_([A-Z]{4})','\\1', structure.k2$V1)
-tapply(structure.k2$V2,structure.k2$V1,max) #V2 has TX group
+```{r}
+admixK<-read.delim("admixture/K_CVs.txt",header = FALSE)
+admixK$K<-as.numeric(gsub(".*\\(K=(\\d+)\\).*","\\1",admixK$V1))
+admixK$CV<-as.numeric(gsub("^.*\\: (\\d+\\.\\d+)$","\\1",admixK$V1))
 
-structure.k6<-read.table(
-  "structure//fwsw//admix//Results//admix_run_6_f_clusters.txt",
-  sep='\t', header=F)
-structure.k6$V1<-sub('sample_([A-Z]{4})','\\1', structure.k6$V1)
-```
-```{r AnalyzeStructure}
-tapply(structure.k6$V2,structure.k6$V1,max) #V2 has FLAt group
-tapply(structure.k6$V3,structure.k6$V1,max) #V3 has TX group
-tapply(structure.k6$V4,structure.k6$V1,max) #V4 has AL group
-tapply(structure.k6$V5,structure.k6$V1,max) #V5 has FL Gulf group
-tapply(structure.k6$V6,structure.k6$V1,max) #V6 has north Gulf group
-tapply(structure.k6$V7,structure.k6$V1,max) #V7 has FL atlantic group
+admixK<-admixK[order(admixK$K),]
+
+plot(admixK$K,admixK$CV,pch=19,type = "b",lty=1,xlab = "K",ylab="CV",las=1,lwd=2)
 
 ```
-```{r plot_structure,fig.width=10,fig.height=7.5,fig.path="../figs/StrucktureK2K6",dev=c('png','pdf')}
-str6<-data.frame(structure.k6$V1,structure.k6$V3,structure.k6$V4,structure.k6$V2,
-                 structure.k6$V5,structure.k6$V7,structure.k6$V6,stringsAsFactors = F)
-str6$structure.k6.V1[str6$structure.k6.V1 == "FLLG"]<-"FLFW"
-#png("StructureK2K6.png",width=10,height=7.5,units="in",res=300)
-par(mfrow=c(2,length(pop.list)),oma=c(1,3.5,1,1),mar=c(1,0,0,0))
-plotting.structure(structure.k2,2,pop.list, make.file=FALSE, xlabcol = all.colors,plot.new=F,
-                   colors=grp.colors[c(1,6)],xlabel=F,
-                   ylabel=expression(atop(italic(K)==2,Delta~italic(K)==358.9)))
-plotting.structure(structure.k6,2,pop.list, make.file=FALSE, plot.new=F,
-                   colors=grp.colors,xlabel=T,xlabcol = all.colors,
-                   ylabel=expression(atop(italic(K)==6,Delta~italic(K)==326.1)))
+
+Looks like K=5 or K=7 are the best, let's look at those outputs.
+
+
+```{r}
+library(RColorBrewer)
+qfile<-"admixture/fwsw_all_filt.5.Q"
+famfile<-"admixture/fwsw_all_filt.fam"
+poporderFile<-"treemix/poplist"
+K<-5
+
+# read files in 
+qtbl<-read.table(qfile,stringsAsFactors = F)
+famTable<- read.table(famfile,
+                      col.names = c("Pop","Ind","Father","Mother","Sex","phenotype"),stringsAsFactors = F)[1:2]
+poporder<-read.table(poporderFile,col.names = c("Pop"),stringsAsFactors = F)
+poporder$orderNum<-1:nrow(poporder)
+
+
+# create useful tables
+mergedAdmixtureTable <- cbind(qtbl, famTable)
+mergedAdmixTabOrderNs <- merge(mergedAdmixtureTable,poporder,by="Pop")
+ordered <- mergedAdmixTabOrderNs[order(mergedAdmixTabOrderNs$orderNum),]
+
+
+plotting.structure(ordered[,1:(ncol(ordered)-2)],k = 5,pop.order = poporder$Pop,make.file = FALSE)
+admixK5<-ordered[,1:(ncol(ordered)-2)]
+write.table(admixK5,"admixture/admixK5.txt",sep = '\t',quote = FALSE,col.names = TRUE,row.names = FALSE)
 ```
 
+```{r}
+qfile<-"admixture/fwsw_all_filt.7.Q"
+famfile<-"admixture/fwsw_all_filt.fam"
+poporderFile<-"treemix/poplist"
+K<-7
+
+# read files in 
+qtbl<-read.table(qfile,stringsAsFactors = F)
+famTable<- read.table(famfile,
+                      col.names = c("Pop","Ind","Father","Mother","Sex","phenotype"),stringsAsFactors = F)[1:2]
+poporder<-read.table(poporderFile,col.names = c("Pop"),stringsAsFactors = F)
+poporder$orderNum<-1:nrow(poporder)
 
 
-### PopTree2
+# create useful tables
+mergedAdmixtureTable <- cbind(qtbl, famTable)
+mergedAdmixTabOrderNs <- merge(mergedAdmixtureTable,poporder,by="Pop")
+ordered <- mergedAdmixTabOrderNs[order(mergedAdmixTabOrderNs$orderNum),]
 
-For the PopTree2 analysis, I need to convert the vcf file to genepop format. I did this using PGDSpider2. Then I ran PopTree2 on Windows10, using Da to calculate neighbor-joining trees and using 1000 bootstrap replicates.
-
-Or, if that doesn't work,
-```{r RemoveMissingData,results="hide"}
-
-remove.missing.data<-function(vcf, pop.list){
-  exclude<-NULL
-  for(i in 1:nrow(vcf))
-  {
-    vcf.row<-vcf[i,colnames(vcf) != "SNP"]#remove this if it exists
-    missingness<-unlist(lapply(pop.list,function(pop){
-      pop.vcf<-vcf.row[,grep(pop,colnames(vcf.row))]
-      missing<-length(grep("\\.\\/\\.",pop.vcf))
-      prop.missing<-missing/length(pop.vcf)
-      return(prop.missing)
-    }))
-    if(length(missingness[missingness==1])>0){
-      print(paste("Row ", i, " is has no data for pop ", pop.list[which(missingness==1)]))
-      exclude<-c(exclude,i)
-    } 
-  }
-  if(!is.null(exclude)){
-    return(vcf[-exclude,])
-  }else{
-    return(vcf)
-  }
-}
-```
-```{r poptree_names,results="hide"}
-gpop.name<-"poptree/p4.genepop"
-sub.prefix<-"poptree/p4_"
-vcf<-remove.missing.data(vcf, pop.list)
-```
-```{r CreatePoptreeSubsets, eval=FALSE}
-for(i in 1:10){
-  rowsub<-sample(nrow(vcf),1000,replace = FALSE)
-  gpopsub<-vcf2gpop(vcf[rowsub,colnames(vcf)!="SNP"],pop.list,paste(sub.prefix,i,".genepop",sep=""))
-}
-gpop<-vcf2gpop(vcf[,colnames(vcf)!="SNP"],pop.list,gpop.name)
+par(mar=c(1,0,0,0))
+plotting.structure(ordered[,1:(ncol(ordered)-2)],k = 7,pop.order = poporder$Pop,make.file = FALSE)
+admixK7<-ordered[,1:(ncol(ordered)-2)]
+plotting.structure(admixK7,k = 7,pop.order = poporder$Pop,make.file = FALSE)
+write.table(admixK7,"admixture/admixK7.txt",sep = '\t',quote = FALSE,col.names = TRUE,row.names = FALSE)
 ```
 
 
-And then run poptree. Poptree ran on the full dataset as well as the subsets of 1000 SNPs. Did they all provide similar results? What does the consensus tree look like?
+### Treemix
 
-```{r poptree_prefix, eval=TRUE}
-poptree.dir<-"poptree/"
-poptree.prefix<-"p4"
-poptree.png<-"p4.poptree.png"
+
+```{r}
+poporder<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST",
+            "ALFW","FLSG","FLKB","FLFD","FLSI","FLAB",
+            "FLPB","FLHB","FLCC","FLLG")
+colors<-poporder
+colors[colors %in% "FLLG"]<-grp.colors[6]
+colors[colors %in% c("FLPB","FLHB","FLCC")]<-grp.colors[6]
+colors[colors %in% c("FLAB")]<-grp.colors[5]
+colors[colors %in% c("FLSI","FLFD","FLKB","FLSG")]<-grp.colors[3]
+colors[colors %in% c("ALST","ALFW","LAFW")]<-grp.colors[2]
+colors[colors %in% c("TXSP","TXCC","TXFW","TXCB")]<-grp.colors[1]
+write.table(cbind(poporder,colors),"poporder",quote=F,sep='\t')
 ```
-```{r AnalyzePoptree, eval=TRUE}
-library(ape)
-poptree.files<-list.files(path = poptree.dir,pattern=paste(poptree.prefix,".*nwk",sep=""))
-poptree.files<-lapply(poptree.files,function(x){ paste("poptree",x,sep="/")})
-poptrees<-lapply(poptree.files,read.tree)
-con.poptree<-consensus(poptrees)
-con.poptree$tip.label[con.poptree$tip.label=="FLLG"]<-"FLFW"
 
-clcolr <- rep("black", dim(con.poptree$edge)[1])
-#clcolr[c(12,13,14,24)]<-all.colors[3]
-#png(paste(poptree.dir,poptree.prefix,".consensus.png",sep=""),height=7,width=7,units="in",res=300)
-#dev.off()
-png(paste(poptree.dir,poptree.prefix,".png",sep=""),height=10,width=10,units="in",res=300)
-par(mfrow=c(3,4),oma=c(1,1,1,1),mar=c(1,1,1,1))
-for(i in 1:length(poptrees)){
-  plot.phylo(poptrees[[i]],cex=1.5)
-  mtext(poptree.files[i],3)
-}
-plot.phylo(con.poptree,tip.color = c(rep(grp.colors[6],4),grp.colors[5],
-                                     rep(grp.colors[1],4),rep(grp.colors[2],3),
-                                     rep(grp.colors[3],4)),
-           edge.color = clcolr,edge.width = 2,cex=1,font=1)
-mtext("Consensus")
+```{r}
+source("../R/203_treemix_plotting_funcs.R") #I've modified the functions from treemix
+library(lattice); library(grid); library(RColorBrewer)
+poporder<-read.delim("treemix/poporder")
+colors<-poporder$colors
+poporder<-poporder$poporder
+par(mfrow=c(1,2),oma=c(2,2,2,2),mar=c(2,2,2,2))
+tree<-plot_tree("treemix/",plotmig=F,scale=F,mbar=F,plus=0.05)
+mtext("Drift parameter",1,line=2)
+resid<-plot_resid("fwsw.basic","poporder",wcols="rb")
+
+# nr<-treemix.cov.plot("treemix/fwsw_k100b",poporder)
+# m0<-treemix.cov.plot("treemix/fwsw_k100bFLPBr",poporder,split=c(1,1,3,2),more=TRUE)
+# m1<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm1",poporder,split=c(2,1,3,2),more=TRUE)
+# m2<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm2",poporder,split=c(3,1,3,2),more=TRUE)
+# m3<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm3",poporder,split=c(1,2,3,2),more=TRUE)
+# m4<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm4",poporder,split=c(2,2,3,2),more=TRUE)
+# m5<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm5",poporder,split=c(3,2,3,2),more=FALSE)
+
+# visualize residuals
+png("treemix/treemix-residuals_FLPB.png",height=8,width=8,units="in",res=300)
+par(mfrow=c(3,3))
+t0<-plot_resid("treemix/fwsw_k100b",  "treemix/poplist")
+r0<-plot_resid("treemix/fwsw_k100bFLPBr",  "treemix/poplist")
+r1<-plot_resid("treemix/fwsw_k100bFLPBrm1","treemix/poplist")
+r2<-plot_resid("treemix/fwsw_k100bFLPBrm2","treemix/poplist")
+r3<-plot_resid("treemix/fwsw_k100bFLPBrm3","treemix/poplist")
+r4<-plot_resid("treemix/fwsw_k100bFLPBrm4","treemix/poplist")
+r5<-plot_resid("treemix/fwsw_k100bFLPBrm5","treemix/poplist")
 dev.off()
-```
-![All Trees](fwsw_results/poptree/p4.png)
 
-Based on this, I'm going to move forward just with the full dataset (which includes bootstrap values).
-```{r GetPtsubtree}
-pt.subtree<-read.tree("poptree/p4.nwk")
-pt.subtree$tip.label[pt.subtree$tip.label=="FLLG"]<-"FLFW"
-pt.colors<-pt.subtree$tip.label
-pt.colors[pt.colors %in% "FLFW"]<-grp.colors[6]
-pt.colors[pt.colors %in% c("FLPB","FLHB","FLCC")]<-grp.colors[6]
-pt.colors[pt.colors %in% c("FLAB")]<-grp.colors[5]
-pt.colors[pt.colors %in% c("FLSI","FLFD","FLKB","FLSG")]<-grp.colors[3]
-pt.colors[pt.colors %in% c("ALST","ALFW","LAFW")]<-grp.colors[2]
-pt.colors[pt.colors %in% c("TXSP","TXCC","TXCB","TXFW")]<-grp.colors[2]
-```
-```{r poptree_prelimplot,eval=TRUE,echo=FALSE}
-#do this to test which branches are which using the colors below
-plot.phylo(pt.subtree)
-```
-```{r poptree_definecols,eval=TRUE}
-clcolr <- rep("black", dim(pt.subtree$edge)[1])
-clcolr[c(6,19,20,21,22)]<-all.colors[3]
-```
-```{r PlotFullPoptreeSubset, eval=TRUE}
-png(poptree.png,height=7,width=7,units="in",res=300)
-plot.phylo(pt.subtree,tip.color = pt.colors,
-           edge.color = clcolr,edge.width = 2,label.offset = 0.0015)
+# look at the trees
+png("treemix/migration_trees_treemix_FLPB.png",height=6,width=11,units="in",res=300)
+par(mfrow=c(3,3),mar=c(1,1,1,1),oma=c(1,1,1,1))
+r0<-plot_tree("treemix/fwsw_k100b",plus=0.05,plotmig = F,scale=T,mbar=T)
+t0<-plot_tree("treemix/fwsw_k100bFLPBr",plotmig = F,plus=0.05,scale=T,mbar=F)
+t1<-plot_tree("treemix/fwsw_k100bFLPBrm1",plus=0.05,scale=F,mbar=F)
+t2<-plot_tree("treemix/fwsw_k100bFLPBrm2",plus=0.05,scale=F,mbar=F)
+t3<-plot_tree("treemix/fwsw_k100bFLPBrm3",plus=0.05,scale=F,mbar=F)
+t4<-plot_tree("treemix/fwsw_k100bFLPBrm4",plus=0.05,scale=F,mbar=F)
+t5<-plot_tree("treemix/fwsw_k100bFLPBrm5",plus=0.05,scale=F,mbar=F)
 dev.off()
+
+# Evaluate migration p-values
+nort0<-read.table(gzfile("treemix/fwsw_k100b.treeout.gz"), as.is  = T, comment.char = "", quote = "")
+tree0<-read.table(gzfile("treemix/fwsw_k100bFLPBr.treeout.gz"), as.is  = T, comment.char = "", quote = "")
+tree1<-read.table(gzfile("treemix/fwsw_k100bFLPBrm1.treeout.gz"), as.is  = T, comment.char = "", quote = "",skip=1)
+tree2<-read.table(gzfile("treemix/fwsw_k100bFLPBrm2.treeout.gz"), as.is  = T, comment.char = "", quote = "",skip=1)
+tree3<-read.table(gzfile("treemix/fwsw_k100bFLPBrm3.treeout.gz"), as.is  = T, comment.char = "", quote = "",skip=1)
+tree4<-read.table(gzfile("treemix/fwsw_k100bFLPBrm4.treeout.gz"), as.is  = T, comment.char = "", quote = "",skip=1)
+tree5<-read.table(gzfile("treemix/fwsw_k100bFLPBrm5.treeout.gz"), as.is  = T, comment.char = "", quote = "",skip=1)
+
+d <- read.table("fwsw.k100bFLPBrm3.vertices.gz", as.is  = T, comment.char = "", quote = "")
+branch.cols<-rep("black",nrow(d))
+branch.cols[d[,2] %in% c("TXFW","ALFW","LAFW","FLLG")]<-"cornflowerblue"
+
+tip.names<-as.vector(d[d[,5] == "TIP",2])
+tip.names<-data.frame(Original=tip.names,Replacement=tip.names,stringsAsFactors = FALSE)
+tip.names$Replacement[tip.names$Replacement=="FLLG"]<-"FLFW"
+
+png("FWSW_treemix_m3_FLPB.png",height=7,width=7,units="in",res=300)
+t3<-plot_tree("fwsw.k100bFLPBrm3","poporder",plus=0.05,scale=F,mbar=F,arrow=0.1,tip.order = tip.names)
+ybar<-0.01
+mcols = rev( heat.colors(150) )
+mcols = mcols[50:length(mcols)]
+ymi = ybar+0.15
+yma = ybar+0.35
+l = 0.2
+w = l/100
+xma = max(t3$d$x/20)
+rect( rep(0.15, 100), ymi+(0:99)*w, rep(0.15+xma, 100), ymi+(1:100)*w, col = mcols, border = mcols)
+text(0.15+xma+0.001, ymi, lab = "0", adj = 0, cex = 0.7)
+text(0.15+xma+0.001, yma, lab = "0.5", adj = 0, cex =0.7)
+text(0.15, yma+0.06, lab = "Migration", adj = 0 , cex = 0.6)
+text(0.15, yma+0.03, lab = "weight", adj = 0 , cex = 0.6)
+dev.off()
+
 ```
 
-![PopTree](fwsw_results/p4.poptree.png)
+Ok, but how do I actually choose which number of migration edges to choose? Well, apparently [there's an R package for that!](https://rdrr.io/cran/OptM/#vignettes)
+
+```{r}
+tmOpt<-optM("treemix")
+plot_optM(tmOpt)
+```
+
 
 ### Make figure
 
+```{r}
+grp.colors<-c('#762a83','#af8dc3','#e7d4e8','#d9f0d3','#7fbf7b','#1b7837') 
+grp7colors<-c('#762a83','#9970ab','#c2a5cf','#d9f0d3','#a6dba0','#5aae61','#1b7837')
+grp5colors<-c('#762a83','#c2a5cf','#a6dba0','#5aae61','#1b7837')
+```
 
-```{r rereadFiles, echo=FALSE,eval=FALSE}
-#Map
+```{r}
+#admixture 
+admixK5<-read.delim("admixture/admixK5.txt",header = FALSE)
+admixK7<-read.delim("admixture/admixK7.txt",header = FALSE)
+#pcadapt
+pa<-readRDS("fwsw_all_pcadapt.RDS")
+pa.props<-round((pa$singular.values/sum(pa$singular.values))*100,2)
+pap<-read.delim("pcadapt_colp.txt",sep=' ')
+# map
 library(jpeg)
 img<-readJPEG("all_sites_map.jpeg")
 
-#pcadapt
-pa<-readRDS("pcadapt.RDS")
-pap<-read.delim("pap_pcadapt.txt",header=TRUE)
-pa.props<-round((pa$singular.values/sum(pa$singular.values))*100,2)
+# stuff for treemix
+source("../R/203_treemix_plotting_funcs.R") #I've modified the functions from treemix
+library(lattice); library(grid); library(RColorBrewer)
+poporder<-read.delim("treemix/poporder")
+colors<-poporder$colors
+poporder<-poporder$poporder
 
-#structure
-structure.k2<-read.table(
-  "structure//fwsw//admix//Results//admix_run_2_f_clusters.txt",
-  sep='\t', header=F)
-structure.k2$V1<-sub('sample_([A-Z]{4})','\\1', structure.k2$V1)
-tapply(structure.k2$V2,structure.k2$V1,max) #V2 has TX group
-
-structure.k6<-read.table(
-  "structure//fwsw//admix//Results//admix_run_6_f_clusters.txt",
-  sep='\t', header=F)
-structure.k6$V1<-sub('sample_([A-Z]{4})','\\1', structure.k6$V1)
-structure.k6[structure.k6[,1]=="FLLG",1]<-"FLFW"
-structure.k6<-data.frame(structure.k6$V1,structure.k6$V3,structure.k6$V4,structure.k6$V2,
-                 structure.k6$V5,structure.k6$V7,structure.k6$V6,stringsAsFactors = F)
-
-#poptree
-library(ape)
-pt.subtree<-read.tree("poptree/p4.nwk")
-pt.subtree$tip.label[pt.subtree$tip.label=="FLLG"]<-"FLFW"
-pt.colors<-pt.subtree$tip.label
-pt.colors[pt.colors %in% "FLFW"]<-grp.colors[6]
-pt.colors[pt.colors %in% c("FLPB","FLHB","FLCC")]<-grp.colors[6]
-pt.colors[pt.colors %in% c("FLAB")]<-grp.colors[5]
-pt.colors[pt.colors %in% c("FLSI","FLFD","FLKB","FLSG")]<-grp.colors[3]
-pt.colors[pt.colors %in% c("ALST","ALFW","LAFW")]<-grp.colors[2]
-pt.colors[pt.colors %in% c("TXSP","TXCC","TXCB","TXFW")]<-grp.colors[2]
-clcolr <- rep("black", dim(pt.subtree$edge)[1])
-clcolr[c(6,19,20,21,22)]<-all.colors[3]
 ```
-```{r combinedFig2,eval=FALSE}
+
+
+```{r}
 npop<-length(pop.list)
 pseq<-1:npop
 m<-matrix(c(rep(1,16),rep(2,6),
@@ -435,7 +455,7 @@ m<-matrix(c(rep(1,16),rep(2,6),
             19:34,rep(2,6),
             rep(35,8),rep(36,8),rep(37,6)),
           nrow=4,ncol=npop+6,byrow = T)
-jpeg("NewPopStructure_v1.jpeg",res=300,height=8,width=10,units="in")
+jpeg("../figs/NewPopStructure_v1.jpeg",res=300,height=8,width=10,units="in")
 #set the layout
 layout(mat=m,heights=c(6,1,1,6))
 #MAP
@@ -445,20 +465,20 @@ plot(1:14,ty="n",axes=FALSE,xlab="",ylab="",xpd=TRUE)
 #specify the position of the image through bottom-left and top-right coords
 rasterImage(img,1,1,14,14,xpd=TRUE)
 
-#PopTree
+#Treemix
 par(mar=c(0,0,0,1))
-plot.phylo(pt.subtree,tip.color = pt.colors,cex=2,
-           edge.color = clcolr,edge.width = 2,label.offset = 0.0015)
-
+t2<-plot_tree("treemix/fwsw_k100bFLPBrm2",scale=T,mbar=T,cex = 1.5,
+              lwd=2,mig_left=FALSE,disp=0.0002,xlab=FALSE,scadj=0.05)
 #STRUCTURE
-par(mar=c(1,0,0,0))#
-plotting.structure(structure.k2,2,pop.list, make.file=FALSE, xlabcol = all.colors,plot.new=FALSE,
-                   colors=grp.colors[c(1,6)],xlabel=FALSE,
-                   ylabel=expression(atop(italic(K)==2,358.9)),lab.cex=0.85)
-plotting.structure(structure.k6,2,pop.labs, make.file=FALSE,
-                   plot.new=FALSE,colors=grp.colors,xlabel=TRUE,
+par(mar=c(1,0,0,0))
+plotting.structure(admixK5,5,pop.order = poporder$Pop, pop.list, make.file=FALSE, 
+                   xlabcol = all.colors,plot.new=FALSE,
+                   colors=grp5colors[c(3,5,4,1,2)],xlabel=FALSE,
+                   ylabel=expression(atop(italic(K)==5)),lab.cex=0.85)
+plotting.structure(admixK7,7,pop.order = poporder$Pop,pop.labs, make.file=FALSE,
+                   plot.new=FALSE,colors=grp7colors[c(6,7,1,2,5,3,4)],xlabel=TRUE,
                    xlabcol = all.colors,
-                   ylabel=expression(atop(italic(K)==6,326.1)),lab.cex=0.85)
+                   ylabel=expression(atop(italic(K)==7)),lab.cex=0.85)
 #PCADAPT
 par(mar=c(2,2,2,2))
 plot(pa$scores[,1],pa$scores[,2],col=alpha(pap$cols,0.5),bg=alpha(pap$cols,0.75),
@@ -479,13 +499,10 @@ legend("bottom", legend=ppi$Pop, pch=as.numeric(ppi$pch), pt.cex=3,cex=1.5,
 dev.off()
 ```
 
-![Figure 2. Population Structure](fwsw_results/NewPopStructure_v1.jpeg)
+![Figure 2. Population Structure](../figs//NewPopStructure_v1.jpeg)
 
 
 ## Demographic history inference
-
-### Treemix
-
 
 
 ### dadi
