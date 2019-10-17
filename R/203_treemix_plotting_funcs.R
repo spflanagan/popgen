@@ -142,11 +142,12 @@ set_x_coord = function(d, e, i){
 
 plot_tree_internal = function(d, e, o = NULL, cex = 1, disp = 0.005, plus = 0.005, arrow = 0.05, 
                               ybar = 0.01, scale = T, mbar = T,mse = 0.01, plotmig = T, xlab=T,
-                              plotnames = T, xmin = 0, lwd = 1, font = 1,branch.cols="black",tip.order=NULL){
+                              plotnames = T, xmin = 0, lwd = 1, font = 1,branch.cols="black",tip.order=NULL,
+                              mig_left=TRUE,scadj=0.04){
   
-  if(xlab==FALSE){ xlab = "" } else { xlab= "Drift parameter" }
-  plot(d$x, d$y, axes = F, ylab = "", xlab = xlab, xlim = c(xmin, max(d$x)+plus), pch = "")
-	if(xlab==T){ axis(1) }
+  if(!isTRUE(xlab)){ lab = "" } else { lab= "Drift parameter" }
+  plot(d$x, d$y, axes = F, ylab = "", xlab = lab, xlim = c(xmin, max(d$x)+plus), pch = "")
+	if(xlab==TRUE){ axis(1) }
 	if(length(e[e[,5]=="MIG",4])>0){
 	  mw = max(e[e[,5]=="MIG",4]) } else{
 	    mw = 0
@@ -201,13 +202,19 @@ plot_tree_internal = function(d, e, o = NULL, cex = 1, disp = 0.005, plus = 0.00
 		}
 	}
 	if (scale){
+	  
 	print (paste("mse", mse))
-        lines(c(0, mse*10), c(ybar, ybar))
-	text( 0, ybar - 0.04, lab = "10 s.e.", adj = 0, cex  = 0.8)
-	lines( c(0, 0), c( ybar - 0.01, ybar+0.01))
-	lines( c(mse*10, mse*10), c(ybar- 0.01, ybar+ 0.01))
+  lines(c(0, mse*10), c(ybar-scadj, ybar-scadj),xpd=TRUE)
+	text( 0, ybar - scadj-0.04, lab = "10 s.e.", adj = 0, cex  = cex*0.75,xpd=TRUE)
+	lines( c(0, 0), c( ybar - scadj-0.01, ybar-scadj+0.01),xpd=TRUE)
+	lines( c(mse*10, mse*10), c(ybar-scadj- 0.01, ybar-scadj+ 0.01),xpd=TRUE)
 	}
         if (mbar){
+          if(isTRUE(mig_left)){
+            xstart<-0
+          }else {
+            xstart<-max(axis(1,lwd = 0,labels = NA))
+          }
                 mcols = rev( heat.colors(150) )
                 mcols = mcols[50:length(mcols)]
                 ymi = ybar+0.15
@@ -215,14 +222,14 @@ plot_tree_internal = function(d, e, o = NULL, cex = 1, disp = 0.005, plus = 0.00
                 l = 0.2
                 w = l/100
                 xma = max(d$x/20)
-                rect( rep(0, 100), ymi+(0:99)*w, rep(xma, 100), ymi+(1:100)*w, col = mcols, border = mcols)
-                text(xma+disp, ymi, lab = "0", adj = 0, cex = 0.7)
-		if ( mw >0.5){ text(xma+disp, yma, lab = "1", adj = 0, cex = 0.7)}
+                rect( rep(xstart, 100), ymi+(0:99)*w, rep(xstart+xma, 100), ymi+(1:100)*w, col = mcols, border = mcols)
+                text(xstart+xma+disp, ymi, lab = "0", adj = 0, cex = cex*0.7)
+		if ( mw >0.5){ text(xstart+xma+disp, yma, lab = "1", adj = 0, cex = cex*0.7)}
                 else{
-			text(xma+disp, yma, lab = "0.5", adj = 0, cex =0.7)
+			text(xstart+xma+disp, yma, lab = "0.5", adj = 0, cex =cex*0.7)
 		}
-		text(0, yma+0.06, lab = "Migration", adj = 0 , cex = 0.6)
-		text(0, yma+0.03, lab = "weight", adj = 0 , cex = 0.6)
+		text(xstart, yma+0.06, lab = "Migration", adj = 0 , cex = cex*0.6)
+		text(xstart, yma+0.03, lab = "weight", adj = 0 , cex = cex*0.6)
         }	
 }
 
@@ -275,7 +282,7 @@ get_f = function(stem){
 
 plot_tree = function(stem, o = NULL, cex = 1, disp = 0.003, plus = 0.01, flip = vector(), arrow = 0.05, scale = T, ybar = 0.1,
                      mbar = T, plotmig = T, plotnames = T, xmin = 0, lwd = 1, font = 1,branch.cols="black",tip.order=NULL,
-                     xlab=TRUE){
+                     xlab=TRUE,mig_left=TRUE,scadj=0.04){
 	d = paste(stem, ".vertices.gz", sep = "")
 	e = paste(stem, ".edges.gz", sep = "")
 	se = paste(stem, ".covse.gz", sep = "")
@@ -309,7 +316,8 @@ plot_tree = function(stem, o = NULL, cex = 1, disp = 0.003, plus = 0.01, flip = 
 	d = set_mig_coords(d, e)
 	plot_tree_internal(d, e, o = o, cex = cex, xmin = xmin, disp = disp, plus = plus, arrow = arrow, ybar = ybar, 
 	                   mbar = mbar, mse = m, scale = scale, plotmig = plotmig, plotnames = plotnames, lwd = lwd, 
-	                   font = font,branch.cols=branch.cols,tip.order=tip.order,xlab=xlab)
+	                   font = font,branch.cols=branch.cols,tip.order=tip.order,xlab=xlab,mig_left=mig_left,
+	                   scadj=scadj)
 	return(list( d= d, e = e))
 }
 

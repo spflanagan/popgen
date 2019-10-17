@@ -11,6 +11,170 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 17 October 2019
+
+Ok, returning to making Figure 1 from yesterday.
+
+```{r source}
+source("../../gwscaR/R/gwscaR.R")
+source("../../gwscaR/R/gwscaR_plot.R")
+source("../../gwscaR/R/gwscaR_utility.R")
+source("../../gwscaR/R/gwscaR_fsts.R")
+source("../../gwscaR/R/gwscaR_popgen.R")
+source("../../gwscaR/R/vcf2dadi.R")
+source("../R/203_treemix_plotting_funcs.R")#I've modified these functions
+library(knitr)
+library(scales)
+library(RColorBrewer)
+```
+
+```{r}
+pop.list<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
+	"FLFD","FLSI","FLAB","FLPB","FLHB","FLCC","FLLG")
+pop.labs<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
+            "FLFD","FLSI","FLAB","FLPB","FLHB","FLCC","FLFW")
+fw.list<-c("TXFW","LAFW","ALFW","FLLG")
+sw.list<-c("TXSP","TXCC","TXCB","ALST","FLSG","FLKB",
+	"FLFD","FLSI","FLAB","FLPB","FLHB","FLCC")
+lgs<-c("LG1","LG2","LG3","LG4","LG5","LG6","LG7","LG8","LG9","LG10","LG11",
+	"LG12","LG13","LG14","LG15","LG16","LG17","LG18","LG19","LG20","LG21",
+	"LG22")
+lgn<-seq(1,22)
+all.colors<-c(rep("black",2),"#2166ac","black","#2166ac","black","#2166ac",
+        rep("black",8),"#2166ac")
+grp.colors<-c('#762a83','#af8dc3','#e7d4e8','#d9f0d3','#7fbf7b','#1b7837')
+col_vector<-c(red='#e6194b', green='#3cb44b', blue='#4363d8',yellow='#ffe119', cyan='#46f0f0',orange='#f58231', teal='#008080', purple='#911eb4',  magenta='#f032e6', lime='#bcf60c', pink='#fabebe',  lavendar='#e6beff', brown='#9a6324', olive='#808000', apricot='#ffd8b1',maroon='#800000', mint='#aaffc3', navy='#000075', beige='#fffac8', grey='#808080', white='#ffffff', black='#000000')
+
+col_vector<-c('#762a83','#762a83',"#2166ac",'#762a83',"#2166ac",'#af8dc3',"#2166ac",'#e7d4e8','#e7d4e8','#e7d4e8','#e7d4e8','#7fbf7b','#1b7837','#1b7837','#1b7837',"#2166ac")
+#ppi<-data.frame(Pop=pop.labs,cols = all.colors,pch=c(0,1,21,2,24,3,23,4,5,6,7,9,10,11,12,22))
+ppi<-data.frame(Pop=pop.labs,cols = col_vector,pch=rep(c(15,16,17,18),4))
+```
+
+^ those are the colors from before, but now I've got up to K=7, so I need more colors
+
+```{r}
+grp.colors<-c('#762a83','#af8dc3','#e7d4e8','#d9f0d3','#7fbf7b','#1b7837') 
+grp7colors<-c('#762a83','#9970ab','#c2a5cf','#d9f0d3','#a6dba0','#5aae61','#1b7837')
+grp5colors<-c('#762a83','#c2a5cf','#a6dba0','#5aae61','#1b7837')
+```
+
+And I'll need to update the PCAdapt colors as well. 
+
+```{r}
+ind_dat<-read.table("filter_rad_20191014@1654/14_filtered/individuals.qc.stats_20191014@1654.tsv",header=T,
+                    stringsAsFactors = F)
+pops<-ind_dat$STRATA	
+grp<-pops
+grp[grp=="TXFW" | grp=="LAFW" | grp=="ALFW" | grp=="FLLG"]<-"freshwater"
+grp[grp!="freshwater"]<-"saltwater"
+
+ppi<-data.frame(Pop=pop.labs,
+                cols = c(grp7colors[1],grp7colors[1],"#2166ac",grp7colors[1],
+                         "#2166ac",grp7colors[3],"#2166ac",grp7colors[4],
+                         grp7colors[4],grp7colors[4],grp7colors[4],grp7colors[5],
+                         grp7colors[6],grp7colors[6],grp7colors[6],"#2166ac"),
+                pch=rep(c(15,16,17,18),4))
+ppi[ppi$Pop=="ALFW","pch"]<-3
+#colors
+pap<-data.frame(Pop=pops,cols=pops,pch=pops,grp=grp,stringsAsFactors = F)
+pap$Pop[pap$Pop == "FLLG"]<-"FLFW"
+for(i in 1:nrow(pap)){
+  pap[i,"cols"]<-as.character(ppi[ppi$Pop %in% pap[i,"Pop"],"cols"])
+}
+for(i in 1:nrow(pap)){
+  pap[i,"pch"]<-as.numeric(ppi[ppi$Pop %in% pap[i,"Pop"],"pch"])
+}
+write.table(pap,"pcadapt_colp.txt",col.names=TRUE)
+```
+
+
+Now time to load the data
+
+```{r}
+#admixture 
+admixK5<-read.delim("admixture/admixK5.txt",header = FALSE)
+admixK7<-read.delim("admixture/admixK7.txt",header = FALSE)
+#pcadapt
+pa<-readRDS("fwsw_all_pcadapt.RDS")
+pa.props<-round((pa$singular.values/sum(pa$singular.values))*100,2)
+pap<-read.delim("pcadapt_colp.txt",sep=' ')
+# map
+library(jpeg)
+img<-readJPEG("all_sites_map.jpeg")
+
+# stuff for treemix
+source("../R/203_treemix_plotting_funcs.R") #I've modified the functions from treemix
+library(lattice); library(grid); library(RColorBrewer)
+poporder<-read.delim("treemix/poporder")
+colors<-poporder$colors
+poporder<-poporder$poporder
+
+```
+
+
+```{r}
+npop<-length(pop.list)
+pseq<-1:npop
+m<-matrix(c(rep(1,16),rep(2,6),
+            3:18,rep(2,6),
+            19:34,rep(2,6),
+            rep(35,8),rep(36,8),rep(37,6)),
+          nrow=4,ncol=npop+6,byrow = T)
+jpeg("../figs/NewPopStructure_v1.jpeg",res=300,height=8,width=10,units="in")
+#set the layout
+layout(mat=m,heights=c(6,1,1,6))
+#MAP
+#open an empty plot window with coordinates
+par(oma=c(1.5,3.5,1,2),mar=c(0,0,0,0),xpd=NA)
+plot(1:14,ty="n",axes=FALSE,xlab="",ylab="",xpd=TRUE)
+#specify the position of the image through bottom-left and top-right coords
+rasterImage(img,1,1,14,14,xpd=TRUE)
+
+#Treemix
+par(mar=c(0,0,0,1))
+t2<-plot_tree("treemix/fwsw_k100bFLPBrm2",scale=T,mbar=T,cex = 1.5,
+              lwd=2,mig_left=FALSE,disp=0.0002,xlab=FALSE,scadj=0.05)
+#STRUCTURE
+par(mar=c(1,0,0,0))
+plotting.structure(admixK5,5,pop.order = poporder$Pop, pop.list, make.file=FALSE, 
+                   xlabcol = all.colors,plot.new=FALSE,
+                   colors=grp5colors[c(3,5,4,1,2)],xlabel=FALSE,
+                   ylabel=expression(atop(italic(K)==5)),lab.cex=0.85)
+plotting.structure(admixK7,7,pop.order = poporder$Pop,pop.labs, make.file=FALSE,
+                   plot.new=FALSE,colors=grp7colors[c(6,7,1,2,5,3,4)],xlabel=TRUE,
+                   xlabcol = all.colors,
+                   ylabel=expression(atop(italic(K)==7)),lab.cex=0.85)
+#PCADAPT
+par(mar=c(2,2,2,2))
+plot(pa$scores[,1],pa$scores[,2],col=alpha(pap$cols,0.5),bg=alpha(pap$cols,0.75),
+     pch=as.numeric(pap$pch),	cex=3,bty="L",xlab="",ylab="",cex.axis=1.5)
+
+mtext(paste("PC1 (",pa.props[1],"%)",sep=""),1,line = 2.5,cex=1)
+mtext(paste("PC2 (",pa.props[2],"%)",sep=""),2,line = 2.5,cex=1)
+
+plot(pa$scores[,3],pa$scores[,4],col=alpha(pap$cols,0.5),bg=alpha(pap$cols,0.75),pch=as.numeric(pap$pch),
+     cex=3,	bty="L",xlab="",ylab="",cex.axis=1.5)
+
+mtext(paste("PC3 (",pa.props[3],"%)",sep=""),1,line = 2.5,cex=1)
+mtext(paste("PC4 (",pa.props[4],"%)",sep=""),2,line = 2.5,cex=1)
+
+plot(1:10,ty="n",axes=FALSE,xlab="",ylab="",xpd=TRUE)
+legend("bottom", legend=ppi$Pop, pch=as.numeric(ppi$pch), pt.cex=3,cex=1.5,
+       col=alpha(ppi$cols, 0.5),pt.bg=alpha(ppi$cols,0.25), ncol=2,bty='n')
+dev.off()
+```
+
+Something is going on with the colors and I don't know what it is...I hacked it above, now I want to fix the treemix bar (move it to the right) and see about increasing text size and add bootstrap values. I was able to adjust those things, but not the bootstrap stuff. 
+
+```{r}
+source("../R/203_treemix_plotting_funcs.R") #I've modified the functions from treemix
+t2<-plot_tree("treemix/fwsw_k100bFLPBrm2",scale=T,mbar=T,cex = 1.5,
+              lwd=2,mig_left=FALSE,disp=0.0002,xlab=FALSE,scadj=0.1)
+
+```
+
+Not sure how to include the bootstrap values or even where the output is located...maybe the *llik files?
+
 # 16 October 2019
 
 I converted the tped files from radiator output into ped using `~/Programs/plink-1.07-x86_64/plink --tfile radiator_data_20191014@1710 --recode --noweb --allow-no-sex --missing-genotype '00' --out fwsw_all_filt` so that I can run admixture.
@@ -67,6 +231,7 @@ ordered <- mergedAdmixTabOrderNs[order(mergedAdmixTabOrderNs$orderNum),]
 
 plotting.structure(ordered[,1:(ncol(ordered)-2)],k = 5,pop.order = poporder$Pop,make.file = FALSE)
 admixK5<-ordered[,1:(ncol(ordered)-2)]
+write.table(admixK5,"admixture/admixK5.txt",sep = '\t',quote = FALSE,col.names = TRUE,row.names = FALSE)
 ```
 
 ```{r}
@@ -92,6 +257,7 @@ par(mar=c(1,0,0,0))
 plotting.structure(ordered[,1:(ncol(ordered)-2)],k = 7,pop.order = poporder$Pop,make.file = FALSE)
 admixK7<-ordered[,1:(ncol(ordered)-2)]
 plotting.structure(admixK7,k = 7,pop.order = poporder$Pop,make.file = FALSE)
+write.table(admixK7,"admixture/admixK7.txt",sep = '\t',quote = FALSE,col.names = TRUE,row.names = FALSE)
 ```
 
 So I could use this code which I put in the reanalysis doc, and change poptree to tree mix and run the PCadapt analysis here...I just need to load some things and do a bit of plotting stuff. 
