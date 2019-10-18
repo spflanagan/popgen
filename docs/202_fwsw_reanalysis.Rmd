@@ -651,7 +651,7 @@ plot_multiple_LGs<-function(list_fsts,fst_name,chr_name,bp_name,lgs,plot_labs,pt
 ```
 ```{r plot_stacks_fsts}
 fst_dat<-list(fwsw.al,fwsw.la,fwsw.tx,fwsw.fl)
-fsts<-plot_multiple_LGs(list_fsts = list_fsts,fst_name = "Corrected.AMOVA.Fst",bp_name="BP",chr_name="Chr",
+fsts<-plot_multiple_LGs(list_fsts = fst_dat,fst_name = "Corrected.AMOVA.Fst",bp_name="BP",chr_name="Chr",
                         lgs=lgs,plot_labs=list("ALFW vs ALST","ALST vs LAFW","TXFW vs TXCC","FLFW vs FLCC"),
                         pt_cols = list(c(grp.colors[3],grp.colors[2]),c(grp.colors[2],grp.colors[3]),
                                        c(grp.colors[1],grp.colors[2]),c(grp.colors[6],grp.colors[5])),

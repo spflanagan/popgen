@@ -423,6 +423,86 @@ tx.best[which.min(tx.best$AIC),]
 
 So now I can run some simulations in dadi using the dadi-pipeline.
 
+### Analyze Texas simulations
+
+```{r}
+sim_dirs<-grep("sims",list.dirs(path="dadi_analysis/TX2D",full.names = TRUE),value = TRUE)
+sims<-do.call(rbind,lapply(sim_dirs,function(x) {
+  
+  opt_files<-list.files(pattern="Simulation.*optimized.txt",path=x,full.names = TRUE)
+  
+  dat<-do.call(rbind,lapply(opt_files,function(file){
+   print(file)
+    dat<-read.delim(file,header=TRUE)
+
+    best<-dat[which.max(dat$log.likelihood),]
+    return(best)
+  }))
+  params<-do.call(rbind,strsplit(as.character(dat$optimized_params),","))
+  params<-apply(params,2,as.numeric)
+  dat<-cbind(dat,params)
+  return(dat)
+}))
+emps<-do.call(rbind,lapply(sim_dirs,function(x) {
+
+  dat<-read.delim(paste0(x,"/Empirical.sym_mig_size.optimized.txt"),header=TRUE)
+  dat$sim<-x
+  return(dat)
+}))
+
+start_params<-c(nu1a=5.65, nu2a=4.46, nu1b=1.01, nu2b=19.94, m=0.46, T1=1.34, T2=0.40)
+summary(sims$log.likelihood)
+summary(sims$chi.squared)
+```
+
+Use distributions of log-likelihood and $\chi^2$ values from simulated datasets to evaluate whether the empircally-estimated values are contained within these distributions (following https://onlinelibrary.wiley.com/doi/full/10.1111/mec.14862). 
+
+```{r}
+### FROM dadi_pipeline's Plot_GOF.R
+#####################################
+#likelihood plot
+ll_seq<- seq(-1500,-900,20)
+hist(sims$log.likelihood, breaks=ll_seq, main = "Simulation Results - Log-likelihood distribution", xlab="log-likelihood", col="grey")
+abline(v=emps$log.likelihood, lwd = 3, col='blue')
+
+#chi-squared plot
+chi_seq<- seq(1000,7000,50)
+hist(sims$chi.squared, breaks=chi_seq, main = "Simulation Results - Chi-squared distribution ", xlab="Chi-squared test statistic", col="grey")
+abline(v=emps$chi.squared, lwd = 3, col='blue')
+
+#####################################
+#For log-transformed chi.squared
+
+#transform chi-squared test stat
+log_chi <- log(sims$chi.squared)
+emp_log_chi <- log(emps$chi.squared)
+summary(log_chi)
+
+
+#log transformed chi-squared plot
+lchi_seq<- seq(7,9,0.05)
+hist(log_chi, breaks=lchi_seq, main = "Simulation Results - Log Chi-squared distribution ", xlab="log Chi-squared test statistic", col="grey")
+abline(v=emp_log_chi, lwd = 3, col='blue')
+
+
+```
+
+Now let's check the parameter estimates
+```{r}
+par(mfrow=c(3,3),oma=c(2,2,2,2),mar=c(2,2,2,2))
+
+for(i in 1:length(start_params)){
+  hist(sims[,7+i], breaks=50, main = names(start_params)[i], xlab=names(start_params)[i], col="grey")
+  abline(v=start_params[i], lwd = 3, col='blue')
+}
+
+```
+
+
+But I would like to possibly model varying rates across the genome, and at the very least use the simulations to help ID outliers. So I'm going to run ms and possibly design some additional dadi models with heterogeneous migration across the genome. 
+
+
+
 ## Troubleshooting warnings
 
 This doesn't tell us about which models had trouble converging, though, so let's tally up the number of 'nan's in each file.

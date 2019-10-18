@@ -11,6 +11,249 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+
+# 18 October 2019
+
+Now I want to do Fst outlier plots, it should be easy after doing the bayenv plots.
+
+
+```{r plotOutliersSetup}
+library(scales)
+fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
+```
+
+First, save and revisit the bayenv analysis:
+
+```{r plotBayenvOutliers}
+cols<-c(perm=alpha('#e41a1c',0.75),sal=alpha('#377eb8',0.75),pc=alpha('#a65628',0.75),stacks=alpha('#f781bf',0.75),xtx=alpha('#ff7f00',0.75))
+png("../figs/BayenvOutliers.png",height=4,width=8.5,units="in",res=300)
+par(mfrow=c(2,1),oma=c(1,1.5,1,1),mar=c(2,2,1,1),xpd=TRUE)
+# plot XtX
+plot_dat<-fst.plot(fw_SNPinfo,scaffs.to.plot = lgs,fst.name = "XtX",chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19)
+points(plot_dat$plot.pos[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+       plot_dat$XtX[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+       col=cols["xtx"],cex=0.75,pch=3,lwd=2)
+points(plot_dat$plot.pos[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+       plot_dat$XtX[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+       col=cols["sal"],cex=0.85,pch=2)
+points(plot_dat$plot.pos[rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+       plot_dat$XtX[rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+       col=cols["perm"],cex=1,pch=4,lwd=2)
+points(plot_dat$plot.pos[plot_dat$stacks_AL_P < 0.05 & plot_dat$stacks_LA_P < 0.05 &
+                           plot_dat$stacks_TX_P < 0.05 & plot_dat$stacks_FL_P < 0.05],
+       plot_dat$XtX[plot_dat$stacks_AL_P < 0.05 & plot_dat$stacks_LA_P < 0.05 &
+                           plot_dat$stacks_TX_P < 0.05 & plot_dat$stacks_FL_P < 0.05],
+       col=cols["stacks"],cex=1,pch=5,lwd=2)
+points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.01],
+       plot_dat$XtX[plot_dat$pcadaptQ<0.01],
+       col=cols["pc"],cex=1,pch=0,lwd=2)
+axis(2,las=1)
+mtext(expression(italic("X")^"T"~italic("X")),2,line=2)
+
+# add the LG labels
+midpts<-tapply(plot_dat$plot.pos,plot_dat$Chrom,median)
+text(x=midpts[lgs],y=0)
+
+# plot Bayes Factors
+plot_dat<-fst.plot(plot_dat,scaffs.to.plot = lgs,fst.name = "logSalBF",chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19)
+points(plot_dat$plot.pos[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+       plot_dat$logSalBF[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+       col=cols["sal"],cex=0.85,pch=2)
+points(plot_dat$plot.pos[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+       plot_dat$logSalBF[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+       col=cols["xtx"],cex=0.75,pch=3,lwd=2)
+points(plot_dat$plot.pos[rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+       plot_dat$logSalBF[rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+       col=cols["perm"],cex=1,pch=4,lwd=2)
+points(plot_dat$plot.pos[plot_dat$stacks_AL_P < 0.05 & plot_dat$stacks_LA_P < 0.05 &
+                           plot_dat$stacks_TX_P < 0.05 & plot_dat$stacks_FL_P < 0.05],
+       plot_dat$logSalBF[plot_dat$stacks_AL_P < 0.05 & plot_dat$stacks_LA_P < 0.05 &
+                           plot_dat$stacks_TX_P < 0.05 & plot_dat$stacks_FL_P < 0.05],
+       col=cols["stacks"],cex=1,pch=5,lwd=2)
+points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.01],
+       plot_dat$logSalBF[plot_dat$pcadaptQ<0.01],
+       col=cols["pc"],cex=1,pch=0,lwd=2)
+axis(2,las=1)
+mtext("log(Salinity Bayes Factors)",2,line=2)
+
+# add the LG labels
+midpts<-tapply(plot_dat$plot.pos,plot_dat$Chrom,median)
+text(x=midpts[lgs],y=-5)
+
+# add outside legend
+
+opar <- par(fig=c(0, 1, 0, 1), oma=c(0, 0, 0, 0),
+            mar=c(0, 0, 0, 0), new=TRUE)
+on.exit(par(opar))
+plot(0, 0, type='n', bty='n', xaxt='n', yaxt='n')
+legend("top",c(expression("Permutation"~italic("F")["ST"]),
+         expression("Stacks"~italic("F")["ST"]),
+         "PCAdapt",expression(italic("X")^T~italic("X")),"Salinity BF"),xjust = 0.5,x.intersp = 0.5,
+       col = cols[c("perm","stacks","pc","xtx","sal")],
+       pt.bg=cols[c("perm","stacks","pc","xtx","sal")],pch=c(4,5,0,3,2),bty='n',ncol=5)
+dev.off()
+```
+
+Ok, now I can try the fwsw analysis using a function from the 202_fwsw_reanalysis document
+
+
+```{r stacks_fsts}
+fwsw.al<-read.delim("stacks/populations_subset75/batch_2.fst_ALFW-ALST.tsv")
+fwsw.al<-fwsw.al[paste(fwsw.al$Chr,fwsw.al$BP,sep="_") %in% paste(fw_SNPinfo$Chrom,fw_SNPinfo$BP,sep="_"),]
+fwsw.la<-read.delim("stacks/populations_subset75/batch_2.fst_ALST-LAFW.tsv")
+fwsw.la<-fwsw.la[paste(fwsw.la$Chr,fwsw.la$BP,sep="_") %in% paste(fw_SNPinfo$Chrom,fw_SNPinfo$BP,sep="_"),]
+fwsw.tx<-read.delim("stacks/populations_subset75/batch_2.fst_TXCC-TXFW.tsv")
+fwsw.tx<-fwsw.tx[paste(fwsw.tx$Chr,fwsw.tx$BP,sep="_") %in% paste(fw_SNPinfo$Chrom,fw_SNPinfo$BP,sep="_"),]
+fwsw.fl<-read.delim("stacks/populations_subset75/batch_2.fst_FLCC-FLFW.tsv")
+fwsw.fl<-fwsw.fl[paste(fwsw.fl$Chr,fwsw.fl$BP,sep="_") %in% paste(fw_SNPinfo$Chrom,fw_SNPinfo$BP,sep="_"),]
+```
+
+```{r plot_stacks_fsts}
+fst_dat<-list(fwsw.al,fwsw.la,fwsw.tx,fwsw.fl)
+fsts<-plot_multiple_LGs(list_fsts = list_fsts,fst_name = "Corrected.AMOVA.Fst",bp_name="BP",chr_name="Chr",
+                        lgs=lgs,plot_labs=list("ALFW vs ALST","ALST vs LAFW","TXFW vs TXCC","FLFW vs FLCC"),
+                        pt_cols = list(c(grp.colors[3],grp.colors[2]),c(grp.colors[2],grp.colors[3]),
+                                       c(grp.colors[1],grp.colors[2]),c(grp.colors[6],grp.colors[5])),
+                        ncol=1,addSmooth = FALSE,pch=19,y.lim = c(0,1),pt.cex=1,axis.size = 1)
+```
+
+So I vectorized it above, is there a way to turn points into a list so I could pass that to the function and add those? I'll need to make sure the fw_SNPinfo has both p-values and fst values....but this is actually kind of challenging so I'm just going to do the hacky version at the moment. First, to merge it all. 
+
+```{r}
+colnames(fw_SNPinfo)[grep("stacks",colnames(fw_SNPinfo))]<-paste0(colnames(fw_SNPinfo)[grep("stacks",colnames(fw_SNPinfo))],"_P")
+fw_SNPinfo<-merge(fw_SNPinfo,fwsw.al[,c("Locus.ID","Corrected.AMOVA.Fst")],by.x="ID",by.y="Locus.ID",all.x = TRUE)
+colnames(fw_SNPinfo)[ncol(fw_SNPinfo)]<-"stacks_AL"
+fw_SNPinfo<-merge(fw_SNPinfo,fwsw.la[,c("Locus.ID","Corrected.AMOVA.Fst")],by.x="ID",by.y="Locus.ID",all.x = TRUE)
+colnames(fw_SNPinfo)[ncol(fw_SNPinfo)]<-"stacks_LA"
+fw_SNPinfo<-merge(fw_SNPinfo,fwsw.tx[,c("Locus.ID","Corrected.AMOVA.Fst")],by.x="ID",by.y="Locus.ID",all.x = TRUE)
+colnames(fw_SNPinfo)[ncol(fw_SNPinfo)]<-"stacks_TX"
+fw_SNPinfo<-merge(fw_SNPinfo,fwsw.fl[,c("Locus.ID","Corrected.AMOVA.Fst")],by.x="ID",by.y="Locus.ID",all.x = TRUE)
+colnames(fw_SNPinfo)[ncol(fw_SNPinfo)]<-"stacks_FL"
+```
+
+
+```{r}
+cols<-c(perm=alpha('#e41a1c',0.75),sal=alpha('#377eb8',0.75),pc=alpha('#a65628',0.75),stacks=alpha('#f781bf',0.75),xtx=alpha('#ff7f00',0.75))
+png("../figs/FstOutliers.png",height=5,width=8.5,units="in",res=300,pointsize=14)
+par(mfrow=c(4,1),oma=c(1,1,0.5,1),mar=c(2,2,1,1),xpd=TRUE)
+# plot TX
+plot_dat<-fst.plot(fw_SNPinfo,scaffs.to.plot = lgs,fst.name = "stacks_TX",chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19,pt.cols = c(grp7colors[1],grp7colors[2]),pt.cex = 1)
+points(plot_dat$plot.pos[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+       plot_dat$stacks_TX[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+       col=cols["sal"],cex=1,pch=2)
+points(plot_dat$plot.pos[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+       plot_dat$stacks_TX[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+       col=cols["xtx"],cex=1,pch=3,lwd=2)
+points(plot_dat$plot.pos[rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+       plot_dat$stacks_TX[rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+       col=cols["perm"],cex=1,pch=4,lwd=2)
+points(plot_dat$plot.pos[plot_dat$stacks_AL_P < 0.05 & plot_dat$stacks_LA_P < 0.05 &
+                           plot_dat$stacks_TX_P < 0.05 & plot_dat$stacks_FL_P < 0.05],
+       plot_dat$stacks_TX[plot_dat$stacks_AL_P < 0.05 & plot_dat$stacks_LA_P < 0.05 &
+                           plot_dat$stacks_TX_P < 0.05 & plot_dat$stacks_FL_P < 0.05],
+       col=cols["stacks"],cex=1,pch=5,lwd=2)
+points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.01],
+       plot_dat$stacks_TX[plot_dat$pcadaptQ<0.01],
+       col=cols["pc"],cex=1,pch=0,lwd=2)
+axis(2,las=1,pos=-1500000)
+mtext("TXFW vs. TXCC",2,line=1,cex=0.65)
+# add the LG labels
+midpts<-tapply(plot_dat$plot.pos,plot_dat$Chrom,median)
+text(x=midpts[lgs],y=-0.15)
+
+# plot AL
+plot_dat<-fst.plot(fw_SNPinfo,scaffs.to.plot = lgs,fst.name = "stacks_AL",chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19,pt.cols = c(grp7colors[3],"lightgrey"),pt.cex = 1)
+points(plot_dat$plot.pos[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+       plot_dat$stacks_AL[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+       col=cols["xtx"],cex=1,pch=3,lwd=2)
+points(plot_dat$plot.pos[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+       plot_dat$stacks_AL[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+       col=cols["sal"],cex=1,pch=2)
+points(plot_dat$plot.pos[rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+       plot_dat$stacks_AL[rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+       col=cols["perm"],cex=1,pch=4,lwd=2)
+points(plot_dat$plot.pos[plot_dat$stacks_AL_P < 0.05 & plot_dat$stacks_LA_P < 0.05 &
+                           plot_dat$stacks_TX_P < 0.05 & plot_dat$stacks_FL_P < 0.05],
+       plot_dat$stacks_AL[plot_dat$stacks_AL_P < 0.05 & plot_dat$stacks_LA_P < 0.05 &
+                           plot_dat$stacks_TX_P < 0.05 & plot_dat$stacks_FL_P < 0.05],
+       col=cols["stacks"],cex=1,pch=5,lwd=2)
+points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.01],
+       plot_dat$stacks_AL[plot_dat$pcadaptQ<0.01],
+       col=cols["pc"],cex=1,pch=0,lwd=2)
+axis(2,las=1,pos=-1500000)
+mtext("ALFW vs. ALST",2,line=1,cex=0.65)
+# add the LG labels
+midpts<-tapply(plot_dat$plot.pos,plot_dat$Chrom,median)
+text(x=midpts[lgs],y=-0.15)
+
+# plot LA
+plot_dat<-fst.plot(fw_SNPinfo,scaffs.to.plot = lgs,fst.name = "stacks_LA",chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19,pt.cols = c("lightgrey",grp7colors[3]),pt.cex = 1)
+points(plot_dat$plot.pos[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+       plot_dat$stacks_LA[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+       col=cols["sal"],cex=1,pch=2)
+points(plot_dat$plot.pos[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+       plot_dat$stacks_LA[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+       col=cols["xtx"],cex=1,pch=3,lwd=2)
+points(plot_dat$plot.pos[rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+       plot_dat$stacks_LA[rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+       col=cols["perm"],cex=1,pch=4,lwd=2)
+points(plot_dat$plot.pos[plot_dat$stacks_AL_P < 0.05 & plot_dat$stacks_LA_P < 0.05 &
+                           plot_dat$stacks_TX_P < 0.05 & plot_dat$stacks_FL_P < 0.05],
+       plot_dat$stacks_LA[plot_dat$stacks_AL_P < 0.05 & plot_dat$stacks_LA_P < 0.05 &
+                           plot_dat$stacks_TX_P < 0.05 & plot_dat$stacks_FL_P < 0.05],
+       col=cols["stacks"],cex=1,pch=5,lwd=2)
+points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.01],
+       plot_dat$stacks_LA[plot_dat$pcadaptQ<0.01],
+       col=cols["pc"],cex=1,pch=0,lwd=2)
+axis(2,las=1,pos=-1500000)
+mtext("LAFW vs. ALST",2,line=1,cex=0.65)
+# add the LG labels
+midpts<-tapply(plot_dat$plot.pos,plot_dat$Chrom,median)
+text(x=midpts[lgs],y=-0.15)
+
+
+# FL
+plot_dat<-fst.plot(fw_SNPinfo,scaffs.to.plot = lgs,fst.name = "stacks_FL",chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19,pt.cols = c(grp7colors[6],grp7colors[7]),pt.cex = 1)
+points(plot_dat$plot.pos[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+       plot_dat$stacks_FL[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+       col=cols["sal"],cex=1,pch=2)
+points(plot_dat$plot.pos[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+       plot_dat$stacks_FL[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+       col=cols["xtx"],cex=1,pch=3,lwd=2)
+points(plot_dat$plot.pos[rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+       plot_dat$stacks_FL[rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+       col=cols["perm"],cex=1,pch=4,lwd=2)
+points(plot_dat$plot.pos[plot_dat$stacks_AL_P < 0.05 & plot_dat$stacks_LA_P < 0.05 &
+                           plot_dat$stacks_TX_P < 0.05 & plot_dat$stacks_FL_P < 0.05],
+       plot_dat$stacks_FL[plot_dat$stacks_AL_P < 0.05 & plot_dat$stacks_LA_P < 0.05 &
+                           plot_dat$stacks_TX_P < 0.05 & plot_dat$stacks_FL_P < 0.05],
+       col=cols["stacks"],cex=1,pch=5,lwd=2)
+points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.01],
+       plot_dat$stacks_FL[plot_dat$pcadaptQ<0.01],
+       col=cols["pc"],cex=1,pch=0,lwd=2)
+axis(2,las=1,pos=-1500000)
+mtext("FLFW vs. FLCC",2,line=1,cex=0.65)
+# add the LG labels
+midpts<-tapply(plot_dat$plot.pos,plot_dat$Chrom,median)
+text(x=midpts[lgs],y=-0.15)
+
+# add outside legend
+
+opar <- par(fig=c(0, 1, 0, 1), oma=c(0, 0, 0, 0),
+            mar=c(0, 0, 0, 0), new=TRUE)
+on.exit(par(opar))
+plot(0, 0, type='n', bty='n', xaxt='n', yaxt='n')
+legend("top",c(expression("Permutation"~italic("F")["ST"]),
+         expression("Stacks"~italic("F")["ST"]),
+         "PCAdapt",expression(italic("X")^T~italic("X")),"Salinity BF"),xjust = 0.5,x.intersp = 0.5,
+       col = cols[c("perm","stacks","pc","xtx","sal")],
+       pt.bg=cols[c("perm","stacks","pc","xtx","sal")],pch=c(4,5,0,3,2),bty='n',ncol=5)
+dev.off()
+```
+
+Ok, now I feel pretty good about these aspects - I just need to add text to the doc and add some preliminary dadi analysis. Also, I should update 202_fwsw_reanalysis
+
+
 # 17 October 2019
 
 Ok, returning to making Figure 1 from yesterday.
@@ -176,6 +419,10 @@ t2<-plot_tree("treemix/fwsw_k100bFLPBrm2",scale=T,mbar=T,cex = 1.5,
 Not sure how to include the bootstrap values or even where the output is located...maybe the *llik files?
 
 Well let's ignore this, just go with what I've got for now and worry about describing bootstrapping in the text or leave that for future me. I should update the 202_fwsw_reanalysis document next.
+
+Next steps:
+* Update text and add figures
+* create fst outlier plots
 
 # 16 October 2019
 
