@@ -719,3 +719,26 @@ diffs<-lapply(model_params,function(dat){
 ```
 
 OK, how can I deal with this? 
+
+
+## Other 2D models
+
+How do I analyze the 2D models? I've got FLTX, FLAL, and ALTX to analyse.
+
+```{r}
+
+fltx.opts<-dadi.modelcomp(path = "dadi_analysis/FLTX",pattern=".*optimized.*",id="FLTX")
+kable(fltx.opts,caption = "'Best' runs of each of the models for the FL vs TX 2D demographic inference")
+```
+
+```{r}
+
+flal.opts<-dadi.modelcomp(path = "dadi_analysis/FLAL",pattern=".*optimized.*",id="FLAL")
+kable(flal.opts,caption = "'Best' runs of each of the models for the FL vs AL 2D demographic inference")
+```
+
+```{r}
+
+altx.opts<-dadi.modelcomp(path = "dadi_analysis/ALTX",pattern=".*optimized.*",id="ALTX")
+kable(altx.opts,caption = "'Best' runs of each of the models for the AL vs TX 2D demographic inference")
+```
