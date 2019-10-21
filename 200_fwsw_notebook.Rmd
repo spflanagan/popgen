@@ -189,6 +189,7 @@ write.csv(pop_summaries,"population_summaries.csv",col.names = TRUE,row.names = 
 
 Allele frequency spectra: 
 ```{r}
+png("../figs/afs.png",height=8,width=6,units="in",res=300)
 par(mfrow=c(4,4),oma=c(2,2,2,2),mar=c(2,2,2,2))
 
 pop_afs<-do.call(rbind,lapply(pop.labs,function(pop,ful,cols){
@@ -205,6 +206,7 @@ pop_afs<-do.call(rbind,lapply(pop.labs,function(pop,ful,cols){
                      LAFW="#2166ac",ALST="black",ALFW="#2166ac",FLSG="black",
                      FLKB="black",FLFD="black",FLSI="black",FLAB="black",
                      FLPB="black",FLHB="black",FLCC="black",FLFW="#2166ac")))
+dev.off()
 ```
 
 Ok, now the null SW-SW comparisons...the downside is that the subsetted dataset doesn't have the additional pops. 
