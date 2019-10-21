@@ -56,51 +56,8 @@ col_vector<-c('#762a83','#762a83',"#2166ac",'#762a83',"#2166ac",'#af8dc3',"#2166
 ppi<-data.frame(Pop=pop.labs,cols = col_vector,pch=rep(c(15,16,17,18),4))
 ```
 
-```{r read_files}
 
-dist<-read.table("fwsw_geographical_distances.txt",header=T,row.names=1,
-	sep='\t')
-put.genes<-read.delim("putative_genes.txt",header=TRUE,sep='\t')
-## ---- pwiseFstsFiles
-pwise.fst.all<-read.table("stacks/fwsw_fst_summary.txt",header=T,row.names=1,sep='\t')
-	#pwise.fst.all<-rbind(pwise.fst.all,rep(NA,ncol(pwise.fst.all)))
-	rownames(pwise.fst.all)<-pop.labs
-	colnames(pwise.fst.all)<-pop.labs
-pwise.fst.sub<-read.table("stacks/fwsw_fst_summary_subset.txt",header=T,row.names=1,sep='\t')
-  colnames(pwise.fst.sub)<-pop.labs
-  rownames(pwise.fst.sub)<-pop.labs
-print(paste("Average Pairwise Fst is ",mean(pwise.fst.sub[upper.tri(pwise.fst.sub)]),sep=""))
-## ---- end
-  
-## ---- P4plink
-ped.sub<-read.table("stacks/subset.ped",header=F)	
-ped.sub$V1<-gsub("sample_(\\w{4})\\w+.*","\\1",ped.sub$V2)
-map.sub<-read.table("stacks/subset.map",header = F,stringsAsFactors = F)
-map.sub$Locus<-paste(gsub("(\\d+)_\\d+","\\1",map.sub$V2),(as.numeric(map.sub$V4)+1),sep=".")
-colnames(ped.sub)<-c("Pop","IID","","","","Phenotype","","",map.sub$Locus)
-## ---- end-P4plink
-
-## ---- lumpedVcf
-vcf<-parse.vcf("stacks/fw-sw_populations/batch_2.vcf")
-#chosen.snps<-choose.one.snp(vcf)$SNP
-#write.table(chosen.snps,"chosen.snps.txt",quote=F)
-chosen.snps<-unlist(read.table("chosen.snps.txt"))
-## @knitr stacksSig
-stacks.sig<-read.delim("stacks.sig.snps.txt")
-## ---- end
-
-## ---- vcfSetup
-vcf$SNP<-paste(vcf$`#CHROM`,vcf$POS,sep=".")
-scaffs<-levels(as.factor(vcf[,1]))
-scaffs[1:22]<-lgs
-scaff.starts<-tapply(vcf$POS,vcf$`#CHROM`,max)
-scaff.starts<-data.frame(rbind(cbind(names(scaff.starts),scaff.starts)),stringsAsFactors = F)
-locus.info<-c(colnames(vcf[1:9]),"SNP")
-```
-
-# Figure 1: Population structure + map
-
-## Map of the populations
+# Map of the populations
 
 First, we'll plot these populations on a map
 
@@ -152,10 +109,127 @@ dev.off()
 ## Table of summary statistics
 
 
+```{r}
+pop_map<-read.delim("../fwsw_pops_map.txt",header = FALSE,stringsAsFactors = FALSE)
+ful_vcf<-parse.vcf("filter_rad_20191014@1654/14_filtered/radiator_data_20191014@1710.vcf")
+colnames(ful_vcf)<-gsub("\\-","_",colnames(ful_vcf))
+sub_vcf<-parse.vcf("stacks/populations_subset75/batch_2.pruned.vcf")
+```
+
+```{r}
+pop_summaries<-do.call(rbind,lapply(pop.list,function(pop,ful,sub){
+  ful_dat<-ful[,c(1:9,grep(pop,colnames(ful)))]
+  sub_dat<-sub[,c(1:9,grep(pop,colnames(sub)))]
+  # calc observed het values
+  ful_ho<-apply(ful_vcf,1,calc.het)
+  sub_ho<-apply(sub_vcf,1,calc.het)
+  # estimate allele freqs
+  ful_afs<-do.call(rbind,apply(ful_vcf,1,calc.afs.vcf))
+  sub_afs<-do.call(rbind,apply(sub_vcf,1,calc.afs.vcf))
+  # save data frame
+  dat<-data.frame(pop=pop,
+                  preg_full=length(grep(paste0(pop,"P"),colnames(ful))),
+                  preg_sub=length(grep(paste0(pop,"P"),colnames(sub))),
+                  nonp_full=length(grep(paste0(pop,"NP"),colnames(ful))),
+                  nonp_sub=length(grep(paste0(pop,"NP"),colnames(sub))),
+                  nfem_full=length(grep(paste0(pop,"F"),colnames(ful))),
+                  nfem_sub=length(grep(paste0(pop,"F"),colnames(sub))),
+                  njuv_full=length(grep(paste0(pop,"J"),colnames(ful)))+
+                    length(grep(paste0(pop,"DB"),colnames(ful))),
+                  njuv_sub=length(grep(paste0(pop,"J"),colnames(sub))) + 
+                    length(grep(paste0(pop,"DB"),colnames(sub))),
+                  ho_full = mean(ful_ho,na.rm = TRUE),
+                  hov_full = var(ful_ho,na.rm = TRUE),
+                  ho_sub = mean(sub_ho,na.rm = TRUE),
+                  hov_sub = var(sub_ho,na.rm = TRUE),
+                  poly_ful = nrow(ful_afs[ful_afs$RefFreq<1,])/nrow(ful_afs)*100,
+                  poly_sub = nrow(sub_afs[sub_afs$RefFreq<1,])/nrow(sub_afs)*100,
+                  p_full = mean(ful_afs$RefFreq,na.rm=TRUE),
+                  pv_full = var(ful_afs$RefFreq,na.rm=TRUE),
+                  p_sub = mean(sub_afs$RefFreq,na.rm=TRUE),
+                  pv_sub = var(sub_afs$RefFreq,na.rm=TRUE))
+  return(dat)
+},ful=ful_vcf,sub=sub_vcf))
+write.csv(pop_summaries,"population_summaries.csv",col.names = TRUE,row.names = FALSE,quote=FALSE)
+```
+
+
 ## Population structure of all 16 populations
 
-Show STRUCTURE and PCAdapt results
-Maybe add Fst heatmap here too?
+### FSTs
+
+This will calculate the pairwise Fsts (but it's slow)
+
+```{r, eval=FALSE}
+pop_map<-read.delim("../fwsw_pops_map.txt",header = FALSE,stringsAsFactors = FALSE)
+fst_mat<-matrix(NA,
+                nrow=length(unique(pop_map$V2)),ncol=length(unique(pop_map$V2)),
+                dimnames = list(pop.list,pop.list))
+vcf<-parse.vcf("filter_rad_20191014@1654/14_filtered/radiator_data_20191014@1710.vcf")
+colnames(vcf)<-gsub("\\-","_",colnames(vcf)) # fix individual names
+# loop through each population pair
+for(i in 1:(nrow(fst_mat)-1)){
+  for(j in (i+1):ncol(fst_mat)){
+    
+    if(rownames(fst_mat)[i] != colnames(fst_mat)[j]){ # sanity check
+      map1<-pop_map[pop_map[,2]==rownames(fst_mat)[i],]
+      map2<-pop_map[pop_map[,2]==colnames(fst_mat)[j],]
+      pwfsts<-gwsca(vcf,colnames(vcf)[1:9],map1[,1],map2[,1])
+      fst_mat[i,j]<-mean(pwfsts$Fst,na.rm = TRUE)
+    }
+  }
+}
+colnames(fst_mat)<-rownames(fst_mat)<-pop.labs
+write.table(fst_mat,"pairwise_fsts_full.txt",sep='\t',col.names = TRUE,row.names=TRUE,quote=FALSE)
+```
+
+
+```{r}
+library(lattice); library(grid); library(RColorBrewer)
+poporder<-read.delim("treemix/poporder")
+colors<-poporder$colors
+poporder<-poporder$poporder
+
+nr<-treemix.cov.plot("treemix/fwsw_k100b",poporder)
+dimnames(nr)[[1]]<-dimnames(nr)[[2]]<-pop.labs
+# colors
+colors<-c("black","darkgrey","grey","lightgrey","cornflowerblue")
+pal<-colorRampPalette(colors)
+ncol=80
+cols<-pal(ncol)
+rev.colors<-c("cornflowerblue","lightgrey","grey","darkgrey","black")
+rev.pal<-colorRampPalette(rev.colors)
+rev.cols<-rev.pal(ncol)
+
+hm.height<-list(x=2,units="in")#2.2/3.8
+hm.width<-list(x=2.4,units="in")#2.4 in RStudio/3.9
+
+heatmaps.name<-"../figs/fst_heatmaps.png"
+
+png(heatmaps.name,height=5,width=8,units="in",res=300)
+
+fst.lv<-levelplot(as.matrix(fst_mat),col.regions=cols,alpha.regions=0.7,
+                  scales = list(x=list(rot=90),tck = 0),xlab="",ylab="")
+print(fst.lv,split=c(1,1,2,1),more=TRUE,panel.width=hm.width,
+      panel.height=hm.height,cex=2)
+trellis.focus("legend", side="right", clipp.off=TRUE, highlight=FALSE)
+grid.text(expression(italic(F)[ST]), 0.2, 0, hjust=0.5, vjust=1.2,gp=gpar(cex=0.75))
+trellis.unfocus()
+
+nr.lv<-levelplot(nr,col.regions=cols,alpha.regions=0.7,
+                 scales = list(x=list(rot=90),tck = 0),xlab="",ylab="")
+print(nr.lv,split=c(2,1,2,1),more=FALSE,newpage=FALSE,panel.width=hm.width,
+      panel.height=hm.height,cex=2)
+trellis.focus("legend", side="right", clipp.off=TRUE, highlight=FALSE)
+grid.text("Treemix", 0.2, 0, hjust=0.5, vjust=1.2,gp=gpar(cex=0.75))
+trellis.unfocus()
+
+dev.off()
+
+```
+
+[!Heatmaps]("../figs/fst_heatmaps.png")
+
 
 ### PCAdapt
 
@@ -416,6 +490,18 @@ tmOpt<-optM("treemix")
 plot_optM(tmOpt)
 ```
 
+Let's plot the no-migration-edge tree with the two-migration-edge tree.
+
+```{r}
+png("../figs/treemix_comparison.png",height = 4.5,width=8,units="in",res=300)
+par(mfrow=c(1,2),mar=c(1,1,1,2),oma=c(1,1,1,2),xpd=TRUE)
+t0<-plot_tree("treemix/fwsw_k100bFLPBr",scale=T,mbar=F,cex = 1.5,
+              lwd=2,mig_left=FALSE,disp=0.0002,xlab=FALSE,scadj=0.05)
+t2<-plot_tree("treemix/fwsw_k100bFLPBrm2",scale=T,mbar=T,cex = 1.5,
+              lwd=2,mig_left=FALSE,disp=0.0002,xlab=FALSE,scadj=0.05)
+dev.off()
+```
+
 
 ### Make figure
 
@@ -427,8 +513,8 @@ grp5colors<-c('#762a83','#c2a5cf','#a6dba0','#5aae61','#1b7837')
 
 ```{r}
 #admixture 
-admixK5<-read.delim("admixture/admixK5.txt",header = FALSE)
-admixK7<-read.delim("admixture/admixK7.txt",header = FALSE)
+admixK5<-read.delim("admixture/admixK5.txt",header = TRUE)
+admixK7<-read.delim("admixture/admixK7.txt",header = TRUE)
 #pcadapt
 pa<-readRDS("fwsw_all_pcadapt.RDS")
 pa.props<-round((pa$singular.values/sum(pa$singular.values))*100,2)
@@ -464,21 +550,25 @@ par(oma=c(1.5,3.5,1,2),mar=c(0,0,0,0),xpd=NA)
 plot(1:14,ty="n",axes=FALSE,xlab="",ylab="",xpd=TRUE)
 #specify the position of the image through bottom-left and top-right coords
 rasterImage(img,1,1,14,14,xpd=TRUE)
+text(x = 1.5,y=11.5,"A",cex = 2,font =2)
+text(x = 0.5,y=1.2,"C",cex = 2,font =2)
 
 #Treemix
 par(mar=c(0,0,0,1))
 t2<-plot_tree("treemix/fwsw_k100bFLPBrm2",scale=T,mbar=T,cex = 1.5,
               lwd=2,mig_left=FALSE,disp=0.0002,xlab=FALSE,scadj=0.05)
+text(x = 0.035,y=0.9,"B",cex = 2,font =2)
 #STRUCTURE
 par(mar=c(1,0,0,0))
-plotting.structure(admixK5,5,pop.order = poporder$Pop, pop.list, make.file=FALSE, 
+plotting.structure(admixK5,5,pop.order = poporder, pop.list, make.file=FALSE, 
                    xlabcol = all.colors,plot.new=FALSE,
                    colors=grp5colors[c(3,5,4,1,2)],xlabel=FALSE,
                    ylabel=expression(atop(italic(K)==5)),lab.cex=0.85)
-plotting.structure(admixK7,7,pop.order = poporder$Pop,pop.labs, make.file=FALSE,
+plotting.structure(admixK7,7,pop.order = poporder,pop.labs, make.file=FALSE,
                    plot.new=FALSE,colors=grp7colors[c(6,7,1,2,5,3,4)],xlabel=TRUE,
                    xlabcol = all.colors,
                    ylabel=expression(atop(italic(K)==7)),lab.cex=0.85)
+
 #PCADAPT
 par(mar=c(2,2,2,2))
 plot(pa$scores[,1],pa$scores[,2],col=alpha(pap$cols,0.5),bg=alpha(pap$cols,0.75),
@@ -486,6 +576,7 @@ plot(pa$scores[,1],pa$scores[,2],col=alpha(pap$cols,0.5),bg=alpha(pap$cols,0.75)
 
 mtext(paste("PC1 (",pa.props[1],"%)",sep=""),1,line = 2.5,cex=1)
 mtext(paste("PC2 (",pa.props[2],"%)",sep=""),2,line = 2.5,cex=1)
+text(x = -0.07,y=0.1,"D",cex = 2,font =2)
 
 plot(pa$scores[,3],pa$scores[,4],col=alpha(pap$cols,0.5),bg=alpha(pap$cols,0.75),pch=as.numeric(pap$pch),
      cex=3,	bty="L",xlab="",ylab="",cex.axis=1.5)
@@ -1106,18 +1197,6 @@ legend("top",c(expression("Permutation"~italic("F")["ST"]),
        col = cols[c("perm","stacks","pc","xtx","sal")],
        pt.bg=cols[c("perm","stacks","pc","xtx","sal")],pch=c(4,5,0,19,17),bty='n',ncol=3)
 ```
-
-
-
-
-
-### Model-based outlier estimation
-
-[Rougemont et al 2016](https://onlinelibrary.wiley.com/doi/full/10.1111/mec.13664) used model parameters estimated by $\delta_A\delta_I$ to simulate data under a neutral model with `MSSTATSFST` (a coalescent simulator). $F_{ST}$ values were calculated for each population using `vcftools` and those were compared to the simulated netural markers. They counted the number of shared outliers between connected pairs and performed randomization tests to test whether the number was greter than expected by chance, and then constructed coplots of $F_{ST}$/$F_{ST}$ between population pairs to visualize the extent of outlier sharing and parallelism. They used custom R scripts, which might be available?? NOPE
-
-### dmc & LG8?
-
-## Putative genes??
 
 
 

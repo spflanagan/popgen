@@ -11,6 +11,222 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 21 October 2019
+
+To fill in the results, let's get some stats.
+
+Number of shared Stacks outliers:
+
+```{r}
+fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
+shared_stacks<-plot_dat$ID[plot_dat$stacks_AL_P < 0.05 & plot_dat$stacks_LA_P < 0.05 &
+                          plot_dat$stacks_TX_P < 0.05 & plot_dat$stacks_FL_P < 0.05]
+shared_stacks<-shared_stacks[!is.na(shared_stacks)]
+fw_SNPinfo[fw_SNPinfo$ID %in% shared_stacks,]
+```
+
+Number of shared permutation outliers:
+```{r}
+length(which(rowSums(fw_SNPinfo[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4))
+length(unique(fw_SNPinfo$Chrom[which(rowSums(fw_SNPinfo[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4)]))
+```
+
+Are any of those the same as the Stacks ones?
+
+```{r}
+permout<-fw_SNPinfo$ID[which(rowSums(fw_SNPinfo[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4)]
+permout[permout %in% shared_stacks]
+```
+
+Pcapadt: 
+```{r}
+dim(fw_SNPinfo[fw_SNPinfo$pcadaptQ<0.01 & !is.na(fw_SNPinfo$pcadaptQ),])
+pcout<-fw_SNPinfo$ID[fw_SNPinfo$pcadaptQ<0.01 & !is.na(fw_SNPinfo$pcadaptQ)]
+pcout[pcout %in% shared_stacks] # overlapping with shared stacks
+pcout[pcout %in% permout] # overlapping with permutations
+```
+
+Bayenv:
+
+```{r}
+xtxout<-fw_SNPinfo$ID[fw_SNPinfo$XtX>=quantile(plot_dat$XtX,0.99)]
+xtxout[xtxout %in% pcout]
+```
+
+```{r}
+salout<-fw_SNPinfo$ID[fw_SNPinfo$logSalBF>=quantile(fw_SNPinfo$logSalBF,0.99)]
+salout[salout %in% xtxout]
+salout[salout %in% pcout]
+salout[salout %in% shared_stacks]
+salout[salout %in% permout]
+```
+
+
+To support the treemix analysis, I want to investigate the f3 and f4 analyses for the two best-supported migration edges.
+
+```{r}
+threepop<-data.frame(do.call(rbind,strsplit(grep(";",readLines("treemix/fwsw_threepop.txt"),value = TRUE),' ')))
+colnames(threepop)<-c("pops","f3_stat","f3_se","f3_z")
+threepop$f3_p<-pnorm(-abs(as.numeric(as.character(threepop$f3_z)))) # one sided
+```
+Significantly negative f3 statistics mean that the first pop in the list (A in A;B,C) is admixed.
+
+```{r}
+fourpop<-data.frame(do.call(rbind,strsplit(grep(";",readLines("treemix/fwsw_fourpop_1.txt"),value = TRUE),' ')))
+colnames(fourpop)<-c("pops","f4_stat","f4_se","f4_z")
+fourpop$f4_p<-2*pnorm(-abs(as.numeric(as.character(fourpop$f4_z))))
+```
+a significantly non-zero value indicates gene flow in the tree.
+
+
+Edge 1: FLSI/FLAB -> TXFW/TX
+
+```{r}
+threepop[grep("FLSI;.*TXFW",threepop$pops),] # use this to see the order that I want
+threepop[threepop$pops=="FLSI;TXFW,FLAB",] 
+```
+This does not have a negative value so FLSI is not admixed -- but that's not really what's interesting, is it?
+
+```{r}
+threepop[grep("TXFW;.*FLSI",threepop$pops),] # use this to see the order that I want
+threepop[threepop$pops=="TXFW;TXCC,FLSI",] 
+```
+But this is also not admixed, so does not support direct migration?
+
+
+```{r}
+fourpop[grep("TXCC,TXFW;.*FLSI.*",fourpop$pops),] # use this to see the order that I want
+fourpop[fourpop$pops=="TXCC,TXFW;FLSI,FLAB",] 
+as.numeric(as.character(fourpop$f4_stat[fourpop$pops=="TXCC,TXFW;FLSI,FLAB"]))+as.numeric(as.character(fourpop$f4_se[fourpop$pops=="TXCC,TXFW;FLSI,FLAB"]))
+```
+The statistic is negative but overlaps with zero, so not indicative of gene flow. 
+
+Where are the bootstrap values? I think they're in the treeout as the 'jackknife estimates' - I'll deal with that later, it's for tree topology not migration edges anyway.
+
+
+Edge 2: branch from west FL to others -> FLAB
+
+```{r}
+threepop[grep("FLAB;.*",threepop$pops),] # use this to see the order that I want
+threepop[threepop$pops=="FLAB;FLPB,FLLG",]
+```
+This indicates no admixture, and none of the FLAB values are neggative
+
+```{r}
+fourpop[grep("FLAB,FL.*;.*",fourpop$pops),] # use this to see the order that I want
+fourpop[fourpop$pops=="FLAB,FLCC;FLPB,FLLG",] 
+as.numeric(as.character(fourpop$f4_stat[fourpop$pops=="FLAB,FLCC;FLPB,FLLG"]))+as.numeric(as.character(fourpop$f4_se[fourpop$pops=="FLAB,FLCC;FLPB,FLLG"]))
+```
+
+Also not indicative of gene flow. 
+
+```{r}
+fourpop$f4_stat<-as.numeric(as.character(fourpop$f4_stat))
+fourpop$f4_se<-as.numeric(as.character(fourpop$f4_se))
+abs(fourpop$f4_stat[grep("FLAB,FL.*;.*",fourpop$pops)])-fourpop$f4_se[grep("FLAB,FL.*;.*",fourpop$pops)]
+```
+These are all pretty close to zero...
+
+Things to do:
+
+* pairwise FSTs using the full dataset (make a figure or table) & plot with treemix covariances [check]
+* summary statistics for the populations with number of individuals, HE, HO, etc. [check]
+* minor allele frequency histograms 
+* Add labels to Fig 1 (and maybe bootstrap estimates?)
+* TXCC-TXCB, ALST-FLSG, FLPB-FLHB plots
+
+I wrote a loop to calculate mean fsts from the full dataset -- see the reanalysis doc.
+
+What do I want in the table of summary statistics?
+
+Pop | N Pregnant (N in full) | N non-pregnant (N in full) | N females (N in full) | N juveniles (N In full) | Ho in full (variance) | HO in subset (variance) | % polymorphic | p in full (variance) | p in subset (variance)
+
+To do this I need both vcfs
+
+```{r}
+pop_map<-read.delim("../fwsw_pops_map.txt",header = FALSE,stringsAsFactors = FALSE)
+ful_vcf<-parse.vcf("filter_rad_20191014@1654/14_filtered/radiator_data_20191014@1710.vcf")
+colnames(ful_vcf)<-gsub("\\-","_",colnames(ful_vcf))
+sub_vcf<-parse.vcf("stacks/populations_subset75/batch_2.pruned.vcf")
+```
+
+```{r}
+pop_summaries<-do.call(rbind,lapply(pop.list,function(pop,ful,sub){
+  ful_dat<-ful[,c(1:9,grep(pop,colnames(ful)))]
+  sub_dat<-sub[,c(1:9,grep(pop,colnames(sub)))]
+  # calc observed het values
+  ful_ho<-apply(ful_vcf,1,calc.het)
+  sub_ho<-apply(sub_vcf,1,calc.het)
+  # estimate allele freqs
+  ful_afs<-do.call(rbind,apply(ful_vcf,1,calc.afs.vcf))
+  sub_afs<-do.call(rbind,apply(sub_vcf,1,calc.afs.vcf))
+  # save data frame
+  dat<-data.frame(pop=pop,
+                  preg_full=length(grep(paste0(pop,"P"),colnames(ful))),
+                  preg_sub=length(grep(paste0(pop,"P"),colnames(sub))),
+                  nonp_full=length(grep(paste0(pop,"NP"),colnames(ful))),
+                  nonp_sub=length(grep(paste0(pop,"NP"),colnames(sub))),
+                  nfem_full=length(grep(paste0(pop,"F"),colnames(ful))),
+                  nfem_sub=length(grep(paste0(pop,"F"),colnames(sub))),
+                  njuv_full=length(grep(paste0(pop,"J"),colnames(ful)))+
+                    length(grep(paste0(pop,"DB"),colnames(ful))),
+                  njuv_sub=length(grep(paste0(pop,"J"),colnames(sub))) + 
+                    length(grep(paste0(pop,"DB"),colnames(sub))),
+                  ho_full = mean(ful_ho,na.rm = TRUE),
+                  hov_full = var(ful_ho,na.rm = TRUE),
+                  ho_sub = mean(sub_ho,na.rm = TRUE),
+                  hov_sub = var(sub_ho,na.rm = TRUE),
+                  poly_ful = nrow(ful_afs[ful_afs$RefFreq<1,])/nrow(ful_afs)*100,
+                  poly_sub = nrow(sub_afs[sub_afs$RefFreq<1,])/nrow(sub_afs)*100,
+                  p_full = mean(ful_afs$RefFreq,na.rm=TRUE),
+                  pv_full = var(ful_afs$RefFreq,na.rm=TRUE),
+                  p_sub = mean(sub_afs$RefFreq,na.rm=TRUE),
+                  pv_sub = var(sub_afs$RefFreq,na.rm=TRUE))
+  return(dat)
+},ful=ful_vcf,sub=sub_vcf))
+write.csv(pop_summaries,"population_summaries.csv",col.names = TRUE,row.names = FALSE,quote=FALSE)
+```
+
+Allele frequency spectra: 
+```{r}
+par(mfrow=c(4,4),oma=c(2,2,2,2),mar=c(2,2,2,2))
+
+pop_afs<-do.call(rbind,lapply(pop.labs,function(pop,ful,cols){
+  if(pop=="FLFW"){
+    ful_dat<-ful[,c(1:9,grep("FLLG",colnames(ful)))]
+  } else {
+    ful_dat<-ful[,c(1:9,grep(pop,colnames(ful)))]
+  }
+  # estimate allele freqs
+  ful_afs<-do.call(rbind,apply(ful_vcf,1,calc.afs.vcf))
+  h<-hist(ful_afs$AltFreq,breaks=seq(0,0.5,0.01),main=pop,col = cols[pop],
+          xlab = "Allele Frequency",ylab = "Frequency",freq = TRUE)
+},ful=ful_vcf,cols=c(TXSP="black",TXCC="black",TXFW="#2166ac",TXCB="black",
+                     LAFW="#2166ac",ALST="black",ALFW="#2166ac",FLSG="black",
+                     FLKB="black",FLFD="black",FLSI="black",FLAB="black",
+                     FLPB="black",FLHB="black",FLCC="black",FLFW="#2166ac")))
+```
+
+Ok, now the null SW-SW comparisons...the downside is that the subsetted dataset doesn't have the additional pops. 
+
+```{r stacks_fsts}
+swsw.al<-read.delim("stacks/populations_all/batch_2.fst_ALST-FLSG.tsv")
+swsw.tx<-read.delim("stacks/populations_all/batch_2.fst_TXCB-TXCC.tsv")
+swsw.fl<-read.delim("stacks/populations_all/batch_2.fst_FLCC-FLPB.tsv")
+
+fst_dat<-list(swsw.tx,swsw.al,swsw.fl)
+png("../../fsts_null.png",height=6,width=6.5,units="in",res=300)
+fsts<-plot_multiple_LGs(list_fsts = fst_dat,fst_name = "Corrected.AMOVA.Fst",bp_name="BP",chr_name="Chr",
+                        lgs=lgs,plot_labs=list("TXFW vs TXCC","ALST vs FLSG","FLCC vs FLPB"),
+                        pt_cols = list(c(grp.colors[1],grp.colors[2]),c(grp.colors[2],grp.colors[3]),
+                                       c(grp.colors[6],grp.colors[5])),
+                        ncol=1,addSmooth = FALSE,pch=19,y.lim = c(0,1),pt.cex=1,axis.size = 1)
+dev.off()
+```
+
+The final thing to do is adding labels to fig 1. 
+
+Perhaps make heatmaps of covariance and Fsts? YES!
 
 # 18 October 2019
 
@@ -129,6 +345,7 @@ fw_SNPinfo<-merge(fw_SNPinfo,fwsw.tx[,c("Locus.ID","Corrected.AMOVA.Fst")],by.x=
 colnames(fw_SNPinfo)[ncol(fw_SNPinfo)]<-"stacks_TX"
 fw_SNPinfo<-merge(fw_SNPinfo,fwsw.fl[,c("Locus.ID","Corrected.AMOVA.Fst")],by.x="ID",by.y="Locus.ID",all.x = TRUE)
 colnames(fw_SNPinfo)[ncol(fw_SNPinfo)]<-"stacks_FL"
+saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
 ```
 
 
