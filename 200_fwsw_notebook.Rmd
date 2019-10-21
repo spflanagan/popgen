@@ -11,6 +11,10 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 22 October 2019
+
+Adam's suggested I ask for an extension. That's what I should be doing! But I also want to know if the 12103 markers I've been using are filtered properly so I might run radiator on them. 
+
 # 21 October 2019
 
 To fill in the results, let's get some stats.
