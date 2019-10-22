@@ -183,6 +183,16 @@ colnames(fst_mat)<-rownames(fst_mat)<-pop.labs
 write.table(fst_mat,"pairwise_fsts_full.txt",sep='\t',col.names = TRUE,row.names=TRUE,quote=FALSE)
 ```
 
+```{r}
+full_fsts<-read.delim("stacks/populations_whitelist/batch_2.fst_summary.tsv",row.names = 1)
+full_fsts<-rbind(full_fsts,TXSP=rep(NA,ncol(full_fsts))) #add the final row
+Tfull_fsts<-t(full_fsts)
+full_fsts[lower.tri(full_fsts)]<-Tfull_fsts[lower.tri(Tfull_fsts)] # now it's symmetric
+full_fsts<-full_fsts[pop.list,pop.list]
+colnames(full_fsts)<-rownames(full_fsts)<-pop.labs
+fst_mat<-as.matrix(full_fsts)
+```
+
 
 ```{r}
 library(lattice); library(grid); library(RColorBrewer)

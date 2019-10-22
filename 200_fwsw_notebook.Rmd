@@ -13,7 +13,613 @@ knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 
 # 22 October 2019
 
-Adam's suggested I ask for an extension. That's what I should be doing! But I also want to know if the 12103 markers I've been using are filtered properly so I might run radiator on them. 
+Adam's suggested I ask for an extension. That's what I should be doing! - done.
+
+But I also want to know if the 12103 markers I've been using are filtered properly so I might run radiator on them. 
+
+the batch_2.pruned.vcf file is the one I want. I copied the headers from batch_2.vcf to batch_2.pruned.vcf - that was the only way it would work. I also need to make a new pop map
+
+```{r}
+vcf<-parse.vcf("batch_2.pruned.vcf")
+strata<-data.frame(INDIVIDUALS=colnames(vcf)[10:ncol(vcf)],
+                   STRATA=gsub("sample_(\\w{4}).*","\\1",colnames(vcf)[10:ncol(vcf)]))
+write.table(strata,"fwsw_sub_strata.txt",col.names = TRUE,row.names = FALSE,quote = FALSE,sep='\t')
+```
+
+
+```{r}
+library(radiator)
+setwd("popgen/fwsw_results/stacks/populations_subset75/")
+data<-radiator::filter_rad(data="batch_2.pruned.vcf",
+                           strata="fwsw_sub_strata.txt")
+```
+
+I keep getting this weird error: 
+
+```
+Error in .DynamicClusterCall(cl, length(cl), .fun = function(.proc_idx,  : 
+  One of the nodes produced an error: Can not open file 'C:\Users\spf50\Research\popgen\fwsw_results\stacks\populations_subset75\filter_rad_20191022@1453\01_radiator\radiator_20191022@1453.gds'. The process cannot access the file because it is being used by another process.
+```
+
+Re-started the computer, we'll see if that helps -- it did not. 
+
+Looks like this might be related to parallel cores -- 
+
+```{r}
+ data<-radiator::filter_rad(data="batch_2.pruned.vcf",
+                            strata="fwsw_sub_strata.txt",parallel.core = 1)
+```
+
+^ works.
+
+
+In the MAF helper table it looks like MAC 26 corresponds to MAF of 0.05 - which only includes a small number of loci!
+
+I've got a feeling that the 12103 SNPs I've been using aren't the best set. 
+
+```
+> data<-radiator::filter_rad(data="batch_2.pruned.vcf",
++                            strata="fwsw_sub_strata.txt",parallel.core = 1)
+################################################################################
+############################# radiator::filter_rad #############################
+################################################################################
+The function arguments names have changed: please read documentation
+
+Execution date@time: 20191022@1502
+Folder created: filter_rad_20191022@1502
+Function call and arguments stored in: radiator_filter_rad_args_20191022@1502.tsv
+File written: random.seed (56970)
+Filters parameters file generated: filters_parameters_20191022@1502.tsv
+
+Reading VCF
+Data summary: 
+    number of samples: 303
+    number of markers: 12103
+done! timing: 8 sec
+
+Generating individual stats...
+[==================================================] 100%, completed in 0s
+Generating markers stats...
+[==================================================] 100%, completed in 0s
+[==================================================] 100%, completed in 0s
+
+
+Number of chromosome/contig/scaffold: 532
+Number of locus: 12103
+Number of markers: 12103
+Number of populations: 7
+Number of individuals: 303
+
+Number of ind/pop:
+ALFW = 48
+ALST = 47
+FLCC = 41
+FLLG = 47
+LAFW = 48
+TXCC = 41
+TXFW = 31
+
+Number of duplicate id: 0
+radiator Genomic Data Structure (GDS) file: radiator_20191022@1502.gds
+################################################################################
+########################### radiator::filter_monomorphic #######################
+################################################################################
+Execution date@time: 20191022@1507
+Function call and arguments stored in: radiator_filter_monomorphic_args_20191022@1507.tsv
+Filters parameters file: initiated
+File written: blacklist.monomorphic.markers_20191022@1507.tsv
+Synchronizing markers.meta
+File written: whitelist.polymorphic.markers_20191022@1507.tsv
+Filters parameters file: updated
+################################### RESULTS ####################################
+
+Filter monomorphic markers
+Number of individuals / strata / chrom / locus / SNP:
+    Before: 303 / 7 / 532 / 12103 / 12103
+    Blacklisted: 0 / 0 / 1 / 9 / 9
+    After: 303 / 7 / 531 / 12094 / 12094
+
+Computation time, overall: 1 sec
+######################## filter_monomorphic completed ##########################
+################################################################################
+######################## radiator::filter_common_markers #######################
+################################################################################
+Execution date@time: 20191022@1507
+Function call and arguments stored in: radiator_filter_common_markers_args_20191022@1507.tsv
+Filters parameters file: initiated
+Scanning for common markers...
+Generating UpSet plot to visualize markers in common
+File written: whitelist.common.markers_20191022@1507.tsv
+Filters parameters file: updated
+################################### RESULTS ####################################
+
+Filter common markers:
+Number of individuals / strata / chrom / locus / SNP:
+    Before: 303 / 7 / 531 / 12094 / 12094
+    Blacklisted: 0 / 0 / 0 / 0 / 0
+    After: 303 / 7 / 531 / 12094 / 12094
+
+Computation time, overall: 1 sec
+####################### filter_common_markers completed ########################
+################################################################################
+######################### radiator::filter_individuals #########################
+################################################################################
+Execution date@time: 20191022@1507
+Function call and arguments stored in: radiator_filter_individuals_args_20191022@1507.tsv
+Interactive mode: on
+
+Step 1. Visualization
+Step 2. Missingness
+Step 3. Heterozygosity
+Step 4. Total Coverage (if available)
+
+
+Filters parameters file: initiated
+
+Step 1. Visualization of samples QC
+
+[==================================================] 100%, completed in 0s
+File written: individuals qc info and stats summary
+File written: individuals qc plot
+
+Step 2. Filtering markers based individual missingness/genotyping
+
+Do you want to blacklist samples based on missingness ? (y/n):
+y
+2 options to blacklist samples:
+1. based on the outlier statistics
+2. enter your own threshold
+1
+
+Removing outliers individuals based on genotyping statistics: 0.213308
+Filters parameters file: updated
+################################### RESULTS ####################################
+
+Filter individuals based on missingness: 0.213308
+Number of individuals / strata / chrom / locus / SNP:
+    Before: 303 / 7 / 531 / 12094 / 12094
+    Blacklisted: 49 / 0 / 0 / 0 / 0
+    After: 254 / 7 / 531 / 12094 / 12094
+
+Step 3. Filtering markers based on individual heterozygosity
+
+Do you want to blacklist samples based on heterozygosity ? (y/n):
+n
+
+Filter monomorphic markers
+Number of individuals / strata / chrom / locus / SNP:
+    Blacklisted: 0 / 0 / 16 / 426 / 426
+
+Computation time, overall: 314 sec
+########################### completed filter_individuals #######################
+################################################################################
+############################## radiator::filter_mac ############################
+################################################################################
+Execution date@time: 20191022@1512
+Function call and arguments stored in: radiator_filter_mac_args_20191022@1512.tsv
+Interactive mode: on
+
+Step 1. Visualization and helper table
+Step 2. Filtering markers based on MAC
+
+
+Importing data ...
+Filters parameters file: initiated
+Calculating GLOBAL MAC
+[==================================================] 100%, completed in 0s
+File written: maf.global.tsv
+
+Step 1. MAC visualization and helper table
+
+File written: mac.summary.stats.tsv
+MAC range: [1 - 251]
+MAF range: [0.002 - 0.4941]
+Generating MAC helper table...
+File written: maf.helper.table.tsv
+
+Step 2. Filtering markers based on MAC
+
+Choose the filter.mac threshold: 
+1
+File written: whitelist.markers.mac.tsv
+File written: blacklist.markers.mac.tsv
+Filters parameters file: updated
+################################### RESULTS ####################################
+
+Filter mac threshold: 1
+Number of individuals / strata / chrom / locus / SNP:
+    Before: 254 / 7 / 515 / 11668 / 11668
+    Blacklisted: 0 / 0 / 0 / 0 / 0
+    After: 254 / 7 / 515 / 11668 / 11668
+
+Computation time, overall: 443 sec
+############################ completed filter_mac ##############################
+################################################################################
+########################### radiator::filter_coverage ##########################
+################################################################################
+Execution date@time: 20191022@1519
+Function call and arguments stored in: radiator_filter_coverage_args_20191022@1519.tsv
+Interactive mode: on
+
+Step 1. Visualization and helper table
+Step 2. Filtering markers based on total coverage
+
+
+Importing data ...
+Filters parameters file: initiated
+
+Step 1. Coverage visualization and helper table
+
+Generating coverage statistics
+[==================================================] 100%, completed in 0s
+Generating coverage statistics: without outliers
+Generating mean coverage helper table...
+Files written: helper tables and plots
+
+Step 2. Filtering markers based on mean coverage
+
+Choose the min mean coverage threshold(e.g. 7 or 10): 
+11
+Choose the max mean coverage threshold (e.g. 100 or 300): 
+50
+File written: blacklist.markers.coverage_20191022@1519.tsv
+File written: whitelist.markers.coverage_20191022@1519.tsv
+Filters parameters file: updated
+################################### RESULTS ####################################
+
+Filter mean coverage thresholds: 11 / 50
+Number of individuals / strata / chrom / locus / SNP:
+    Before: 254 / 7 / 515 / 11668 / 11668
+    Blacklisted: 0 / 0 / 23 / 256 / 256
+    After: 254 / 7 / 492 / 11412 / 11412
+
+Computation time, overall: 208 sec
+########################## completed filter_coverage ###########################
+################################################################################
+######################### radiator::filter_genotyping ##########################
+################################################################################
+Execution date@time: 20191022@1523
+Function call and arguments stored in: radiator_filter_genotyping_args_20191022@1523.tsv
+Interactive mode: on
+
+Step 1. Visualization and helper table
+Step 2. Filtering markers based on maximum missing proportion allowed
+
+
+Importing data ...
+Filters parameters file: initiated
+
+Step 1. Missing visualization and helper table
+
+Generating statistics
+[==================================================] 100%, completed in 0s
+Generating missingness/genotyping helper table...
+[==================================================] 100%, completed in 0s
+[==================================================] 100%, completed in 0s
+[==================================================] 100%, completed in 0s
+[==================================================] 100%, completed in 0s
+[==================================================] 100%, completed in 0s
+[==================================================] 100%, completed in 0s
+[==================================================] 100%, completed in 0s
+File written: markers.pop.missing.helper.table.tsv
+Files written: helper tables and plots
+
+Step 2. Filtering markers based on maximum missing proportion
+
+Choose the maximum missing proportion allowed: 
+0.2
+
+Removing markers based on genotyping statistic: 0.2
+File written: blacklist.markers.genotyping_20191022@1523.tsv
+File written: whitelist.markers.genotyping_20191022@1523.tsv
+Filters parameters file: updated
+################################### RESULTS ####################################
+
+Filter genotyping threshold: 0.2
+Number of individuals / strata / chrom / locus / SNP:
+    Before: 254 / 7 / 492 / 11412 / 11412
+    Blacklisted: 0 / 0 / 0 / 0 / 0
+    After: 254 / 7 / 492 / 11412 / 11412
+
+Computation time, overall: 45 sec
+######################## completed filter_genotyping ###########################
+################################################################################
+######################### radiator::filter_snp_position_read ###################
+################################################################################
+Execution date@time: 20191022@1524
+Function call and arguments stored in: radiator_filter_snp_position_read_args_20191022@1524.tsv
+2 steps to visualize and filter the data based on the number of SNP on the read/locus:
+Step 1. Visualization (boxplot, distribution
+Step 2. Threshold selection
+Filters parameters file: initiated
+COL info required, returning data
+
+Computation time, overall: 0 sec
+##################### completed filter_snp_position_read #######################
+################################################################################
+############################ radiator::filter_snp_number #######################
+################################################################################
+Execution date@time: 20191022@1524
+Function call and arguments stored in: radiator_filter_snp_number_args_20191022@1524.tsv
+Interactive mode: on
+2 steps to visualize and filter the data based on the number of SNP on the read/locus:
+Step 1. Impact of SNP number per read/locus (on individual genotypes and locus/snp number potentially filtered)
+Step 2. Choose the filtering thresholds
+Filters parameters file: initiated
+Generating statistics
+Generating helper table...
+geom_path: Each group consists of only one observation. Do you need
+to adjust the group aesthetic?
+geom_path: Each group consists of only one observation. Do you need
+to adjust the group aesthetic?
+geom_path: Each group consists of only one observation. Do you need
+to adjust the group aesthetic?
+geom_path: Each group consists of only one observation. Do you need
+to adjust the group aesthetic?
+Files written: helper tables and plots
+
+Step 2. Filtering markers based on the maximum of SNPs per locus
+
+Do you still want to blacklist markers? (y/n):
+n
+File written: whitelist.markers.genotyping.tsv
+File written: blacklist.markers.genotyping.tsv
+Filters parameters file: updated
+################################### RESULTS ####################################
+
+Filter SNPs per locus threshold: 1e+12
+Number of individuals / strata / chrom / locus / SNP:
+    Before: 254 / 7 / 492 / 11412 / 11412
+    Blacklisted: 0 / 0 / 0 / 0 / 0
+    After: 254 / 7 / 492 / 11412 / 11412
+
+Computation time, overall: 14 sec
+######################### completed filter_snp_number ##########################
+################################################################################
+############################## radiator::filter_ld #############################
+################################################################################
+Execution date@time: 20191022@1524
+Function call and arguments stored in: radiator_filter_ld_args_20191022@1524.tsv
+
+Interactive mode: on
+
+Step 1. Short distance LD threshold selection
+Step 2. Filtering markers based on short distance LD
+Step 3. Long distance LD pruning selection
+Step 4. Threshold selection
+Step 5. Filtering markers based on long distance LD
+
+
+Filters parameters file: initiated
+Minimizing short distance LD...
+
+There is no variation in the number of SNP/locus across the data
+
+Filters parameters file: updated
+################################### RESULTS ####################################
+
+Number of individuals / strata / chrom / locus / SNP:
+    Before: 254 / 7 / 492 / 11412 / 11412
+    Blacklisted: 0 / 0 / 0 / 0 / 0
+    After: 254 / 7 / 492 / 11412 / 11412
+
+Do you want to continue filtering using long distance ld  ? (y/n):
+n
+
+Computation time, overall: 9 sec
+############################# completed filter_ld ##############################
+################################################################################
+######################## radiator::detect_mixed_genomes ########################
+################################################################################
+Execution date@time: 20191022@1524
+
+detect_mixed_genomes function call arguments:
+    data = SeqVarGDSClass
+    interactive.filter = TRUE
+    detect.mixed.genomes = FALSE
+    ind.heterozygosity.threshold = NULL
+    verbose = TRUE
+    parallel.core = 1
+
+dots-dots-dots ... arguments
+
+Arguments inside "..." assigned in detect_mixed_genomes:
+    internal = FALSE
+    parameters = list
+    path.folder = filter_rad_20191022@1502
+
+
+File written: radiator_detect_mixed_genomes_args_20191022@1524.tsv
+Filters parameters file: initiated
+[==================================================] 100%, completed in 0s
+Calculating heterozygosity statistics
+Generating plots
+
+The greatest value of a picture is when it forces us
+to notice what we never expected to see.
+
+John W. Tukey. Exploratory Data Analysis. 1977.
+
+
+Inspect plots and tables in folder created...
+    Do you want to exclude individuals based on heterozygosity ? (y/n): 
+n
+Filters parameters file: updated
+################################### RESULTS ####################################
+Detect mixed genomes: 0 1
+Number of individuals / strata / chrom / locus / SNP:
+    Before: 254 / 7 / 492 / 11412 / 11412
+    Blacklisted: 0 / 0 / 0 / 0 / 0
+    After: 254 / 7 / 492 / 11412 / 11412
+
+Computation time, overall: 26 sec
+######################## completed detect_mixed_genomes ########################
+
+################################################################################
+###################### radiator::detect_duplicate_genomes ######################
+################################################################################
+Execution date@time: 20191022@1524
+Function call and arguments stored in a file
+File written: radiator_detect_duplicate_genomes_args_20191022@1524.tsv
+File written: random.seed (56970)
+Filters parameters file: initiated
+[==================================================] 100%, completed in 0s
+Calculating manhattan distances between individuals...
+Generating summary statistics
+Generating plots
+
+Inspect tables and figures to decide if some individual(s) need to be blacklisted
+    Do you need to blacklist individual(s) (y/n): 
+n
+Filters parameters file: updated
+################################### RESULTS ####################################
+Detect duplicate genomes: 0
+Number of individuals / strata / chrom / locus / SNP:
+    Before: 254 / 7 / 492 / 11412 / 11412
+    Blacklisted: 0 / 0 / 0 / 0 / 0
+    After: 254 / 7 / 492 / 11412 / 11412
+
+Computation time, overall: 28 sec
+###################### completed detect_duplicate_genomes ######################
+################################################################################
+############################# radiator::filter_hwe #############################
+################################################################################
+Execution date@time: 20191022@1525
+Interactive mode: on
+Function call and arguments stored in: radiator_filter_hwe_args_20191022@1525.tsv
+Filters parameters file: initiated
+    using tidy data frame of genotypes as input
+    skipping all filters
+Summarizing data
+File written: genotypes.summary.tsv
+HWE analysis for pop: ALFW
+HWE analysis for pop: ALST
+HWE analysis for pop: FLCC
+HWE analysis for pop: FLLG
+HWE analysis for pop: LAFW
+HWE analysis for pop: TXCC
+HWE analysis for pop: TXFW
+HWE analysis for pop: OVERALL
+File written: hw.pop.sum.tsv
+Plot written: hwd.plot.blacklist.markers.pdf
+Plot written: hwe.ternary.plots.missing.data.pdf
+Plot written: hwe.manhattan.plot.pdf
+
+Do you want to continue with the filtering ? (y/n):
+y
+
+Based on figures and tables enter the hw.pop.threshold (integer): 
+1
+
+Generating blacklists, whitelists and filtered tidy data...
+done!
+
+Choosing the final filtered dataset
+   select the mid p-value threshold (5 options):
+1: 0.05 *
+2. 0.01 **
+3. 0.001 ***
+4. 0.0001 ****
+5. 0.00001 *****
+5
+Please try again: 
+5
+Please try again: 
+1
+
+Final filtered tidy dataset: 
+tidy.filtered.hwe.0.05.mid.p.value.1.hw.pop.threshold.rad
+
+Using hw.pop.threshold/midp.threshold: 1/0.05
+Filters parameters file: updated
+################################### RESULTS ####################################
+Filter HWE: 1 / 0.05
+Number of individuals / strata / chrom / locus / SNP:
+    Before: 254 / 7 / 492 / 11412 / 11412
+    Blacklisted: 0 / 0 / 9 / 527 / 527
+    After: 254 / 7 / 483 / 10885 / 10885
+
+Computation time, overall: 209 sec
+############################# completed filter_hwe #############################
+
+Preparing output files...
+File written: whitelist.markers.tsv
+File written: blacklist.markers.tsv
+File written: blacklist.id.tsv
+Writing the filtered strata: strata.filtered.tsvstrata.filtered.tsv
+
+Generating statistics after filtering
+calculating individual stats...
+[==================================================] 100%, completed in 0s
+File written: individuals qc info and stats summary
+File written: individuals qc plot
+calculating markers stats...
+[==================================================] 100%, completed in 0s
+[==================================================] 100%, completed in 0s
+
+Transferring data to genomic converter...
+Synchronizing data and strata...
+    Number of strata: 7
+    Number of individuals: 254
+
+Writing tidy data set:
+radiator_data_20191022@1532.rad
+Data summary: 
+    number of samples: 254
+    number of markers: 10885
+
+Computation time, overall: 1829 sec
+############################# completed filter_rad #############################
+There were 50 or more warnings (use warnings() to see the first 50)
+
+
+```
+the warnings are about an unavailable font family.
+
+what this analysis suggests is that perhaps I've been working with less-than-ideal data, including 49 individuals that didn't pass missingness tests.
+
+```{r}
+blacklist_inds<-read.delim("filter_rad_20191022@1502/04_filter_individuals/blacklist.individuals.missing_20191022@1507.tsv")
+blacklist_inds$INDIVIDUALS<-gsub("-","_",blacklist_inds$INDIVIDUALS)
+strata<-read.delim("fwsw_sub_strata.txt")
+table(strata$STRATA[!(strata$INDIVIDUALS %in% blacklist_inds$INDIVIDUALS)])
+```
+
+But removing those individuals leaves enough individuals per population - I could run the dadi analysis on this dataset. 
+
+Ok, so I also re-ran stacks on the whitelisted loci and individuals for the 'full' dataset. For some reason the Stacks Fst values are much higher than the ones I calculated using gwscaR
+
+```{r}
+full_fsts<-read.delim("stacks/populations_whitelist/batch_2.fst_summary.tsv",row.names = 1)
+full_fsts<-rbind(full_fsts,TXSP=rep(NA,ncol(full_fsts))) #add the final row
+
+Tfull_fsts<-t(full_fsts)
+full_fsts[lower.tri(full_fsts)]<-Tfull_fsts[lower.tri(Tfull_fsts)] # now it's symmetric
+full_fsts<-full_fsts[pop.list,pop.list]
+colnames(full_fsts)<-rownames(full_fsts)<-pop.labs
+```
+
+The maximum value is between FLFW and TXFW, 0.254.
+
+`r rowMeans(full_fsts,na.rm = TRUE)`
+TXSP                        0.04080420
+TXCC                        0.04113533
+TXFW                        0.07004118
+TXCB                        0.04451881
+LAFW                        0.03660252
+ALST                        0.03097860
+ALFW                        0.03860451
+FLSG                        0.02929251
+FLKB                        0.02966820
+FLFD                        0.03289763
+FLSI                        0.03135164
+FLAB                        0.03929079
+FLPB                        0.05155559
+FLHB                        0.05572510
+FLCC                        0.06095059
+FLFW                        0.11157567
+
+And FLFW is most different from the others. 
 
 # 21 October 2019
 
