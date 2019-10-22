@@ -7,7 +7,8 @@ RUN50=false
 RUN95=false
 RUN90=false
 RUN85=false
-RUNALL=true
+RUNALL=false
+WHITELIST=true
 
 if [ "$RUN100" = true ]; then
 	populations -b 2 -P ./stacks -M ../fwsw_sub_map.txt -t 5 -p 7 -r 1.0 --fstats --fstats --bootstrap_fst --plink --vcf --genepop
@@ -96,7 +97,19 @@ if [ "$RUNALL" = true ]; then
 	mv ./stacks/batch_2.vcf ./stacks/populations_all
 	mv ./stacks/batch_2.haplotypes.tsv ./stacks/populations_all
 	mv ./stacks/batch_2.genepop ./stacks/populations_all
-	mv *batch_2*treemix* ./stacks/populations_all
-	mv *batch_2*structure* ./stacks/populations_all
+	#mv *batch_2*treemix* ./stacks/populations_all
+	#mv *batch_2*structure* ./stacks/populations_all
 	mv ./stacks/batch_2.populations.log ./stacks/populations_all
+fi
+
+if [ "$WHITELIST" = true ]; then
+	populations -b 2 -P ./stacks -M ./stacks/strata.filtered.txt -t 5 -p 16 -r 0.75 -W ./stacks/whitelist.txt --fstats --plink --vcf --genepop --bootstrap_fst
+	mv ./stacks/batch_2.fst* ./stacks/populations_whitelist
+	mv ./stacks/batch_2.phistats* ./stacks/populations_whitelist
+	mv ./stacks/batch_2.plink* ./stacks/populations_whitelist
+	mv ./stacks/batch_2.sumstats* ./stacks/populations_whitelist
+	mv ./stacks/batch_2.vcf ./stacks/populations_whitelist
+	mv ./stacks/batch_2.haplotypes.tsv ./stacks/populations_whitelist
+	mv ./stacks/batch_2.genepop ./stacks/populations_whitelist
+	mv ./stacks/batch_2.populations.log ./stacks/populations_whitelist
 fi
