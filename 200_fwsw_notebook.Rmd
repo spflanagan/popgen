@@ -11,6 +11,10 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 22 October 2019
+
+Adam's suggested I ask for an extension. That's what I should be doing! But I also want to know if the 12103 markers I've been using are filtered properly so I might run radiator on them. 
+
 # 21 October 2019
 
 To fill in the results, let's get some stats.
@@ -201,7 +205,7 @@ pop_afs<-do.call(rbind,lapply(pop.labs,function(pop,ful,cols){
   # estimate allele freqs
   ful_afs<-do.call(rbind,apply(ful_vcf,1,calc.afs.vcf))
   h<-hist(ful_afs$AltFreq,breaks=seq(0,0.5,0.01),main=pop,col = cols[pop],
-          xlab = "Allele Frequency",ylab = "Frequency",freq = TRUE)
+          xlab = "Allele Frequency",ylab = "Frequency",freq = TRUE,border = cols[pop])
 },ful=ful_vcf,cols=c(TXSP="black",TXCC="black",TXFW="#2166ac",TXCB="black",
                      LAFW="#2166ac",ALST="black",ALFW="#2166ac",FLSG="black",
                      FLKB="black",FLFD="black",FLSI="black",FLAB="black",
@@ -216,12 +220,31 @@ swsw.al<-read.delim("stacks/populations_all/batch_2.fst_ALST-FLSG.tsv")
 swsw.tx<-read.delim("stacks/populations_all/batch_2.fst_TXCB-TXCC.tsv")
 swsw.fl<-read.delim("stacks/populations_all/batch_2.fst_FLCC-FLPB.tsv")
 
+
+
 fst_dat<-list(swsw.tx,swsw.al,swsw.fl)
 png("../../fsts_null.png",height=6,width=6.5,units="in",res=300)
 fsts<-plot_multiple_LGs(list_fsts = fst_dat,fst_name = "Corrected.AMOVA.Fst",bp_name="BP",chr_name="Chr",
-                        lgs=lgs,plot_labs=list("TXFW vs TXCC","ALST vs FLSG","FLCC vs FLPB"),
+                        lgs=lgs,plot_labs=list("TXCB vs TXCC","ALST vs FLSG","FLCC vs FLPB"),
                         pt_cols = list(c(grp.colors[1],grp.colors[2]),c(grp.colors[2],grp.colors[3]),
                                        c(grp.colors[6],grp.colors[5])),
+                        ncol=1,addSmooth = FALSE,pch=19,y.lim = c(0,1),pt.cex=1,axis.size = 1)
+dev.off()
+```
+
+```{r stacks_fsts}
+fwsw.al_all<-read.delim("stacks/populations_all/batch_2.fst_ALFW-ALST.tsv")
+fwsw.la_all<-read.delim("stacks/populations_all/batch_2.fst_ALST-LAFW.tsv")
+fwsw.tx_all<-read.delim("stacks/populations_all/batch_2.fst_TXCC-TXFW.tsv")
+fwsw.fl_all<-read.delim("stacks/populations_all/batch_2.fst_FLCC-FLFW.tsv")
+
+
+fst_dat<-list(fwsw.tx_all,fwsw.la_all,fwsw.al_all,fwsw.fl_all)
+png("../../fsts_fw_all.png",height=6,width=6.5,units="in",res=300)
+fsts<-plot_multiple_LGs(list_fsts = fst_dat,fst_name = "Corrected.AMOVA.Fst",bp_name="BP",chr_name="Chr",
+                        lgs=lgs,plot_labs=list("TXFW vs TXCC","ALST vs LAFW","ALST vs ALFW","FLCC vs FLFW"),
+                        pt_cols = list(c(grp.colors[1],grp.colors[2]),c(grp.colors[2],grp.colors[3]),
+                                       c(grp.colors[3],grp.colors[2]),c(grp.colors[6],grp.colors[5])),
                         ncol=1,addSmooth = FALSE,pch=19,y.lim = c(0,1),pt.cex=1,axis.size = 1)
 dev.off()
 ```
@@ -229,6 +252,23 @@ dev.off()
 The final thing to do is adding labels to fig 1. 
 
 Perhaps make heatmaps of covariance and Fsts? YES!
+
+I want to convert the whitelist from radiator into a whitelist for stacks
+
+```{r}
+map<-read.delim("stacks/populations_all/batch_2.plink.map",stringsAsFactors = FALSE,
+                comment.char = "#",header=FALSE)
+map$locus<-gsub("(\\d+)_\\d+","\\1",map$V2)
+map$pos<-gsub("(\\d+)_(\\d+)","\\2",map$V2)
+map$bp<-as.numeric(as.character(map$V4))+1
+whitelist<-read.delim("filter_rad_20191014@1654/14_filtered/whitelist.markers.tsv",header = TRUE)
+
+whitemap<-map[paste(map$V1,map$locus,map$bp,sep="_") %in%
+                paste(whitelist$CHROM,whitelist$LOCUS,whitelist$POS,sep="_"),]
+write.table(whitemap[,c("locus","pos")],"stacks/populations_all/whitelist.txt",col.names = FALSE,
+            row.names = FALSE,sep='\t',quote=FALSE)
+```
+
 
 # 18 October 2019
 
