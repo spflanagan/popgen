@@ -11,6 +11,22 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 24 October 2019
+
+The 1D spectra for the filtered datasets don't look very good - almost all of them dip below (or to?) 0, for counts > 10 or 20, which means that they're not well represented -- and this is different from the unfiltered dataset. I'm guessing this is because of the smaller overall sample size, but it could also be due to a relatively permissive MAC filter.
+
+What if I use the full dataset instead?
+
+```{r}
+dadi_full<-vcf2dadiSNPs(vcf="filter_rad_20191014@1654/14_filtered/radiator_data_20191014@1710.vcf",
+                        filename="dadi_filtered/fwsw_full.snps",
+                        pop.map = "filter_rad_20191014@1654/14_filtered/strata.filtered.tsv")
+
+```
+
+Running the plots function on it results in just as bad/weird plots. Not sure what to do about that.
+
+
 # 23 October 2019
 
 cool, got the extension
