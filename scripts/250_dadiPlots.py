@@ -15,7 +15,7 @@ from datetime import datetime
 
 
 # get the data
-dd = dadi.Misc.make_data_dict ( "fwsw_full.snps" )
+dd = dadi.Misc.make_data_dict ( "fwsw_filter2.snps" )
 
 # create a spectrum
 pops = [ 'ALFW', 'ALST', 'FLCC', 'FLLG', 'LAFW', 'TXCC','TXFW' ]
@@ -24,7 +24,7 @@ projs = [  72, 86, 62, 84, 78, 72, 54 ]
 # loop through for 1D 
 for i in range(0,len(pops)):
 	spect = dadi.Spectrum.from_data_dict(dd , pop_ids = [ pops[i] ],projections = [ projs[i] ],polarized = False )  #polarized = False creates folded spectrum
-	name = "figs/full/{}_1D.png".format(pops[i])
+	name = "figs/filt2/{}_1D.png".format(pops[i])
 	dadi.Plotting.plot_1d_fs(spect,show=False)
 	pylab.savefig(name)
 
@@ -32,7 +32,7 @@ for i in range(0,len(pops)):
 for i in range(0,(len(pops)-1)):
 	for j in range(i+1,len(pops)):
 		spect = dadi.Spectrum.from_data_dict(dd , pop_ids = [ pops[i], pops[j] ],projections = [ projs[i], projs[j] ],polarized = False )  #polarized = False creates folded spectrum
-		name = "figs/full/%s-%s_2D.png" % (pops[i],pops[j])
+		name = "figs/filt2/%s-%s_2D.png" % (pops[i],pops[j])
 		dadi.Plotting.plot_single_2d_sfs(spect,vmin=0.0001)
 		pylab.savefig(name)
 		pylab.close()
