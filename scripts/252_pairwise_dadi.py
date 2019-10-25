@@ -25,11 +25,11 @@ execfile("../../scripts/rougeux_models.py")
 #### GET ARGUMENTS ####
 snps_file=sys.argv[1]
 popi=sys.argv[2]
-prji=sys.argv[3]
+prji=int(sys.argv[3])
 popj=sys.argv[4]
-prjj=sys.argv[5]
-x=sys.argv[6]
-y=sys.argv[7]
+prjj=int(sys.argv[5])
+x=int(sys.argv[6])
+y=int(sys.argv[7])
 
 print prji
 print prjj
