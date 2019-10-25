@@ -57,6 +57,16 @@ with ALFW-ALST, spect.S() resulted in 1371 for the filtered dataset, 536 for the
 
 So I also need a wrapper script to run the python script. Done! And I started running it using GNU parallel, hopefully it works well. I've decided to stick with the 12103 dataset so I don't need to re-do other analyses.  What I should do is use the whitelist for the 12103 to extract SNPs for the other populations so I can do the pairwise Fst comparisons.
 
+Ok, so I need a create a whitelist.
+
+```{r}
+map<-read.delim("stacks/populations_subset75/batch_2.pruned.map",header = FALSE)
+wl<-data.frame(gsub("(\\d+)_\\d+","\\1",map$V2),map$V4)
+write.table(wl,"stacks/populations_subset75/pruned_snps.txt",
+            sep = '\t',row.names = FALSE,col.names = FALSE,quote=FALSE)
+```
+
+
 
 # 24 October 2019
 
