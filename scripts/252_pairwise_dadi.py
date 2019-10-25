@@ -49,9 +49,9 @@ os.chdir(pathname)
 #=================================================================================================#
 #										PLOT SPECTRA	 										  #
 #=================================================================================================#
-figname=pathname+".png"
-dadi.Plotting.plot_single_2d_sfs(spect,vmin=0.00001)
-pylab.savefig(name)
+#figname=pathname+".png"
+#dadi.Plotting.plot_single_2d_sfs(spect,vmin=0.00001)
+#pylab.savefig(name)
 
 
 #=================================================================================================#
