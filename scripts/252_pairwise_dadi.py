@@ -31,6 +31,8 @@ prjj=sys.argv[5]
 x=sys.argv[6]
 y=sys.argv[7]
 
+print popi
+print popj
 ######################
 # Load the data
 dd = dadi.Misc.make_data_dict ( snps_file )
