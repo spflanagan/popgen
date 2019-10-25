@@ -11,6 +11,51 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 25 October 2019
+
+I realized I don't think I updated the projections for the filtered dataset - let me try that again.
+
+```{r}
+pop.map<-read.delim("stacks/populations_subset75/filter_rad_20191022@1502/14_filtered/strata.filtered.tsv")
+table(pop.map$STRATA)*2
+
+```
+Ok, that's not true, those are the projections I used. 
+
+So I'm not sure what's going on with that or what to do next. But I can do a couple of things:
+
+* Update the text of the ms
+* Re-do outlier analysis with this filtered dataset
+* Figure out how to automate the dadi runs a bit better.
+
+Is it weird that I want to do the third one first? Even though I don't know what to make of the filtered data? Well, it's what I want to do so I'm going to do it - even if I run it on the 12103 SNPs I was originally using. 
+
+In my notes it says I need to use MINIMUM projections - could that be the issue? I need to use the minimum number of individuals genotyped at a locus?
+
+Ok, I've written a python script that takes arguments and runs all of the models on a population pair for a given number of rounds. 
+
+Ok, but which population pairs do I want to use, and which dataset?? Also, shouldn't I also run 1D models? 
+
+The dadi manual says:
+
+```
+
+When constructing the Spectrum each SNP will be projected down to the requested number of samples in each population. (Note that SNPs cannot be projected up, so SNPs without enough calls in any population will be ignored.)...
+
+If your data have missing calls for some individuals, projecting down to a smaller sample
+size will increase the number of SNPs you can use for analysis. On the other hand, some
+fraction of the SNPs will now project down to frequency 0, and thus be uniformative. As a
+rule of thumb, we often choose our projection to maximize the number of segregating sites
+in our final fs (assessed via fs.S()), although we have not formally tested whether this
+maximizes statistical power.
+
+```
+So this probably isn't causing the wonky spectra but it does suggest that the most appropriate dataset is the one with loci present in 100% of individuals in the populations analysed. I could check with the fs.S() command...
+
+with ALFW-ALST, spect.S() resulted in 1371 for the filtered dataset, 536 for the second filtered dataset, and 
+1359.86 for the 'full' dataset. The original dataset has 5478.9 (without changing the projections). So...maybe this is part of the issue. And maybe I should just use the original dadi dataset, even if it does have some missingness issues.
+
+
 # 24 October 2019
 
 The 1D spectra for the filtered datasets don't look very good - almost all of them dip below (or to?) 0, for counts > 10 or 20, which means that they're not well represented -- and this is different from the unfiltered dataset. I'm guessing this is because of the smaller overall sample size, but it could also be due to a relatively permissive MAC filter.
