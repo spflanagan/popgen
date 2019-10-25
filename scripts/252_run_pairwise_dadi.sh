@@ -5,7 +5,7 @@ cd ../fwsw_results/dadi_results/ # move to dadi output location
 
 
 ############ SET THESE PARAMS ############
-pops=('FLLG' 'FLCC' 'ALFW' 'ALST' 'LAFW' 'TXFW' 'TXCC')
+pops=('FLLG' 'FLCC')# 'ALFW' 'ALST' 'LAFW' 'TXFW' 'TXCC')
 projs=(70 60 72 70 72 46 61)
 
 rangeX=1
@@ -17,7 +17,7 @@ rangeY=2
 
 for ((i=0; i<(${#pops[@]}-1); ++i)); do
 	for ((j=(i+1); j<${#pops[@]}; ++j)); do
-		echo "python ../../scripts/252_pairwise_dadi.py fwsw75.dadi.snps ${pops[$i]} ${projs[$i]} ${pops[$j]} ${projs[$j]} $rangeX $rangeY"
+		python ../../scripts/252_pairwise_dadi.py fwsw75.dadi.snps ${pops[$i]} ${projs[$i]} ${pops[$j]} ${projs[$j]} $rangeX $rangeY
 	done
 done
 
