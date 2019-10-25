@@ -17,7 +17,7 @@ rangeY=2
 
 for ((i=0; i<(${#pops[@]}-1); ++i)); do
 	for ((j=(i+1); j<${#pops[@]}; ++j)); do
-		echo "python ../../scripts/252_pairwise_dadi.py fwsw75.dadi.snps pops[$i] projs[$i] pops[$j] projs[$j] $rangeX $rangeY"
+		echo "python ../../scripts/252_pairwise_dadi.py fwsw75.dadi.snps ${pops[$i]} ${projs[$i]} ${pops[$j]} ${projs[$j]} $rangeX $rangeY"
 	done
 done
 
