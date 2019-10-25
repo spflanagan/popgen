@@ -55,6 +55,8 @@ So this probably isn't causing the wonky spectra but it does suggest that the mo
 with ALFW-ALST, spect.S() resulted in 1371 for the filtered dataset, 536 for the second filtered dataset, and 
 1359.86 for the 'full' dataset. The original dataset has 5478.9 (without changing the projections). So...maybe this is part of the issue. And maybe I should just use the original dadi dataset, even if it does have some missingness issues.
 
+So I also need a wrapper script to run the python script. Done! And I started running it using GNU parallel, hopefully it works well. I've decided to stick with the 12103 dataset so I don't need to re-do other analyses.  What I should do is use the whitelist for the 12103 to extract SNPs for the other populations so I can do the pairwise Fst comparisons.
+
 
 # 24 October 2019
 
