@@ -31,14 +31,14 @@ prjj=sys.argv[5]
 x=sys.argv[6]
 y=sys.argv[7]
 
-print popi
+print 'popi'
 ######################
 # Load the data
 dd = dadi.Misc.make_data_dict ( snps_file )
 #projections is sample size of alleles
 #need to use MINIMUM projections
 
-spect = dadi.Spectrum.from_data_dict(dd , pop_ids =[ popi,popj ],projections =[prji,prjj] ,polarized = False )  #polarized = False creates folded spectrum
+spect = dadi.Spectrum.from_data_dict(dd , pop_ids =[ popi, popj ],projections =[ prji, prjj ] ,polarized = False )  #polarized = False creates folded spectrum
 
 pathname=popi+"_"+popj
 if not os.path.exists(pathname):
