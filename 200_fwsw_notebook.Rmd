@@ -11,6 +11,55 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 29 October 2019
+
+For whatever reason populations doesn't want to run with the whitelist. I might be able to achieve the same goal just by using the vcfs
+
+```{r}
+all_vcf<-parse.vcf("stacks/populations_all/batch_2.vcf")
+sub_vcf<-parse.vcf("stacks/populations_subset75/batch_2.pruned.vcf")
+sub_all_vcf<-all_vcf[which(paste(all_vcf$ID,all_vcf$POS,sep="_") %in% paste(sub_vcf$ID,sub_vcf$POS,sep="_") ),]
+```
+
+Weirdly, this only results in 9549 loci. Huh, also, the populations_all has fewer unique IDs than the subset 75. So I might not be able to do this -- I may have to rely on populations on my home computer after all.
+
+As for the dadi analyses, the FLLG comparisons are still running (which are the first set). Unfortunately the log files are not being written because they're being passed to python as another argument...so that's not helpful. I'll probably need to change it to be `| tee x-y.log`. But here's the ones that have run so far:
+
+```
+FLLG_ALFW:
+FLLG_ALFW_1.AM.log.txt        FLLG_ALFW_1.IM.log.txt        FLLG_ALFW_1.SC.log.txt        FLLG_ALFW_1.SI2N.log.txt        FLLG_ALFW_1.SIG.log.txt        FLLG_ALFW_1.SI.log.txt        SIG.log.txt
+FLLG_ALFW_1.AM.optimized.txt  FLLG_ALFW_1.IM.optimized.txt  FLLG_ALFW_1.SC.optimized.txt  FLLG_ALFW_1.SI2N.optimized.txt  FLLG_ALFW_1.SIG.optimized.txt  FLLG_ALFW_1.SI.optimized.txt
+
+FLLG_ALST:
+FLLG_ALST_1.AM.log.txt        FLLG_ALST_1.IM2N.optimized.txt  FLLG_ALST_1.IM.log.txt        FLLG_ALST_1.SC.optimized.txt     FLLG_ALST_1.SI2N.log.txt        FLLG_ALST_1.SIG.optimized.txt  IM2N.log.txt
+FLLG_ALST_1.AM.optimized.txt  FLLG_ALST_1.IMG.log.txt         FLLG_ALST_1.IM.optimized.txt  FLLG_ALST_1.SI2NG.log.txt        FLLG_ALST_1.SI2N.optimized.txt  FLLG_ALST_1.SI.log.txt
+FLLG_ALST_1.IM2N.log.txt      FLLG_ALST_1.IMG.optimized.txt   FLLG_ALST_1.SC.log.txt        FLLG_ALST_1.SI2NG.optimized.txt  FLLG_ALST_1.SIG.log.txt         FLLG_ALST_1.SI.optimized.txt
+
+FLLG_FLCC:
+FLLG_FLCC_1.AM.log.txt        FLLG_FLCC_1.IM2m.optimized.txt  FLLG_FLCC_1.IMG.log.txt        FLLG_FLCC_1.IM.optimized.txt  FLLG_FLCC_1.SI2NG.log.txt        FLLG_FLCC_1.SI2N.optimized.txt  FLLG_FLCC_1.SI.log.txt
+FLLG_FLCC_1.AM.optimized.txt  FLLG_FLCC_1.IM2N.log.txt        FLLG_FLCC_1.IMG.optimized.txt  FLLG_FLCC_1.SC.log.txt        FLLG_FLCC_1.SI2NG.optimized.txt  FLLG_FLCC_1.SIG.log.txt         FLLG_FLCC_1.SI.optimized.txt
+FLLG_FLCC_1.IM2m.log.txt      FLLG_FLCC_1.IM2N.optimized.txt  FLLG_FLCC_1.IM.log.txt         FLLG_FLCC_1.SC.optimized.txt  FLLG_FLCC_1.SI2N.log.txt         FLLG_FLCC_1.SIG.optimized.txt   IM2m.log.txt
+
+FLLG_LAFW:
+FLLG_LAFW_1.AM.log.txt        FLLG_LAFW_1.IM2N.optimized.txt  FLLG_LAFW_1.IM.log.txt        FLLG_LAFW_1.SC.optimized.txt     FLLG_LAFW_1.SI2N.log.txt        FLLG_LAFW_1.SIG.optimized.txt  IM2N.log.txt
+FLLG_LAFW_1.AM.optimized.txt  FLLG_LAFW_1.IMG.log.txt         FLLG_LAFW_1.IM.optimized.txt  FLLG_LAFW_1.SI2NG.log.txt        FLLG_LAFW_1.SI2N.optimized.txt  FLLG_LAFW_1.SI.log.txt
+FLLG_LAFW_1.IM2N.log.txt      FLLG_LAFW_1.IMG.optimized.txt   FLLG_LAFW_1.SC.log.txt        FLLG_LAFW_1.SI2NG.optimized.txt  FLLG_LAFW_1.SIG.log.txt         FLLG_LAFW_1.SI.optimized.txt
+
+FLLG_TXCC:
+FLLG_TXCC_1.AM.log.txt        FLLG_TXCC_1.IM2m.optimized.txt  FLLG_TXCC_1.IMG.log.txt        FLLG_TXCC_1.IM.optimized.txt  FLLG_TXCC_1.SI2NG.log.txt        FLLG_TXCC_1.SI2N.optimized.txt  FLLG_TXCC_1.SI.log.txt
+FLLG_TXCC_1.AM.optimized.txt  FLLG_TXCC_1.IM2N.log.txt        FLLG_TXCC_1.IMG.optimized.txt  FLLG_TXCC_1.SC.log.txt        FLLG_TXCC_1.SI2NG.optimized.txt  FLLG_TXCC_1.SIG.log.txt         FLLG_TXCC_1.SI.optimized.txt
+FLLG_TXCC_1.IM2m.log.txt      FLLG_TXCC_1.IM2N.optimized.txt  FLLG_TXCC_1.IM.log.txt         FLLG_TXCC_1.SC.optimized.txt  FLLG_TXCC_1.SI2N.log.txt         FLLG_TXCC_1.SIG.optimized.txt   IM2m.log.txt
+
+FLLG_TXFW:
+FLLG_TXFW_1.AM.log.txt        FLLG_TXFW_1.IM2N.optimized.txt  FLLG_TXFW_1.IM.log.txt        FLLG_TXFW_1.SC.optimized.txt     FLLG_TXFW_1.SI2N.log.txt        FLLG_TXFW_1.SIG.optimized.txt  IM2N.log.txt
+FLLG_TXFW_1.AM.optimized.txt  FLLG_TXFW_1.IMG.log.txt         FLLG_TXFW_1.IM.optimized.txt  FLLG_TXFW_1.SI2NG.log.txt        FLLG_TXFW_1.SI2N.optimized.txt  FLLG_TXFW_1.SI.log.txt
+FLLG_TXFW_1.IM2N.log.txt      FLLG_TXFW_1.IMG.optimized.txt   FLLG_TXFW_1.SC.log.txt        FLLG_TXFW_1.SI2NG.optimized.txt  FLLG_TXFW_1.SIG.log.txt         FLLG_TXFW_1.SI.optimized.txt
+```
+
+So it's pretty good progress - all of them have gotten through the homogeneous models. But it is rather slow...we'll see how this goes. I might need to re-evaluate how I'm running these (I should follow up with the HPC guy).
+
+
+
 # 25 October 2019
 
 I realized I don't think I updated the projections for the filtered dataset - let me try that again.
