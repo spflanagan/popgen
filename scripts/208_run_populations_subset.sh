@@ -8,7 +8,8 @@ RUN95=false
 RUN90=false
 RUN85=false
 RUNALL=false
-WHITELIST=true
+WHITELIST=false
+WL75=true
 
 if [ "$RUN100" = true ]; then
 	populations -b 2 -P ./stacks -M ../fwsw_sub_map.txt -t 5 -p 7 -r 1.0 --fstats --fstats --bootstrap_fst --plink --vcf --genepop
@@ -112,4 +113,15 @@ if [ "$WHITELIST" = true ]; then
 	mv ./stacks/batch_2.haplotypes.tsv ./stacks/populations_whitelist
 	mv ./stacks/batch_2.genepop ./stacks/populations_whitelist
 	mv ./stacks/batch_2.populations.log ./stacks/populations_whitelist
+fi
+
+if [ "$WL75" = true ]; then
+	# we're running the whitelisted sub 75 SNPs but with all populations
+	populations -b 2 -P ./stacks -M ../fwsw_alt_map.txt -t 4 -W ./stacks/populations_subset75/pruned_snps.txt --fstats --plink --vcf
+	mv ./stacks/batch_2.fst* ./stacks/populations_subset75/all_pops
+	mv ./stacks/batch_2.plink* ./stacks/populations_subset75/all_pops
+	mv ./stacks/batch_2.sumstats* ./stacks/populations_subset75/all_pops
+	mv ./stacks/batch_2.vcf ./stacks/populations_subset75/all_pops
+	mv ./stacks/batch_2.haplotypes.tsv ./stacks/populations_subset75/all_pops
+	mv ./stacks/batch_2.populations.log ./stacks/populations_subset75/all_pops
 fi

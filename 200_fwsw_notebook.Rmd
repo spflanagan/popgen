@@ -11,6 +11,19 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 31 October 2019
+
+Populations isn't running, and I think it's because I'm running out of memory. So! I will run it not on all 16 populations with the whitelisted SNPs, but on the ones that aren't in the subset.
+
+```{r}
+popmap<-read.delim("../fwsw_pops_map.txt",header = FALSE)
+submap<-read.delim("../fwsw_sub_map.txt",header = FALSE)
+altmap<-popmap[!(popmap$V1 %in% submap$V1),]
+write.table(altmap,"../fwsw_alt_map.txt",col.names = FALSE,row.names=FALSE,quote=FALSE,sep='\t')
+```
+
+Now I'm running populations with the whitelist - we'll see if it helps.
+
 # 29 October 2019
 
 For whatever reason populations doesn't want to run with the whitelist. I might be able to achieve the same goal just by using the vcfs
