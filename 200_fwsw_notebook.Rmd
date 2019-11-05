@@ -24,6 +24,17 @@ write.table(altmap,"../fwsw_alt_map.txt",col.names = FALSE,row.names=FALSE,quote
 
 Now I'm running populations with the whitelist - we'll see if it helps.
 
+It still gets stuck - let's split it into two.
+
+```{r}
+write.table(altmap[altmap$V2 %in% unique(altmap$V2)[1:4],],"../fwsw_alt1_map.txt",
+            col.names = FALSE,row.names=FALSE,quote=FALSE,sep='\t')
+write.table(altmap[altmap$V2 %in% unique(altmap$V2)[5:length(unique(altmap$V2))],],
+            "../fwsw_alt2_map.txt",
+            col.names = FALSE,row.names=FALSE,quote=FALSE,sep='\t')
+```
+
+
 # 29 October 2019
 
 For whatever reason populations doesn't want to run with the whitelist. I might be able to achieve the same goal just by using the vcfs
