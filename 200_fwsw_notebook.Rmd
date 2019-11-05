@@ -11,6 +11,16 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 1 Nov 2019
+
+Populations didn't run properly, but it does seem to have saved plink output -- it seemed to die at the vcf-creation moment. So I'll see what the plink data look like.
+
+```{r}
+sub1_map<-read.delim("stacks/populations_subset75/all_pops1/batch_2.map",header=FALSE)
+sub2_map<-read.delim("stacks/populations_subset75/all_pops2/batch_2.map",header=FALSE)
+
+```
+
 # 31 October 2019
 
 Populations isn't running, and I think it's because I'm running out of memory. So! I will run it not on all 16 populations with the whitelisted SNPs, but on the ones that aren't in the subset.
