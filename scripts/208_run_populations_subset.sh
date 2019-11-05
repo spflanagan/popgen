@@ -117,7 +117,7 @@ fi
 
 if [ "$WL75" = true ]; then
 	# we're running the whitelisted sub 75 SNPs but with all populations
-	populations -b 2 -P ./stacks -M ../fwsw_alt_map.txt -t 4 -W ./stacks/populations_subset75/pruned_snps.txt --fstats --plink --vcf
+	populations -b 2 -P ./stacks -M ../fwsw_alt_map.txt -t 4 -W ./stacks/populations_subset75/pruned_snps.txt -p 1 -r 0.01 -R 0.01 --min-maf 0.001 --fstats --plink --vcf
 	mv ./stacks/batch_2.fst* ./stacks/populations_subset75/all_pops
 	mv ./stacks/batch_2.plink* ./stacks/populations_subset75/all_pops
 	mv ./stacks/batch_2.sumstats* ./stacks/populations_subset75/all_pops

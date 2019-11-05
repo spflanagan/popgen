@@ -11,15 +11,53 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 5 Nov 2019
+
+Ok, let's try this again
+
 # 1 Nov 2019
 
 Populations didn't run properly, but it does seem to have saved plink output -- it seemed to die at the vcf-creation moment. So I'll see what the plink data look like.
 
 ```{r}
-sub1_map<-read.delim("stacks/populations_subset75/all_pops1/batch_2.map",header=FALSE)
-sub2_map<-read.delim("stacks/populations_subset75/all_pops2/batch_2.map",header=FALSE)
+sub1_map<-read.table("stacks/populations_subset75/all_pops1/batch_2.plink.map",header=FALSE)
+sub2_map<-read.table("stacks/populations_subset75/all_pops2/batch_2.plink.map",header=FALSE)
+keep_map<-read.table("stacks/populations_subset75/batch_2.pruned.map",header = FALSE)
+```
+
+No wonder stacks is freaking out, it's got a very large number of loci - why isn't it just keeping the whitelist?
+
+```{r}
+dim(sub1_map[sub1_map$V2 %in% keep_map$V2,])
+dim(sub2_map[sub2_map$V2 %in% keep_map$V2,])
+```
+
+But all the loci in the whitelist are not in the subset maps!
+
+Maybe my whitelist isn't formatted well?
+
+```{r}
+dim(sub1_map[gsub("(\\d+)_\\d+","\\1",sub1_map$V2) %in% gsub("(\\d+)_\\d+","\\1",keep_map$V2),])
+```
+
+That keeps a lot more loci - 82210. Maybe the Position value I used wasn't right - how did I make the whitelist? 
+
+I used the map positions, but maybe that's not right. According to the Stacks manual:
 
 ```
+The column is a zero-based coordinate of the SNP location, so the first nucleotide at a locus is labeled as column zero, the second position as column one. These coordinates correspond with the column reported in the populations.sumstats.tsv file as well as in several other output files from populations. 
+```
+
+And it looks like I used the wrong values to generate the whitelist - I used the V4 column, which is the BP not the column position.
+
+```{r}
+wl<-data.frame(loc=gsub("(\\d+)_\\d+","\\1",keep_map$V2),column=gsub("(\\d+)_(\\d+)","\\2",keep_map$V2))
+write.table(wl,"stacks/populations_subset75/pruned_snps.txt",
+            sep = '\t',row.names = FALSE,col.names = FALSE,quote=FALSE)
+```
+
+So now I've just got to try this again, and turn off all the populations filters. I've changed the code and now just have to run it at home.
+
 
 # 31 October 2019
 
