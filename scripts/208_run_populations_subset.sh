@@ -117,11 +117,19 @@ fi
 
 if [ "$WL75" = true ]; then
 	# we're running the whitelisted sub 75 SNPs but with all populations
-	populations -b 2 -P ./stacks -M ../fwsw_alt_map.txt -t 4 -W ./stacks/populations_subset75/pruned_snps.txt --fstats --plink --vcf
-	mv ./stacks/batch_2.fst* ./stacks/populations_subset75/all_pops
-	mv ./stacks/batch_2.plink* ./stacks/populations_subset75/all_pops
-	mv ./stacks/batch_2.sumstats* ./stacks/populations_subset75/all_pops
-	mv ./stacks/batch_2.vcf ./stacks/populations_subset75/all_pops
-	mv ./stacks/batch_2.haplotypes.tsv ./stacks/populations_subset75/all_pops
-	mv ./stacks/batch_2.populations.log ./stacks/populations_subset75/all_pops
+	populations -b 2 -P ./stacks -M ../fwsw_alt1_map.txt -t 4 -W ./stacks/populations_subset75/pruned_snps.txt --fstats --plink --vcf
+	mv ./stacks/batch_2.fst* ./stacks/populations_subset75/all_pops1
+	mv ./stacks/batch_2.plink* ./stacks/populations_subset75/all_pops1
+	mv ./stacks/batch_2.sumstats* ./stacks/populations_subset75/all_pops1
+	mv ./stacks/batch_2.vcf ./stacks/populations_subset75/all_pops1
+	mv ./stacks/batch_2.haplotypes.tsv ./stacks/populations_subset75/all_pops1
+	mv ./stacks/batch_2.populations.log ./stacks/populations_subset75/all_pops1
+	
+	populations -b 2 -P ./stacks -M ../fwsw_alt2_map.txt -t 4 -W ./stacks/populations_subset75/pruned_snps.txt --fstats --plink --vcf
+	mv ./stacks/batch_2.fst* ./stacks/populations_subset75/all_pops2
+	mv ./stacks/batch_2.plink* ./stacks/populations_subset75/all_pops2
+	mv ./stacks/batch_2.sumstats* ./stacks/populations_subset75/all_pops2
+	mv ./stacks/batch_2.vcf ./stacks/populations_subset75/all_pops2
+	mv ./stacks/batch_2.haplotypes.tsv ./stacks/populations_subset75/all_pops2
+	mv ./stacks/batch_2.populations.log ./stacks/populations_subset75/all_pops2
 fi
