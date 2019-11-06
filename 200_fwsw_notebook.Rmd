@@ -11,6 +11,20 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 6 Nov 2019
+
+My computer restarted overnight, great. Re-started populations.
+At work, I'm checking out the progress of my dadi runs.
+`for dir in fwsw_results/dadi_results/FLLG*/; do ls $dir | wc -l; done` 
+works in bash and all I have to do is divide by 2. I get 
+35
+23
+37
+33
+29
+25
+for FLLG_ALFW, FLLG_ALST, FLLG_FLCC, FLLG_LAFW, FLLG_TXCC, and FLLG_TXFW respectively - so FLLG vs ALFW and vs FLCC are moving along at a pretty good pace. The slow ones are ALST and TXFW. Still have a ways to go, though, considering there are 26 models to run...
+
 # 5 Nov 2019
 
 Ok, let's try this again
