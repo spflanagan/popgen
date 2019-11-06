@@ -11,6 +11,10 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 7 Nov 2019
+
+That seems to have worked better. 
+
 # 6 Nov 2019
 
 My computer restarted overnight, great. Re-started populations.

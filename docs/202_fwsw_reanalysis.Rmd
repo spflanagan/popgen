@@ -600,7 +600,7 @@ legend("bottom", legend=ppi$Pop, pch=as.numeric(ppi$pch), pt.cex=3,cex=1.5,
 dev.off()
 ```
 
-![Figure 2. Population Structure](../figs//NewPopStructure_v1.jpeg)
+![Figure 2. Population Structure](../figs/NewPopStructure_v1.jpeg)
 
 
 ## Demographic history inference
