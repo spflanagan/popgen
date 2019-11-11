@@ -114,6 +114,12 @@ pop_map<-read.delim("../fwsw_pops_map.txt",header = FALSE,stringsAsFactors = FAL
 ful_vcf<-parse.vcf("filter_rad_20191014@1654/14_filtered/radiator_data_20191014@1710.vcf")
 colnames(ful_vcf)<-gsub("\\-","_",colnames(ful_vcf))
 sub_vcf<-parse.vcf("stacks/populations_subset75/batch_2.pruned.vcf")
+sub_all_vcf<-parse.vcf("stacks/populations_subset75/all_pops_subset75/batch_2.vcf")
+# combine the two
+sub<-merge(sub_vcf,sub_all_vcf,by="ID",all = TRUE)
+rmv<-grep(".y",colnames(sub))
+sub<-sub[,-rmv]
+colnames(sub)<-gsub(".x","",colnames(sub))
 ```
 
 ```{r}
@@ -121,11 +127,11 @@ pop_summaries<-do.call(rbind,lapply(pop.list,function(pop,ful,sub){
   ful_dat<-ful[,c(1:9,grep(pop,colnames(ful)))]
   sub_dat<-sub[,c(1:9,grep(pop,colnames(sub)))]
   # calc observed het values
-  ful_ho<-apply(ful_vcf,1,calc.het)
-  sub_ho<-apply(sub_vcf,1,calc.het)
+  ful_ho<-apply(ful_dat,1,calc.het)
+  sub_ho<-apply(sub_dat,1,calc.het)
   # estimate allele freqs
-  ful_afs<-do.call(rbind,apply(ful_vcf,1,calc.afs.vcf))
-  sub_afs<-do.call(rbind,apply(sub_vcf,1,calc.afs.vcf))
+  ful_afs<-do.call(rbind,apply(ful_dat,1,calc.afs.vcf))
+  sub_afs<-do.call(rbind,apply(sub_dat,1,calc.afs.vcf))
   # save data frame
   dat<-data.frame(pop=pop,
                   preg_full=length(grep(paste0(pop,"P"),colnames(ful))),
@@ -149,8 +155,13 @@ pop_summaries<-do.call(rbind,lapply(pop.list,function(pop,ful,sub){
                   p_sub = mean(sub_afs$RefFreq,na.rm=TRUE),
                   pv_sub = var(sub_afs$RefFreq,na.rm=TRUE))
   return(dat)
-},ful=ful_vcf,sub=sub_vcf))
-write.csv(pop_summaries,"population_summaries.csv",col.names = TRUE,row.names = FALSE,quote=FALSE)
+},ful=ful_vcf,sub=sub))
+write.csv(pop_summaries,"population_summaries.csv",row.names = FALSE,quote=FALSE)
+```
+
+We can merge the genetic info with the environmental info. 
+```{r}
+
 ```
 
 

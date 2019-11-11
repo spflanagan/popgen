@@ -11,6 +11,13 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 11 November 2019
+
+Now that I've got data for the subsetted dataset for all populations, I can make the summary table. So that's what I'm doing. But first I merged the 12103 locus, 7 population dataset with the smaller dataset for all 16 pops with the whitelisted loci. Now I can run the code I'd previously written to estimate observed heterozygosity, allele frequencies, and polymorphic loci. Easy peasy. There are some slightly unnerving differences between the full and subsetted dataset for the populations not in the subsetted analysis, which is kind of weird. I just realized this table should probably include environmental variables.
+
+The other thing I'd like to do is create a supplementary document showing additional figures and data. I can do this in Rmarkdown using a template package. It looks like rticles has a bunch of choices, and I also know that rmdTemplates (https://github.com/Pakillo/rmdTemplates) works really well. The supplement will include lots of stuff from 202_fwsw_reanalysis.Rmd and also from this document, probably. I've started the document and have put together the backbone for it. 
+
+ 
 # 7 Nov 2019
 
 That seems to have worked better. 
