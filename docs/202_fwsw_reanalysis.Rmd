@@ -895,6 +895,7 @@ ipars<-mapply(plot_fst_hists,perms=permuted_fsts,plot_lab=plot_labs,cols=pt_cols
               MoreArgs = list(baseplot=FALSE))
 dev.off()
 ```
+
 [Permuted Fsts](../figs/permuted_fsts.png)
 
 Now let's start to aggregate everything.

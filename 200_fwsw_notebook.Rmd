@@ -61,8 +61,52 @@ salout[salout %in% shared_stacks]
 salout[salout %in% permout]
 ```
 
-Ok, I'm still only getting one shared outlier between Pcadapt and Bayenv's Xtx. Really not sure what's different. Since then all I've done is filter some datasets and re-run populations, so it shouldn't have affected anything. How strange! The only other difference might be that I was using my laptop, possibly? None of those figures appear to be saved on my desktop at work, so I must have been doing that at home. So possibly I had different data on my laptop. 
+Ok, I'm still only getting one shared outlier between Pcadapt and Bayenv's Xtx. Really not sure what's different. Since then all I've done is filter some datasets and re-run populations, so it shouldn't have affected anything. How strange! The only other difference might be that I was using my laptop, possibly? None of those figures appear to be saved on my desktop at work, so I must have been doing that at home. So possibly I had different data on my laptop. It seems that the problem was that I lost a bunch of rows at some point when making fw_SNPinfo on here. If I use the data on my laptop, I get the same thing, and I still have 12103 rows of data. So yay!
 
+Ok, so now upset plots with this lovely new information.
+
+```{r}
+library(UpSetR)
+fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
+outliers<-list(xtx=fw_SNPinfo$ID[fw_SNPinfo$XtX >= quantile(fw_SNPinfo$XtX,0.99)],
+               salBF=fw_SNPinfo$ID[fw_SNPinfo$logSalBF>=quantile(fw_SNPinfo$logSalBF,0.99)],
+               permutations=fw_SNPinfo$ID[rowSums(fw_SNPinfo[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+               pcadapt=fw_SNPinfo$ID[which(fw_SNPinfo$pcadaptQ<0.01)],
+               stacksAL=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL < 0.05)], 
+               stacksLA=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_LA < 0.05)],
+               stacksTX=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_TX < 0.05)],
+               stacksFL=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_FL < 0.05)],
+               sharedStacks=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL < 0.05 & fw_SNPinfo$stacks_LA < 0.05 &
+                 fw_SNPinfo$stacks_TX < 0.05 & fw_SNPinfo$stacks_FL < 0.05)])
+
+upset(fromList(outliers),sets=c("stacksAL","stacksLA","stacksTX","stacksFL"))
+
+```
+```{r}
+upset(fromList(outliers),sets=c("xtx","salBF","permutations","pcadapt","sharedStacks"))
+```
+
+I think I'm going to want to trick them out with color, better labels, etc., and probably put them in a single multi-panel thing. From the issues section of the github page (https://github.com/hms-dbmi/UpSetR/issues/63), I found this potential solution:
+
+```{r}
+library(scales)
+cols<-c(perm=alpha('#e41a1c',0.75),sal=alpha('#377eb8',0.75),pc=alpha('#4daf4a',0.75),xtx=alpha('#984ea3',0.75),stacks=alpha('#ff7f00',0.75))
+grp.colors<-c('#762a83','#af8dc3','#e7d4e8','#d9f0d3','#7fbf7b','#1b7837')
+upset(fromList(outliers),sets=c("xtx","salBF","permutations","pcadapt","sharedStacks"),
+      point.size=3.5,line.size=2,mainbar.y.label = "Number of Shared Outliers",
+      sets.x.label = "Number of Outlier SNPs",text.scale=c(1.5,1.5,1.5,1.5,1.5,1.5),
+      matrix.color=cols[c("xtx","sal","perm","pc","stacks")])
+grid::grid.edit('arrange',name='arrange2')
+vp = grid::grid.grab()
+upset(fromList(outliers),sets=c("stacksAL","stacksLA","stacksTX","stacksFL"),
+      point.size=3.5,line.size=2,mainbar.y.label = "Number of Shared Outliers",
+      sets.x.label = "Number of Outlier SNPs",text.scale=c(1.5,1.5,1.5,1.5,1.5,1.5))
+grid::grid.edit('arrange',name='arrange3')
+vp1 = grid::grid.grab()
+gridExtra::grid.arrange(vp,vp1)
+```
+
+This works, as long as the fig size is large enough! So now just need to trick it out with colors. This blog post will probably be helpful: https://www.r-bloggers.com/hacking-our-way-through-upsetr/
 
 # 12 November 2019
 
