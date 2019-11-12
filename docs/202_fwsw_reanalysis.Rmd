@@ -900,6 +900,7 @@ dev.off()
 Now let's start to aggregate everything.
 
 ```{r}
+permuted_fsts<-readRDS("permuted_fsts.RDS")
 vcf<-parse.vcf("stacks/populations_subset75/batch_2.pruned.vcf")
 fw_SNPinfo<-data.frame(ID=vcf$ID,Chrom=vcf$`#CHROM`,Pos=vcf$POS,BP=vcf$POS-1,
                        REF=vcf$REF,ALT=vcf$ALT,
@@ -912,14 +913,24 @@ fw_SNPinfo<-data.frame(ID=vcf$ID,Chrom=vcf$`#CHROM`,Pos=vcf$POS,BP=vcf$POS-1,
 
 
 ```{r}
-fw_SNPinfo<-merge(fw_SNPinfo,fwsw.al,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),all.x=TRUE,all.y = FALSE)[,c(colnames(fw_SNPinfo),"Fisher.s.P")] 
+# add Fsts
+fw_SNPinfo<-merge(fw_SNPinfo,fwsw.al,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),all.x=TRUE,all.y = FALSE)[,c(colnames(fw_SNPinfo),"Corrected.AMOVA.Fst")] 
 colnames(fw_SNPinfo)[ncol(fw_SNPinfo)]<-"stacks_AL"
-fw_SNPinfo<-merge(fw_SNPinfo,fwsw.la,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),all.x=TRUE,all.y = FALSE)[,c(colnames(fw_SNPinfo),"Fisher.s.P")] 
+fw_SNPinfo<-merge(fw_SNPinfo,fwsw.la,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),all.x=TRUE,all.y = FALSE)[,c(colnames(fw_SNPinfo),"Corrected.AMOVA.Fst")] 
 colnames(fw_SNPinfo)[ncol(fw_SNPinfo)]<-"stacks_LA"
-fw_SNPinfo<-merge(fw_SNPinfo,fwsw.tx,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),all.x=TRUE,all.y = FALSE)[,c(colnames(fw_SNPinfo),"Fisher.s.P")] 
+fw_SNPinfo<-merge(fw_SNPinfo,fwsw.tx,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),all.x=TRUE,all.y = FALSE)[,c(colnames(fw_SNPinfo),"Corrected.AMOVA.Fst")] 
 colnames(fw_SNPinfo)[ncol(fw_SNPinfo)]<-"stacks_TX"
-fw_SNPinfo<-merge(fw_SNPinfo,fwsw.fl,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),all.x=TRUE,all.y = FALSE)[,c(colnames(fw_SNPinfo),"Fisher.s.P")] 
+fw_SNPinfo<-merge(fw_SNPinfo,fwsw.fl,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),all.x=TRUE,all.y = FALSE)[,c(colnames(fw_SNPinfo),"Corrected.AMOVA.Fst")] 
 colnames(fw_SNPinfo)[ncol(fw_SNPinfo)]<-"stacks_FL"
+# add p-values
+fw_SNPinfo<-merge(fw_SNPinfo,fwsw.al,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),all.x=TRUE,all.y = FALSE)[,c(colnames(fw_SNPinfo),"Fisher.s.P")] 
+colnames(fw_SNPinfo)[ncol(fw_SNPinfo)]<-"stacks_AL_P"
+fw_SNPinfo<-merge(fw_SNPinfo,fwsw.la,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),all.x=TRUE,all.y = FALSE)[,c(colnames(fw_SNPinfo),"Fisher.s.P")] 
+colnames(fw_SNPinfo)[ncol(fw_SNPinfo)]<-"stacks_LA_P"
+fw_SNPinfo<-merge(fw_SNPinfo,fwsw.tx,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),all.x=TRUE,all.y = FALSE)[,c(colnames(fw_SNPinfo),"Fisher.s.P")] 
+colnames(fw_SNPinfo)[ncol(fw_SNPinfo)]<-"stacks_TX_P"
+fw_SNPinfo<-merge(fw_SNPinfo,fwsw.fl,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),all.x=TRUE,all.y = FALSE)[,c(colnames(fw_SNPinfo),"Fisher.s.P")] 
+colnames(fw_SNPinfo)[ncol(fw_SNPinfo)]<-"stacks_FL_P"
 saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
 ```
 
@@ -941,8 +952,6 @@ suppressWarnings(write.table(vcf,"pcadapt_fw/fwsw.pruned.vcf",quote=FALSE,append
 
 ```{r}
 library(pcadapt)
-#pap<-read.delim("pca_pcadapt.txt",sep=" ")
-#snp_info<-read.delim("subset.map",header=FALSE)
 
 filename<-read.pcadapt("pcadapt_fw/fwsw.pruned.vcf",type="vcf") #need to remove the first line with a # 
 x<-pcadapt(filename, K=20)
@@ -1051,6 +1060,8 @@ They all looked fine so I chose the randomly selected matrix (`matrix`).
 nohup ../../scripts/run_bayenv2_matrix_general.sh BAYENV ~/Programs/bayenv/ matrix env_data_sub75.txt 7 3 SNPFILES > bayenv.log &
 ```
 
+#### Analyze Bayenv output
+
 Now I can aggregate the output:
 
 ```{r getBayenvResults}
@@ -1080,16 +1091,13 @@ get_bayenv_results<-function(dir,env_vars){
   bayenv.dat<-merge(xtx.dat,bf.dat,by="locus")
   return(bayenv.dat)
 }
-bayenv_dat<-get_bayenv_results(dir="bayenv/SNPFILES",env_vars=c("temp","salinity","seagrass"))
-
-
-
-
 ```
 
 The SNP names are uninformative, just the row number the SNP was in. We can make these better using the freq info
 
-```{r snpnames4bayenv}
+```{r snpnames4bayenv, eval=FALSE}
+bayenv_dat<-get_bayenv_results(dir="bayenv/SNPFILES",env_vars=c("temp","salinity","seagrass"))
+
 freq<-read.table("bayenv/bayenv.frq.strat",header=T, stringsAsFactors=F)
 #want to get $MAC for every snp at every pop 
 #and NCHROBS-MAC for every stnp at every pop
@@ -1114,6 +1122,7 @@ write.table(bayenv_dat,"bayenv/bayenv_output.txt",sep="\t",col.names = TRUE,row.
 
 Merge it with other snp info
 ```{r}
+bayenv_dat<-read.delim("bayenv/bayenv_output.txt",header = TRUE)
 bayenv_dat$logSalBF<-log(bayenv_dat$salinity_BF)
 bayenv_dat$logTemBF<-log(bayenv_dat$temp_BF)
 bayenv_dat$logSegBF<-log(bayenv_dat$seagrass_BF)

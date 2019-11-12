@@ -11,6 +11,59 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 13 November 2019
+
+Ok, so when plotting I found that 24 of 29 XtX outliers are PCAdapt outliers. But when making the Upset plot yesterday this wasn't true. So what gives?
+
+Well, somehow it looks like I'd lost the Fsts and p-values from Stacks. Grabbing the outlier analysis from 21 Oct, we can try this again
+
+```{r}
+fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
+shared_stacks<-fw_SNPinfo$ID[fw_SNPinfo$stacks_AL_P < 0.05 & fw_SNPinfo$stacks_LA_P < 0.05 &
+                          fw_SNPinfo$stacks_TX_P < 0.05 & fw_SNPinfo$stacks_FL_P < 0.05]
+shared_stacks<-shared_stacks[!is.na(shared_stacks)]
+fw_SNPinfo[fw_SNPinfo$ID %in% shared_stacks,]
+```
+
+Number of shared permutation outliers:
+```{r}
+length(which(rowSums(fw_SNPinfo[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4))
+length(unique(fw_SNPinfo$Chrom[which(rowSums(fw_SNPinfo[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4)]))
+```
+
+Are any of those the same as the Stacks ones?
+
+```{r}
+permout<-fw_SNPinfo$ID[which(rowSums(fw_SNPinfo[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4)]
+permout[permout %in% shared_stacks]
+```
+
+Pcapadt: 
+```{r}
+dim(fw_SNPinfo[fw_SNPinfo$pcadaptQ<0.01 & !is.na(fw_SNPinfo$pcadaptQ),])
+pcout<-fw_SNPinfo$ID[fw_SNPinfo$pcadaptQ<0.01 & !is.na(fw_SNPinfo$pcadaptQ)]
+pcout[pcout %in% shared_stacks] # overlapping with shared stacks
+pcout[pcout %in% permout] # overlapping with permutations
+```
+
+Bayenv:
+
+```{r}
+xtxout<-fw_SNPinfo$ID[fw_SNPinfo$XtX>=quantile(fw_SNPinfo$XtX,0.99)]
+xtxout[xtxout %in% pcout]
+```
+
+```{r}
+salout<-fw_SNPinfo$ID[fw_SNPinfo$logSalBF>=quantile(fw_SNPinfo$logSalBF,0.99)]
+salout[salout %in% xtxout]
+salout[salout %in% pcout]
+salout[salout %in% shared_stacks]
+salout[salout %in% permout]
+```
+
+Ok, I'm still only getting one shared outlier between Pcadapt and Bayenv's Xtx. Really not sure what's different. Since then all I've done is filter some datasets and re-run populations, so it shouldn't have affected anything. How strange! The only other difference might be that I was using my laptop, possibly? None of those figures appear to be saved on my desktop at work, so I must have been doing that at home. So possibly I had different data on my laptop. 
+
+
 # 12 November 2019
 
 The supplement is turning into a more streamlined version of 202_fwsw_reanalysis.Rmd, which is OK - and I'll compile it to hide the code and it will look lovely. Plus I can add citations and more text in the supplement doc. I also started a separate supplement doc for the morphometrics analyses. 
@@ -2044,8 +2097,8 @@ Number of shared Stacks outliers:
 
 ```{r}
 fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
-shared_stacks<-plot_dat$ID[plot_dat$stacks_AL_P < 0.05 & plot_dat$stacks_LA_P < 0.05 &
-                          plot_dat$stacks_TX_P < 0.05 & plot_dat$stacks_FL_P < 0.05]
+shared_stacks<-fw_SNPinfo$ID[fw_SNPinfo$stacks_AL_P < 0.05 & fw_SNPinfo$stacks_LA_P < 0.05 &
+                          fw_SNPinfo$stacks_TX_P < 0.05 & fw_SNPinfo$stacks_FL_P < 0.05]
 shared_stacks<-shared_stacks[!is.na(shared_stacks)]
 fw_SNPinfo[fw_SNPinfo$ID %in% shared_stacks,]
 ```
