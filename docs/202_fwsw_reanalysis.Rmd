@@ -263,7 +263,6 @@ library(pcadapt)
 filename<-read.pcadapt("filter_rad_20191014@1654/14_filtered/radiator_data_20191014@1710.vcf",type="vcf")
 x<-pcadapt(filename, K=20)
 plot(x,option="screeplot") #K=7
-
 ```
 
 ```{r pcadapt_analyze}
@@ -288,7 +287,7 @@ for(i in 1:nrow(pap)){
 for(i in 1:nrow(pap)){
   pap[i,"pch"]<-as.numeric(ppi[ppi$Pop %in% pap[i,"Pop"],"pch"])
 }
-write.table(pap,"pcadapt_colp.txt",col.names=TRUE)
+write.table(pap,"pcadapt_colp.txt",col.names=TRUE,sep='\t',quote=F)
 
 ```
 
@@ -432,9 +431,9 @@ poporder<-read.delim("treemix/poporder")
 colors<-poporder$colors
 poporder<-poporder$poporder
 par(mfrow=c(1,2),oma=c(2,2,2,2),mar=c(2,2,2,2))
-tree<-plot_tree("treemix/",plotmig=F,scale=F,mbar=F,plus=0.05)
+tree<-plot_tree("treemix/fwsw_k100b",plotmig=F,scale=F,mbar=F,plus=0.05)
 mtext("Drift parameter",1,line=2)
-resid<-plot_resid("fwsw.basic","poporder",wcols="rb")
+resid<-plot_resid("treemix/fwsw_k100b","treemix/poporder",wcols="rb")
 
 # nr<-treemix.cov.plot("treemix/fwsw_k100b",poporder)
 # m0<-treemix.cov.plot("treemix/fwsw_k100bFLPBr",poporder,split=c(1,1,3,2),more=TRUE)
@@ -507,6 +506,7 @@ dev.off()
 Ok, but how do I actually choose which number of migration edges to choose? Well, apparently [there's an R package for that!](https://rdrr.io/cran/OptM/#vignettes)
 
 ```{r}
+library(OptM)
 tmOpt<-optM("treemix")
 plot_optM(tmOpt)
 ```
@@ -1028,7 +1028,6 @@ wilcox.test(as.numeric(env.data$temp)~env.data$pop) #ties, but p=0.539
 wilcox.test(as.numeric(env.data$seagrass)~env.data$pop) #ties, but p=0.897
 ```
 
-#### Bayenv with subsetted dataset
 
 This analysis is of just the freshwater and saltwater populations. First I ran bayenv using the script `run_bayenv2_matrix_general.sh`.
 

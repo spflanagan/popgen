@@ -11,6 +11,65 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 12 November 2019
+
+The supplement is turning into a more streamlined version of 202_fwsw_reanalysis.Rmd, which is OK - and I'll compile it to hide the code and it will look lovely. Plus I can add citations and more text in the supplement doc. I also started a separate supplement doc for the morphometrics analyses. 
+
+Now I'm wondering if for the shared outliers an UpSet plot would be better than what I've currently got. This will take some playing around with. I'd also like to annotate the outliers (like I did before). Then I think all that I'll have left is the demographic analysis. So, to summarize:
+
+* make UpSet plot 
+* Annotate outliers
+* Analyze dadi output
+
+For the upset plot, it needs a list of sets or a binary matrix. I can easily get a list of sets from fw_SNPinfo (I think)
+```{r}
+library(UpSetR)
+fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
+outliers<-list(xtx=fw_SNPinfo$ID[fw_SNPinfo$XtX >= quantile(fw_SNPinfo$XtX,0.99)],
+               salBF=fw_SNPinfo$ID[fw_SNPinfo$logSalBF>=quantile(fw_SNPinfo$logSalBF,0.99)],
+               permutations=fw_SNPinfo$ID[rowSums(fw_SNPinfo[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+               pcadapt=fw_SNPinfo$ID[which(fw_SNPinfo$pcadaptQ<0.01)],
+               stacksAL=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL < 0.05)], 
+               stacksLA=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_LA < 0.05)],
+               stacksTX=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_TX < 0.05)],
+               stacksFL=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_FL < 0.05)])
+```
+
+Here's the overall plot
+
+```{r}
+upset(fromList(outliers),nsets = length(outliers))
+```
+
+But I wonder if I should do two -- one with just stacks output and one with all stacks lumped vs the others
+
+```{r}
+stacks_outliers<-list(stacksAL=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL < 0.05)], 
+               stacksLA=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_LA < 0.05)],
+               stacksTX=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_TX < 0.05)],
+               stacksFL=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_FL < 0.05)])
+
+
+lumped_outliers<-list(xtx=fw_SNPinfo$ID[which(fw_SNPinfo$XtX >= quantile(fw_SNPinfo$XtX,0.99))],
+               salBF=fw_SNPinfo$ID[which(fw_SNPinfo$logSalBF>=quantile(fw_SNPinfo$logSalBF,0.99))],
+               permutations=fw_SNPinfo$ID[rowSums(fw_SNPinfo[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+               pcadapt=fw_SNPinfo$ID[which(fw_SNPinfo$pcadaptQ<0.01)],
+               stacks=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL < 0.05 & fw_SNPinfo$stacks_LA < 0.05 &
+                 fw_SNPinfo$stacks_TX < 0.05 & fw_SNPinfo$stacks_FL < 0.05)])
+
+
+upset(fromList(stacks_outliers),nsets = length(stacks_outliers))
+upset(fromList(lumped_outliers),nsets = length(lumped_outliers))
+```
+
+What's weird is that this doesn't really match what I wrote in the results which is that 24 of 29 XtX outliers are PCAdapt outliers. 
+
+```{r}
+fw_SNPinfo[which(fw_SNPinfo$pcadaptQ<0.01) %in% which(fw_SNPinfo$XtX>=quantile(fw_SNPinfo$XtX,0.99)),]
+```
+
+There's something wonky with the which -es
+
 # 11 November 2019
 
 Now that I've got data for the subsetted dataset for all populations, I can make the summary table. So that's what I'm doing. But first I merged the 12103 locus, 7 population dataset with the smaller dataset for all 16 pops with the whitelisted loci. Now I can run the code I'd previously written to estimate observed heterozygosity, allele frequencies, and polymorphic loci. Easy peasy. There are some slightly unnerving differences between the full and subsetted dataset for the populations not in the subsetted analysis, which is kind of weird. I just realized this table should probably include environmental variables.
