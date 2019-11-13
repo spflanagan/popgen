@@ -93,7 +93,7 @@ library(scales)
 
 cols<-c(permutations='#e41a1c',salBF='#377eb8',pcadapt='#4daf4a',
         xtx='#984ea3',sharedStacks='#ff7f00',
-        stacksTX='#762a83',stacksAL='#af8dc3',stacksLA='#e7d4e8',stacksFL='#7fbf7b')
+        stacksTX='#e7d4e8',stacksAL='#762a83',stacksLA='#af8dc3',stacksFL='#7fbf7b')
 metadata<-data.frame(set=names(outliers),
                      cols=c(cols[c("xtx","sal","perm","pc","stacks")],grp.colors[c(1,2,3,6)]))
 upset(fromList(outliers),sets=c("xtx","salBF","permutations","pcadapt","sharedStacks"),
@@ -133,7 +133,29 @@ upset(data = movies, sets = c("Action", "Comedy", "Drama"),
 
 I used the code from the blog and updated/modified it a bit. It's saved in `upset_hacked.R`. I'm 90% confident I need to modify it further to make the colors more versatile (I think right now it's stuck at 3 different choices).
 
+Yep, that's right. I adjusted the code and added another parameter that allows the point colors to be set.
 
+```{r}
+source("../R/upset_hacked.R")
+cols<-c(permutations='#e41a1c',salBF='#377eb8',pcadapt='#4daf4a',
+        xtx='#984ea3',sharedStacks='#ff7f00',
+        stacksTX='#af8dc3',stacksAL='#e7d4e8',stacksLA='#762a83',stacksFL='#1b7837')
+upset(fromList(outliers),sets=c("xtx","salBF","permutations","pcadapt","sharedStacks"),
+      point.size=3.5,line.size=2,mainbar.y.label = "Number of Shared Outliers",
+      sets.x.label = "Number of Outlier SNPs",text.scale=c(1.5,1.5,1.5,1.5,1.5,1.5),
+      sets.bar.color =cols[1:5],sets.pt.color=cols[1:5])
+grid::grid.edit('arrange',name='arrange2')
+vp = grid::grid.grab()
+upset(fromList(outliers),sets=c("stacksAL","stacksLA","stacksTX","stacksFL"),
+      point.size=3.5,line.size=2,mainbar.y.label = "Number of Shared Outliers",
+      sets.x.label = "Number of Outlier SNPs",text.scale=c(1.5,1.5,1.5,1.5,1.5,1.5),
+      sets.bar.color =cols[6:9],sets.pt.color=cols[6:9])
+grid::grid.edit('arrange',name='arrange3')
+vp1 = grid::grid.grab()
+gridExtra::grid.arrange(vp,vp1)
+```
+
+Not sure what exactly is best to include in the paper, but this is a useful way to visualize overlap for sure.
 
 # 12 November 2019
 

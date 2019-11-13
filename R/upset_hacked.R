@@ -41,7 +41,7 @@ Make_matrix_plot <- function(Mat_data,Set_size_data, Main_bar_data, point_size, 
 
 upset<-function(data, nsets = 5, nintersects = 40, sets = NULL, keep.order = F, set.metadata = NULL, intersections = NULL,
                 matrix.color = "gray23", main.bar.color = "gray23", mainbar.y.label = "Intersection Size", mainbar.y.max = NULL,
-                sets.bar.color = "gray23", sets.x.label = "Set Size", point.size = 2.2, line.size = 0.7,
+                sets.bar.color = "gray23",sets.pt.color="gray23", sets.x.label = "Set Size", point.size = 2.2, line.size = 0.7,
                 mb.ratio = c(0.70,0.30), expression = NULL, att.pos = NULL, att.color = main.bar.color, order.by = c("freq", "degree"),
                 decreasing = c(T, F), show.numbers = "yes", number.angles = 0, group.by = "degree",cutoff = NULL,
                 queries = NULL, query.legend = "none", shade.color = "gray88", shade.alpha = 0.25, matrix.dot.alpha =0.5,
@@ -144,11 +144,20 @@ upset<-function(data, nsets = 5, nintersects = 40, sets = NULL, keep.order = F, 
     Matrix_col <- NULL
   }
   Matrix_layout <- UpSetR:::Create_layout(Matrix_setup, matrix.color, Matrix_col, matrix.dot.alpha)
-  # this was added by the club
-  for(i in 1:3) {
-    j <- which(Matrix_layout$y == i & Matrix_layout$value == 1)
-    if(length(j) > 0) Matrix_layout$color[j] <- c("maroon","blue","orange")[i]
+  
+  ###################### this was added ########################
+  # originally from https://www.r-bloggers.com/hacking-our-way-through-upsetr/
+  # and then SPF modified further
+  if(length(sets.pt.color) > 1){
+    for(i in 1:length(sets.pt.color)) {
+      j <- which(Matrix_layout$y == i & Matrix_layout$value == 1)
+      if(length(j) > 0) Matrix_layout$color[j] <- sets.pt.color[i]
+    }
   }
+  
+  
+  ### end modified
+  
   Set_sizes <- UpSetR:::FindSetFreqs(New_data, first.col, Num_of_set, Set_names, keep.order)
   Bar_Q <- NULL
   if(is.null(queries) == F){
