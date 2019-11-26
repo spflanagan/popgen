@@ -109,7 +109,7 @@ dev.off()
 ## Table of summary statistics
 
 
-```{r}
+```{r readVCFs1, eval=FALSE}
 pop_map<-read.delim("../fwsw_pops_map.txt",header = FALSE,stringsAsFactors = FALSE)
 ful_vcf<-parse.vcf("filter_rad_20191014@1654/14_filtered/radiator_data_20191014@1710.vcf")
 colnames(ful_vcf)<-gsub("\\-","_",colnames(ful_vcf))
@@ -122,7 +122,7 @@ sub<-sub[,-rmv]
 colnames(sub)<-gsub(".x","",colnames(sub))
 ```
 
-```{r}
+```{r popSummaries, eval=FALSE}
 pop_summaries<-do.call(rbind,lapply(pop.list,function(pop,ful,sub){
   ful_dat<-ful[,c(1:9,grep(pop,colnames(ful)))]
   sub_dat<-sub[,c(1:9,grep(pop,colnames(sub)))]
@@ -161,8 +161,32 @@ write.csv(pop_summaries,"population_summaries.csv",row.names = FALSE,quote=FALSE
 
 We can merge the genetic info with the environmental info. 
 ```{r}
-
+pop_summaries<-read.csv("population_summaries.csv")
+env.data<-data.frame(t(read.csv("bayenv/env_data_raw.csv",row.names = 1)))
+env.data$pop<-rownames(env.data)
+pop_summaries<-merge(env.data,pop_summaries,by="pop")
 ```
+
+```{r}
+pretty_sum<-data.frame(Population = pop_summaries$pop,
+                       Temperature = pop_summaries$temp,
+                       Salinity = pop_summaries$salinity,
+                       SeagrassDensity=pop_summaries$seagrass,
+                       N_Pregnant = paste0(pop_summaries$preg_full," (",pop_summaries$preg_sub,")"),
+                       N_NonPregnant = paste0(pop_summaries$nonp_full," (",pop_summaries$nonp_sub,")"),
+                       N_Female = paste0(pop_summaries$nfem_full," (",pop_summaries$nfem_sub,")"),
+                       N_Juvenile = paste0(pop_summaries$njuv_full," (",pop_summaries$njuv_sub,")"),
+                       H_o = paste0(round(pop_summaries$ho_full,digits=3),"\u00B1",round(pop_summaries$hov_full,digits=3),
+                                   " (",round(pop_summaries$ho_sub,digits=3),"\u00B1",round(pop_summaries$hov_sub,digits=3),")"),
+                       MinorAlleleFrequency = paste0(round(1-pop_summaries$p_full,digits=3),"\u00B1",round(pop_summaries$pv_full,digits=3),
+                                                    " (",round(1-pop_summaries$p_sub,digits=3),"\u00B1",round(pop_summaries$pv_sub,digits = 3),")"),
+                       PercentPolymorphicLoci = paste0(round(pop_summaries$poly_ful,digits=1)," (",round(pop_summaries$poly_sub,digits=1),")"),
+                       stringsAsFactors = FALSE)
+pretty_sum$Population[pretty_sum$Population=="FLLG"]<-"FLFW"
+kable(pretty_sum)
+write.table(pretty_sum,"Table1_populationSummaries.txt",sep='\t',col.names = TRUE,quote=FALSE,row.names = FALSE)
+```
+
 
 
 ## Population structure of all 16 populations
@@ -631,137 +655,8 @@ fwsw.tx<-read.delim("stacks/populations_subset75/batch_2.fst_TXCC-TXFW.tsv")
 fwsw.fl<-read.delim("stacks/populations_subset75/batch_2.fst_FLCC-FLFW.tsv")
 ```
 
-```{r assignplotpos}
-assign.plotpos<-function(df, plot.scaffs, bounds, df.chrom="Chrom", df.bp="BP"){
-  colnames(bounds)<-c("Chrom","End")
-  new.dat<-data.frame(stringsAsFactors = F)
-  last.max<-0
-  for(i in 1:length(plot.scaffs)){
-    #pull out the data for this scaffold
-    if(nrow(bounds[bounds$Chrom %in% plot.scaffs[i],])>0){ #sanity check
-      chrom.dat<-df[df[[df.chrom]] %in% plot.scaffs[i],]
-      if(nrow(chrom.dat)>0){
-        chrom.dat$plot.pos<-as.numeric(as.character(chrom.dat[[df.bp]]))+last.max
-        new.dat<-rbind(new.dat,chrom.dat)
-        #last.max<-max(chrom.dat$plot.pos)+
-        #               as.numeric(scaffold.widths[scaffold.widths[,1] %in% scaffs.to.plot[i],2])
-      }
-      last.max<-last.max+
-        as.numeric(bounds[bounds$Chrom %in% plot.scaffs[i],2])
-    }
-  }
-  #make sure everything is the correct class
-  new.dat$plot.pos<-as.numeric(as.character(new.dat$plot.pos))
-  return(new.dat)
-}
-```
-```{r perlglines}
-perlg.add.lines<-function(fwsw.plot,lgs,width=NULL,lwds=4,color="cornflowerblue"){
- 
-  for(i in 1:length(lgs)){
-    this.df<-fwsw.plot[fwsw.plot$Chr %in% lgs[i],]
-    if(is.null(width)){
-      width<-(nrow(this.df)*0.15)
-    }
-    this.smooth<-do.call("rbind",lapply(seq(1,nrow(this.df),width/5),sliding.avg,
-                                        dat=data.frame(Pos=this.df$plot.pos,
-                                                       Fst=this.df$Corrected.AMOVA.Fst),
-                                        width=width))
-    points(this.smooth,col=color,type="l",lwd=lwds)
-  }
-}
-```
-
-
-```{r plotmultiplelgs}
-plot_multiple_LGs<-function(list_fsts,fst_name,chr_name,bp_name,lgs,plot_labs,pt_cols=NULL,plot_scaffs=NULL,addSmooth=TRUE,smoothFst="Smoothed.Fst",smoothcol="cornflowerblue",ncol=2,...){
-  nrow<-length(list_fsts)/ncol
-  
-  # check the variables
-  if(length(list_fsts)>1){
-    if(length(fst_name)==1){
-      fst_names<-rep(list(fst_name),length(list_fsts))
-    }else if(length(list_fsts)==length(fst_name)){
-      fst_names<-fst_name
-    }else{
-      print("ERROR: invalid fst_name")
-      return(NULL)
-    }
-    if(length(chr_name)==1){
-      chr_names<-rep(list(chr_name),length(list_fsts))
-    }else if(length(list_fsts)==length(chr_name)){
-      chr_names<-chr_name
-    }else{
-      print("ERROR: invalid chr_name")
-      return(NULL)
-    }
-    if(length(bp_name)==1){
-      bp_names<-rep(list(bp_name),length(list_fsts))
-    }else if(length(list_fsts)==length(bp_name)){
-      bp_names<-bp_name
-    }else{
-      print("ERROR: invalid bp_name")
-      return(NULL)
-    }
-    if(length(smoothFst)==1){
-      smoothFsts<-rep(list(smoothFst),length(list_fsts))
-    }else if(length(list_fsts)==length(smoothFst)){
-      smoothFsts<-smoothFst
-    }else{
-      print("ERROR: invalid smoothFst")
-      return(NULL)
-    }
-    if(!is.null(pt_cols)){ #if it's not null, then need to check it's a list
-      if(length(pt_cols)==1){
-        pch_cols<-rep(list(pt_cols),length(list_fsts))
-      }else if(length(list_fsts)==length(pt_cols)){
-        pch_cols<-pt_cols
-      }else{
-        print("WARNING: invalid pt_cols, using defaults")
-        pch_cols<-c("darkgrey","lightgrey")
-      }
-    }
-  }
-  if(length(plot_labs) != length(list_fsts) | is.null(plot_labs)){
-    print("WARNING: invalid plot labels (plot_labs). Omitting plot labels")
-    plot_labs<-rep(list(""),length(list_fsts))
-  }
-  
-  # aggregate data
-  all_chr<-data.frame(Chr=unlist(lapply(list_fsts,function(x){ as.character(x[,chr_name])})),
-                      BP=unlist(lapply(list_fsts,function(x){ as.character(x[,bp_name])})),stringsAsFactors = F)
-  bounds<-tapply(as.numeric(as.character(all_chr$BP)), all_chr$Chr,max)
-  bounds<-data.frame(Chrom=dimnames(bounds),End=bounds)
-  colnames(bounds)<-c("Chrom","End")
-  if(is.null(plot_scaffs)){
-    plot_scaffs<-levels(bounds$Chr)
-    plot_scaffs[1:22]<-lgs
-  }
-  bounds<-bounds[match(plot_scaffs,bounds$Chrom),]
-  
-  #Plot
-  if(nrow*ncol < length(list_fsts)) nrow<-nrow+1
-  par(mfrow=c(nrow,ncol),mar=c(3,3,2,2),oma=c(2,2,2,2))
-  fsts<-mapply(function(f, fst,bp,chr,cols, plot_lab,smF,plot_scaffs,bounds,smoothcol,...){
-
-    fst<-fst.plot(f,fst.name = fst, bp.name = bp,chrom.name = chr, 
-                    scaffs.to.plot=plot_scaffs, scaffold.widths = bounds,
-                    pt.cols = cols,...) #pch=19,y.lim = c(0,1),pt.cex=1,axis.size = 1
-    
-    if(addSmooth==TRUE) points(fst$plot.pos,fst[,smF],col=smoothcol,type="l") 
-    
-    clip(0,max(fst$plot.pos),0,1)
-    
-    mtext(plot_lab,2,cex=0.75)#,line=-1)
-    labs<-tapply(fst$plot.pos,fst[,chr],median)
-    text(x=labs[lgs],y=-0.1,labels=lgn,xpd=TRUE)
-    
-    return(fst)
-  },f=list_fsts,fst=fst_names,bp=bp_names,chr=chr_names,cols=pch_cols,plot_lab=plot_labs,smF=smoothFsts,MoreArgs = list(plot_scaffs=plot_scaffs,bounds=bounds, smoothcol=smoothcol,...))
-  return(fsts)
-}
-```
 ```{r plot_stacks_fsts}
+source("../R/205_popgenPlotting.R")
 fst_dat<-list(fwsw.al,fwsw.la,fwsw.tx,fwsw.fl)
 fsts<-plot_multiple_LGs(list_fsts = fst_dat,fst_name = "Corrected.AMOVA.Fst",bp_name="BP",chr_name="Chr",
                         lgs=lgs,plot_labs=list("ALFW vs ALST","ALST vs LAFW","TXFW vs TXCC","FLFW vs FLCC"),
