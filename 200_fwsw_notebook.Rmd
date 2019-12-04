@@ -11,6 +11,115 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 5 December 2019
+
+I'm pretty happy with the way it's turned out, except that the upset_hacked code allows for a weird amount of overwriting of axes.
+
+```{r}
+library(UpSetR);library(scales);library(ggplot2);library(grid);library(gwscaR);library(gridGraphics)
+source("../R/upset_hacked.R")
+source("../R/205_popgenPlotting.R")
+fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
+outliers<-list(xtx=fw_SNPinfo$ID[fw_SNPinfo$XtX >= quantile(fw_SNPinfo$XtX,0.99)],
+               salBF=fw_SNPinfo$ID[fw_SNPinfo$logSalBF>=quantile(fw_SNPinfo$logSalBF,0.99)],
+               permutations=fw_SNPinfo$ID[rowSums(fw_SNPinfo[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+               pcadapt=fw_SNPinfo$ID[which(fw_SNPinfo$pcadaptQ<0.01)],
+               Alabama=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL < 0.05)], 
+               Louisiana=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_LA < 0.05)],
+               Texas=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_TX < 0.05)],
+               Florida=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_FL < 0.05)],
+               sharedStacks=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL < 0.05 & fw_SNPinfo$stacks_LA < 0.05 &
+                 fw_SNPinfo$stacks_TX < 0.05 & fw_SNPinfo$stacks_FL < 0.05)])
+```
+
+```{r}
+cols<-c(permutations='#e41a1c',salBF='#377eb8',pcadapt='#a65628',
+        xtx='#ff7f00',sharedStacks='#f781bf',
+        stacksTX='#af8dc3',stacksAL='#e7d4e8',stacksLA='#762a83',stacksFL='#1b7837')
+png("../figs/upsetOutliers.png",res=300,height=4,width=7.5,units="in",pointsize = 16)
+upset(fromList(outliers),sets=c("xtx","salBF","permutations","pcadapt","sharedStacks"),
+      point.size=3.5,line.size=2,mainbar.y.label = "Number of Shared Outliers",
+      sets.x.label = " Number of Outliers",text.scale=c(1.5,1.5,1.5,1.5,1.5,1.5),
+      sets.bar.color =cols[1:5],sets.pt.color=cols[1:5],margin1scale = 0.2)
+dev.off()
+png("../figs/sharedStacks.png",res=300,height=4,width=7.5,units="in",pointsize = 16)
+upset(fromList(outliers),sets=c("Alabama","Louisiana","Texas","Florida"),
+      point.size=3.5,line.size=2,mainbar.y.label = "Number of Shared Outliers",
+      sets.x.label = " Number of Outliers",text.scale=c(1.5,1.5,1.5,1.5,1.5,1.5),
+      sets.bar.color =cols[6:9],sets.pt.color=cols[6:9],margin1scale = 0.2)
+dev.off()
+
+
+```
+
+I tried changing the expand= bit in Make_matrix_plot but that didn't help, it just caused the matrix to be misaligned with the barplots. 
+
+Managed to fix the labels by changing the background in Make_size_plot transparent. Lowering the bottom margin size in the Make_main_bar function fixed it! yay!
+
+So now:
+
+```{r}
+library(magick);library(multipanelfigure)
+
+image_files <- c("../figs/FstOutliers.png",
+                 "../figs/upsetOutliers.png",
+                 "../figs/sharedStacks.png")
+
+
+png("../figs/fstPlots.png",height=4,width=8.5,units="in",res=300,pointsize = 11)
+figure <- multi_panel_figure(
+  width = c(4.5, 3.5),
+  height = c(1.8,1.8),
+  unit = "inches",
+  row_spacing = 0.0,column_spacing = 0
+)
+(figure %<>% fill_panel(image_files[1],row = 1:2,scaling="fit",allow_panel_overwriting = TRUE) )
+(figure %<>% fill_panel(image_files[3], column=2, row=1,scaling="fit") )
+(figure %<>% fill_panel(image_files[2],column=2,row=2,scaling="fit"))
+dev.off()
+
+```
+
+
+And it's beautiful! Except the colors don't match.
+
+```{r}
+cols<-c(permutations='#e41a1c',salBF='#377eb8',pcadapt='#a65628',
+        xtx='#ff7f00',sharedStacks='#f781bf',
+        stacksTX='#af8dc3',stacksAL='#e7d4e8',stacksLA='#762a83',stacksFL='#1b7837')
+cols<-c(perm=alpha('#e41a1c',0.75),sal=alpha('#377eb8',0.75),pc=alpha('#a65628',0.75),stacks=alpha('#f781bf',0.75),xtx=alpha('#ff7f00',0.75))
+grp7colors<-c('#762a83','#9970ab','#c2a5cf','#d9f0d3','#a6dba0','#5aae61','#1b7837')
+```
+
+Ok, they look like they match in the list - it's probably how I'm specifying them.
+
+```{r}
+cols<-c(permutations='#e41a1c',salBF='#377eb8',pcadapt='#a65628',
+        xtx='#ff7f00',sharedStacks='#f781bf',
+        Alabama='#af8dc3',Louisiana='#e7d4e8',Texas='#762a83',Florida='#1b7837')
+png("../figs/upsetOutliers.png",res=300,height=4,width=7.5,units="in",pointsize = 16)
+upset(fromList(outliers),sets=c("permutations","salBF","xtx","pcadapt","sharedStacks"),
+      point.size=3.5,line.size=2,mainbar.y.label = "Number of Shared Outliers",
+      sets.x.label = " Number of Outliers",text.scale=c(1.5,1.5,1.5,1.5,1.5,1.5),
+      sets.bar.color =cols[c("permutations","salBF","xtx","pcadapt","sharedStacks")],margin1scale = 0.2,
+      sets.pt.color=cols[c("permutations","salBF","xtx","pcadapt","sharedStacks")])
+dev.off()
+png("../figs/sharedStacks.png",res=300,height=4,width=7.5,units="in",pointsize = 16)
+upset(fromList(outliers),sets=c("Texas","Alabama","Louisiana","Florida"),
+      point.size=3.5,line.size=2,mainbar.y.label = "Number of Shared Outliers",
+      sets.x.label = " Number of Outliers",text.scale=c(1.5,1.5,1.5,1.5,1.5,1.5),
+      sets.bar.color =cols[c("Texas","Alabama","Louisiana","Florida")],margin1scale = 0.2,
+      sets.pt.color=cols[c("Texas","Alabama","Louisiana","Florida")],keep.order = TRUE)
+dev.off()
+
+
+```
+
+Ok, it's not just that - it's how they're getting called in the function. They data is getting re-ordered but not the list of colors
+
+I'm getting closer but the struggle is still real. I think I've fixed it! I've now tweaked all of the major plotting functions and fixed the color vectors, and I think it's working! I'm going to put this code into the reanalysis document and commit to github.
+
+Next: annotate outliers.
 
 # 29 November 2019
 
