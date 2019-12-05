@@ -11,6 +11,37 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 6 December 2019
+
+I have found the discrepancy! I was using Fst values < 0.05 rather than p values --this is what I had:
+
+```{r}
+outliers<-list(xtx=fw_SNPinfo$ID[fw_SNPinfo$XtX >= quantile(fw_SNPinfo$XtX,0.99)],
+               salBF=fw_SNPinfo$ID[fw_SNPinfo$logSalBF>=quantile(fw_SNPinfo$logSalBF,0.99)],
+               permutations=fw_SNPinfo$ID[rowSums(fw_SNPinfo[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+               pcadapt=fw_SNPinfo$ID[which(fw_SNPinfo$pcadaptQ<0.01)],
+               Alabama=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL < 0.05)], 
+               Louisiana=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_LA < 0.05)],
+               Texas=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_TX < 0.05)],
+               Florida=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_FL < 0.05)],
+               sharedStacks=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL < 0.05 & fw_SNPinfo$stacks_LA < 0.05 &
+                 fw_SNPinfo$stacks_TX < 0.05 & fw_SNPinfo$stacks_FL < 0.05)])
+```
+
+and this is what it should be:
+```{r}
+outliers<-list(xtx=fw_SNPinfo$ID[fw_SNPinfo$XtX >= quantile(fw_SNPinfo$XtX,0.99)],
+               salBF=fw_SNPinfo$ID[fw_SNPinfo$logSalBF>=quantile(fw_SNPinfo$logSalBF,0.99)],
+               permutations=fw_SNPinfo$ID[rowSums(fw_SNPinfo[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+               pcadapt=fw_SNPinfo$ID[which(fw_SNPinfo$pcadaptQ<0.01)],
+               Alabama=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05)], 
+               Louisiana=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_LA_P < 0.05)],
+               Texas=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_TX_P < 0.05)],
+               Florida=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_FL_P < 0.05)],
+               sharedStacks=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05 & fw_SNPinfo$stacks_LA_P < 0.05 &
+                 fw_SNPinfo$stacks_TX_P < 0.05 & fw_SNPinfo$stacks_FL_P < 0.05)])
+```
+
 # 5 December 2019
 
 I'm pretty happy with the way it's turned out, except that the upset_hacked code allows for a weird amount of overwriting of axes.
@@ -117,9 +148,13 @@ dev.off()
 
 Ok, it's not just that - it's how they're getting called in the function. They data is getting re-ordered but not the list of colors
 
-I'm getting closer but the struggle is still real. I think I've fixed it! I've now tweaked all of the major plotting functions and fixed the color vectors, and I think it's working! I'm going to put this code into the reanalysis document and commit to github.
+I'm getting closer but the struggle is still real. I think I've fixed it! I've now tweaked all of the major plotting functions and fixed the color vectors, and I think it's working! I'm going to put this code into the reanalysis document and commit to github. 
 
-Next: annotate outliers.
+The only issue is when I embed it in the word document the text looks really small.
+
+Also, we have a small issue that the numbers of shared outliers in the Fst plots do not correspond to the shared outliers in the upset plots, especially in the stacks comparisons. uh oh!
+
+Once that's figured out, it's time to annotate outliers.
 
 # 29 November 2019
 
