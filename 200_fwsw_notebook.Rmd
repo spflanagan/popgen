@@ -42,6 +42,61 @@ outliers<-list(xtx=fw_SNPinfo$ID[fw_SNPinfo$XtX >= quantile(fw_SNPinfo$XtX,0.99)
                  fw_SNPinfo$stacks_TX_P < 0.05 & fw_SNPinfo$stacks_FL_P < 0.05)])
 ```
 
+So the next thing to do is to annotate the outliers.
+
+We can start by looking at which ones are in coding regions
+
+```{r}
+gff.name<-"ssc_2016_12_20_chromlevel.gff"
+if(length(grep("gz",gff.name))>0){
+  gff<-read.delim(gzfile(paste("../../scovelli_genome/",gff.name,sep="")),header=F)
+} else{
+  gff<-read.delim(paste("../../scovelli_genome/",gff.name,sep=""),header=F)
+}
+colnames(gff)<-c("seqname","source","feature","start","end","score","strand","frame","attribute")
+genome.blast<-read.csv("../../scovelli_genome/ssc_2016_12_20_cds_nr_blast_results.csv",skip=1,header=T)#I saved it as a csv
+```
+
+
+
+```{r}
+annotate_snps<-function(snpDF,gff,genome.blast,ID="Locus.ID",chrom="Chr",bp="BP",pos="Column")
+{
+  fw.sig.reg<-do.call(rbind,apply(snpDF,1,function(sig){
+    this.gff<-gff[as.character(gff$seqname) %in% as.character(unlist(sig[chrom])),]
+    this.reg<-this.gff[this.gff$start <= as.numeric(sig[bp]) & this.gff$end >= as.numeric(sig[bp]),]
+    if(nrow(this.reg) == 0){
+      if(as.numeric(sig[bp])>max(as.numeric(this.gff$end))){
+        new<-data.frame(Locus=sig[[ID]],Chr=sig[chrom],BP=sig[bp],SNPCol=sig[pos],
+                        region="beyond.last.contig", description=NA,SSCID=NA)
+      }else{
+        new<-data.frame(Locus=sig[[ID]],Chr=sig[chrom],BP=sig[bp],SNPCol=sig[pos],
+                        region=NA,description=NA,SSCID=NA)
+      }
+    }else{
+      if(length(grep("SSCG\\d+",this.reg$attribute))>0){
+        geneID<-unique(gsub(".*(SSCG\\d+).*","\\1",this.reg$attribute[grep("SSCG\\d+",this.reg$attribute)]))
+        gene<-genome.blast[genome.blast$sscv4_gene_ID %in% geneID,"blastp_hit_description"]
+      }else{
+        geneID<-NA
+        gene<-NA
+      }
+      new<-data.frame(Locus=sig[ID],Chr=sig[chrom],BP=sig[bp],SNPCol=sig[pos],
+                      region=paste(this.reg$feature,sep=",",collapse = ","),description=gene,SSCID=geneID)
+    }
+    return(as.data.frame(new))
+  }))
+}
+```
+
+```{r}
+out_snps<-fw_SNPinfo[fw_SNPinfo$ID %in% unlist(outliers),]
+out_ann<-annotate_snps(out_snps,gff,genome.blast,ID="ID",chrom="Chrom",bp="BP",pos = "Pos")
+```
+
+
+
+
 # 5 December 2019
 
 I'm pretty happy with the way it's turned out, except that the upset_hacked code allows for a weird amount of overwriting of axes.

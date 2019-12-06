@@ -1128,7 +1128,7 @@ legend("top",c(expression("Permutation"~italic("F")["ST"]),
 
 First we'll get set up with the libraries, code, and data.
 
-```{r}
+```{r, eval=FALSE}
 library(UpSetR);library(scales);library(ggplot2);library(grid);library(gwscaR);library(gridGraphics)
 source("../R/upset_hacked.R")
 source("../R/205_popgenPlotting.R")
@@ -1147,7 +1147,7 @@ outliers<-list(xtx=fw_SNPinfo$ID[fw_SNPinfo$XtX >= quantile(fw_SNPinfo$XtX,0.99)
 
 Then we'll plot the Stacks Fst outliers.
 
-```{r}
+```{r, eval=FALSE}
 pop.list<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
 	"FLFD","FLSI","FLAB","FLPB","FLHB","FLCC","FLLG")
 pop.labs<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
@@ -1277,7 +1277,7 @@ dev.off()
 
 And create upset plots to show overlap between pairwise Stacks comparisons and between all outlier methods.
 
-```{r}
+```{r, eval=FALSE}
 cols<-c(permutations='#e41a1c',salBF='#377eb8',pcadapt='#a65628',
         xtx='#ff7f00',sharedStacks='#f781bf',
         Alabama='#af8dc3',Louisiana='#e7d4e8',Texas='#762a83',Florida='#1b7837')
@@ -1301,7 +1301,7 @@ dev.off()
 
 And finally we'll stitch them together into a final image.
 
-```{r}
+```{r, eval=FALSE}
 library(magick);library(multipanelfigure)
 
 image_files <- c("../figs/FstOutliers.png",
@@ -1322,3 +1322,7 @@ figure <- multi_panel_figure(
 dev.off()
 
 ```
+
+[!Multipanel figure]("../figs/fstPlots.png")
+
+
