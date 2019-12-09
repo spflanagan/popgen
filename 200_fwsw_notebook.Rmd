@@ -11,6 +11,195 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 9 December 2019
+
+Back to annotations
+
+
+```{r}
+gff.name<-"ssc_2016_12_20_chromlevel.gff.gz"
+if(length(grep("gz",gff.name))>0){
+  gff<-read.delim(gzfile(paste("../../scovelli_genome/",gff.name,sep="")),header=F)
+} else{
+  gff<-read.delim(paste("../../scovelli_genome/",gff.name,sep=""),header=F)
+}
+colnames(gff)<-c("seqname","source","feature","start","end","score","strand","frame","attribute")
+```
+
+
+
+```{r}
+annotate_snps<-function(snpDF,gff,genome.blast,ID="Locus.ID",chrom="Chr",bp="BP",pos="Column")
+{
+  fw.sig.reg<-do.call(rbind,apply(snpDF,1,function(sig){
+    this.gff<-gff[as.character(gff$seqname) %in% as.character(unlist(sig[chrom])),]
+    description<-NA
+    SSCID<-NA
+    if(nrow(this.gff)>0){
+      this.reg<-this.gff[this.gff$start <= as.numeric(sig[bp]) & this.gff$end >= as.numeric(sig[bp]),]
+      if(nrow(this.reg) == 0){
+        if(as.numeric(sig[bp]) > max(as.numeric(this.gff$end))){
+          region<-"beyond.last.contig"
+        }else{
+          region<-NA
+        }
+      }else{
+        if(length(grep("SSCG\\d+",this.reg$attribute))>0){
+          geneID<-unique(gsub(".*(SSCG\\d+).*","\\1",this.reg$attribute[grep("SSCG\\d+",this.reg$attribute)]))
+          gene<-genome.blast[genome.blast$sscv4_gene_ID %in% geneID,"blastp_hit_description"]
+        }else{
+          geneID<-NA
+          gene<-NA
+        }
+        # if there are multiples they'll be in separated by a semi-colon
+        region<-paste(this.reg$feature,collapse = ";")
+        description<-paste(gene,collapse=";")
+        SSCID<-paste(geneID,collapse=";")
+      }
+    }else{
+      region<-"scaffNotFound"
+    }
+    return(data.frame(Locus=sig[[ID]],Chr=sig[chrom],BP=sig[bp],SNPCol=sig[pos],
+                      region=region, description=description,SSCID=SSCID,row.names=NULL))
+  }))
+}
+```
+
+```{r}
+genome.blast<-read.csv("../../scovelli_genome/ssc_2016_12_20_cds_nr_blast_results.csv",skip=1,header=T)#I saved it as a csv
+fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
+outliers<-list(xtx=fw_SNPinfo$ID[fw_SNPinfo$XtX >= quantile(fw_SNPinfo$XtX,0.99)],
+               salBF=fw_SNPinfo$ID[fw_SNPinfo$logSalBF>=quantile(fw_SNPinfo$logSalBF,0.99)],
+               permutations=fw_SNPinfo$ID[rowSums(fw_SNPinfo[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+               pcadapt=fw_SNPinfo$ID[which(fw_SNPinfo$pcadaptQ<0.01)],
+               Alabama=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05)], 
+               Louisiana=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_LA_P < 0.05)],
+               Texas=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_TX_P < 0.05)],
+               Florida=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_FL_P < 0.05)],
+               sharedStacks=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05 & fw_SNPinfo$stacks_LA_P < 0.05 &
+                 fw_SNPinfo$stacks_TX_P < 0.05 & fw_SNPinfo$stacks_FL_P < 0.05)])
+out_snps<-fw_SNPinfo[fw_SNPinfo$ID %in% unlist(outliers),]
+out_ann<-annotate_snps(out_snps,gff,genome.blast,ID="ID",chrom="Chrom",bp="BP",pos = "Pos")
+```
+
+I'm getting some warnings:
+```
+In data.frame(Locus = sig[ID], Chr = sig[chrom], BP = sig[bp],  ... :
+  row names were found from a short variable and have been discarded
+```
+and
+```
+In max(as.numeric(this.gff$end)) :
+  no non-missing arguments to max; returning -Inf
+```
+
+The max one - somehow I've got snps on scaffold_247, which is not in the gff file. I've added an if statement to avoid this issue. I've also added `,row.names=NULL` to the data.frame calls to try to avoid the first warning. My additions have removed the warnings. 
+
+Some loci have multiple entries! I don't think that should be happening...
+
+```{r}
+out_ann[out_ann$Locus %in% out_ann$Locus[duplicated(out_ann$Locus)],]
+```
+
+These duplicates appear to arise from having multiple SSCIDs. I've now updated the code to collapse the information, so it should work much better now. 
+
+Now I just want to understand why some scaffolds aren't in the gff file (and they should be).
+
+```{r}
+out_ann[out_ann$region=="scaffNotFound",]
+gff[gff$seqname %in% out_ann[out_ann$region=="scaffNotFound","Chr"],]
+```
+
+They're not in the chromosome-level assembly file.
+
+I'll check the scaffold-level file.
+
+```{r}
+sgff.name<-"ssc_2016_12_20_scafflevel.gff.gz"
+if(length(grep("gz",sgff.name))>0){
+  sgff<-read.delim(gzfile(paste("../../scovelli_genome/",sgff.name,sep="")),header=F)
+} else{
+  sgff<-read.delim(paste("../../scovelli_genome/",sgff.name,sep=""),header=F)
+}
+colnames(sgff)<-c("seqname","source","feature","start","end","score","strand","frame","attribute")
+```
+
+```{r}
+nrow(gff[gff$seqname %in% out_ann[out_ann$region=="scaffNotFound","Chr"],])
+unique(gff$seqname[gff$seqname %in% out_ann[out_ann$region=="scaffNotFound","Chr"]])
+```
+
+They *are* in the scaffold-level assembly. Maybe my chromosome-level file is incomplete? I've re-downloaded it, let's see -- nope! Weird. How many are non-overlapping between the two gffs?
+
+```{r}
+unique(sgff$seqname[!sgff$seqname %in% gff$seqname])
+```
+
+Ah, of course most of these scaffolds will be on the chromosomes so won't be in the gff...Are these three scaffolds actually part of chromosomes, and they're just mis-specified in my alignments? Let's check the AGP.
+
+```{r}
+agp<-read.delim(gzfile("../../scovelli_genome/ssc_2016_12_20_chromlevel.agp.gz"),header = FALSE,comment.char = "#")
+colnames(agp)<-c("object","object_beg","object_end","part_number","W","component_id","component_beg","component_end")
+agp$object[agp$object %in% out_ann[out_ann$region=="scaffNotFound","Chr"]]
+```
+
+So they're not objects
+
+```{r}
+agp[agp$component_id %in% out_ann[out_ann$region=="scaffNotFound","Chr"],]
+```
+
+They are components! Parts of other chromosomes. So I need to adjust this -- and not just in the outliers file, but in all of them (and I'll need to re-make the fsts figure)
+
+
+```{r}
+reassign_scaffs<-function(wrong_dat,chrom,pos,locusID,agp){
+  misassigned<-unique(wrong_dat[wrong_dat[,chrom] %in% agp$component_id,chrom])
+  fixed<-do.call(rbind,lapply(misassigned,function(scaff,wrong_dat,agp){
+    to_fix<-wrong_dat[wrong_dat[,chrom] %in% scaff,]
+    if(nrow(to_fix)>0){ 
+      corrections<-agp[agp$component_id %in% scaff,]
+      to_fix[,chrom]<-as.character(corrections$object)
+      to_fix[,pos]<-to_fix[,pos] + corrections$object_beg
+    }
+    return(to_fix)
+  },wrong_dat=wrong_dat,agp=agp))
+  wrong_dat[wrong_dat[,locusID] %in% fixed[,locusID],]<-fixed
+  return(wrong_dat)
+}
+```
+
+```{r}
+vcf<-parse.vcf("stacks/populations_subset75/batch_2.pruned.vcf")
+vcf<-reassign_scaffs(vcf,"#CHROM","POS","ID",agp)
+fwsw.al<-reassign_scaffs(read.delim("stacks/populations_subset75/batch_2.fst_ALFW-ALST.tsv"),
+                         "Chr","BP","Locus.ID",agp)
+fwsw.la<-reassign_scaffs(read.delim("stacks/populations_subset75/batch_2.fst_ALST-LAFW.tsv"),
+                         "Chr","BP","Locus.ID",agp)
+fwsw.tx<-reassign_scaffs(read.delim("stacks/populations_subset75/batch_2.fst_TXCC-TXFW.tsv"),
+                         "Chr","BP","Locus.ID",agp)
+fwsw.fl<-reassign_scaffs(read.delim("stacks/populations_subset75/batch_2.fst_FLCC-FLFW.tsv"),
+                         "Chr","BP","Locus.ID",agp)
+fw_SNPinfo<-reassign_scaffs(fw_SNPinfo,"Chrom","Pos","ID",agp)
+```
+
+Let's try this again: 
+```{r}
+
+out_snps<-fw_SNPinfo[fw_SNPinfo$ID %in% unlist(outliers),]
+out_ann<-annotate_snps(out_snps,gff,genome.blast,ID="ID",chrom="Chrom",bp="BP",pos = "Pos")
+```
+
+And it works!
+
+I should really annotate all of the SNPs so I can look into enrichment.
+
+```{r}
+annotated<-annotate_snps(fw_SNPinfo,gff,genome.blast,ID="ID",chrom="Chrom",bp="BP",pos = "Pos")
+```
+
+
+
 # 6 December 2019
 
 I have found the discrepancy! I was using Fst values < 0.05 rather than p values --this is what I had:
