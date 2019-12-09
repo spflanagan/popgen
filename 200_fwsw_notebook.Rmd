@@ -213,7 +213,8 @@ unique(fw_SNPinfo[fw_SNPinfo$ID %in% annotated$Locus[annotated$region=="beyond.l
 
 It doesn't seem like there's an obvious explanation here. 
 
-Using this code: `sed -n '/LG15/,/>/p' ssc_2016_12_20_chromlevel.fa | wc` I find that 8298981 characters are present (so the sequence has 8298971 bp) - but this is much lower than `r max(fw_SNPinfo$BP[fw_SNPinfo$Chrom=="LG15"])`. Crap. I might re-run the pipeline just to verify (save in different folders etc.) Good thing I'm working from home today!
+Using this code: `sed -n '/LG15/,/>/p' ssc_2016_12_20_chromlevel.fa | wc` I find that 8298981 characters are present (so the sequence has 8298971 bp) - but this is much lower than `r max(fw_SNPinfo$BP[fw_SNPinfo$Chrom=="LG15"])`. Crap. I might re-run the pipeline just to verify (save in different folders etc.) Good thing I'm working from home today! -- actually, not so much, all the data is on hard drives at work. But that might work out ok, because then I can save the alignments in a new place anyway. But ugh, this just feels like yet another dumb setback. And I don't look forward to installing Stacks on my work computer.
+
 
 # 6 December 2019
 
