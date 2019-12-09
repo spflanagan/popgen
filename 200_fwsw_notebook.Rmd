@@ -198,7 +198,22 @@ I should really annotate all of the SNPs so I can look into enrichment.
 annotated<-annotate_snps(fw_SNPinfo,gff,genome.blast,ID="ID",chrom="Chrom",bp="BP",pos = "Pos")
 ```
 
+```{r}
+table(annotated$region)
+```
 
+There are a lot of these labelled 'beyond.last.contig', which probably shouldn't even be possible. I'm guessing this is an issue with the gff file as well, and now I'm a little concerned that all of the annotations will be off...I checked though and it looks like I used the newest assembly for the analysis, so I'm not sure where this would have gone wonky.
+
+Let's take a look at the 'beyond last contig' ones.
+
+```{r}
+dim(fw_SNPinfo[fw_SNPinfo$ID %in% annotated$Locus[annotated$region=="beyond.last.contig"],])
+unique(fw_SNPinfo[fw_SNPinfo$ID %in% annotated$Locus[annotated$region=="beyond.last.contig"],"Chrom"])
+```
+
+It doesn't seem like there's an obvious explanation here. 
+
+Using this code: `sed -n '/LG15/,/>/p' ssc_2016_12_20_chromlevel.fa | wc` I find that 8298981 characters are present (so the sequence has 8298971 bp) - but this is much lower than `r max(fw_SNPinfo$BP[fw_SNPinfo$Chrom=="LG15"])`. Crap. I might re-run the pipeline just to verify (save in different folders etc.) Good thing I'm working from home today!
 
 # 6 December 2019
 
