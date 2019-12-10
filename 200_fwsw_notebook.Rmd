@@ -151,7 +151,6 @@ colnames(chr.agp)<-c("object","object_beg","object_end","part_number","W","compo
 
 convert.agp<-function(locus=NULL,old.agp,old.scf,new.agp,scf.agp,
                       chr=NULL,bp=NULL,id=NULL){
-  
   if(!is.null(locus)){
     chr<-locus$`#CHROM`
     bp<-locus$POS
@@ -161,7 +160,7 @@ convert.agp<-function(locus=NULL,old.agp,old.scf,new.agp,scf.agp,
     chr<-as.character(chr)
     id<-as.character(id)
   }
-  component<-as.data.frame(old.agp[old.agp$object == chr & old.agp$object_beg <= bp & old.agp$object_end >= bp,],stringsAsFactors=FALSE)
+  component<-as.data.frame(old.agp[old.agp$object %in% chr & old.agp$object_beg <= bp & old.agp$object_end >= bp,],stringsAsFactors=FALSE)
   if(nrow(component)>0){
     # it's found on one of the LGs
     comp.id<-component$component_id
@@ -195,7 +194,7 @@ convert.agp<-function(locus=NULL,old.agp,old.scf,new.agp,scf.agp,
     out<-data.frame(Locus=id,OrigChr=chr,OrigBP=bp,NewChr=updated.chr,NewBP=updated.bp,stringsAsFactors = FALSE)
   }else{
     #it's not on an LG - let's check the scaffolds
-    component<-as.data.frame(old.scf[old.scf$object == chr & old.scf$object_beg <= bp & old.scf$object_end >= bp,],stringsAsFactors=FALSE)
+    component<-as.data.frame(old.scf[old.scf$object %in% chr & old.scf$object_beg <= bp & old.scf$object_end >= bp,],stringsAsFactors=FALSE)
     if(nrow(component)>0){
       #then we found it
       #check to make sure my bp makes sense
@@ -225,6 +224,7 @@ convert.agp<-function(locus=NULL,old.agp,old.scf,new.agp,scf.agp,
     }else{
       out<-data.frame(Locus=id,OrigChr=chr,OrigBP=bp,NewChr=NA,NewBP=NA,stringsAsFactors = FALSE)
       print(paste("WARNING: locus ", id, " not found",sep=""))
+       
     }
   }
   
@@ -255,6 +255,118 @@ The converted numbers are now less than the genome size, so that's good. So now 
 write.csv(converted,"locus_converter.csv")
 ```
 
+Now I just need to convert the data -- modifying from 230_converting_genomes.
+
+First, the vcf:
+
+```{r}
+lgs<-c("LG1","LG2","LG3","LG4","LG5","LG6","LG7","LG8","LG9","LG10","LG11",
+	"LG12","LG13","LG14","LG15","LG16","LG17","LG18","LG19","LG20","LG21",
+	"LG22")
+```
+
+
+```{r replace_vcf,eval=FALSE}
+#write a new vcf file
+new.vcf<-as.data.frame(vcf,stringsAsFactor=FALSE)
+for(i in 1:nrow(vcf)){
+  new.vcf$POS[i]<-converted$NewBP[i]
+  new.vcf$`#CHROM`[i]<-as.character(converted$NewChr[i])
+}
+
+#save it
+write.table(new.vcf,"converted_subset.vcf",sep='\t',quote=FALSE,col.names = TRUE,row.names = FALSE)
+```
+```{r read_new_vcf}
+#read in the new one
+vcf<-parse.vcf("converted_subset.vcf")
+```
+
+
+Now the stacks
+
+```{r replace_stacks,eval=TRUE}
+fwsw.al<-read.delim("stacks/populations_subset75/batch_2.fst_ALFW-ALST.tsv",stringsAsFactors = FALSE)
+fwsw.la<-read.delim("stacks/populations_subset75/batch_2.fst_ALST-LAFW.tsv",stringsAsFactors = FALSE)
+fwsw.tx<-read.delim("stacks/populations_subset75/batch_2.fst_TXCC-TXFW.tsv",stringsAsFactors = FALSE)
+fwsw.fl<-read.delim("stacks/populations_subset75/batch_2.fst_FLCC-FLFW.tsv",stringsAsFactors = FALSE)
+swsw.fl<-read.delim("stacks/populations_subset75/batch_2.fst_FLCC-FLHB.tsv",stringsAsFactors = FALSE)
+swsw.tx<-read.delim("stacks/populations_subset75/batch_2.fst_TXCB-TXCC.tsv",stringsAsFactors = FALSE)
+swsw.al<-read.delim("stacks/populations_subset75/batch_2.fst_ALST-FLSG.tsv",stringsAsFactors = FALSE)
+
+convert.stacks<-function(stacks.fst,outname,lgs,ssc.agp,sscf.agp,chr.agp,scf.agp){
+  for(i in 1:nrow(stacks.fst)){
+     convert<-convert.agp(old.agp=ssc.agp,old.scf=sscf.agp,new.agp=chr.agp[chr.agp$W=="W",],scf.agp = scf.agp,
+                                 chr=as.character(stacks.fst$Chr[i]),bp=stacks.fst$BP[i],id=as.character(stacks.fst$Locus.ID[i]))
+    stacks.fst[i,"Chr"]<-convert["NewChr"]
+    stacks.fst[i,"BP"]<-convert["NewBP"]
+  }
+  # reorder by chrom
+  scaffs<-levels(as.factor(stacks.fst$Chr))
+  scaffs[1:22]<-lgs
+  upd.fst<-do.call(rbind,lapply(scaffs,function(lg){
+    this.chr<-stacks.fst[stacks.fst$Chr==lg,]
+    this.chr<-this.chr[order(as.numeric(this.chr$BP)),]
+    return(this.chr)
+  }))
+  write.table(upd.fst,outname,col.names = TRUE,row.names = FALSE,quote=FALSE,sep='\t')
+  print(by(upd.fst,upd.fst$Chr,function(chr){ return(max(chr$BP)/1000000) })[lgs])
+  return(upd.fst)
+}
+
+upd.tx<-convert.stacks(fwsw.tx,"stacks/converted.fst_TXCC-TXFW.txt",lgs,ssc.agp,sscf.agp,chr.agp,scf.agp)
+upd.la<-convert.stacks(fwsw.la,"stacks/converted.fst_ALST-LAFW.txt",lgs,ssc.agp,sscf.agp,chr.agp,scf.agp)
+upd.al<-convert.stacks(fwsw.al,"stacks/converted.fst_ALFW-ALST.txt",lgs,ssc.agp,sscf.agp,chr.agp,scf.agp)
+upd.fl<-convert.stacks(fwsw.fl,"stacks/converted.fst_FLCC-FLLG.txt",lgs,ssc.agp,sscf.agp,chr.agp,scf.agp)
+upd.st<-convert.stacks(swsw.tx,"stacks/converted.fst_TXCB-TXCC.txt",lgs,ssc.agp,sscf.agp,chr.agp,scf.agp)
+upd.sa<-convert.stacks(swsw.al,"stacks/converted.fst_ALST-FLSG.txt",lgs,ssc.agp,sscf.agp,chr.agp,scf.agp)
+upd.sf<-convert.stacks(swsw.fl,"stacks/converted.fst_FLCC-FLHB.txt",lgs,ssc.agp,sscf.agp,chr.agp,scf.agp)
+```
+
+
+I should also either update fw_SNPinfo OR re-run all the analyses, including the permutations. I'm updating all the code, and for the bayenv analysis I need to update the plink map file.
+
+The PLINK map file:
+
+
+```{r replace_map,eval=FALSE}
+map<-read.delim("stacks/populations_subset75/batch_2.pruned.map",
+                header = FALSE,stringsAsFactors = FALSE)
+map[,1]<-as.character(map[,1])
+map[,2]<-as.character(map[,2])
+map.convert<-data.frame(Locus=character(),OrigChr=character(),OrigBP=integer(),
+                        NewChr=character(),NewBP=integer(),stringsAsFactors = FALSE)
+for(i in 1:nrow(map)){
+  map.convert[i,]<-convert.agp(old.agp=ssc.agp,old.scf=sscf.agp,new.agp=chr.agp[chr.agp$W=="W",],scf.agp = scf.agp,
+                               chr=as.character(map[i,1]),bp=map[i,4],id=as.character(map[i,2]))
+}
+
+write.table(map.convert,"stacks/converted_subset.map",sep='\t',quote=FALSE,col.names = TRUE,row.names = FALSE)
+
+map.mb<-by(map.convert,map.convert$NewChr,function(chr){ return(max(chr$NewBP)/1000000) })
+map.mb[lgs]
+```
+
+Hmm, this isn't working properly. The basepairs in the map seem to be larger than is reasonable for the others...so let's just change them in fw_SNPinfo.
+
+```{r}
+fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
+SNPconvert<-data.frame(Locus=integer(),OrigChr=character(),OrigBP=integer(),
+                       NewChr=character(),NewBP=integer(),stringsAsFactors = FALSE)
+for(i in 1:nrow(fw_SNPinfo)){
+  SNPconvert[i,]<-convert.agp(old.agp=ssc.agp,old.scf=sscf.agp,
+                             new.agp=chr.agp[chr.agp$W=="W",],scf.agp = scf.agp,
+                             chr = fw_SNPinfo$Chrom[i],bp = fw_SNPinfo$Pos[i],id = fw_SNPinfo$ID[i])
+}
+fw_SNPinfo<-fw_SNPinfo[fw_SNPinfo$ID %in% SNPconvert$Locus,]
+fw_SNPinfo$Chrom<-SNPconvert$NewChr
+fw_SNPinfo$Pos<-SNPconvert$NewBP
+fw_SNPinfo$BP<-fw_SNPinfo$Pos - 1
+saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
+```
+
+
+Now I should be all sorted. I re-made the figures and it looks to be pretty good!
 
 # 9 December 2019
 

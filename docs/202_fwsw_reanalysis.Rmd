@@ -646,13 +646,177 @@ dev.off()
 
 ## Outliers: Fsts from Stacks, permutations, PCadapt
 
-### Stacks
+The alignments were done with a preliminary genome assembly that is different from the published, updated one. The data that I need to convert ar the vcf and the stacks files. 
+
+
+
+```{r convert_agp}
+
+convert.agp<-function(locus=NULL,old.agp,old.scf,new.agp,scf.agp,
+                      chr=NULL,bp=NULL,id=NULL){
+  
+  if(!is.null(locus)){
+    chr<-locus$`#CHROM`
+    bp<-locus$POS
+    id<-locus$ID
+  }else{
+    bp<-as.numeric(unlist(bp))
+    chr<-as.character(chr)
+    id<-as.character(id)
+  }
+  component<-as.data.frame(old.agp[old.agp$object == chr & old.agp$object_beg <= bp & old.agp$object_end >= bp,],stringsAsFactors=FALSE)
+  if(nrow(component)>0){
+    # it's found on one of the LGs
+    comp.id<-component$component_id
+    if(comp.id != 100){
+      #make sure it's an actual scaffold as a component
+      comp.bp<-as.numeric(as.character(component$component_beg))+(bp-as.numeric(as.character(component$object_beg)))-1
+      if(comp.bp<as.numeric(as.character(component$component_end))){ #sanity check - is it a reasonable size?
+        updated<-new.agp[new.agp$component_id%in%comp.id & 
+                  as.numeric(as.character(new.agp$component_beg)) <=comp.bp & 
+                  as.numeric(as.character(new.agp$component_end)) >= comp.bp,]
+        if(nrow(updated)==0){ #if you didn't find it, check scaffold
+          updated<-scf.agp[scf.agp$object%in%comp.id & 
+                  as.numeric(as.character(scf.agp$object_beg)) <=comp.bp & 
+                  as.numeric(as.character(scf.agp$object_end)) >= comp.bp,]
+          updated.bp<-comp.bp
+          updated.chr<-as.character(comp.id)
+        } else{
+          updated.bp<-updated$object_beg+comp.bp
+          updated.chr<-as.character(updated$object)  
+        }
+      }else {
+        print("WARNING: position in component larger than component")
+        updated.bp<-comp.id
+        updated.chr<-as.character(comp.id)
+      }
+    }else{
+      print(paste("WARNING: locus ",id, " is not on a scaffold",sep=""))
+      updated.bp<-bp
+      updated.chr<-NA
+    }
+    out<-data.frame(Locus=id,OrigChr=chr,OrigBP=bp,NewChr=updated.chr,NewBP=updated.bp,stringsAsFactors = FALSE)
+  }else{
+    #it's not on an LG - let's check the scaffolds
+    component<-as.data.frame(old.scf[old.scf$object == chr & old.scf$object_beg <= bp & old.scf$object_end >= bp,],stringsAsFactors=FALSE)
+    if(nrow(component)>0){
+      #then we found it
+      #check to make sure my bp makes sense
+      if(bp < max(old.scf[old.scf$object==chr,"object_end"])){
+        comp.bp<-bp
+        comp.id<-as.character(chr)
+        #look for it in the new assembly
+        updated<-new.agp[new.agp$component_id%in%comp.id & 
+                  as.numeric(as.character(new.agp$component_beg)) <=comp.bp &   
+                  as.numeric(as.character(new.agp$component_end)) >= comp.bp,]
+        if(nrow(updated)==0){ #if you didn't find it, check scaffold
+          updated<-scf.agp[scf.agp$object%in%comp.id & 
+                  as.numeric(as.character(scf.agp$object_beg)) <=comp.bp & 
+                  as.numeric(as.character(scf.agp$object_end)) >= comp.bp,]
+          updated.bp<-comp.bp
+          updated.chr<-as.character(comp.id)
+        } else{
+          updated.bp<-updated$object_beg+comp.bp
+          updated.chr<-as.character(updated$object)  
+        }
+      } else {
+          print("WARNING: position in scaffold larger than scaffold")
+          updated.bp<-NA
+          updated.chr<-NA
+      }
+      out<-data.frame(Locus=id,OrigChr=chr,OrigBP=bp,NewChr=updated.chr,NewBP=updated.bp,stringsAsFactors = FALSE)
+    }else{
+      out<-data.frame(Locus=id,OrigChr=chr,OrigBP=bp,NewChr=NA,NewBP=NA,stringsAsFactors = FALSE)
+      print(paste("WARNING: locus ", id, " not found",sep=""))
+    }
+  }
+  
+  return(out)
+}
+convert.stacks<-function(stacks.fst,outname,lgs,ssc.agp,sscf.agp,chr.agp,scf.agp){
+  for(i in 1:nrow(stacks.fst)){
+     convert<-convert.agp(old.agp=ssc.agp,old.scf=sscf.agp,new.agp=chr.agp[chr.agp$W=="W",],scf.agp = scf.agp,
+                                 chr=as.character(stacks.fst$Chr[i]),bp=stacks.fst$BP[i],id=as.character(stacks.fst$Locus.ID[i]))
+    stacks.fst[i,"Chr"]<-convert["NewChr"]
+    stacks.fst[i,"BP"]<-convert["NewBP"]
+  }
+  # reorder by chrom
+  scaffs<-levels(as.factor(stacks.fst$Chr))
+  scaffs[1:22]<-lgs
+  upd.fst<-do.call(rbind,lapply(scaffs,function(lg){
+    this.chr<-stacks.fst[stacks.fst$Chr==lg,]
+    this.chr<-this.chr[order(as.numeric(this.chr$BP)),]
+    return(this.chr)
+  }))
+  write.table(upd.fst,outname,col.names = TRUE,row.names = FALSE,quote=FALSE,sep='\t')
+  print(by(upd.fst,upd.fst$Chr,function(chr){ return(max(chr$BP)/1000000) })[lgs])
+  return(upd.fst)
+}
+```
+
+```{r gen_agp_lgs}
+# old agps
+ssc.agp<-read.delim("../../scovelli_genome/SSC_genome.agp",comment.char="#",header=FALSE)
+colnames(ssc.agp)<-c("object","object_beg","object_end","part_number","W","component_id","component_beg","component_end","orientation")
+sscf.agp<-read.delim("../../scovelli_genome/SSC_scaffolds.agp",comment.char="#",header=FALSE)
+colnames(sscf.agp)<-c("object","object_beg","object_end","part_number","W","component_id","component_beg","component_end","orientation")
+# new scaffold and chrom level agps
+scf.agp<-read.delim(gzfile("../../scovelli_genome/ssc_2016_12_20_scafflevel.agp.gz"),comment.char="#",header=FALSE)
+chr.agp<-read.delim(gzfile("../../scovelli_genome/ssc_2016_12_20_chromlevel.agp.gz"),comment.char="#",header=FALSE)
+colnames(scf.agp)<-c("object","object_beg","object_end","part_number","W","component_id","component_beg","component_end","orientation")
+colnames(chr.agp)<-c("object","object_beg","object_end","part_number","W","component_id","component_beg","component_end","orientation")
+```
 
 ```{r stacks_fsts}
 fwsw.al<-read.delim("stacks/populations_subset75/batch_2.fst_ALFW-ALST.tsv")
 fwsw.la<-read.delim("stacks/populations_subset75/batch_2.fst_ALST-LAFW.tsv")
 fwsw.tx<-read.delim("stacks/populations_subset75/batch_2.fst_TXCC-TXFW.tsv")
 fwsw.fl<-read.delim("stacks/populations_subset75/batch_2.fst_FLCC-FLFW.tsv")
+swsw.fl<-read.delim("stacks/populations_subset75/batch_2.fst_FLCC-FLHB.tsv",stringsAsFactors = FALSE)
+swsw.tx<-read.delim("stacks/populations_subset75/batch_2.fst_TXCB-TXCC.tsv",stringsAsFactors = FALSE)
+swsw.al<-read.delim("stacks/populations_subset75/batch_2.fst_ALST-FLSG.tsv",stringsAsFactors = FALSE)
+
+vcf<-parse.vcf("stacks/populations_subset75/batch_2.pruned.vcf")
+```
+
+```{r convert_vcf,eval=FALSE}
+vcf<-parse.vcf("stacks/populations_subset75/batch_2.pruned.vcf")
+converted<-data.frame(Locus=integer(),OrigChr=character(),OrigBP=integer(),NewChr=character(),NewBP=integer(),stringsAsFactors = FALSE)
+for(i in 1:nrow(vcf)){
+  converted[i,]<-convert.agp(locus=vcf[i,],old.agp=ssc.agp,old.scf=sscf.agp,new.agp=chr.agp[chr.agp$W=="W",],scf.agp = scf.agp)
+}
+
+```
+
+```{r}
+lgs<-c("LG1","LG2","LG3","LG4","LG5","LG6","LG7","LG8","LG9","LG10","LG11",
+	"LG12","LG13","LG14","LG15","LG16","LG17","LG18","LG19","LG20","LG21",
+	"LG22")
+```
+
+
+```{r replace_vcf,eval=FALSE}
+new.vcf<-as.data.frame(vcf,stringsAsFactor=FALSE)
+for(i in 1:nrow(vcf)){
+  new.vcf$POS[i]<-converted$NewBP[i]
+  new.vcf$`#CHROM`[i]<-as.character(converted$NewChr[i])
+}
+write.table(new.vcf,"converted_subset.vcf",sep='\t',quote=FALSE,col.names = TRUE,row.names = FALSE)
+```
+```{r}
+upd.st<-convert.stacks(swsw.tx,"stacks/converted.fst_TXCB-TXCC.txt",lgs,ssc.agp,sscf.agp,chr.agp,scf.agp)
+upd.sa<-convert.stacks(swsw.al,"stacks/converted.fst_ALST-FLSG.txt",lgs,ssc.agp,sscf.agp,chr.agp,scf.agp)
+upd.sf<-convert.stacks(swsw.fl,"stacks/converted.fst_FLCC-FLHB.txt",lgs,ssc.agp,sscf.agp,chr.agp,scf.agp)
+```
+
+
+### Stacks
+
+```{r stacks_fsts}
+fwsw.al<-read.delim("stacks/converted.fst_ALFW-ALST.txt")
+fwsw.la<-read.delim("stacks/converted.fst_ALST-LAFW.txt")
+fwsw.tx<-read.delim("stacks/converted.fst_TXCC-TXFW.txt")
+fwsw.fl<-read.delim("stacks/converted.fst_FLCC-FLLG.txt")
 ```
 
 ```{r plot_stacks_fsts}
@@ -723,7 +887,7 @@ permute.gwsca<-function(vcf,map1,nperms,z=1.96, maf.cutoff = 0.05,cov.thresh=0.2
 }
 ```
 ```{r permuteVCF,eval=FALSE}
-vcf<-parse.vcf("stacks/populations_subset75/batch_2.pruned.vcf")
+vcf<-parse.vcf("converted_subset.vcf")
 popmap<-data.frame(inds=colnames(vcf)[10:ncol(vcf)],
                    pops=gsub("sample_(\\w{4}).*","\\1",colnames(vcf)[10:ncol(vcf)]),
                    stringsAsFactors = FALSE)
@@ -797,7 +961,7 @@ Now let's start to aggregate everything.
 
 ```{r}
 permuted_fsts<-readRDS("permuted_fsts.RDS")
-vcf<-parse.vcf("stacks/populations_subset75/batch_2.pruned.vcf")
+vcf<-parse.vcf("converted_subset.vcf")
 fw_SNPinfo<-data.frame(ID=vcf$ID,Chrom=vcf$`#CHROM`,Pos=vcf$POS,BP=vcf$POS-1,
                        REF=vcf$REF,ALT=vcf$ALT,
                        perm_TX=permuted_fsts[[1]]$act_in_perm,
@@ -837,7 +1001,7 @@ For this analysis we'll use the subset of populations rather than the full popul
 First I need to add the fileformat line to the vcf
 
 ```{r convertVCF, eval=FALSE}
-vcf<-parse.vcf("stacks/populations_subset75/batch_2.pruned.vcf")
+vcf<-parse.vcf("converted_subset.vcf")
 write.table("##fileformat=VCFv","pcadapt_fw/fwsw.pruned.vcf",quote=FALSE,
             col.names = FALSE,row.names = FALSE)
 suppressWarnings(write.table(vcf,"pcadapt_fw/fwsw.pruned.vcf",quote=FALSE,append = TRUE,
@@ -854,7 +1018,7 @@ x<-pcadapt(filename, K=20)
 plot(x,option="screeplot")
 ```
 
-*K=4* seems like the best choice here to keep values to the left of the straight line. 
+*K=4* seems like the best choice here to keep values to the left of the straight line (or could be *K=6*). 
 
 ```{r}
 # Organize pop info
@@ -907,7 +1071,7 @@ snp_pc<-get.pc(res,outliers) # Get the PCs associated with outliers
 We identified `r length(outliers)` outliers with this analysis, which are associated with `r length(unique(snp_pc$PC))` of the 4 clusters. If we look at the distribution of these, though, we see that most are associated with PC 1
 
 ```{r}
-summary(as.factor(snp_pc$SNP))
+table(snp_pc$PC)
 ```
 
 Now we can add the qvalues to the fw_SNPinfo dataframe
@@ -1008,7 +1172,8 @@ bayenv_dat<-bayenv_dat[order(bayenv_dat$locus),]
 bayenv_dat<-merge(snp_dat,bayenv_dat,by.x="loc",by.y="locus")
 colnames(bayenv_dat)[1:2]<-c("index","SNPID")
 
-pmap<-read.delim("stacks/populations_subset75/batch_2.pruned.map",header = FALSE)
+pmap<-read.delim("stacks/populations_subset75/batch_2.pruned.map",header = FALSE) 
+# the position location is wrong in this ^ file
 pmap$locus<-gsub("(\\d+)_\\d+","\\1",pmap[,2])
 
 bayenv_dat<-merge(pmap[,c(1,4,5)],bayenv_dat,by.x="locus",by.y="SNPID")
