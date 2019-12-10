@@ -291,7 +291,7 @@ bf.mb[lgs]
 #### Stacks output
 
 ```{r replace_stacks,eval=TRUE}
-fwsw.tx<-read.delim("stacks/batch_2.fst_TXCC-TXFW.tsv",stringsAsFactors = FALSE)
+fwsw.tx<-read.delim("stacks/batch_2.fst_TXCC-TXFW.tsv",stringsAsFactors = FALSE)  
 fwsw.la<-read.delim("stacks/batch_2.fst_ALST-LAFW.tsv",stringsAsFactors = FALSE)
 fwsw.al<-read.delim("stacks/batch_2.fst_ALFW-ALST.tsv",stringsAsFactors = FALSE)
 fwsw.fl<-read.delim("stacks/batch_2.fst_FLCC-FLLG.tsv",stringsAsFactors = FALSE)

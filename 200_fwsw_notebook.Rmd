@@ -11,6 +11,251 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 10 December 2019
+
+I'm thinking I'll just map the consensus tags to the genome and see if they are in the same place. So I need to extract the sequences from batch_2.catalog.tags.tsv
+
+```{r}
+tags<-read.delim("/media/sarah/8TB Seagate Expansion Drive/ubuntushare/popgen/fwsw_results/stacks/batch_2.catalog.tags.tsv",
+                 comment.char = "#",header=FALSE)
+headers<-paste0(">Stacks",tags$V3,"_", tags$V4,"_",tags$V5)
+o<-mapply(function(names,seq){
+  write.table(names,file="stacks/catalog_tags.fasta",quote=FALSE,col.names=FALSE,append=TRUE,row.names=FALSE)
+  write.table(seq,file="stacks/catalog_tags.fasta",quote=FALSE,col.names=FALSE,append=TRUE,row.names=FALSE)
+},headers,tags$V10)
+```
+
+Now I just need to run this:
+`bowtie2 --sensitive -x ../../scovelli_genome/ssc_genome -S catalog.sam -t -f -U stacks/catalog_tags.fasta --un catalog.unpaired.sam -p 3`
+
+It's possible that I've been using a catalog file that was generated from the old genome, which would explain some of the discrepancies.
+
+That code ran really quickly! And...it looks like the locations are rather different.
+
+```{r}
+catsam<-read.delim("catalog.sam",header=FALSE,comment.char="@")
+converter<-data.frame(locus=gsub("Stacks(\\d+)_.*","\\1",catsam$V1),
+                      Chrom=catsam$V3, Pos=catsam$V4, 
+                      oldChrom=gsub("Stacks(\\d+)_(.*)_(.*)","\\2",catsam$V1),
+                      oldPos=as.numeric(gsub("Stacks(\\d+)_(.*)_(.*)","\\3",catsam$V1)),
+                      stringsAsFactors=FALSE)
+```
+
+Note that these are the locations of the TAG, not the SNP -- so I need to use the difference to identify the SNPs.
+
+```{r}
+fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
+SNPconvert<-converter[converter$locus %in% fw_SNPinfo$ID,]
+SNPconvert$SNPpos<-SNPconvert$Pos + (fw_SNPinfo$BP - SNPconvert$oldPos)
+```
+
+Ok, if I replace the old locations with new and run the annotation program, what happens?
+
+```{r}
+fw_SNPinfo$Chrom<-SNPconvert$Chrom
+fw_SNPinfo$Pos<-SNPconvert$Pos
+fw_SNPinfo$BP<-SNPconvert$Pos-1
+
+```
+
+
+```{r}
+gff.name<-"ssc_2016_12_20_chromlevel.gff"
+if(length(grep("gz",gff.name))>0){
+  gff<-read.delim(gzfile(paste("../../scovelli_genome/",gff.name,sep="")),header=F)
+} else{
+  gff<-read.delim(paste("../../scovelli_genome/",gff.name,sep=""),header=F)
+}
+colnames(gff)<-c("seqname","source","feature","start","end","score","strand","frame","attribute")
+genome.blast<-read.csv("../../scovelli_genome/ssc_2016_12_20_cds_nr_blast_results.csv",skip=1,header=T)#I saved it as a csv
+```
+```{r}
+outliers<-list(xtx=fw_SNPinfo$ID[fw_SNPinfo$XtX >= quantile(fw_SNPinfo$XtX,0.99)],
+               salBF=fw_SNPinfo$ID[fw_SNPinfo$logSalBF>=quantile(fw_SNPinfo$logSalBF,0.99)],
+               permutations=fw_SNPinfo$ID[rowSums(fw_SNPinfo[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+               pcadapt=fw_SNPinfo$ID[which(fw_SNPinfo$pcadaptQ<0.01)],
+               Alabama=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05)], 
+               Louisiana=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_LA_P < 0.05)],
+               Texas=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_TX_P < 0.05)],
+               Florida=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_FL_P < 0.05)],
+               sharedStacks=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05 & fw_SNPinfo$stacks_LA_P < 0.05 &
+                 fw_SNPinfo$stacks_TX_P < 0.05 & fw_SNPinfo$stacks_FL_P < 0.05)])
+out_snps<-fw_SNPinfo[fw_SNPinfo$ID %in% unlist(outliers),]
+out_ann<-annotate_snps(out_snps,gff,genome.blast,ID="ID",chrom="Chrom",bp="BP",pos = "Pos")
+```
+
+
+```{r}
+table(out_ann$region)
+```
+
+This removed those 'beyond.last.contig' ones, which is great, but I do have two scaffNotFound.
+
+```{r}
+out_ann[out_ann$region=="scaffNotFound",]
+```
+
+Well, what do you expect when you have stars?
+
+```{r}
+converter[converter$locus %in% out_ann$Locus[out_ann$region=="scaffNotFound"],]
+```
+
+something seems to have gotten wonky here. Let's try merging rather than replacing
+
+```{r}
+fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
+SNPconvert<-converter[converter$locus %in% fw_SNPinfo$ID,]
+colnames(SNPconvert)[3]<-"tagPos"
+
+fw_SNPinfo<-merge(fw_SNPinfo,SNPconvert,by.x="ID",by.y="locus")
+
+fw_SNPinfo$SNPpos<-fw_SNPinfo$tagPos + (fw_SNPinfo$BP - fw_SNPinfo$oldPos)
+fw_SNPinfo<-fw_SNPinfo[,-2]
+out_snps<-fw_SNPinfo[fw_SNPinfo$ID %in% unlist(outliers),]
+out_ann<-annotate_snps(out_snps,gff,genome.blast,ID="ID",chrom="Chrom.y",bp="BP",pos = "SNPpos")
+table(out_ann$region)
+```
+
+Hmm, still some scaffs not found and some that are beyond the last contig.
+
+```{r}
+catsam[gsub("Stacks(\\d+).*","\\1",catsam$V1) %in% out_ann[out_ann$region=="scaffNotFound","Locus"],]
+```
+
+Ok, these two are unmapped. That's that the 4 in the 2nd column indicates. 
+
+```{r}
+dim(catsam[catsam$V2==4,])
+```
+
+So there are 1971 tags that were unmapped, including two outliers. Ugh this is frustrating
+
+So this seems to be a problem that I've previously solved to my satisfaction using 230_converting_genomes.Rmd. I'm going to try updating that and see if it fixes things...
+
+From converting genomes (slightly modified):
+
+
+```{r gen_agp_lgs}
+# old agps
+ssc.agp<-read.delim("../../scovelli_genome/SSC_genome.agp",comment.char="#",header=FALSE)
+colnames(ssc.agp)<-c("object","object_beg","object_end","part_number","W","component_id","component_beg","component_end","orientation")
+sscf.agp<-read.delim("../../scovelli_genome/SSC_scaffolds.agp",comment.char="#",header=FALSE)
+colnames(sscf.agp)<-c("object","object_beg","object_end","part_number","W","component_id","component_beg","component_end","orientation")
+# new scaffold and chrom level agps
+scf.agp<-read.delim(gzfile("../../scovelli_genome/ssc_2016_12_20_scafflevel.agp.gz"),comment.char="#",header=FALSE)
+chr.agp<-read.delim(gzfile("../../scovelli_genome/ssc_2016_12_20_chromlevel.agp.gz"),comment.char="#",header=FALSE)
+colnames(scf.agp)<-c("object","object_beg","object_end","part_number","W","component_id","component_beg","component_end","orientation")
+colnames(chr.agp)<-c("object","object_beg","object_end","part_number","W","component_id","component_beg","component_end","orientation")
+
+
+convert.agp<-function(locus=NULL,old.agp,old.scf,new.agp,scf.agp,
+                      chr=NULL,bp=NULL,id=NULL){
+  
+  if(!is.null(locus)){
+    chr<-locus$`#CHROM`
+    bp<-locus$POS
+    id<-locus$ID
+  }else{
+    bp<-as.numeric(unlist(bp))
+    chr<-as.character(chr)
+    id<-as.character(id)
+  }
+  component<-as.data.frame(old.agp[old.agp$object == chr & old.agp$object_beg <= bp & old.agp$object_end >= bp,],stringsAsFactors=FALSE)
+  if(nrow(component)>0){
+    # it's found on one of the LGs
+    comp.id<-component$component_id
+    if(comp.id != 100){
+      #make sure it's an actual scaffold as a component
+      comp.bp<-as.numeric(as.character(component$component_beg))+(bp-as.numeric(as.character(component$object_beg)))-1
+      if(comp.bp<as.numeric(as.character(component$component_end))){ #sanity check - is it a reasonable size?
+        updated<-new.agp[new.agp$component_id%in%comp.id & 
+                  as.numeric(as.character(new.agp$component_beg)) <=comp.bp & 
+                  as.numeric(as.character(new.agp$component_end)) >= comp.bp,]
+        if(nrow(updated)==0){ #if you didn't find it, check scaffold
+          updated<-scf.agp[scf.agp$object%in%comp.id & 
+                  as.numeric(as.character(scf.agp$object_beg)) <=comp.bp & 
+                  as.numeric(as.character(scf.agp$object_end)) >= comp.bp,]
+          updated.bp<-comp.bp
+          updated.chr<-as.character(comp.id)
+        } else{
+          updated.bp<-updated$object_beg+comp.bp
+          updated.chr<-as.character(updated$object)  
+        }
+      }else {
+        print("WARNING: position in component larger than component")
+        updated.bp<-comp.id
+        updated.chr<-as.character(comp.id)
+      }
+    }else{
+      print(paste("WARNING: locus ",id, " is not on a scaffold",sep=""))
+      updated.bp<-bp
+      updated.chr<-NA
+    }
+    out<-data.frame(Locus=id,OrigChr=chr,OrigBP=bp,NewChr=updated.chr,NewBP=updated.bp,stringsAsFactors = FALSE)
+  }else{
+    #it's not on an LG - let's check the scaffolds
+    component<-as.data.frame(old.scf[old.scf$object == chr & old.scf$object_beg <= bp & old.scf$object_end >= bp,],stringsAsFactors=FALSE)
+    if(nrow(component)>0){
+      #then we found it
+      #check to make sure my bp makes sense
+      if(bp < max(old.scf[old.scf$object==chr,"object_end"])){
+        comp.bp<-bp
+        comp.id<-as.character(chr)
+        #look for it in the new assembly
+        updated<-new.agp[new.agp$component_id%in%comp.id & 
+                  as.numeric(as.character(new.agp$component_beg)) <=comp.bp &   
+                  as.numeric(as.character(new.agp$component_end)) >= comp.bp,]
+        if(nrow(updated)==0){ #if you didn't find it, check scaffold
+          updated<-scf.agp[scf.agp$object%in%comp.id & 
+                  as.numeric(as.character(scf.agp$object_beg)) <=comp.bp & 
+                  as.numeric(as.character(scf.agp$object_end)) >= comp.bp,]
+          updated.bp<-comp.bp
+          updated.chr<-as.character(comp.id)
+        } else{
+          updated.bp<-updated$object_beg+comp.bp
+          updated.chr<-as.character(updated$object)  
+        }
+      } else {
+          print("WARNING: position in scaffold larger than scaffold")
+          updated.bp<-NA
+          updated.chr<-NA
+      }
+      out<-data.frame(Locus=id,OrigChr=chr,OrigBP=bp,NewChr=updated.chr,NewBP=updated.bp,stringsAsFactors = FALSE)
+    }else{
+      out<-data.frame(Locus=id,OrigChr=chr,OrigBP=bp,NewChr=NA,NewBP=NA,stringsAsFactors = FALSE)
+      print(paste("WARNING: locus ", id, " not found",sep=""))
+    }
+  }
+  
+  return(out)
+}
+```
+```{r convert_vcf,eval=FALSE}
+vcf<-parse.vcf("stacks/populations_subset75/batch_2.pruned.vcf")
+converted<-data.frame(Locus=integer(),OrigChr=character(),OrigBP=integer(),NewChr=character(),NewBP=integer(),stringsAsFactors = FALSE)
+for(i in 1:nrow(vcf)){
+  converted[i,]<-convert.agp(locus=vcf[i,],old.agp=ssc.agp,old.scf=sscf.agp,new.agp=chr.agp[chr.agp$W=="W",],scf.agp = scf.agp)
+}
+
+```
+
+We can test this by looking at the sizes of the gff, the ones in the vcf, and the converted ones:
+
+```{r}
+gff.mb<-by(gff,gff$seqname,function(chr){ return(max(chr$end)/1000000) })
+vcf.mb<-by(vcf,vcf$`#CHROM`,function(chr){ return(max(chr$POS)/1000000) })
+comp.mb<-data.frame(Genome=gff.mb[lgs],VCF=vcf.mb[lgs])
+comp.mb$converted<-conv.mb[lgs]
+```
+
+The converted numbers are now less than the genome size, so that's good. So now I just need to update my files. 
+
+```{r}
+write.csv(converted,"locus_converter.csv")
+```
+
+
 # 9 December 2019
 
 Back to annotations
