@@ -638,6 +638,76 @@ dev.off()
 ![Figure 2. Population Structure](../figs/NewPopStructure_v1.jpeg)
 
 
+### Make table
+
+
+```{r}
+full_fsts<-read.delim("stacks/populations_whitelist/batch_2.fst_summary.tsv",row.names = 1)
+full_fsts<-rbind(full_fsts,TXSP=rep(NA,ncol(full_fsts))) #add the final row
+Tfull_fsts<-t(full_fsts)
+full_fsts[lower.tri(full_fsts)]<-Tfull_fsts[lower.tri(Tfull_fsts)] # now it's symmetric
+full_fsts<-full_fsts[pop.list,pop.list]
+colnames(full_fsts)<-rownames(full_fsts)<-pop.labs
+fst_mat<-as.matrix(full_fsts)
+```
+
+```{r}
+cov<-read.table(gzfile("treemix/fwsw_k100b.cov.gz"), as.is = T, head = T, quote = "", comment.char = "")
+#reorder
+covplot <- data.frame(matrix(nrow = nrow(cov), ncol = ncol(cov)))
+for(i in 1:length(pop.list)){
+  for( j in 1:length(pop.list)){
+    
+    covplot[i, j] = cov[which(names(cov)==pop.list[i]), which(names(cov)==pop.list[j])]
+    rownames(covplot)[i]<-pop.list[i]
+    colnames(covplot)[j]<-pop.list[j]
+  }
+}
+covplot<-as.matrix(covplot)
+
+
+```
+```{r}
+library(xlsx); library(RColorBrewer); library(scales)
+
+table2<-fst_mat
+table2[lower.tri(table2)]<-covplot[lower.tri(covplot)]
+diag(table2)<-diag(covplot)
+table2<-round(table2,digits = 4)
+
+# first export the data
+sheetName <- "FstCov"
+file<-"table2_fst_cov.xlsx"
+write.xlsx(table2,file,sheetName = sheetName)
+
+wb<-loadWorkbook(file)
+sheets <- getSheets(wb)               
+sheet <- sheets[[sheetName]]          
+rows <- getRows(sheet, rowIndex=2:(nrow(table2)+1)) # 1st row is headers
+cells <- getCells(rows, colIndex = 2:(ncol(table2)+1)) # 1st col is rownames         
+values<-lapply(cells,getCellValue)
+
+# set the colors
+pal<-colorRampPalette(c("#deebf7","#3182bd"))
+cols<-matrix(nrow = nrow(table2),ncol=nrow(table2))
+cols[upper.tri(cols)]<-pal(10)[as.numeric(cut(table2[upper.tri(table2)],breaks = 10))]
+pal<-colorRampPalette(c("#78c679","#f7fcb9"))
+cols[lower.tri(cols)]<-pal(10)[as.numeric(cut(table2[lower.tri(table2)],breaks = 10))]
+pal<-colorRampPalette(c("#f7f7f7","#969696"))
+diag(cols)<-pal(10)[as.numeric(cut(diag(table2),breaks = 10))]
+
+for(i in 1:nrow(table2)){
+  for(j in 1:ncol(table2)){
+    csij<-CellStyle(wb,fill=Fill(foregroundColor = alpha(cols[i,j])))
+    setCellStyle(cells[[paste(i+1,j+1,sep=".")]],cellStyle = csij)
+  }
+}
+
+saveWorkbook(wb, file)
+```
+
+
+
 ## Demographic history inference
 
 

@@ -11,6 +11,346 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 11 December 2019
+
+I'm converting fw_SNPinfo on my linux machine:
+
+
+```{r}
+gff.name<-"ssc_2016_12_20_chromlevel.gff"
+if(length(grep("gz",gff.name))>0){
+  gff<-read.delim(gzfile(paste("../../scovelli_genome/",gff.name,sep="")),header=F)
+} else{
+  gff<-read.delim(paste("../../scovelli_genome/",gff.name,sep=""),header=F)
+}
+colnames(gff)<-c("seqname","source","feature","start","end","score","strand","frame","attribute")
+genome.blast<-read.csv("../../scovelli_genome/ssc_2016_12_20_cds_nr_blast_results.csv",skip=1,header=T)#I saved it as a csv
+```
+```{r}
+# old agps
+ssc.agp<-read.delim("../../scovelli_genome/SSC_genome.agp",comment.char="#",header=FALSE)
+colnames(ssc.agp)<-c("object","object_beg","object_end","part_number","W","component_id","component_beg","component_end","orientation")
+sscf.agp<-read.delim("../../scovelli_genome/SSC_scaffolds.agp",comment.char="#",header=FALSE)
+colnames(sscf.agp)<-c("object","object_beg","object_end","part_number","W","component_id","component_beg","component_end","orientation")
+# new scaffold and chrom level agps
+scf.agp<-read.delim(gzfile("../../scovelli_genome/ssc_2016_12_20_scafflevel.agp.gz"),comment.char="#",header=FALSE)
+chr.agp<-read.delim(gzfile("../../scovelli_genome/ssc_2016_12_20_chromlevel.agp.gz"),comment.char="#",header=FALSE)
+colnames(scf.agp)<-c("object","object_beg","object_end","part_number","W","component_id","component_beg","component_end","orientation")
+colnames(chr.agp)<-c("object","object_beg","object_end","part_number","W","component_id","component_beg","component_end","orientation")
+
+
+convert.agp<-function(locus=NULL,old.agp,old.scf,new.agp,scf.agp,
+                      chr=NULL,bp=NULL,id=NULL){
+  if(!is.null(locus)){
+    chr<-locus$`#CHROM`
+    bp<-locus$POS
+    id<-locus$ID
+  }else{
+    bp<-as.numeric(unlist(bp))
+    chr<-as.character(chr)
+    id<-as.character(id)
+  }
+  component<-as.data.frame(old.agp[old.agp$object %in% chr & old.agp$object_beg <= bp & old.agp$object_end >= bp,],stringsAsFactors=FALSE)
+  if(nrow(component)>0){
+    # it's found on one of the LGs
+    comp.id<-component$component_id
+    if(comp.id != 100){
+      #make sure it's an actual scaffold as a component
+      comp.bp<-as.numeric(as.character(component$component_beg))+(bp-as.numeric(as.character(component$object_beg)))-1
+      if(comp.bp<as.numeric(as.character(component$component_end))){ #sanity check - is it a reasonable size?
+        updated<-new.agp[new.agp$component_id%in%comp.id & 
+                  as.numeric(as.character(new.agp$component_beg)) <=comp.bp & 
+                  as.numeric(as.character(new.agp$component_end)) >= comp.bp,]
+        if(nrow(updated)==0){ #if you didn't find it, check scaffold
+          updated<-scf.agp[scf.agp$object%in%comp.id & 
+                  as.numeric(as.character(scf.agp$object_beg)) <=comp.bp & 
+                  as.numeric(as.character(scf.agp$object_end)) >= comp.bp,]
+          updated.bp<-comp.bp
+          updated.chr<-as.character(comp.id)
+        } else{
+          updated.bp<-updated$object_beg+comp.bp
+          updated.chr<-as.character(updated$object)  
+        }
+      }else {
+        print("WARNING: position in component larger than component")
+        updated.bp<-comp.id
+        updated.chr<-as.character(comp.id)
+      }
+    }else{
+      print(paste("WARNING: locus ",id, " is not on a scaffold",sep=""))
+      updated.bp<-bp
+      updated.chr<-NA
+    }
+    out<-data.frame(Locus=id,OrigChr=chr,OrigBP=bp,NewChr=updated.chr,NewBP=updated.bp,stringsAsFactors = FALSE)
+  }else{
+    #it's not on an LG - let's check the scaffolds
+    component<-as.data.frame(old.scf[old.scf$object %in% chr & old.scf$object_beg <= bp & old.scf$object_end >= bp,],stringsAsFactors=FALSE)
+    if(nrow(component)>0){
+      #then we found it
+      #check to make sure my bp makes sense
+      if(bp < max(old.scf[old.scf$object==chr,"object_end"])){
+        comp.bp<-bp
+        comp.id<-as.character(chr)
+        #look for it in the new assembly
+        updated<-new.agp[new.agp$component_id%in%comp.id & 
+                  as.numeric(as.character(new.agp$component_beg)) <=comp.bp &   
+                  as.numeric(as.character(new.agp$component_end)) >= comp.bp,]
+        if(nrow(updated)==0){ #if you didn't find it, check scaffold
+          updated<-scf.agp[scf.agp$object%in%comp.id & 
+                  as.numeric(as.character(scf.agp$object_beg)) <=comp.bp & 
+                  as.numeric(as.character(scf.agp$object_end)) >= comp.bp,]
+          updated.bp<-comp.bp
+          updated.chr<-as.character(comp.id)
+        } else{
+          updated.bp<-updated$object_beg+comp.bp
+          updated.chr<-as.character(updated$object)  
+        }
+      } else {
+          print("WARNING: position in scaffold larger than scaffold")
+          updated.bp<-NA
+          updated.chr<-NA
+      }
+      out<-data.frame(Locus=id,OrigChr=chr,OrigBP=bp,NewChr=updated.chr,NewBP=updated.bp,stringsAsFactors = FALSE)
+    }else{
+      out<-data.frame(Locus=id,OrigChr=chr,OrigBP=bp,NewChr=NA,NewBP=NA,stringsAsFactors = FALSE)
+      print(paste("WARNING: locus ", id, " not found",sep=""))
+       
+    }
+  }
+  
+  return(out)
+}
+```
+```{r}
+fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
+SNPconvert<-data.frame(Locus=integer(),OrigChr=character(),OrigBP=integer(),
+                       NewChr=character(),NewBP=integer(),stringsAsFactors = FALSE)
+for(i in 1:nrow(fw_SNPinfo)){
+  SNPconvert[i,]<-convert.agp(old.agp=ssc.agp,old.scf=sscf.agp,
+                             new.agp=chr.agp[chr.agp$W=="W",],scf.agp = scf.agp,
+                             chr = fw_SNPinfo$Chrom[i],bp = fw_SNPinfo$Pos[i],id = fw_SNPinfo$ID[i])
+}
+fw_SNPinfo<-fw_SNPinfo[fw_SNPinfo$ID %in% SNPconvert$Locus,]
+fw_SNPinfo$Chrom<-SNPconvert$NewChr
+fw_SNPinfo$Pos<-SNPconvert$NewBP
+fw_SNPinfo$BP<-fw_SNPinfo$Pos - 1
+saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
+```
+```{r}
+fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
+snp_annotate<-annotate_snps(fw_SNPinfo,gff,genome.blast,ID="ID",chrom="Chrom",bp="BP",pos = "Pos")
+snp_annotate$Locus<-as.numeric(as.character(snp_annotate$Locus))
+fw_SNPinfo<-merge(fw_SNPinfo,snp_annotate,by.x="ID",by.y="Locus",all.x=TRUE)
+saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
+```
+```{r}
+outliers<-list(xtx=fw_SNPinfo$ID[fw_SNPinfo$XtX >= quantile(fw_SNPinfo$XtX,0.99)],
+               salBF=fw_SNPinfo$ID[fw_SNPinfo$logSalBF>=quantile(fw_SNPinfo$logSalBF,0.99)],
+               permutations=fw_SNPinfo$ID[rowSums(fw_SNPinfo[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+               pcadapt=fw_SNPinfo$ID[which(fw_SNPinfo$pcadaptQ<0.01)],
+               Alabama=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05)], 
+               Louisiana=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_LA_P < 0.05)],
+               Texas=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_TX_P < 0.05)],
+               Florida=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_FL_P < 0.05)],
+               sharedStacks=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05 & fw_SNPinfo$stacks_LA_P < 0.05 &
+                 fw_SNPinfo$stacks_TX_P < 0.05 & fw_SNPinfo$stacks_FL_P < 0.05)])
+out_snps<-fw_SNPinfo[fw_SNPinfo$ID %in% unlist(outliers),]
+table(out_snps$region)
+```
+
+Now, onto the actual work: are the outliers more likely to be in a coding region than expected by chance? First, though, I want to simplify the "region" information here. I could do a binary "gene" and "not-gene", but I could also break it down into not-gene, CDS/exon, three_prime_UTR, five_prime_UTR, and other-gene-region. What's confusing is that they can be in different parts of genes -- so I think I'll start with binary gene/not-gene. This will allow me to do a Fisher's exact test with two binary variables: outlier and in-gene.
+
+```{r}
+fw_SNPinfo$functional<-as.character(fw_SNPinfo$region)
+fw_SNPinfo$functional[fw_SNPinfo$functional != "contig"]<-"Gene"
+fw_SNPinfo$functional[fw_SNPinfo$functional == "contig"]<-"notGene"
+fw_SNPinfo$outlier<-FALSE
+fw_SNPinfo$outlier[fw_SNPinfo$ID %in% unlist(outliers)]<-TRUE
+```
+
+Here's our contingency table:
+```{r}
+outContingency<-table(fw_SNPinfo$outlier,fw_SNPinfo$functional)
+fisher.test(outContingency)
+```
+
+Trying some other things:
+```{r}
+A<-outContingency[1,1]
+B<-outContingency[1,2]
+C<-outContingency[2,1]
+D<-outContingency[2,2]
+N<-sum(outContingency)
+  
+p<-choose((A+B),A)*choose(C+D,C)/choose(N,A+C) # this doesn't work
+
+
+```
+
+Or this from this website: https://www.pathwaycommons.org/guide/primers/statistics/fishers_exact_test/#calculationsInR
+```{r}
+n<-rowSums(outContingency)[1] # not outliers
+m<-rowSums(outContingency)[2] # outliers
+k<-colSums(outContingency)[1] # gene hits
+x<-c(0:outContingency[2,1]) # gene hits and outlier
+probabilities <- dhyper(x, m, n, k, log = FALSE)
+```
+
+Not sure what to do with these, so I'm just going to go with the fisher's exact test and conclude that outliers writ large are not more likely to be in gene regions than non-outliers.
+
+What about freshwater genes? Or specific outlier sets? Possibly the best approach is to do some exploratory plots the numbers of non-outliers vs outliers for different gene regions, and could do this for different sets of outliers. 
+
+```{r}
+library(UpSetR);library(scales);library(ggplot2);library(grid);library(gwscaR);library(gridGraphics)
+source("../R/upset_hacked.R")
+source("../R/205_popgenPlotting.R")
+
+snp_groups<-list(xtx=fw_SNPinfo$ID[fw_SNPinfo$XtX >= quantile(fw_SNPinfo$XtX,0.99)],
+               salBF=fw_SNPinfo$ID[fw_SNPinfo$logSalBF>=quantile(fw_SNPinfo$logSalBF,0.99)],
+               permutations=fw_SNPinfo$ID[rowSums(fw_SNPinfo[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+               pcadapt=fw_SNPinfo$ID[which(fw_SNPinfo$pcadaptQ<0.01)],
+               Alabama=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05)], 
+               Louisiana=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_LA_P < 0.05)],
+               Texas=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_TX_P < 0.05)],
+               Florida=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_FL_P < 0.05)],
+               sharedStacks=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05 & fw_SNPinfo$stacks_LA_P < 0.05 &
+                 fw_SNPinfo$stacks_TX_P < 0.05 & fw_SNPinfo$stacks_FL_P < 0.05)],
+               genes=fw_SNPinfo$ID[fw_SNPinfo$functional=="Gene"],
+               notgenes=fw_SNPinfo$ID[fw_SNPinfo$functional=="notGene"])
+cols<-c(permutations='#e41a1c',salBF='#377eb8',pcadapt='#a65628',
+        xtx='#ff7f00',sharedStacks='#f781bf',
+        Alabama='#af8dc3',Louisiana='#e7d4e8',Texas='#762a83',Florida='#1b7837',
+        genes="black",notgenes="grey")
+upset(fromList(snp_groups),sets=c("permutations","salBF","xtx","pcadapt","sharedStacks","genes"),
+      point.size=3.5,line.size=2,mainbar.y.label = "Number of Shared Outliers",
+      sets.x.label = " Number of Outliers",text.scale=c(1.5,1.5,1.5,1.5,1.5,1.5),
+      sets.bar.color =cols[c("permutations","salBF","xtx","pcadapt","sharedStacks","genes")],margin1scale = 0.2,
+      sets.pt.color=cols[c("permutations","salBF","xtx","pcadapt","sharedStacks","genes")])
+
+```
+
+Ok, this just isn't that helpful. I could check for enrichment of saltwater-associated genes, especially in the salinity-associated genes. 
+
+```{r}
+put.genes<-read.delim("putative_genes.txt",header=TRUE,sep='\t')
+put.reg<-read.delim("putative.gene.regions.tsv",header=TRUE,sep='\t')
+put_snps<-unlist(lapply(1:nrow(fw_SNPinfo),function(i,out_snps,put.reg){
+  if(!is.na(out_snps$SSCID[i])){
+    out_genes<-unlist(strsplit(as.character(out_snps$SSCID[i]),";"))
+    put_match<-lapply(out_genes,grep,put.reg$Scovelli_geneID)
+    if(put_match[1]=="integer(0)"){
+      return(NA)
+    }else{
+      return(paste(unique(put.reg$Gene[unlist(put_match)]),collapse=";"))
+    }
+  }else{
+    return(NA)
+  }
+},fw_SNPinfo,put.reg))
+```
+
+So are outliers more likely to be in putative regions than non-outliers?
+
+```{r}
+putative<-is.na(put_snps)
+putative[putative==TRUE]<-"Salinity"
+putative[putative==FALSE]<-"NotSalinity"
+outContingency<-table(putative,fw_SNPinfo$outlier)
+fisher.test(outContingency)
+```
+
+Still not enriched. Oh well!
+
+```{r}
+salouts<-rep(FALSE,length(fw_SNPinfo$outlier))
+salouts[fw_SNPinfo$logSalBF>=quantile(fw_SNPinfo$logSalBF,0.99)]<-TRUE
+table(putative,salouts)
+fisher.test(outContingency)
+```
+And salinity-associated genes aren't either. :shrug:
+
+I'll just report some of these findings in the text and move on -- I don't think it's worth doing GO/KEGG, though I'll get Adam & Emily's feedback (and the reviewers' I suppose).
+
+Remaining thing on the whiteboard is to make a colored table of pairwise FST values. It would be nice to do this in an automated way. I can do this with the package xlsx.
+
+```{r}
+full_fsts<-read.delim("stacks/populations_whitelist/batch_2.fst_summary.tsv",row.names = 1)
+full_fsts<-rbind(full_fsts,TXSP=rep(NA,ncol(full_fsts))) #add the final row
+Tfull_fsts<-t(full_fsts)
+full_fsts[lower.tri(full_fsts)]<-Tfull_fsts[lower.tri(Tfull_fsts)] # now it's symmetric
+full_fsts<-full_fsts[pop.list,pop.list]
+colnames(full_fsts)<-rownames(full_fsts)<-pop.labs
+fst_mat<-as.matrix(full_fsts)
+```
+
+This code is from the reanalysis doc. Can I fill in the lower triangle with additional/different information? Pairwise PSTs perhaps?
+
+Then I'll use xlsx to write it to a file.
+
+```{r}
+cov<-read.table(gzfile("treemix/fwsw_k100b.cov.gz"), as.is = T, head = T, quote = "", comment.char = "")
+#reorder
+covplot <- data.frame(matrix(nrow = nrow(cov), ncol = ncol(cov)))
+for(i in 1:length(pop.list)){
+  for( j in 1:length(pop.list)){
+    
+    covplot[i, j] = cov[which(names(cov)==pop.list[i]), which(names(cov)==pop.list[j])]
+    rownames(covplot)[i]<-pop.list[i]
+    colnames(covplot)[j]<-pop.list[j]
+  }
+}
+covplot<-as.matrix(covplot)
+
+
+```
+```{r}
+library(xlsx); library(RColorBrewer); library(scales)
+
+table2<-fst_mat
+table2[lower.tri(table2)]<-covplot[lower.tri(covplot)]
+diag(table2)<-diag(covplot)
+table2<-round(table2,digits = 4)
+
+# first export the data
+sheetName <- "FstCov"
+file<-"table2_fst_cov.xlsx"
+write.xlsx(table2,file,sheetName = sheetName)
+
+wb<-loadWorkbook(file)
+sheets <- getSheets(wb)               
+sheet <- sheets[[sheetName]]          
+rows <- getRows(sheet, rowIndex=2:(nrow(table2)+1)) # 1st row is headers
+cells <- getCells(rows, colIndex = 2:(ncol(table2)+1)) # 1st col is rownames         
+values<-lapply(cells,getCellValue)
+
+# set the colors
+pal<-colorRampPalette(c("#deebf7","#3182bd"))
+cols<-matrix(nrow = nrow(table2),ncol=nrow(table2))
+cols[upper.tri(cols)]<-pal(10)[as.numeric(cut(table2[upper.tri(table2)],breaks = 10))]
+pal<-colorRampPalette(c("#78c679","#f7fcb9"))
+cols[lower.tri(cols)]<-pal(10)[as.numeric(cut(table2[lower.tri(table2)],breaks = 10))]
+pal<-colorRampPalette(c("#f7f7f7","#969696"))
+diag(cols)<-pal(10)[as.numeric(cut(diag(table2),breaks = 10))]
+
+for(i in 1:nrow(table2)){
+  for(j in 1:ncol(table2)){
+    csij<-CellStyle(wb,fill=Fill(foregroundColor = alpha(cols[i,j])))
+    setCellStyle(cells[[paste(i+1,j+1,sep=".")]],cellStyle = csij)
+  }
+}
+
+saveWorkbook(wb, file)
+
+
+```
+
+
+
+
+ALSO: look into ABCs instead of dadi: https://github.com/QuentinRougemont/abc_inferences
+
+
+
 # 10 December 2019
 
 I'm thinking I'll just map the consensus tags to the genome and see if they are in the same place. So I need to extract the sequences from batch_2.catalog.tags.tsv
