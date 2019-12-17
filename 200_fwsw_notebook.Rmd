@@ -30,6 +30,11 @@ Ok, let's just focus on dadi for right now. Maybe I'll just run the simple model
  `for script in scripts/dadi_scripts/ALFW*SI.sh; do bash ./$script &; done`
 
 Ugh I'm feeling so ugh about these dadi analyses.
+
+The other thing I need to do for this analysis is to fix the PCA plot, which I noticed had some wrong points and point colors -- TXFW and ALFW are both upright blue triangles in the PC plots. Done!
+
+
+
 # 11 December 2019
 
 I'm converting fw_SNPinfo on my linux machine:
