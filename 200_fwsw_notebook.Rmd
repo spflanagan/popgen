@@ -11,6 +11,11 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 18 December 2019
+
+Ugh, got an email from the abacus people saying that they won't install dadi until late January! so angry. I'm going to have to pursue the azure thing again I think, especially now that I've got a better sense of what I'm doing to parallelize. Today I updated/wrote a script to run the scripts I spawned (252_run_dadi_scripts.sh) and I think it's working ok. I'm not sure the `sem` command is behaving exactly like I expected, but for now it's good enough.
+
+
 # 17 December 2019
 
 Today I'm looking into ABCs instead of dadi. I cloned https://github.com/QuentinRougemont/abc_inferences into popgen/ on C001KR and then the data folder https://github.com/QuentinRougemont/abc_inferences_data.git into that folder. My questions for this analysis are:
