@@ -11,6 +11,25 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 17 December 2019
+
+Today I'm looking into ABCs instead of dadi. I cloned https://github.com/QuentinRougemont/abc_inferences into popgen/ on C001KR and then the data folder https://github.com/QuentinRougemont/abc_inferences_data.git into that folder. My questions for this analysis are:
+1. What is the input data?
+    Based on the github, it looks like I need a ped and a map file, and then can run the utility script to reformat:
+    `./00-scripts/utility_scripts/prepare_abc.sh 01-salmon_data/salmon.data.ped 01-salmon_data/salmon.data.map`
+    
+    ** did I convert my ped files?? ** - nope, they didn't convert properly. I could write a function to convert vcf to ped/map? This sounds annoying but I could do it. 
+
+2. How long will it take to run?
+    According to the github, the robustness check is 'very time-consuming'. So maybe this isn't the solution for me,e specially given that the cluster is being dumb AF.
+    
+In the meantime, almost all of the runs are done for the FLLG-to-others comparisons, but not for the rest. I could start another batch. I really wish I could run this on abacus...It feels very frustrating to be limited by my ability to run my programs!!
+
+Ok, let's just focus on dadi for right now. Maybe I'll just run the simple models for the others -- create a file to run them? This is a bit complicated so I just ran the ALFW SI models using:
+
+ `for script in scripts/dadi_scripts/ALFW*SI.sh; do bash ./$script &; done`
+
+Ugh I'm feeling so ugh about these dadi analyses.
 # 11 December 2019
 
 I'm converting fw_SNPinfo on my linux machine:
