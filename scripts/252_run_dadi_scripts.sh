@@ -7,7 +7,7 @@ cd "${0%/*}" # move to location of script
 
 ############ SET THESE PARAMS ############
 pops=('FLCC' 'ALFW' 'ALST' 'LAFW' 'TXFW' 'TXCC') #'FLLG' 
-models=('SI') # 'IM' 'AM' 'SC' 'SI2N' 'SIG' 'SI2NG' 'IMG' 'IM2N' 'IM2m' 'IM2NG' 'AM2N' 'AMG' 'AM2m' 'AM2NG' 'AM2N2m' 'AM2mG' 'AM2N2mG' 'SCG' 'SC2N' 'SC2m' 'SC2NG' 'SC2N2m' 'SC2mG' 'SC2N2mG')
+models=('IM' 'AM' 'SC') # 'SI' 'SI2N' 'SIG' 'SI2NG' 'IMG' 'IM2N' 'IM2m' 'IM2NG' 'AM2N' 'AMG' 'AM2m' 'AM2NG' 'AM2N2m' 'AM2mG' 'AM2N2mG' 'SCG' 'SC2N' 'SC2m' 'SC2NG' 'SC2N2m' 'SC2mG' 'SC2N2mG')
 
 rangeX=1
 rangeY=2

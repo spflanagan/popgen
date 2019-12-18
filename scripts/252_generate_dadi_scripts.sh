@@ -18,7 +18,7 @@ for ((i=0; i<(${#pops[@]}-1); ++i)); do
 	for ((j=(i+1); j<${#pops[@]}; ++j)); do
 		for ((mod=0; mod<(${#models[@]}); ++mod)); do
 			echo "#!/bin/bash" > dadi_scripts/${pops[$i]}_${pops[$j]}_${models[$mod]}.sh
-			echo "cd \"${0%/*}\"" >> dadi_scripts/${pops[$i]}_${pops[$j]}_${models[$mod]}.sh
+			echo "cd \"\${0%/*}\"" >> dadi_scripts/${pops[$i]}_${pops[$j]}_${models[$mod]}.sh
 			echo "cd ../fwsw_results/dadi_results/" >> dadi_scripts/${pops[$i]}_${pops[$j]}_${models[$mod]}.sh
 			echo "rangeX=\$1" >> dadi_scripts/${pops[$i]}_${pops[$j]}_${models[$mod]}.sh
 			echo "rangeY=\$2" >> dadi_scripts/${pops[$i]}_${pops[$j]}_${models[$mod]}.sh
