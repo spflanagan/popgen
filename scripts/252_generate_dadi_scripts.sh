@@ -19,7 +19,7 @@ for ((i=0; i<(${#pops[@]}-1); ++i)); do
 		for ((mod=0; mod<(${#models[@]}); ++mod)); do
 			echo "#!/bin/bash" > dadi_scripts/${pops[$i]}_${pops[$j]}_${models[$mod]}.sh
 			echo "cd \"\${0%/*}\"" >> dadi_scripts/${pops[$i]}_${pops[$j]}_${models[$mod]}.sh
-			echo "cd ../fwsw_results/dadi_results/" >> dadi_scripts/${pops[$i]}_${pops[$j]}_${models[$mod]}.sh
+			echo "cd ../../fwsw_results/dadi_results/" >> dadi_scripts/${pops[$i]}_${pops[$j]}_${models[$mod]}.sh
 			echo "rangeX=\$1" >> dadi_scripts/${pops[$i]}_${pops[$j]}_${models[$mod]}.sh
 			echo "rangeY=\$2" >> dadi_scripts/${pops[$i]}_${pops[$j]}_${models[$mod]}.sh
 			echo "python ../../scripts/252_pairwise_dadi.py fwsw75.dadi.snps '${pops[$i]}' ${projs[$i]} '${pops[$j]}' ${projs[$j]} \$rangeX \$rangeY ${models[$mod]} 2>&1 > ${pops[$i]}_${pops[$j]}/${pops[$i]}-${pops[$j]}_${models[$mod]}_\${rangeX}.log" >> dadi_scripts/${pops[$i]}_${pops[$j]}_${models[$mod]}.sh
