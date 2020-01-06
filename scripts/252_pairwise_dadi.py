@@ -67,10 +67,9 @@ reps = [10,20,30,40]
 maxiters = [3,5,10,15]
 folds = [3,2,2,1]
 fs_folded = True
-prefix = pathname
 
 for i in range(x,y):
-	prefix = prefix+"_{}".format(i)
+	prefix = pathname+"_{}".format(i)
 	
 	if (model=="all" or model=="SI"):
 		# Split with complete isolation

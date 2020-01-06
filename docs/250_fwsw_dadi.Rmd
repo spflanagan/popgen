@@ -742,3 +742,113 @@ kable(flal.opts,caption = "'Best' runs of each of the models for the FL vs AL 2D
 altx.opts<-dadi.modelcomp(path = "dadi_analysis/ALTX",pattern=".*optimized.*",id="ALTX")
 kable(altx.opts,caption = "'Best' runs of each of the models for the AL vs TX 2D demographic inference")
 ```
+
+
+## Rougeux Models Analysis
+
+I switched to running the Rougeux models in all pairwise comparisons, and I need to choose the best models for all of them. I've done one run of each of the basic models ('SI' 'IM' 'AM' 'SC'). 
+
+```{r}
+dirs<-list.dirs(path="dadi_results")[-1] # the -1 removes dadi_results/ from the list
+
+mod_opts<-do.call(rbind,lapply(dirs,function(dir){
+  if(length(list.files(path=dir))>0){
+    opts<-dadi.modelcomp(path=dir,pattern=".*_1.\\w+.optimized.*",id=gsub(".*/(\\w{4}_\\w{4}).*$","\\1",dir))
+    return(opts)
+  }
+}))
+
+
+```
+
+In the ones where I've run all of the models (the FLLG comparisons), do the best simple models relate to the more complex models?
+
+```{r}
+models<-c('SI','IM','AM','SC')
+FLLGs<-mod_opts[grep("FLLG",mod_opts$id),]
+FLLG_best<-FLLGs[FLLGs$rank==1,]
+FLLG_simple<-FLLGs[FLLGs$Model %in% models,]
+```
+
+```{r}
+best_simple<-do.call(rbind,by(FLLG_simple,FLLG_simple$id,function(x){
+  return(cbind(unique(x[,"id"]),x[which.min(x[,"rank"]),"Model"]))
+},simplify = TRUE))
+FLLG_best<-merge(FLLG_best,best_simple,by.x="id",by.y=1)
+colnames(FLLG_best)[ncol(FLLG_best)]<-"Simple_best"
+kable(FLLG_best[,c("id","Model","Simple_best")])
+```
+
+Crap, these don't match up at all. What if I use Rougeux's scaled AIC method? They retained the best model from each of 25 independent optimizations, and only retained models with dAIC <= 10.
+
+```{r}
+# calculate the dAIC value for each model run
+calc_dAIC<-function(opts,dAIC_thresh=10){
+  #browser()
+  minAIC<-as.numeric(min(opts$AIC)) #overall min
+  opts$dAIC<-NA
+  
+  for(model in unique(opts$Model)){
+    opts$dAIC[opts$Model %in% model]<-as.numeric(opts$AIC[opts$Model %in% model]) - minAIC
+  }
+  
+  return(opts[as.numeric(opts$dAIC) <= dAIC_thresh,])
+}
+```
+
+```{r}
+# calculate delta max, which is across models the AIC max - AIC min
+calc_dMax<-function(opts){
+  dMax<-max(as.numeric(opts$AIC))-min(as.numeric(opts$AIC))
+  return(dMax)
+}
+```
+```{r}
+# calculate Akaike weights
+calc_wAIC<-function(opts){
+  w<-(exp((-1*opts$dAIC)/2))/sum(exp((-1*opts$dAIC)/2))
+  return(w)
+}
+```
+```{r}
+keep_best<-function(opts){
+  keep<-NULL
+  for(model in unique(opts$Model)){
+    this_mod<-opts[opts$Model %in% model,]
+    keep<-rbind(keep,this_mod[which.min(this_mod$AIC),])
+  }
+  return(keep)
+}
+```
+
+```{r}
+# calculate the model score using the deltaAIC
+calc_modScore<-function(opts){
+  
+  opts<-calc_dAIC(opts)
+  
+  dMax<-calc_dMax(opts)
+  opts$modScore<-(dMax - opts$dAIC)/dMax
+  
+  opts$wAIC<-calc_wAIC(opts)
+  return(opts)
+}
+```
+
+
+```{r}
+
+fllg_opts<-lapply(dirs[grep("FLLG",dirs)],function(dir){
+  if(length(list.files(path=dir))>0){
+    opts<-dadi.modelcomp(path=dir,pattern=".*.optimized.*",id=gsub(".*/(\\w{4}_\\w{4}).*$","\\1",dir))
+    opts<-opts[opts$Model %in% models,] # only keep the ones that I've run multiples of
+    return(opts)
+  }
+})
+
+bests<-lapply(fllg_opts,calc_modScore)
+
+```
+
+
+

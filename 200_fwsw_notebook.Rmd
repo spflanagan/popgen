@@ -11,6 +11,12 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 6 January 2020
+
+The cursed models continue to run. I'm comparing the FLLG models because they've now run a number of times, and I'm trying to evaluate (a) whether I can get away with running fewer models that result from the best-fitting simple models and (b) the best way to compare the models. I've implemented the model score and wAIC methods from Rougeux et al (https://academic.oup.com/gbe/article/9/8/2057/4060520#106356015) and it provides somewhat useful comparisons. At the moment all of the best FLLG simple models are the IM models. I only ran one iteration of the more complex ones, and the best model there is not an IM for most of them, but maybe that's not the best way to go about doing things. 
+
+I think what's clear is that I need to ask for another extension because I won't be able to run all these models in time - unless Adam can magically round up a cluster that I can use. I'll send him an email now.
+
 # 18 December 2019
 
 Ugh, got an email from the abacus people saying that they won't install dadi until late January! so angry. I'm going to have to pursue the azure thing again I think, especially now that I've got a better sense of what I'm doing to parallelize. Today I updated/wrote a script to run the scripts I spawned (252_run_dadi_scripts.sh) and I think it's working ok. I'm not sure the `sem` command is behaving exactly like I expected, but for now it's good enough.

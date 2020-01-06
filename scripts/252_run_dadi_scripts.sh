@@ -6,7 +6,7 @@ cd "${0%/*}" # move to location of script
 
 
 ############ SET THESE PARAMS ############
-pops=('FLLG' 'FLCC' 'ALFW' 'ALST' 'LAFW' 'TXFW' 'TXCC') #'FLLG' 
+pops=('FLLG' 'FLCC' 'ALFW' 'ALST' 'LAFW' 'TXFW' 'TXCC')  
 models=('SI' 'IM' 'AM' 'SC') # 'SI' 'SI2N' 'SIG' 'SI2NG' 'IMG' 'IM2N' 'IM2m' 'IM2NG' 'AM2N' 'AMG' 'AM2m' 'AM2NG' 'AM2N2m' 'AM2mG' 'AM2N2mG' 'SCG' 'SC2N' 'SC2m' 'SC2NG' 'SC2N2m' 'SC2mG' 'SC2N2mG')
 
 rangeX=2
@@ -25,9 +25,9 @@ done
 ############ RUN THE ANALYSIS ############
 # The scripts take rangeX and rangeY and pass them on to the python file
 
-for ((i=0; i<(${#combos[@]}-1); ++i)); do
+for ((i=0; i<(${#combos[@]}); ++i)); do
 	for ((mod=0; mod<(${#models[@]}); ++mod)); do
-		sem -j -4 ./dadi_scripts/${combos[$i]}_${models[$mod]}.sh ${rangeX} ${rangeY}
+		echo "sem -j -4 ./dadi_scripts/${combos[$i]}_${models[$mod]}.sh ${rangeX} ${rangeY}"
 	done
 done
 
