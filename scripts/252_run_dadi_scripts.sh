@@ -1,6 +1,8 @@
 #!/bin/bash
 
 # This uses GNU parallel
+# Simply run this script - there is no need for nohup or &
+# Note: a number of messages from GNU parallel will pop up
 
 cd "${0%/*}" # move to location of script
 
