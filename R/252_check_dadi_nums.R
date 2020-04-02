@@ -28,4 +28,4 @@ all_counts$Freq[is.na(all_counts$Freq)]<-0
 sysinfo<-Sys.info()
 
 outname<-paste0("model_counts",Sys.Date(),"_",sysinfo["nodename"],".csv")
-write.csv(all_counts,"model_counts", row.names = FALSE,quote=FALSE)
+write.csv(all_counts,outname, row.names = FALSE,quote=FALSE)
