@@ -11,6 +11,34 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 2 April 2020
+
+And the models STILL run! On abacus and on a cluster. I want to check the status, see if I should kill some to prioritize running others.
+
+```{r}
+abacus<-read.delim("models_abacus.txt",header = FALSE,stringsAsFactors = FALSE)
+outputs<-data.frame(dir=gsub("(\\w{4}_\\w{4})\\/.*","\\1",abacus$V1),
+                    file=gsub("(\\w{4}_\\w{4})\\/(.*)","\\2",abacus$V1),
+                    stringsAsFactors = FALSE)
+outputs$pattern<-gsub("(\\w{4}_\\w{4})_\\d+.*\\.(\\w+.*)\\.optimized.txt","\\1_\\2",outputs$file)
+
+counts<-as.data.frame(table(outputs$pattern))
+
+
+
+```
+```{r}
+rcc<-read.csv("../model_counts2020-04-02_UCRCC0365.csv")
+home<-read.csv("model_counts2020-04-02_L002KR.csv")
+all_runs<-merge(rcc,counts,by.x="tasks",by.y="Var1",all.x=TRUE)
+all_runs<-merge(all_runs,home,by="tasks")
+all_runs$Freq.y[is.na(all_runs$Freq.y)]<-0
+all_runs$Total<-all_runs[,2]+all_runs[,3]+all_runs[,4]
+```
+
+
+
+
 # 6 January 2020
 
 The cursed models continue to run. I'm comparing the FLLG models because they've now run a number of times, and I'm trying to evaluate (a) whether I can get away with running fewer models that result from the best-fitting simple models and (b) the best way to compare the models. I've implemented the model score and wAIC methods from Rougeux et al (https://academic.oup.com/gbe/article/9/8/2057/4060520#106356015) and it provides somewhat useful comparisons. At the moment all of the best FLLG simple models are the IM models. I only ran one iteration of the more complex ones, and the best model there is not an IM for most of them, but maybe that's not the best way to go about doing things. 
