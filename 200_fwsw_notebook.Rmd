@@ -11,6 +11,10 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 6 April 2020
+
+The models are still running. I've started a bunch more on abacus and will probably stop the FLLG-FLCC and FLLG-ALFW ones running on my RCC machine, as I've already got lots of those reps and I need some of the others. I'm also going to work on making the figures, which 
+
 # 2 April 2020
 
 And the models STILL run! On abacus and on a cluster. I want to check the status, see if I should kill some to prioritize running others.
