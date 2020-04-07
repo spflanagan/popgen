@@ -11,9 +11,136 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 7 April 2020
+
+I definitely have enough reps of FLLG-FLCC that I can start analyzing those. I've downloaded the outputs from the rcc machine -- let's see what we can do with it. I've done some preliminary analyses with the old runs that I did, I can use that code with these. Here's I'm modifying code from 250_fwsw_dadi -- I'll replace that code eventually probably. These are 2D models and I want to see which model fits best. 
+```{r source}
+source("../../gwscaR/R/gwscaR.R")
+source("../../gwscaR/R/gwscaR_plot.R")
+source("../../gwscaR/R/gwscaR_utility.R")
+source("../../gwscaR/R/gwscaR_fsts.R")
+source("../../gwscaR/R/gwscaR_popgen.R")
+source("../../gwscaR/R/vcf2dadi.R")
+source("../R/250_dadi_analysis.R")
+
+library(knitr)
+pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
+```
+
+```{r}
+flcc_fllg_opts<-dadi.modelcomp(path = "dadi_results/FLLG_FLCC/",
+                               pattern="*optimized.*",id="FLLG_FLCC")
+kable(head(flcc_fllg_opts),
+      caption = "'Best' runs of each of the models for FLLG vs FLCC 2D comparison")
+
+```
+
+I'm ingoring warnings about concatenation for now. These are the top models based on their AIC (choosing the lowest AIC value). 
+
+The dadi pipeline information recommends checking that all of the runs of each model converge on a similar log likelihood. I don't have great representation of all of the models (IM2mG only has one rep??) but I'll go ahead anyway.
+
+
+```{r}
+plot(as.numeric(flcc_fllg_opts$log.likelihood)~
+              as.factor(flcc_fllg_opts$Model),las=3,
+        pch=19,xlab="Model",ylab="Maximum log likelihood")
+```
+ 
+Some seem to have converged better than others, but I suppose that's ok. In the paper they say, "Models were compared using the Akaike information criterion (AIC), and the replicate with the highest likelihood for each model was used to calculate AIC scores, ΔAIC scores and Akaike weights (ωi) " (Portik et al 2017) - so this is what I need to do.
+
+In Rougeux et al. 2017, they say:
+
+they calculated $\Delta AIC_i=AIC_i-AIC_{min} \le 10$ to retain models (so we can drop those models). Then for each lake, the difference in AIC between worst and best model $\Delta _{max}=AIC_{max}-AIC_{min}$ was used to obtain a scaled score for each using:
+$model score = \frac{\Delta _{max}-\Delta AIC_i}{\Delta _{max}}$
+
+They also computed $w_{AIC}$:
+
+$$
+w_{AIC}=\frac{e^\frac{-\Delta AIC_i}{2}}{\sum_{i=1}^Re^\frac{-\Delta AIC_i}{2}}
+$$
+
+I started working on this before -- at the end of the 250_fwsw_dadi.Rmd file, but I don't think I fully implemented them.
+
+So as I understand it this is the sequence of steps once I have multiple reps of model output for each model and each 2D comparison:
+
+1. For each replicate of optimizations choose the round with the highest log likelihood (should be in round 4)
+2. For each model, choose the replicate with the highest log likelihood
+3. calculate  $\Delta AIC_i=AIC_i-AIC_{min} \le 10$ from those best rounds for each replicate.
+4. If any models have $\Delta AIC_i le 10$, drop those models.
+5. For each model, caclulate $\Delta _{max}=AIC_{max}-AIC_{min}$.
+6. Use $\Delta AIC$ to calculate the model score for each model, and use these to compare models.
+7. Calculate $w_{AIC}$ for each model and use these to compare the probabilities for each model.
+
+Repeat steps 1-6 for each 2D population comparison. And I should wrap this all up into a function - it will be in `modelComparison`.
+
+
+```{r}
+# this function is meant to be used on a set of models each represented by its best replicate 
+calc_dAIC<-function(mod){
+  minAIC<-min(as.numeric(as.character(mod$AIC)))
+  return(as.numeric(as.character(mod$AIC))-minAIC)
+    
+}
+```
+
+```{r}
+# calculate delta max, which is across models the AIC max - AIC min
+calc_dMax<-function(opts){
+  dMax<-max(as.numeric(opts$AIC))-min(as.numeric(opts$AIC))
+  return(dMax)
+}
+```
+```{r}
+# calculate Akaike weights
+calc_wAIC<-function(opts){
+  w<-(exp((-1*opts$dAIC)/2))/sum(exp((-1*opts$dAIC)/2))
+  return(w)
+}
+```
+
+
+```{r}
+
+modelComparison<-function(opts){
+  # make sure log likelihood is numeric
+  opts$log.likelihood<-as.numeric(as.character(opts$log.likelihood))
+  # choose best replicate for each model
+  mod_dat<-do.call(rbind,by(opts,opts$Model,function(modDat){
+    return(modDat[which.max(modDat$log.likelihood),])
+  }))
+  # calc dAIC
+  mod_dat$dAIC<-calc_dAIC(mod_dat)
+  # calculate dMax
+  dMax<-calc_dMax(mod_dat)
+  # calculate model score
+  mod_dat$model_score<-(dMax - mod_dat$dAIC)/dMax
+  # calculate wAIC
+  mod_dat$wAIC<-calc_wAIC(mod_dat)
+  # keep models with dAIC<=10
+  keep_mods<-mod_dat[mod_dat$dAIC<=10,]
+  if(nrow(keep_mods)<=5){
+    return(mod_dat)
+  } else{
+    return(keep_mods)
+  }
+  
+}
+```
+
+```{r}
+flcc_fllg_opts<-dadi.modelcomp(path = "dadi_results/FLLG_FLCC/",
+                               pattern="*optimized.*",id="FLLG_FLCC")
+flcc_fllg<-modelComparison(flcc_fllg_opts)
+```
+
+
+I've added these to the 250_dadi_analysis.R script. 
+
+
+
 # 6 April 2020
 
-The models are still running. I've started a bunch more on abacus and will probably stop the FLLG-FLCC and FLLG-ALFW ones running on my RCC machine, as I've already got lots of those reps and I need some of the others. I'm also going to work on making the figures, which 
+The models are still running. I've started a bunch more on abacus and will probably stop the FLLG-FLCC and FLLG-ALFW ones running on my RCC machine, as I've already got lots of those reps and I need some of the others. I'm also going to work on making the figures, which need to get done one way or another.
 
 # 2 April 2020
 
