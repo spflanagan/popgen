@@ -11,6 +11,16 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 8 April 2020
+
+Goals:
+
+- look at parameter estimates (and distributions) of the best-fitting model for FLLG vs FLCC
+- generate JAFS for each pairwise comparison for the data (in python)
+- generate JAFS for the best fitting FLLG vs FLCC model + residual plot
+- begin a model comparison overview plot (like Rougeux et al 2017 Fig 4)
+
+
 # 7 April 2020
 
 I definitely have enough reps of FLLG-FLCC that I can start analyzing those. I've downloaded the outputs from the rcc machine -- let's see what we can do with it. I've done some preliminary analyses with the old runs that I did, I can use that code with these. Here's I'm modifying code from 250_fwsw_dadi -- I'll replace that code eventually probably. These are 2D models and I want to see which model fits best. 
@@ -143,6 +153,9 @@ table(flcc_fllg_opts$Model)
 ```
 
 Oh no! This is because I don't have the IM2mG script -- I wonder how that happened? It wasn't included in the model list in the generate_dadi_scripts file :facepalm:.
+
+The next step would be to generate the JAFS for the best-fitting model (in python), plot model comparisons, and look at parameter estimates (and distributions) of the best-fitting model. First up: look at parameter estimates/distributions.
+
 
 
 
