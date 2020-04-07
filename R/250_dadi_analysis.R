@@ -97,3 +97,12 @@ extract_dadi_params<-function(opt_dat){
   })
   return(mod_params)
 }
+
+
+# this function is meant to be used on a set of models each represented by its best replicate 
+calc_dAIC<-function(mod){
+  minAIC<-min(as.numeric(as.character(mod$AIC)))
+  return(as.numeric(as.character(mod$AIC))-minAIC)
+  
+}
+
