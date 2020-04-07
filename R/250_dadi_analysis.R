@@ -117,3 +117,27 @@ calc_wAIC<-function(opts){
   return(w)
 }
 
+modelComparison<-function(opts){
+  # make sure log likelihood is numeric
+  opts$log.likelihood<-as.numeric(as.character(opts$log.likelihood))
+  # choose best replicate for each model
+  mod_dat<-do.call(rbind,by(opts,opts$Model,function(modDat){
+    return(modDat[which.max(modDat$log.likelihood),])
+  }))
+  # calc dAIC
+  mod_dat$dAIC<-calc_dAIC(mod_dat)
+  # calculate dMax
+  dMax<-calc_dMax(mod_dat)
+  # calculate model score
+  mod_dat$model_score<-(dMax - mod_dat$dAIC)/dMax
+  # calculate wAIC
+  mod_dat$wAIC<-calc_wAIC(mod_dat)
+  # keep models with dAIC<=10
+  keep_mods<-mod_dat[mod_dat$dAIC<=10,]
+  if(nrow(keep_mods)<=5){
+    return(mod_dat[order(mod_dat$model_score,decreasing = TRUE),])
+  } else{
+    return(keep_mods[order(keep_mods$model_score,decreasing = TRUE),])
+  }
+  
+}
