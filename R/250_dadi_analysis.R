@@ -106,3 +106,14 @@ calc_dAIC<-function(mod){
   
 }
 
+# calculate delta max, which is across models the AIC max - AIC min
+calc_dMax<-function(opts){
+  dMax<-max(as.numeric(opts$AIC))-min(as.numeric(opts$AIC))
+  return(dMax)
+}
+
+calc_wAIC<-function(opts){
+  w<-(exp((-1*opts$dAIC)/2))/sum(exp((-1*opts$dAIC)/2))
+  return(w)
+}
+
