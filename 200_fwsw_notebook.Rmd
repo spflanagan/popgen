@@ -136,6 +136,14 @@ flcc_fllg<-modelComparison(flcc_fllg_opts)
 
 I've added these to the 250_dadi_analysis.R script. 
 
+For the FLLG-FLCC analysis, the SC2mG model is the best -- which generally fits with the patterns of the log likelihoods plotted above. However, somehow I only have one replicate for the IM2mG model, which is not great. 
+
+```{r}
+table(flcc_fllg_opts$Model)
+```
+
+Oh no! This is because I don't have the IM2mG script -- I wonder how that happened? It wasn't included in the model list in the generate_dadi_scripts file :facepalm:.
+
 
 
 # 6 April 2020
