@@ -29,6 +29,8 @@ for i in range(0,len(pops)):
     name = "../../figs/dadi/{}_1D.png".format(pops[i])
     dadi.Plotting.plot_1d_fs(spect,show=False)
     pylab.savefig(name)
+	pylab.close()
+
 
 
 # loop through for 2D
