@@ -66,6 +66,13 @@ Update: I have successfully created the data JAFS, and created a figure with the
 
 I can get away with not estimating the parameters (probably), but I can estimate $N_{ref}$. 
 
+So next steps:
+- calculate $N_{ref}$ from the $\theta$ outputs
+- consider this comment from Ryan on the forum: "Those vast differences in parameter values with very similar likelihoods suggest that for this model and data your likelihood surface is very flat. There's simply not much information about the model parameters in the data. This suggests to me that you want to stick with simple models, and that the models you're currently fitting are too complex."
+- start writing up the dadi methods and results
+- seriously consider another extension on the ms
+- start looking at FLLG_ALFW outputs
+
 ```{r}
 fllg_alfw_opts<-dadi.modelcomp(path = "dadi_results/FLLG_ALFW/",
                                pattern="*optimized.*",id="FLLG_ALFW")
@@ -76,6 +83,8 @@ plot(as.numeric(fllg_alfw_opts$log.likelihood)~
 ```
 
 I don't really have enough runs yet for enough of the models. 
+
+I need to update my script to run dadi so that runs each model for rep i etc.
 
 
 # 7 April 2020
