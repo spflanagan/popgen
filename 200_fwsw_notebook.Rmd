@@ -66,6 +66,17 @@ Update: I have successfully created the data JAFS, and created a figure with the
 
 I can get away with not estimating the parameters (probably), but I can estimate $N_{ref}$. 
 
+```{r}
+fllg_alfw_opts<-dadi.modelcomp(path = "dadi_results/FLLG_ALFW/",
+                               pattern="*optimized.*",id="FLLG_ALFW")
+fllg_alfw<-modelComparison(fllg_alfw_opts)
+plot(as.numeric(fllg_alfw_opts$log.likelihood)~
+              as.factor(fllg_alfw_opts$Model),las=3,
+        pch=19,xlab="Model",ylab="Maximum log likelihood")
+```
+
+I don't really have enough runs yet for enough of the models. 
+
 
 # 7 April 2020
 
