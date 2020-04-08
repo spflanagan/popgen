@@ -62,6 +62,10 @@ Charles et al 2018 show the data and model JAFS and residual plus model diagrams
 
 So a good first-pass is to generate each JAFS diagrams for all of the datasets and then for this, the best FLLG-FLCC run. I can then save them as images and arrange them in R (or in GIMP if that turns out to be easier and I don't need to combine them with other data/figures).
 
+Update: I have successfully created the data JAFS, and created a figure with the best SC2mG model parameters -- the two images don't look that similar but the residuals are tiny so I think that's good. It might be something to do with the comparison model that I used -- multinomial vs Poisson. Well, no, not quite -- the Poisson comparison plot looks really strange. The 2nd best model seems a bit better, and its parameters are closer to the means of all the runs but still has a low log likelihood. 
+
+I can get away with not estimating the parameters (probably), but I can estimate $N_{ref}$. 
+
 
 # 7 April 2020
 
