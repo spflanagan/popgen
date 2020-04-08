@@ -11,6 +11,17 @@ editor_options:
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
 
+# 9 April 2020
+
+Goals: 
+- update my script to run dadi so that runs each model for rep i etc.
+- calculate $N_{ref}$ from the $\theta$ outputs
+- consider this comment from Ryan on the forum: "Those vast differences in parameter values with very similar likelihoods suggest that for this model and data your likelihood surface is very flat. There's simply not much information about the model parameters in the data. This suggests to me that you want to stick with simple models, and that the models you're currently fitting are too complex."
+- writing up the dadi methods
+- start writing the dadi results (and interpret the FLLG_FLCC comparison)
+- seriously consider another extension on the ms
+
+
 # 8 April 2020
 
 Goals:
