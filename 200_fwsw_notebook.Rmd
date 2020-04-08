@@ -52,6 +52,16 @@ Portik says "parameter values should ideally be estimated using a bootstrapping 
 So I should be able to use dadi to run the Godambe information matrix -- also to create the JAFS.
 
 
+## how have others plotted results
+
+Portik et al 2017 show the data JAFS, model JAFS, and model residuals next to the diagram of the best-fit model
+Rougeux et al. 2017 showed the data and model JAFS and the diagram of the best-fit model but also showed differences in model scores when growth is included, with heterogeneous vs homogeneous rates (compared these statistically) and waics for various models
+Rougeux et al 2019 show data JAFS and model JAFS and best fitting model diagram plus table of inferred parameters (including theta)
+Barratt et al 2018 show the histogram of log likelihoods and compared the results to another modeling framework. 
+Charles et al 2018 show the data and model JAFS and residual plus model diagrams
+
+So a good first-pass is to generate each JAFS diagrams for all of the datasets and then for this, the best FLLG-FLCC run. I can then save them as images and arrange them in R (or in GIMP if that turns out to be easier and I don't need to combine them with other data/figures).
+
 
 # 7 April 2020
 
