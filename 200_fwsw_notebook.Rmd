@@ -20,6 +20,38 @@ Goals:
 - generate JAFS for the best fitting FLLG vs FLCC model + residual plot
 - begin a model comparison overview plot (like Rougeux et al 2017 Fig 4)
 
+I've now got 3 runs of the FLLG-FLCC IM2mG model so let's take another look at the model results.
+
+```{r}
+flcc_fllg_opts<-dadi.modelcomp(path = "dadi_results/FLLG_FLCC/",
+                               pattern="*optimized.*",id="FLLG_FLCC")
+flcc_fllg<-modelComparison(flcc_fllg_opts)
+plot(as.numeric(flcc_fllg_opts$log.likelihood)~
+              as.factor(flcc_fllg_opts$Model),las=3,
+        pch=19,xlab="Model",ylab="Maximum log likelihood")
+```
+
+The best model is still SC2mG. So now let's look at the parameter estimates for this model.
+
+```{r}
+flcc_fllg_sc2mg<-do.call(rbind,extract_dadi_params(flcc_fllg_opts[flcc_fllg_opts$Model=="SC2mG",]))
+```
+
+```{r}
+boxplot(flcc_fllg_sc2mg[,11:22])
+points(1:12,
+       flcc_fllg_sc2mg[which.max(flcc_fllg_sc2mg$log.likelihood),11:22],
+       pch=8,col="red",lwd=2)
+```
+
+This suggests b1>b2 (population growth is larger in FLLG than FLCC), but nu1<nu2 (FLCC has larger population than FLLG). Migration between the two pops is similar but there are genomic islands experiencing larger migration from FLCC to FLLG (me21 > me12 for best models). The time since secondary contact is about the same as the time since the split but maybe a bit higher. 
+
+Portik says "parameter values should ideally be estimated using a bootstrapping procedure to obtain confidence intervals (Gutenkunst et al. 2009)" but they do provide an estimate of $\theta=4N_{ref} \mu l$. Rougeux et al 2017 say they calculate $N_{ref}$ using a fixed $\mu=10^{-8}$ and $L=\frac{zy80}{x}$ where $x$ is the number of SNPs deteceted from $y$ RAD-tags of 80 bp and $z$ is the number of SNPs retained for the dadi analysis. Times were estimated in terms of $2N_{ref}$ generations and they used a generation time of 3.5 years (based on biology of the whitefish). They divided migration rate estimates by $2N_{ref}$ to obtain the proportion of migrants received by each population each generation. 
+
+
+So I should be able to use dadi to run the Godambe information matrix -- also to create the JAFS.
+
+
 
 # 7 April 2020
 
