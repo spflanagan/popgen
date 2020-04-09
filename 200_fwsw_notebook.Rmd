@@ -21,6 +21,43 @@ Goals:
 - start writing the dadi results (and interpret the FLLG_FLCC comparison)
 - seriously consider another extension on the ms
 
+Updates on running iterations:
+- C001KR is running the IM2mG models on the first 8 sets of comparisons (FLLG_FLCC,FLLG_ALFW,FLLG_ALST, FLLG_LAFW,FLLG_TXFW,FLLG_TXCC,FLCC_ALFW,FLCC_ALST) and I know that it's on ~ round 4 of 5 and has been running for 44hr
+- rccuser is still running the FLLG_FLCC and FLLG_ALFW models, going on 799 hrs. this is the main reason why I want to re-write the script, so that I can re-launch them on that machine and get better coverage of all the models. Either way, it's not boding well for finishing by the end of the month.
+- abacus is currently running 18 models but this is fewer than yesterday, which means that a number of them have finished running. These models were started on either 3 Apr (3) or 6 Apr (15).
+
+How to revise the run script?
+1. wrap what already exists in a for-loop.
+2. read in the priority models from a script and loop over them
+
+Ok, so I did #1. I've also added a useful check to make sure that the output file doesn't already exist.
+
+Now the question is how to tell the model which to run. To start getting that going, I want to check in with what's been run so far and what range values I have. So I  ran 252_check_dadi_nums.R (except on abacus where I've just used ls) and now need to combine the outputs.
+
+```{r}
+abacus<-read.delim("model_output2020-04-09_abacus.txt",header=FALSE)
+outputs<-data.frame(dir=gsub("(\\w{4}_\\w{4})\\/.*","\\1",abacus$V1),
+                    file=gsub("(\\w{4}_\\w{4})\\/(.*)","\\2",abacus$V1),
+                    stringsAsFactors = FALSE)
+outputs$pattern<-gsub("(\\w{4}_\\w{4})_\\d+.*\\.(\\w+.*)\\.optimized.txt","\\1_\\2",outputs$file)
+counts<-as.data.frame(table(outputs$pattern))
+
+c001kr<-read.csv("model_counts2020-04-09_C001KR.csv")
+rccuser<-read.csv("model_counts2020-04-09_UCRCC0365.csv")
+all_outputs<-merge(c001kr,rccuser,by="tasks")
+all_outputs<-merge(all_outputs,counts,by.x="tasks",by.y="Var1",all = TRUE)
+all_outputs$Freq[is.na(all_outputs$Freq)]<-0
+all_outputs$Total<-all_outputs[,2]+all_outputs[,3]+all_outputs[,4]
+all_outputs[which(all_outputs$Total==0),]
+write.table(all_outputs$tasks,"zero_dadi_runs.txt",col.names = FALSE,row.names = FALSE,quote=FALSE)
+
+script_out<-data.frame(gsub("(\\w{4}_\\w{4})_(.*)","\\1",all_outputs$tasks),gsub("(\\w{4}_\\w{4})_(.*)","\\2",all_outputs$tasks))
+write.table(script_out[which(all_outputs$Total==0),],"zero_dadi_runs.txt",col.names = FALSE,row.names = FALSE,quote=FALSE)
+```
+
+
+
+
 
 # 8 April 2020
 
