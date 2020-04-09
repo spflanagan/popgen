@@ -1,5 +1,5 @@
 pops=c("FLLG", "FLCC", "ALFW", "ALST", "LAFW", "TXFW", "TXCC")   
-models=c("SI", "IM", "AM", "SC", "SI2N", "SIG", "SI2NG", "IMG", "IM2N", "IM2m", "IM2NG", "AM2N", "AMG", "AM2m", "AM2NG", "AM2N2m", "AM2mG", "AM2N2mG", "SCG", "SC2N", "SC2m", "SC2NG", "SC2N2m", "SC2mG", "SC2N2mG")
+models=c("SI", "IM", "AM", "SC", "SI2N", "SIG", "SI2NG", "IMG", "IM2N", "IM2m", "IM2mG", "IM2NG", "AM2N", "AMG", "AM2m", "AM2NG", "AM2N2m", "AM2mG", "AM2N2mG", "SCG", "SC2N", "SC2m", "SC2NG", "SC2N2m", "SC2mG", "SC2N2mG")
 
 ############ CREATE POP COMBOS TO RUN ############
 tasks=NULL
