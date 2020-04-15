@@ -106,6 +106,7 @@ dev.off()
 
 ```
 
+![Fig. 1]("all_sites_map.jpeg")
 
 ## Table of summary statistics
 
