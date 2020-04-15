@@ -1531,7 +1531,7 @@ write.table(tm.fwsw,treemix.name,col.names=TRUE,row.names=FALSE,quote=F,sep=' ')
 #ANALYZE (from treemix_analysis.R)
 ## ---- TreemixSetup
 setwd("treemix")
-source("../../scripts/002_treemix_plotting_funcs.R")#I've modified these functions
+source("../../scripts/203_treemix_plotting_funcs.R")#I've modified these functions
 poporder<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST",
             "ALFW","FLSG","FLKB","FLFD","FLSI","FLAB",
             "FLPB","FLHB","FLCC","FLLG")
