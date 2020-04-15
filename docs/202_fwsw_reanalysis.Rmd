@@ -219,7 +219,7 @@ write.table(pretty_sum,"Table1_populationSummaries.txt",sep='\t',col.names = TRU
 
 # Population structure of all 16 populations  {-}
 
-### FSTs
+### $F_{ST}$s
 
 This will calculate the pairwise $F_{ST}$s (but it's slow)
 
@@ -1145,7 +1145,7 @@ x<-pcadapt(filename, K=20)
 plot(x,option="screeplot")
 ```
 
-*K=4* seems like the best choice here to keep values to the left of the straight line (or could be *K=6*). 
+$K=4$ seems like the best choice here to keep values to the left of the straight line (or could be $K=6$). 
 
 ```{r organizePopInfo}
 # Organize pop info
