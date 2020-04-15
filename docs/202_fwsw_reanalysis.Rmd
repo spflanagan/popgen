@@ -3,9 +3,9 @@ title: "Revising FWSW paper"
 author: "Sarah P. Flanagan"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
-  html_document: default
   pdf_document:
     fig_caption: yes
+  html_document: default
 graphics: yes
 editor_options:
   chunk_output_type: console
@@ -19,7 +19,7 @@ The initial analyses are in `200_fwsw_analysis.Rmd` and conducted the analyses o
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE,out.extra='',fig.pos="H")
-knitr::opts_knit$set(root.dir='./fwsw_results/')
+knitr::opts_knit$set(root.dir='../fwsw_results/')
 ```
 ```{r source}
 source("../../gwscaR/R/gwscaR.R")
@@ -68,7 +68,7 @@ mar.coor<-read.csv("marine_coordinates_revised.csv", header=T)
 fw.coor<-read.csv("fw_coordinates.csv", header=T)
 
 ```
-```{r map}
+```{r map, eval=FALSE}
 jpeg("all_sites_map.jpeg", res=300, height=7,width=14, units="in")
 #pdf("all_sites_map.pdf",height=7,width=14)
 par(oma=c(0,0,0,0),mar=c(0,0,0,0),pin=c(7,7))
@@ -449,7 +449,7 @@ colors[colors %in% c("TXSP","TXCC","TXFW","TXCB")]<-grp.colors[1]
 write.table(cbind(poporder,colors),"poporder",quote=F,sep='\t')
 ```
 
-```{r}
+```{r treemixPrep}
 source("../R/203_treemix_plotting_funcs.R") #I've modified the functions from treemix
 library(lattice); library(grid); library(RColorBrewer)
 poporder<-read.delim("treemix/poporder")
@@ -467,7 +467,9 @@ resid<-plot_resid("treemix/fwsw_k100b","treemix/poporder",wcols="rb")
 # m3<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm3",poporder,split=c(1,2,3,2),more=TRUE)
 # m4<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm4",poporder,split=c(2,2,3,2),more=TRUE)
 # m5<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm5",poporder,split=c(3,2,3,2),more=FALSE)
+```
 
+```{r TreemixPlotResids}
 # visualize residuals
 png("treemix/treemix-residuals_FLPB.png",height=8,width=8,units="in",res=300)
 par(mfrow=c(3,3))
@@ -479,7 +481,8 @@ r3<-plot_resid("treemix/fwsw_k100bFLPBrm3","treemix/poplist")
 r4<-plot_resid("treemix/fwsw_k100bFLPBrm4","treemix/poplist")
 r5<-plot_resid("treemix/fwsw_k100bFLPBrm5","treemix/poplist")
 dev.off()
-
+```
+```{r plotTreemixTrees}
 # look at the trees
 png("treemix/migration_trees_treemix_FLPB.png",height=6,width=11,units="in",res=300)
 par(mfrow=c(3,3),mar=c(1,1,1,1),oma=c(1,1,1,1))
@@ -491,7 +494,8 @@ t3<-plot_tree("treemix/fwsw_k100bFLPBrm3",plus=0.05,scale=F,mbar=F)
 t4<-plot_tree("treemix/fwsw_k100bFLPBrm4",plus=0.05,scale=F,mbar=F)
 t5<-plot_tree("treemix/fwsw_k100bFLPBrm5",plus=0.05,scale=F,mbar=F)
 dev.off()
-
+```
+```{r migrationPvalues}
 # Evaluate migration p-values
 nort0<-read.table(gzfile("treemix/fwsw_k100b.treeout.gz"), as.is  = T, comment.char = "", quote = "")
 tree0<-read.table(gzfile("treemix/fwsw_k100bFLPBr.treeout.gz"), as.is  = T, comment.char = "", quote = "")
@@ -500,17 +504,19 @@ tree2<-read.table(gzfile("treemix/fwsw_k100bFLPBrm2.treeout.gz"), as.is  = T, co
 tree3<-read.table(gzfile("treemix/fwsw_k100bFLPBrm3.treeout.gz"), as.is  = T, comment.char = "", quote = "",skip=1)
 tree4<-read.table(gzfile("treemix/fwsw_k100bFLPBrm4.treeout.gz"), as.is  = T, comment.char = "", quote = "",skip=1)
 tree5<-read.table(gzfile("treemix/fwsw_k100bFLPBrm5.treeout.gz"), as.is  = T, comment.char = "", quote = "",skip=1)
-
-d <- read.table("fwsw.k100bFLPBrm3.vertices.gz", as.is  = T, comment.char = "", quote = "")
+```
+```{r TreemixVertices}
+d <- read.table("treemix/fwsw_k100bFLPBrm3.vertices.gz", as.is  = T, comment.char = "", quote = "")
 branch.cols<-rep("black",nrow(d))
 branch.cols[d[,2] %in% c("TXFW","ALFW","LAFW","FLLG")]<-"cornflowerblue"
 
 tip.names<-as.vector(d[d[,5] == "TIP",2])
 tip.names<-data.frame(Original=tip.names,Replacement=tip.names,stringsAsFactors = FALSE)
 tip.names$Replacement[tip.names$Replacement=="FLLG"]<-"FLFW"
-
-png("FWSW_treemix_m3_FLPB.png",height=7,width=7,units="in",res=300)
-t3<-plot_tree("fwsw.k100bFLPBrm3","poporder",plus=0.05,scale=F,mbar=F,arrow=0.1,tip.order = tip.names)
+```
+```{r plotTreemixM3}
+png("../figs/FWSW_treemix_m3_FLPB.png",height=7,width=7,units="in",res=300)
+t3<-plot_tree("treemix/fwsw_k100bFLPBrm3","poporder",plus=0.05,scale=F,mbar=F,arrow=0.1,tip.order = tip.names)
 ybar<-0.01
 mcols = rev( heat.colors(150) )
 mcols = mcols[50:length(mcols)]
@@ -528,9 +534,11 @@ dev.off()
 
 ```
 
+![treemix figure]("../figs/FWSW_treemix_m3_FLPB.png")
+
 Ok, but how do I actually choose which number of migration edges to choose? Well, apparently [there's an R package for that!](https://rdrr.io/cran/OptM/#vignettes)
 
-```{r}
+```{r plotOptM}
 library(OptM)
 tmOpt<-optM("treemix")
 plot_optM(tmOpt)
@@ -579,7 +587,7 @@ poporder<-poporder$poporder
 ```
 
 
-```{r}
+```{r NewPopStructure_v1,eval=FALSE}
 npop<-length(pop.list)
 pseq<-1:npop
 m<-matrix(c(rep(1,16),rep(2,6),
@@ -838,18 +846,6 @@ colnames(scf.agp)<-c("object","object_beg","object_end","part_number","W","compo
 colnames(chr.agp)<-c("object","object_beg","object_end","part_number","W","component_id","component_beg","component_end","orientation")
 ```
 
-```{r stacks_fsts}
-fwsw.al<-read.delim("stacks/populations_subset75/batch_2.fst_ALFW-ALST.tsv")
-fwsw.la<-read.delim("stacks/populations_subset75/batch_2.fst_ALST-LAFW.tsv")
-fwsw.tx<-read.delim("stacks/populations_subset75/batch_2.fst_TXCC-TXFW.tsv")
-fwsw.fl<-read.delim("stacks/populations_subset75/batch_2.fst_FLCC-FLFW.tsv")
-swsw.fl<-read.delim("stacks/populations_subset75/batch_2.fst_FLCC-FLHB.tsv",stringsAsFactors = FALSE)
-swsw.tx<-read.delim("stacks/populations_subset75/batch_2.fst_TXCB-TXCC.tsv",stringsAsFactors = FALSE)
-swsw.al<-read.delim("stacks/populations_subset75/batch_2.fst_ALST-FLSG.tsv",stringsAsFactors = FALSE)
-
-vcf<-parse.vcf("stacks/populations_subset75/batch_2.pruned.vcf")
-```
-
 ```{r convert_vcf,eval=FALSE}
 vcf<-parse.vcf("stacks/populations_subset75/batch_2.pruned.vcf")
 converted<-data.frame(Locus=integer(),OrigChr=character(),OrigBP=integer(),NewChr=character(),NewBP=integer(),stringsAsFactors = FALSE)
@@ -874,7 +870,11 @@ for(i in 1:nrow(vcf)){
 }
 write.table(new.vcf,"converted_subset.vcf",sep='\t',quote=FALSE,col.names = TRUE,row.names = FALSE)
 ```
-```{r}
+```{r convertSWSW, eval=FALSE}
+swsw.fl<-read.delim("stacks/populations_whitelist/batch_2.fst_FLCC-FLHB.tsv")
+swsw.tx<-read.delim("stacks/populations_whitelist/batch_2.fst_TXCB-TXCC.tsv")
+swsw.al<-read.delim("stacks/populations_whitelist/batch_2.fst_ALST-FLSG.tsv")
+
 upd.st<-convert.stacks(swsw.tx,"stacks/converted.fst_TXCB-TXCC.txt",lgs,ssc.agp,sscf.agp,chr.agp,scf.agp)
 upd.sa<-convert.stacks(swsw.al,"stacks/converted.fst_ALST-FLSG.txt",lgs,ssc.agp,sscf.agp,chr.agp,scf.agp)
 upd.sf<-convert.stacks(swsw.fl,"stacks/converted.fst_FLCC-FLHB.txt",lgs,ssc.agp,sscf.agp,chr.agp,scf.agp)
@@ -883,7 +883,7 @@ upd.sf<-convert.stacks(swsw.fl,"stacks/converted.fst_FLCC-FLHB.txt",lgs,ssc.agp,
 
 ### Stacks
 
-```{r stacks_fsts}
+```{r read_stacks_fsts}
 fwsw.al<-read.delim("stacks/converted.fst_ALFW-ALST.txt")
 fwsw.la<-read.delim("stacks/converted.fst_ALST-LAFW.txt")
 fwsw.tx<-read.delim("stacks/converted.fst_TXCC-TXFW.txt")
@@ -1171,7 +1171,7 @@ wilcox.test(as.numeric(env.data$seagrass)~env.data$pop) #ties, but p=0.897
 
 This analysis is of just the freshwater and saltwater populations. First I ran bayenv using the script `run_bayenv2_matrix_general.sh`.
 
-```{bash}
+```{bash, eval=FALSE}
 # set up correct file formats
 ../../scripts/run_bayenv2_matrix_general.sh FILEMANIP bayenv/sub75.pruned.clust stacks/populations_subset75/batch_2.pruned.ped stacks/populations_subset75/batch_2.pruned.map bayenv ~/Programs/bayenv 7
 # estimate matrices
@@ -1184,7 +1184,7 @@ At this point I looked at the matrices
 
 They all looked fine so I chose the randomly selected matrix (`matrix`).
 
-```{bash}
+```{bash, eval=FALSE}
 # Create the SNPFILES
 ../../scripts/run_bayenv2_matrix_general.sh SNPFILES SNPSFILE SNPFILES
 # Run bayenv
