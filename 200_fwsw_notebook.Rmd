@@ -10,6 +10,107 @@ editor_options:
 ```{r setup}
 knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
 ```
+```{r source}
+source("../../gwscaR/R/gwscaR.R")
+source("../../gwscaR/R/gwscaR_plot.R")
+source("../../gwscaR/R/gwscaR_utility.R")
+source("../../gwscaR/R/gwscaR_fsts.R")
+source("../../gwscaR/R/gwscaR_popgen.R")
+source("../../gwscaR/R/vcf2dadi.R")
+source("../R/250_dadi_analysis.R")
+
+library(knitr)
+pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
+```
+
+# 15 April 2020
+
+Ok, so for whatever reason abacus wasn't recognizing my relative path to the dadi scripts. So I had to edit the script and re-start it. Also now I realize that abacus still doesn't have the IM2mG scripts. 
+
+What else needs to be done for the FWSW paper (other than the dadi analysis)?
+
+- put the supplements together
+- get the dadi figure outlined
+
+The updated model results for FLLG-FLCC makes it look like the IM2mG is now the best *on average*:
+
+```{r}
+flcc_fllg_opts<-dadi.modelcomp(path = "dadi_results/FLLG_FLCC/",
+                               pattern="*optimized.*",id="FLLG_FLCC")
+flcc_fllg<-modelComparison(flcc_fllg_opts)
+plot(as.numeric(flcc_fllg_opts$log.likelihood)~
+              as.factor(flcc_fllg_opts$Model),las=3,
+        pch=19,xlab="Model",ylab="Maximum log likelihood")
+
+```
+
+What's a bit interesting/concerning is that the 'best' model is still SC2mG and the dAICs are not <= 10 -- perhaps I didn't calculate those correctly?
+
+# 14 April 2020
+
+I need to create a new model list with updated numbers to determine what to queue up on abacus
+
+```{r}
+pops=c('FLLG', 'FLCC', 'ALFW', 'ALST', 'LAFW', 'TXFW', 'TXCC')   #
+models=c('SI', 'IM', 'AM', 'SC', 'SI2N', 'SIG', 'SI2NG', 'IMG', 'IM2N', 'IM2m', 'IM2NG', 'IM2mG', 'AM2N', 'AMG', 'AM2m', 'AM2NG', 'AM2N2m', 'AM2mG', 'AM2N2mG', 'SCG' ,'SC2N', 'SC2m', 'SC2NG', 'SC2N2m' ,'SC2mG' ,'SC2N2mG')
+ 
+
+
+
+############ CREATE POP COMBOS TO RUN ############
+tasks=NULL
+for(i in 1:(length(pops)-1)){
+  for(j in (i+1):length(pops)){
+    for(mod in 1:length(models)){
+      tasks<-c(tasks,paste(pops[i],pops[j],models[mod],sep="_"))
+    }
+  }
+}
+
+write.csv(tasks,"model_list_dadi.csv",row.names = TRUE,quote=FALSE)
+```
+
+Done. Now I've queued up 313-390, which have job ID 469 and include all ALFW-LAFW, ALFW-TXFW, and ALFW-TXCC comparisons.
+
+# 10 April 2020
+
+I finally fixed the string concatenation issue, which was an annoying issue of the two column file being created on windows rather than on unix ugh.
+
+The model runs on abacus are almost finished, which is exciting. I'm rebooting the rccuser machine and then I'll re-start the runs using the list of ones that have zero runs as of yesterday. 
+
+In the meantime, let's check in on the FLLG_FLCC analysis.
+
+```{r}
+flcc_fllg_opts<-dadi.modelcomp(path = "dadi_results/FLLG_FLCC/",
+                               pattern="*optimized.*",id="FLLG_FLCC")
+flcc_fllg<-modelComparison(flcc_fllg_opts)
+plot(as.numeric(flcc_fllg_opts$log.likelihood)~
+              as.factor(flcc_fllg_opts$Model),las=3,
+        pch=19,xlab="Model",ylab="Maximum log likelihood")
+
+```
+
+It's looking like IM2mG model has a higher on average log likelihood than SC2mG. Let's see if the IM2mG parameter distributions are better
+
+```{r}
+flcc_fllg_sc2mg<-do.call(rbind,extract_dadi_params(flcc_fllg_opts[flcc_fllg_opts$Model=="SC2mG",]))
+flcc_fllg_im2mg<-do.call(rbind,extract_dadi_params(flcc_fllg_opts[flcc_fllg_opts$Model=="IM2mG",]))
+```
+
+```{r}
+par(mfrow=c(1,2))
+boxplot(flcc_fllg_sc2mg[,11:22])
+points(1:12,
+       flcc_fllg_sc2mg[which.max(flcc_fllg_sc2mg$log.likelihood),11:22],
+       pch=8,col="red",lwd=2)
+
+boxplot(flcc_fllg_im2mg[,11:21])
+points(1:11,
+       flcc_fllg_im2mg[which.max(flcc_fllg_im2mg$log.likelihood),11:21],
+       pch=8,col="red",lwd=2)
+```
+
+
 
 # 9 April 2020
 
