@@ -31,6 +31,7 @@ What else needs to be done for the FWSW paper (other than the dadi analysis)?
 
 - put the supplements together
 - get the dadi figure outlined
+- request an extension
 
 The updated model results for FLLG-FLCC makes it look like the IM2mG is now the best *on average*:
 
