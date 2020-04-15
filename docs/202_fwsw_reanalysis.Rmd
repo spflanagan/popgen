@@ -954,7 +954,10 @@ There are `r length(unique(all.shared))` outliers (as determined by Fisher's P f
 As a point of comparison, we can repeat this with the similar pairwise saltwater-saltwater $F_{ST}$ comparisons.
 
 ```{r plot_stacks_fsts_swsw}
-fst_dat<-list(upd.st,upd.sa,upd.sf)
+swsw.fl<-read.delim("stacks/converted.fst_TXCB-TXCC.txt")
+swsw.tx<-read.delim("stacks/converted.fst_ALST-FLSG.txt")
+swsw.al<-read.delim("stacks/converted.fst_FLCC-FLHB.txt")
+fst_dat<-list(swsw.fl,swsw.tx,swsw.al)
 fsts<-plot_multiple_LGs(list_fsts = fst_dat,fst_name = "Corrected.AMOVA.Fst",bp_name="BP",chr_name="Chr",
                         lgs=lgs,plot_labs=list("TXSP vs TXCC","ALST vs FLSG","FLHB vs FLCC"),
                         pt_cols = list(c(grp.colors[1],grp.colors[2]),c(grp.colors[2],grp.colors[3]),
@@ -965,10 +968,10 @@ fsts<-plot_multiple_LGs(list_fsts = fst_dat,fst_name = "Corrected.AMOVA.Fst",bp_
 So this generated a plot for each pairwise comparison. We could look for shared outliers and see if we can find anything.
 
 ```{r get_stacks_sig_swsw}
-tx.sig<-upd.st[upd.st$Fisher.s.P<0.01,"Locus.ID"]
-al.sig<-upd.sa[upd.sa$Fisher.s.P<0.01,"Locus.ID"]
-fl.sig<-upd.sf[upd.sf$Fisher.s.P<0.01,"Locus.ID"]
-all.shared<-fl.sig[fl.sig %in% la.sig & fl.sig %in% al.sig & fl.sig %in% tx.sig]
+tx.sig<-swsw.tx[swsw.tx$Fisher.s.P<0.01,"Locus.ID"]
+al.sig<-swsw.al[swsw.al$Fisher.s.P<0.01,"Locus.ID"]
+fl.sig<-swsw.fl[swsw.fl$Fisher.s.P<0.01,"Locus.ID"]
+all.shared<-fl.sig[fl.sig %in% al.sig & fl.sig %in% tx.sig]
 ```
 
 There are `r length(unique(all.shared))` outliers (as determined by Fisher's P from stacks < 0.01).
