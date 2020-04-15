@@ -493,14 +493,14 @@ resid<-plot_resid("treemix/fwsw_k100b","treemix/poporder",wcols="rb")
 
 #### Tree with FLPB as root
 
-# nr<-treemix.cov.plot("treemix/fwsw_k100b",poporder)
-# m0<-treemix.cov.plot("treemix/fwsw_k100bFLPBr",poporder,split=c(1,1,3,2),more=TRUE)
-# m1<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm1",poporder,split=c(2,1,3,2),more=TRUE)
-# m2<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm2",poporder,split=c(3,1,3,2),more=TRUE)
-# m3<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm3",poporder,split=c(1,2,3,2),more=TRUE)
-# m4<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm4",poporder,split=c(2,2,3,2),more=TRUE)
-# m5<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm5",poporder,split=c(3,2,3,2),more=FALSE)
 ```{r treemixCovPlots,eval=FALSE,echo=FALSE}
+nr<-treemix.cov.plot("treemix/fwsw_k100b",poporder)
+m0<-treemix.cov.plot("treemix/fwsw_k100bFLPBr",poporder,split=c(1,1,3,2),more=TRUE)
+m1<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm1",poporder,split=c(2,1,3,2),more=TRUE)
+m2<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm2",poporder,split=c(3,1,3,2),more=TRUE)
+m3<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm3",poporder,split=c(1,2,3,2),more=TRUE)
+m4<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm4",poporder,split=c(2,2,3,2),more=TRUE)
+m5<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm5",poporder,split=c(3,2,3,2),more=FALSE)
 ```
 
 These are the residuals assuming that FLPB is root.
