@@ -59,7 +59,7 @@ library(knitr)
 library(scales)
 ```
 
-```{r}
+```{r popSetup}
 pop.list<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
 	"FLFD","FLSI","FLAB","FLPB","FLHB","FLCC","FLLG")
 pop.labs<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
@@ -188,14 +188,14 @@ write.csv(pop_summaries,"population_summaries.csv",row.names = FALSE,quote=FALSE
 ```
 
 We can merge the genetic info with the environmental info. 
-```{r}
+```{r pop_env_summaries}
 pop_summaries<-read.csv("population_summaries.csv")
 env.data<-data.frame(t(read.csv("bayenv/env_data_raw.csv",row.names = 1)))
 env.data$pop<-rownames(env.data)
 pop_summaries<-merge(env.data,pop_summaries,by="pop")
 ```
 
-```{r}
+```{r pretty_sum}
 pretty_sum<-data.frame(Population = pop_summaries$pop,
                        Temperature = pop_summaries$temp,
                        Salinity = pop_summaries$salinity,
@@ -221,9 +221,9 @@ write.table(pretty_sum,"Table1_populationSummaries.txt",sep='\t',col.names = TRU
 
 ### FSTs
 
-This will calculate the pairwise Fsts (but it's slow)
+This will calculate the pairwise $F_{ST}$s (but it's slow)
 
-```{r, eval=FALSE}
+```{r pairwiseFstsCalc, eval=FALSE}
 pop_map<-read.delim("../fwsw_pops_map.txt",header = FALSE,stringsAsFactors = FALSE)
 fst_mat<-matrix(NA,
                 nrow=length(unique(pop_map$V2)),ncol=length(unique(pop_map$V2)),
@@ -246,7 +246,7 @@ colnames(fst_mat)<-rownames(fst_mat)<-pop.labs
 write.table(fst_mat,"pairwise_fsts_full.txt",sep='\t',col.names = TRUE,row.names=TRUE,quote=FALSE)
 ```
 
-```{r}
+```{r readStacksFstSumm}
 full_fsts<-read.delim("stacks/populations_whitelist/batch_2.fst_summary.tsv",row.names = 1)
 full_fsts<-rbind(full_fsts,TXSP=rep(NA,ncol(full_fsts))) #add the final row
 Tfull_fsts<-t(full_fsts)
@@ -307,7 +307,7 @@ dev.off()
 ### PCAdapt {-}
 
 
-```{r}
+```{r loadPCAdapt}
 library(pcadapt)
 ```
 
@@ -392,7 +392,7 @@ legend("top", legend=ppi$Pop, pch=as.numeric(ppi$pch), pt.cex=1.5,cex=0.85,
 ### Admixture scree plots {-}
 
 
-```{r}
+```{r admixScree}
 admixK<-read.delim("admixture/K_CVs.txt",header = FALSE)
 admixK$K<-as.numeric(gsub(".*\\(K=(\\d+)\\).*","\\1",admixK$V1))
 admixK$CV<-as.numeric(gsub("^.*\\: (\\d+\\.\\d+)$","\\1",admixK$V1))
@@ -403,10 +403,10 @@ plot(admixK$K,admixK$CV,pch=19,type = "b",lty=1,xlab = "K",ylab="CV",las=1,lwd=2
 
 ```
 
-Looks like K=5 or K=7 are the best, let's look at those outputs.
+Looks like $K=5$ or $K=7$ are the best, let's look at those outputs.
 
 
-```{r}
+```{r admix_k5}
 library(RColorBrewer)
 qfile<-"admixture/fwsw_all_filt.5.Q"
 famfile<-"admixture/fwsw_all_filt.fam"
@@ -432,7 +432,7 @@ admixK5<-ordered[,1:(ncol(ordered)-2)]
 write.table(admixK5,"admixture/admixK5.txt",sep = '\t',quote = FALSE,col.names = TRUE,row.names = FALSE)
 ```
 
-```{r}
+```{r admixk7}
 qfile<-"admixture/fwsw_all_filt.7.Q"
 famfile<-"admixture/fwsw_all_filt.fam"
 poporderFile<-"treemix/poplist"
@@ -462,7 +462,7 @@ write.table(admixK7,"admixture/admixK7.txt",sep = '\t',quote = FALSE,col.names =
 ### Treemix analysis {-}
 
 
-```{r}
+```{r treemixPoporder}
 poporder<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST",
             "ALFW","FLSG","FLKB","FLFD","FLSI","FLAB",
             "FLPB","FLHB","FLCC","FLLG")
@@ -493,7 +493,6 @@ resid<-plot_resid("treemix/fwsw_k100b","treemix/poporder",wcols="rb")
 
 #### Tree with FLPB as root
 
-```{r}
 # nr<-treemix.cov.plot("treemix/fwsw_k100b",poporder)
 # m0<-treemix.cov.plot("treemix/fwsw_k100bFLPBr",poporder,split=c(1,1,3,2),more=TRUE)
 # m1<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm1",poporder,split=c(2,1,3,2),more=TRUE)
@@ -501,6 +500,7 @@ resid<-plot_resid("treemix/fwsw_k100b","treemix/poporder",wcols="rb")
 # m3<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm3",poporder,split=c(1,2,3,2),more=TRUE)
 # m4<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm4",poporder,split=c(2,2,3,2),more=TRUE)
 # m5<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm5",poporder,split=c(3,2,3,2),more=FALSE)
+```{r treemixCovPlots,eval=FALSE,echo=FALSE}
 ```
 
 These are the residuals assuming that FLPB is root.
@@ -553,7 +553,7 @@ tip.names<-as.vector(d[d[,5] == "TIP",2])
 tip.names<-data.frame(Original=tip.names,Replacement=tip.names,stringsAsFactors = FALSE)
 tip.names$Replacement[tip.names$Replacement=="FLLG"]<-"FLFW"
 ```
-```{r plotTreemixM3}
+```{r FWSW_treemix_m3_FLPB,fig.height=7,fig.width=7}
 png("../figs/FWSW_treemix_m3_FLPB.png",height=7,width=7,units="in",res=300)
 t3<-plot_tree("treemix/fwsw_k100bFLPBrm3","poporder",plus=0.05,scale=F,mbar=F,arrow=0.1,tip.order = tip.names)
 ybar<-0.01
@@ -588,7 +588,7 @@ plot_optM(tmOpt)
 
 Let's plot the no-migration-edge tree with the two-migration-edge tree, which optM chose as the best fit using the Evanno method.
 
-```{r}
+```{r treemixCompare}
 png("../figs/treemix_comparison.png",height = 4.5,width=8,units="in",res=300)
 par(mfrow=c(1,2),mar=c(1,1,1,2),oma=c(1,1,1,2),xpd=TRUE)
 t0<-plot_tree("treemix/fwsw_k100bFLPBr",scale=T,mbar=F,cex = 1.5,
@@ -692,7 +692,7 @@ dev.off()
 ### Make table
 
 
-```{r}
+```{r fstMatrix}
 full_fsts<-read.delim("stacks/populations_whitelist/batch_2.fst_summary.tsv",row.names = 1)
 full_fsts<-rbind(full_fsts,TXSP=rep(NA,ncol(full_fsts))) #add the final row
 Tfull_fsts<-t(full_fsts)
@@ -702,7 +702,7 @@ colnames(full_fsts)<-rownames(full_fsts)<-pop.labs
 fst_mat<-as.matrix(full_fsts)
 ```
 
-```{r}
+```{r covPlot}
 cov<-read.table(gzfile("treemix/fwsw_k100b.cov.gz"), as.is = T, head = T, quote = "", comment.char = "")
 #reorder
 covplot <- data.frame(matrix(nrow = nrow(cov), ncol = ncol(cov)))
@@ -718,7 +718,7 @@ covplot<-as.matrix(covplot)
 
 
 ```
-```{r}
+```{r createFstExcel}
 library(xlsx); library(RColorBrewer); library(scales)
 
 table2<-fst_mat
@@ -891,7 +891,7 @@ for(i in 1:nrow(vcf)){
 
 ```
 
-```{r}
+```{r lgs}
 lgs<-c("LG1","LG2","LG3","LG4","LG5","LG6","LG7","LG8","LG9","LG10","LG11",
 	"LG12","LG13","LG14","LG15","LG16","LG17","LG18","LG19","LG20","LG21",
 	"LG22")
@@ -1084,11 +1084,11 @@ ipars<-mapply(plot_fst_hists,perms=permuted_fsts,plot_lab=plot_labs,cols=pt_cols
 dev.off()
 ```
 
-[Permuted Fsts](../figs/permuted_fsts.png)
+![Permuted Fsts](../figs/permuted_fsts.png)
 
 Now let's start to aggregate everything.
 
-```{r}
+```{r create_fw_SNPinfo}
 permuted_fsts<-readRDS("permuted_fsts.RDS")
 vcf<-parse.vcf("converted_subset.vcf")
 fw_SNPinfo<-data.frame(ID=vcf$ID,Chrom=vcf$`#CHROM`,Pos=vcf$POS,BP=vcf$POS-1,
@@ -1101,7 +1101,7 @@ fw_SNPinfo<-data.frame(ID=vcf$ID,Chrom=vcf$`#CHROM`,Pos=vcf$POS,BP=vcf$POS-1,
 ```
 
 
-```{r}
+```{r add2SnpInfo}
 # add Fsts
 fw_SNPinfo<-merge(fw_SNPinfo,fwsw.al,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),all.x=TRUE,all.y = FALSE)[,c(colnames(fw_SNPinfo),"Corrected.AMOVA.Fst")] 
 colnames(fw_SNPinfo)[ncol(fw_SNPinfo)]<-"stacks_AL"
@@ -1137,7 +1137,7 @@ suppressWarnings(write.table(vcf,"pcadapt_fw/fwsw.pruned.vcf",quote=FALSE,append
 
 
 
-```{r}
+```{r pcadaptOutliers}
 library(pcadapt)
 
 filename<-read.pcadapt("pcadapt_fw/fwsw.pruned.vcf",type="vcf") #need to remove the first line with a # 
@@ -1147,7 +1147,7 @@ plot(x,option="screeplot")
 
 *K=4* seems like the best choice here to keep values to the left of the straight line (or could be *K=6*). 
 
-```{r}
+```{r organizePopInfo}
 # Organize pop info
 pops<-gsub("sample_(\\w{4}).*","\\1",colnames(vcf)[10:ncol(vcf)])	
 grp<-pops
@@ -1156,7 +1156,7 @@ grp[grp!="freshwater"]<-"saltwater"
 ```
 
 
-```{r}
+```{r PcadaptK4}
 res<-pcadapt(filename,K=4)
 par(mfrow=c(2,2))
 plot(res, option="manhattan")
@@ -1167,7 +1167,7 @@ plot(res, option="scores",pop=pops)
 
 The vignette recommends displaying the loadings and evaluate if loadings are clustered in single or several genomic regions
 
-```{r}
+```{r PcadaptLoadings}
 par(mfrow = c(2, 2))
 for (i in 1:4)
   plot(res$loadings[, i], pch = 19, cex = .3, ylab = paste0("Loadings PC", i))
@@ -1175,7 +1175,7 @@ for (i in 1:4)
 
 This suggests that loadings are not clustered (assuming these are grouped by space), so we don't need to worry about LD thinning. Now let's look chromosome by chromosome:
 
-```{r}
+```{r PcadaptLoadingsChr}
 par(mfrow=c(6,4),mar=c(3,3,2,1.5))
 l<-lapply(lgs, function(lg,vcf){
   plot(res$loadings[which(vcf$`#CHROM` %in% lg), 1], pch = 19, cex = .3, xlab = paste0("Position on ", lg), ylab = "Loadings PC 1")
@@ -1187,7 +1187,7 @@ None of the LGs seem to have huge clusters of outliers so we can move on, lumpin
 
 We need to choose a cutoff for outlier detection. I'll use the qvalue approach, which identifies outliers with a false discovery rate of $\alpha$, which I'm setting here to 0.05.
 
-```{r}
+```{r PcadaptQvalue}
 library(qvalue)
 qval <- qvalue(res$pvalues)$qvalues
 alpha <- 0.05
@@ -1197,13 +1197,13 @@ snp_pc<-get.pc(res,outliers) # Get the PCs associated with outliers
 
 We identified `r length(outliers)` outliers with this analysis, which are associated with `r length(unique(snp_pc$PC))` of the 4 clusters. If we look at the distribution of these, though, we see that most are associated with PC 1
 
-```{r}
+```{r showPcadaptOutliers}
 table(snp_pc$PC)
 ```
 
 Now we can add the qvalues to the fw_SNPinfo dataframe
 
-```{r}
+```{r Pcadapt2Snpinfo}
 fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
 fw_SNPinfo$pcadaptQ<-qval
 fw_SNPinfo$pcadaptPC<-get.pc(res,1:length(qval))$PC
@@ -1309,7 +1309,7 @@ write.table(bayenv_dat,"bayenv/bayenv_output.txt",sep="\t",col.names = TRUE,row.
 ```
 
 Merge it with other snp info
-```{r}
+```{r bayenv2snpinfo}
 bayenv_dat<-read.delim("bayenv/bayenv_output.txt",header = TRUE)
 bayenv_dat$logSalBF<-log(bayenv_dat$salinity_BF)
 bayenv_dat$logTemBF<-log(bayenv_dat$temp_BF)
@@ -1420,7 +1420,7 @@ legend("top",c(expression("Permutation"~italic("F")["ST"]),
 
 First we'll get set up with the libraries, code, and data.
 
-```{r, eval=FALSE}
+```{r getOutliers, eval=FALSE}
 library(UpSetR);library(scales);library(ggplot2);library(grid);library(gwscaR);library(gridGraphics)
 source("../R/upset_hacked.R")
 source("../R/205_popgenPlotting.R")
@@ -1439,7 +1439,7 @@ outliers<-list(xtx=fw_SNPinfo$ID[fw_SNPinfo$XtX >= quantile(fw_SNPinfo$XtX,0.99)
 
 Then we'll plot the Stacks Fst outliers.
 
-```{r, eval=FALSE}
+```{r plotStacksOutliers, eval=FALSE}
 pop.list<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
 	"FLFD","FLSI","FLAB","FLPB","FLHB","FLCC","FLLG")
 pop.labs<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
@@ -1569,7 +1569,7 @@ dev.off()
 
 And create upset plots to show overlap between pairwise Stacks comparisons and between all outlier methods.
 
-```{r, eval=FALSE}
+```{r createUpsetPlots, eval=FALSE}
 cols<-c(permutations='#e41a1c',salBF='#377eb8',pcadapt='#a65628',
         xtx='#ff7f00',sharedStacks='#f781bf',
         Alabama='#af8dc3',Louisiana='#e7d4e8',Texas='#762a83',Florida='#1b7837')
@@ -1593,7 +1593,7 @@ dev.off()
 
 And finally we'll stitch them together into a final image.
 
-```{r, eval=FALSE}
+```{r CreateOutliersImage, eval=FALSE}
 library(magick);library(multipanelfigure)
 
 image_files <- c("../figs/FstOutliers.png",
@@ -1615,12 +1615,12 @@ dev.off()
 
 ```
 
-[!Multipanel figure]("../figs/fstPlots.png")
+![Multipanel figure]("../figs/fstPlots.png")
 
 ### Annotations {-}
 
 
-```{r}
+```{r annotate_snps}
 annotate_snps<-function(snpDF,gff,genome.blast,ID="Locus.ID",chrom="Chr",bp="BP",pos="Column")
 {
   fw.sig.reg<-do.call(rbind,apply(snpDF,1,function(sig){
@@ -1657,7 +1657,7 @@ annotate_snps<-function(snpDF,gff,genome.blast,ID="Locus.ID",chrom="Chr",bp="BP"
 }
 ```
 
-```{r}
+```{r getGFF}
 gff.name<-"ssc_2016_12_20_chromlevel.gff.gz"
 if(length(grep("gz",gff.name))>0){
   gff<-read.delim(gzfile(paste("../../scovelli_genome/",gff.name,sep="")),header=F)
@@ -1667,7 +1667,7 @@ if(length(grep("gz",gff.name))>0){
 colnames(gff)<-c("seqname","source","feature","start","end","score","strand","frame","attribute")
 genome.blast<-read.csv("../../scovelli_genome/ssc_2016_12_20_cds_nr_blast_results.csv",skip=1,header=T)#I saved it as a csv
 ```
-```{r}
+```{r annotate_snpinfo}
 fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
 outliers<-list(xtx=fw_SNPinfo$ID[fw_SNPinfo$XtX >= quantile(fw_SNPinfo$XtX,0.99)],
                salBF=fw_SNPinfo$ID[fw_SNPinfo$logSalBF>=quantile(fw_SNPinfo$logSalBF,0.99)],
@@ -1684,7 +1684,7 @@ out_ann<-annotate_snps(out_snps,gff,genome.blast,ID="ID",chrom="Chrom",bp="BP",p
 ```
 
 
-```{r}
+```{r saveAnnotations}
 snp_annotate<-annotate_snps(fw_SNPinfo,gff,genome.blast,ID="ID",chrom="Chrom",bp="BP",pos = "Pos")
 snp_annotate$Locus<-as.character(snp_annotate$Locus)
 fw_SNPinfo$ID<-as.character(fw_SNPinfo$ID)
