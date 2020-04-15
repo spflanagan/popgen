@@ -3,9 +3,9 @@ title: "FWSW with smallest dataset"
 author: "Sarah P. Flanagan"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
-  html_document: default
   pdf_document:
     fig_caption: yes
+  html_document: default
 graphics: yes
 editor_options:
   chunk_output_type: console
@@ -24,7 +24,7 @@ Note that in most of these cases the actual analysis will be set to `eval=FALSE`
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE,out.extra='',fig.pos="H")
-knitr::opts_knit$set(root.dir='./fwsw_results/')
+knitr::opts_knit$set(root.dir='../fwsw_results/')
 ```
 ```{r source}
 source("../../gwscaR/R/gwscaR.R")
@@ -49,7 +49,12 @@ knitr::read_chunk("../R/200_fwsw_analysis.R")
 ```{r pwiseFstsFiles,eval=FALSE}
 ```
 
-```{r P4plink,cache=TRUE}
+```{r loadplink,cache=TRUE}
+ped.sub<-read.table("stacks/populations_all/batch_2.plink.ped",header=F)	
+ped.sub$V1<-gsub("sample_(\\w{4})\\w+.*","\\1",ped.sub$V2)
+map.sub<-read.table("stacks/populations_all/batch_2.plink.map",header = F,stringsAsFactors = F)
+map.sub$Locus<-paste(gsub("(\\d+)_\\d+","\\1",map.sub$V2),(as.numeric(map.sub$V4)+1),sep=".")
+colnames(ped.sub)<-c("Pop","IID","","","","Phenotype","","",map.sub$Locus)
 ```
 
 This P4/subset dataset has `r nrow(map.sub)` SNPs from `r length(unique(gsub("(\\d+)_\\d+","\\1",map.sub$V2)))` RAD loci, from `r nrow(ped.sub)` indivudals in 16 populations.
