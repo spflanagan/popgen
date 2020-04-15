@@ -1,16 +1,42 @@
 ---
-title: "Revising FWSW paper"
-author: "Sarah P. Flanagan"
-date: "`r format(Sys.time(), '%d %B, %Y')`"
+title: Supplemental Material \#1 for "Multiple colonizations of freshwater by the Gulf pipefish reveal a shared genomic signature of adaptation"
+preprint: false
+author: 
+  - name: Sarah P. Flanagan
+    affiliation: 1
+    corresponding: true
+    email: spflanagan.phd@gmail.com
+  - name: Emily Rose
+    affiliation: 2
+  - name: Adam Jones
+    affiliation: 3
+affiliation:
+  - code: 1
+    address: School of Biological Sciences, University of Canterbury, 4800 Private Bag, Christchurch 8140 New Zealand
+  - code: 2
+    address: Department of Biology, The University of Tampa, Tampa, FL 33606 USA
+  - code: 3
+    address: Department of Biological Sciences, University of Idaho, Moscow, ID 83844 USA
+abstract: >
+  This document includes supplementary material for the paper. 
+header-includes: >
+  \usepackage{lipsum}
+bibliography: programs.bib
 output:
   pdf_document:
     fig_caption: yes
-  html_document: default
-graphics: yes
-editor_options:
-  chunk_output_type: console
-description: Re-analyzing the freshwater-saltwater data based on reviewer comments (2018)
+    keep_tex: yes
+    number_sections: yes
+    template: manuscript.latex
+  html_document: null
+  word_document: null
+fontsize: 11pt
+capsize: normalsize
+csl: molecular-ecology.csl
+documentclass: article
+spacing: doublespacing
 ---
+
 
 The initial analyses are in `200_fwsw_analysis.Rmd` and conducted the analyses on a dataset generated from comparing lumped 'freshwater' and 'saltwater' populations, containing SNPs found in 50% of individuals and with a minor allele frequency of at least 5%. The revised paper will instead focus on two datasets:
 
@@ -57,8 +83,9 @@ ppi<-data.frame(Pop=pop.labs,cols = col_vector,pch=rep(c(15,16,17,18),4))
 ppi$pch[grep("FW",ppi$Pop)]<-c(15,16,17,18)
 ```
 
+# Overview of the study populations {-}
 
-# Map of the populations
+## Map of the populations
 
 First, we'll plot these populations on a map
 
@@ -106,7 +133,6 @@ dev.off()
 
 ```
 
-![Fig. 1]("all_sites_map.jpeg")
 
 ## Table of summary statistics
 
@@ -191,7 +217,7 @@ write.table(pretty_sum,"Table1_populationSummaries.txt",sep='\t',col.names = TRU
 
 
 
-## Population structure of all 16 populations
+# Population structure of all 16 populations  {-}
 
 ### FSTs
 
@@ -231,7 +257,7 @@ fst_mat<-as.matrix(full_fsts)
 ```
 
 
-```{r}
+```{r fst_heatmaps,fig.width=8,fig.height=5,eval=FALSE}
 library(lattice); library(grid); library(RColorBrewer)
 poporder<-read.delim("treemix/poporder")
 colors<-poporder$colors
@@ -275,10 +301,10 @@ dev.off()
 
 ```
 
-[!Heatmaps]("../figs/fst_heatmaps.png")
+![Heatmaps]("../figs/fst_heatmaps.png")
 
 
-### PCAdapt
+### PCAdapt {-}
 
 
 ```{r}
@@ -363,7 +389,7 @@ legend("top", legend=ppi$Pop, pch=as.numeric(ppi$pch), pt.cex=1.5,cex=0.85,
 ```
 
 
-### Admixture
+### Admixture scree plots {-}
 
 
 ```{r}
@@ -433,7 +459,7 @@ write.table(admixK7,"admixture/admixK7.txt",sep = '\t',quote = FALSE,col.names =
 ```
 
 
-### Treemix
+### Treemix analysis {-}
 
 
 ```{r}
@@ -450,6 +476,8 @@ colors[colors %in% c("TXSP","TXCC","TXFW","TXCB")]<-grp.colors[1]
 write.table(cbind(poporder,colors),"poporder",quote=F,sep='\t')
 ```
 
+#### Tree with no migration edges and no root
+
 ```{r treemixPrep}
 source("../R/203_treemix_plotting_funcs.R") #I've modified the functions from treemix
 library(lattice); library(grid); library(RColorBrewer)
@@ -461,6 +489,11 @@ tree<-plot_tree("treemix/fwsw_k100b",plotmig=F,scale=F,mbar=F,plus=0.05)
 mtext("Drift parameter",1,line=2)
 resid<-plot_resid("treemix/fwsw_k100b","treemix/poporder",wcols="rb")
 
+```
+
+#### Tree with FLPB as root
+
+```{r}
 # nr<-treemix.cov.plot("treemix/fwsw_k100b",poporder)
 # m0<-treemix.cov.plot("treemix/fwsw_k100bFLPBr",poporder,split=c(1,1,3,2),more=TRUE)
 # m1<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm1",poporder,split=c(2,1,3,2),more=TRUE)
@@ -469,6 +502,8 @@ resid<-plot_resid("treemix/fwsw_k100b","treemix/poporder",wcols="rb")
 # m4<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm4",poporder,split=c(2,2,3,2),more=TRUE)
 # m5<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm5",poporder,split=c(3,2,3,2),more=FALSE)
 ```
+
+These are the residuals assuming that FLPB is root.
 
 ```{r TreemixPlotResids}
 # visualize residuals
@@ -483,6 +518,9 @@ r4<-plot_resid("treemix/fwsw_k100bFLPBrm4","treemix/poplist")
 r5<-plot_resid("treemix/fwsw_k100bFLPBrm5","treemix/poplist")
 dev.off()
 ```
+
+Here are the trees with a variety of migration edges.
+
 ```{r plotTreemixTrees}
 # look at the trees
 png("treemix/migration_trees_treemix_FLPB.png",height=6,width=11,units="in",res=300)
@@ -537,7 +575,10 @@ dev.off()
 
 ![treemix figure]("../figs/FWSW_treemix_m3_FLPB.png")
 
-Ok, but how do I actually choose which number of migration edges to choose? Well, apparently [there's an R package for that!](https://rdrr.io/cran/OptM/#vignettes)
+### Choosing the optimal number of migration edges
+
+To choose the optimal number of migration edges, we used the R package optM [@fitak_optm:_2019].
+
 
 ```{r plotOptM}
 library(OptM)
@@ -545,7 +586,7 @@ tmOpt<-optM("treemix")
 plot_optM(tmOpt)
 ```
 
-Let's plot the no-migration-edge tree with the two-migration-edge tree.
+Let's plot the no-migration-edge tree with the two-migration-edge tree, which optM chose as the best fit using the Evanno method.
 
 ```{r}
 png("../figs/treemix_comparison.png",height = 4.5,width=8,units="in",res=300)
@@ -560,13 +601,13 @@ dev.off()
 
 ### Make figure
 
-```{r}
+```{r defineColors}
 grp.colors<-c('#762a83','#af8dc3','#e7d4e8','#d9f0d3','#7fbf7b','#1b7837') 
 grp7colors<-c('#762a83','#9970ab','#c2a5cf','#d9f0d3','#a6dba0','#5aae61','#1b7837')
 grp5colors<-c('#762a83','#c2a5cf','#a6dba0','#5aae61','#1b7837')
 ```
 
-```{r}
+```{r NewPopStructurePrep,eval=FALSE}
 #admixture 
 admixK5<-read.delim("admixture/admixK5.txt",header = TRUE)
 admixK7<-read.delim("admixture/admixK7.txt",header = TRUE)
@@ -718,13 +759,7 @@ saveWorkbook(wb, file)
 
 
 
-## Demographic history inference
-
-
-### dadi
-
-
-## Outliers: Fsts from Stacks, permutations, PCadapt
+# Outliers: Fsts from Stacks, permutations, PCadapt  {-}
 
 The alignments were done with a preliminary genome assembly that is different from the published, updated one. The data that I need to convert ar the vcf and the stacks files. 
 
@@ -882,7 +917,7 @@ upd.sf<-convert.stacks(swsw.fl,"stacks/converted.fst_FLCC-FLHB.txt",lgs,ssc.agp,
 ```
 
 
-### Stacks
+### Stacks {-}
 
 ```{r read_stacks_fsts}
 fwsw.al<-read.delim("stacks/converted.fst_ALFW-ALST.txt")
@@ -901,7 +936,7 @@ fsts<-plot_multiple_LGs(list_fsts = fst_dat,fst_name = "Corrected.AMOVA.Fst",bp_
                         ncol=1,addSmooth = FALSE,pch=19,y.lim = c(0,1),pt.cex=1,axis.size = 1)
 ```
 
-So this generated a plot for each pairwise comparison. We could look for shared outliers and see if we can find anything
+So this generated a plot for each pairwise comparison. We could look for shared outliers and see if we can find anything.
 
 ```{r get_stacks_sig}
 tx.sig<-fwsw.tx[fwsw.tx$Fisher.s.P<0.01,"Locus.ID"]
@@ -914,9 +949,31 @@ length(al.sig[(al.sig %in% c(la.sig,tx.sig,fl.sig))])
 all.shared<-fl.sig[fl.sig %in% la.sig & fl.sig %in% al.sig & fl.sig %in% tx.sig]
 ```
 
-There are `r length(unique(all.shared))` outliers (as determined by Fisher's P from stacks < 0.01) 
+There are `r length(unique(all.shared))` outliers (as determined by Fisher's P from stacks < 0.01). 
 
-### Permutations
+As a point of comparison, we can repeat this with the similar pairwise saltwater-saltwater $F_{ST}$ comparisons.
+
+```{r plot_stacks_fsts_swsw}
+fst_dat<-list(upd.st,upd.sa,upd.sf)
+fsts<-plot_multiple_LGs(list_fsts = fst_dat,fst_name = "Corrected.AMOVA.Fst",bp_name="BP",chr_name="Chr",
+                        lgs=lgs,plot_labs=list("TXSP vs TXCC","ALST vs FLSG","FLHB vs FLCC"),
+                        pt_cols = list(c(grp.colors[1],grp.colors[2]),c(grp.colors[2],grp.colors[3]),
+                                       c(grp.colors[6],grp.colors[5])),
+                        ncol=1,addSmooth = FALSE,pch=19,y.lim = c(0,1),pt.cex=1,axis.size = 1)
+```
+
+So this generated a plot for each pairwise comparison. We could look for shared outliers and see if we can find anything.
+
+```{r get_stacks_sig_swsw}
+tx.sig<-upd.st[upd.st$Fisher.s.P<0.01,"Locus.ID"]
+al.sig<-upd.sa[upd.sa$Fisher.s.P<0.01,"Locus.ID"]
+fl.sig<-upd.sf[upd.sf$Fisher.s.P<0.01,"Locus.ID"]
+all.shared<-fl.sig[fl.sig %in% la.sig & fl.sig %in% al.sig & fl.sig %in% tx.sig]
+```
+
+There are `r length(unique(all.shared))` outliers (as determined by Fisher's P from stacks < 0.01).
+
+### Permutations {-}
 
 ```{r permute.gwsca}
 permute.gwsca<-function(vcf,map1,nperms,z=1.96, maf.cutoff = 0.05,cov.thresh=0.2){
@@ -1066,11 +1123,9 @@ colnames(fw_SNPinfo)[ncol(fw_SNPinfo)]<-"stacks_FL_P"
 saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
 ```
 
-### PCAdapt
+### PCAdapt {-}
 
-For this analysis we'll use the subset of populations rather than the full population set.
-
-First I need to add the fileformat line to the vcf
+For this analysis, to maintain consistency with the other outlier analyses, I'm using the subestted dataset. So I need to run PCAdapt [@luu_pcadapt:_2017] another time.
 
 ```{r convertVCF, eval=FALSE}
 vcf<-parse.vcf("converted_subset.vcf")
@@ -1157,7 +1212,7 @@ saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
 
 I should note that for some of these PCAdapt gives "NA" -- not sure what causes this behaviour but there it is. It's true for the residuals and everything else. It looks to be due to low allele frequencies -- though stacks should have been run with a minimum allele frequency cutoff, so this is perplexing.
 
-### Bayenv
+### Bayenv {-}
 
 Investigate the environmental data
 
@@ -1562,9 +1617,7 @@ dev.off()
 
 [!Multipanel figure]("../figs/fstPlots.png")
 
-### Annotations
-
-
+### Annotations {-}
 
 
 ```{r}
@@ -1638,5 +1691,8 @@ fw_SNPinfo$ID<-as.character(fw_SNPinfo$ID)
 fw_SNPinfo<-merge(fw_SNPinfo,snp_annotate,by.x="ID",by.y="Locus",all.x=TRUE)
 saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
 ```
+
+
+# References
 
 
