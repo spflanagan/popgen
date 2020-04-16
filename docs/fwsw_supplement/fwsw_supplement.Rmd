@@ -18,7 +18,7 @@ affiliation:
   - code: 3
     address: Department of Biological Sciences, University of Idaho, Moscow, ID 83844 USA
 abstract: >
-  This document include supplementary material for the paper.
+  This document includes supplementary material for the paper.
 header-includes: >
   \usepackage{lipsum}
 bibliography: programs.bib
@@ -236,7 +236,7 @@ t2<-plot_tree("treemix/fwsw_k100bFLPBrm2",scale=T,mbar=T,cex = 1.5,
 
 dadi analyses.
 
-# Outliers 
+# Outliers {-}
 
 ## Stacks 
 
