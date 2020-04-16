@@ -23,6 +23,26 @@ library(knitr)
 pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 ```
 
+# 16 April 2020
+
+I'm working on making the 202_fwsw_reanalysis document successfully compile into a PDF --  I figure it can be a useful supplement. I've also got some supplemental documents, and I'm not sure how distinct those are from the reanalysis doc.
+
+Goals for today:
+
+- evaluate independent supplement docs and compile a list of PDFs to include as supps
+    - S1: 202_fwsw_reanalysis, population structure + outlier analyses (I'm making this prettier)
+    - S2: 250_fwsw_dadi, showing the dadi analysis
+    - S3: fwsw_morphometrics
+- improve the figure showing all possible models
+- set up code to analyze all of the existing model output
+- check in on the analyses
+    - C001KR: still running IM2mG, but we've gotten through all FLLG-FLCC, woohoo!
+    - abacus: 2 still running from 3 April, 4 from 6 April, and a bunch from yesterday
+    - rccuser: running ALFW vs other runs, round 1 (one started as recently as this AM)
+- improve the reanalysis document with chunk labels etc
+
+We got (another) extension!I'm optimistic that we'll be able to actually meet this new deadline.
+
 # 15 April 2020
 
 Ok, so for whatever reason abacus wasn't recognizing my relative path to the dadi scripts. So I had to edit the script and re-start it. Also now I realize that abacus still doesn't have the IM2mG scripts. 
