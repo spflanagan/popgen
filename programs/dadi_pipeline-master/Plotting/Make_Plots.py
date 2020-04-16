@@ -2,7 +2,7 @@ import sys
 import os
 import numpy
 import dadi
-import Plotting_Functions
+execfile("Plotting_Functions.py"
 
 '''
 Usage: python Make_Plots.py
