@@ -79,18 +79,33 @@ kable(cbind(file=vcf.files,numer_snps=unlist(lapply(dadis,nrow))))
 
 I'm going to use the 75% of individuals dataset.
 
-## Analyze 1D dadi results
+## Running $\delta_A\delta_I$
 
-I ran the optimize functions from (dportik's dadi pipeline)[https://github.com/dportik/dadi_pipeline] for each of the 7 populations. Now I need to see what the optimal parameters are (with maximum log likelihood).
+I ran the optimize functions from (dportik's $\delta_A\delta_I$ pipeline)[https://github.com/dportik/dadi_pipeline] for each pairwise combination of the 7 populations with the 26 models from Rougeux. These ran using python2.7 (because I used $\delta_A\delta_I$ v. xxx) using individual scripts for each population pair and each model (in dadi_scripts/). These scripts were generated using `252_generate_dadi_scripts.sh`. Each of the population-pair-model scripts runs `252_pairwise_dadi.py`, which requires the dadi-pipeline scripts and the file `rougeux_models.py`, which contains the 26 models run here. Each script was run using either `252_run_dadi_scripts.sh` or `run_dadi_scripts_abacus.sh`, depending on whether the scripts were run on a local machine (C001KR or rccuser\@10.195.0.46) or on the cluster (abacus). 
+
+Single population plots were generated using `250_dadiPlots.py`.
+
+To run the models I saved all of the population-pair-model combinations to a file to make it easier to run specific combinations.
+
+
+```{r modelCombos,eval=FALSE}
+pops=c('FLLG', 'FLCC', 'ALFW', 'ALST', 'LAFW', 'TXFW', 'TXCC')   #
+models=c('SI', 'IM', 'AM', 'SC', 'SI2N', 'SIG', 'SI2NG', 'IMG', 'IM2N', 'IM2m', 'IM2NG', 'IM2mG', 'AM2N', 'AMG', 'AM2m', 'AM2NG', 'AM2N2m', 'AM2mG', 'AM2N2mG', 'SCG' ,'SC2N', 'SC2m', 'SC2NG', 'SC2N2m' ,'SC2mG' ,'SC2N2mG')
+ 
 
 
 
-
-
-
-
+############ CREATE POP COMBOS TO RUN ############
+tasks=NULL
+for(i in 1:(length(pops)-1)){
+  for(j in (i+1):length(pops)){
+    for(mod in 1:length(models)){
+      tasks<-c(tasks,paste(pops[i],pops[j],models[mod],sep="_"))
+    }
   }
+}
 
+write.csv(tasks,"model_list_dadi.csv",row.names = TRUE,quote=FALSE)
 ```
 
 
