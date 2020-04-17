@@ -23,6 +23,17 @@ library(knitr)
 pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 ```
 
+
+# 17 April 2020
+
+Today I want to re-vamp the 250_fwsw_dadi document.
+
+
+It would also be great if I could get the 202_fwsw_reanalysis doc to render!
+
+I've done the dadi document re-vamping, but I'm having issues rendering both it and the reanalysis one. This is a problem to solve at another time!
+
+
 # 16 April 2020
 
 I'm working on making the 202_fwsw_reanalysis document successfully compile into a PDF --  I figure it can be a useful supplement. I've also got some supplemental documents, and I'm not sure how distinct those are from the reanalysis doc.
