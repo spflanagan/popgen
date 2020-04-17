@@ -1,8 +1,40 @@
 ---
-title: "FWSW analysis with dadi"
-output: html_notebook
-editor_options: 
-  chunk_output_type: console
+title: Supplemental Material for "Multiple colonizations of freshwater by the Gulf pipefish reveal a shared genomic signature of adaptation"
+preprint: false
+author: 
+  - name: Sarah P. Flanagan
+    affiliation: 1
+    corresponding: true
+    email: spflanagan.phd@gmail.com
+  - name: Emily Rose
+    affiliation: 2
+  - name: Adam Jones
+    affiliation: 3
+affiliation:
+  - code: 1
+    address: School of Biological Sciences, University of Canterbury, 4800 Private Bag, Christchurch 8140 New Zealand
+  - code: 2
+    address: Department of Biology, The University of Tampa, Tampa, FL 33606 USA
+  - code: 3
+    address: Department of Biological Sciences, University of Idaho, Moscow, ID 83844 USA
+abstract: >
+  This document includes supplementary material for the paper. 
+header-includes: >
+  \usepackage{lipsum}
+bibliography: programs.bib
+output:
+  pdf_document:
+    fig_caption: yes
+    keep_tex: yes
+    number_sections: yes
+    template: manuscript.latex
+  html_document: null
+  word_document: null
+fontsize: 11pt
+capsize: normalsize
+csl: molecular-ecology.csl
+documentclass: article
+spacing: doublespacing
 ---
 
 ```{r setup, include=FALSE}
@@ -23,7 +55,7 @@ pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 
 Some useful functions are in the `250_dadi_analysis.R` script.
 
-# Create a dadi SNPs file from the vcf
+# Create a dadi SNPs file from the vcf {-}
 
 ```{r create_dadi, eval=FALSE}
 vcf<-parse.vcf("stacks/populations_subset75/batch_2.vcf")
@@ -54,7 +86,7 @@ write.table(dadi[dadi$GeneID %in% rownames(keepers),],"dadi_analysis/fwsw.dadi.p
             col.names = c("Ingroup","Outgroup","Allele1","TXFW","TXCB","LAFW","ALST","ALFW","FLLG","FLCC","Allele2","TXFW","TXCB","LAFW","ALST","ALFW","FLLG","FLCC","GeneID","Position"))
 ```
 
-```{r check_dadis}
+```{r check_dadis, eval=FALSE}
 vcf.files<-c("stacks/populations_subset50/batch_2.vcf",
              "stacks/populations_subset75/batch_2.vcf",
              #"stacks/populations_subset85/batch_2.vcf",
@@ -79,7 +111,7 @@ kable(cbind(file=vcf.files,numer_snps=unlist(lapply(dadis,nrow))))
 
 I'm going to use the 75% of individuals dataset.
 
-## Running $\delta_A\delta_I$
+## Running $\delta_A\delta_I$ {-}
 
 I ran the optimize functions from (dportik's $\delta_A\delta_I$ pipeline)[https://github.com/dportik/dadi_pipeline] for each pairwise combination of the 7 populations with the 26 models from Rougeux. These ran using python2.7 (because I used $\delta_A\delta_I$ v. xxx) using individual scripts for each population pair and each model (in dadi_scripts/). These scripts were generated using `252_generate_dadi_scripts.sh`. Each of the population-pair-model scripts runs `252_pairwise_dadi.py`, which requires the dadi-pipeline scripts and the file `rougeux_models.py`, which contains the 26 models run here. Each script was run using either `252_run_dadi_scripts.sh` or `run_dadi_scripts_abacus.sh`, depending on whether the scripts were run on a local machine (C001KR or rccuser\@10.195.0.46) or on the cluster (abacus). 
 
@@ -108,6 +140,8 @@ for(i in 1:(length(pops)-1)){
 write.csv(tasks,"model_list_dadi.csv",row.names = TRUE,quote=FALSE)
 ```
 
+
+## Analyzing $\delta_A\delta_I$ output {-}
 
 
 
