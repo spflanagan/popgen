@@ -7,7 +7,7 @@ editor_options:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE,out.extra='',fig.pos="H")
-knitr::opts_knit$set(root.dir='./fwsw_results/')
+knitr::opts_knit$set(root.dir='../fwsw_results/')
 ```
 ```{r source}
 source("../../gwscaR/R/gwscaR.R")
