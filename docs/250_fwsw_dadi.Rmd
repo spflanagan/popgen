@@ -109,6 +109,8 @@ dadis<-lapply(vcf.files,function(file){
 kable(cbind(file=vcf.files,numer_snps=unlist(lapply(dadis,nrow))))
 ```
 
+TODO: Write code to read in the files and compare
+
 I'm going to use the 75% of individuals dataset.
 
 ## Running $\delta_A\delta_I$ {-}
