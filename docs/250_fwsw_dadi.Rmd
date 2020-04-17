@@ -143,12 +143,50 @@ write.csv(tasks,"model_list_dadi.csv",row.names = TRUE,quote=FALSE)
 
 ## Analyzing $\delta_A\delta_I$ output {-}
 
+### FLLG vs FLCC
 
 
+```{r}
+flcc_fllg_opts<-dadi.modelcomp(path = "dadi_results/FLLG_FLCC/",
+                               pattern="*optimized.*",id="FLLG_FLCC")
+flcc_fllg<-modelComparison(flcc_fllg_opts)
+plot(as.numeric(flcc_fllg_opts$log.likelihood)~
+              as.factor(flcc_fllg_opts$Model),las=3,
+        pch=19,xlab="Model",ylab="Maximum log likelihood")
 
+```
+It's looking like IM2mG model has a higher on average log likelihood than SC2mG. Let's see if the IM2mG parameter distributions are better
 
-## Analyzing $\delta_A\delta_I$ output
+```{r}
+flcc_fllg_sc2mg<-do.call(rbind,extract_dadi_params(flcc_fllg_opts[flcc_fllg_opts$Model=="SC2mG",]))
+flcc_fllg_im2mg<-do.call(rbind,extract_dadi_params(flcc_fllg_opts[flcc_fllg_opts$Model=="IM2mG",]))
+```
 
+```{r}
+par(mfrow=c(1,2))
+boxplot(flcc_fllg_sc2mg[,11:22])
+points(1:12,
+       flcc_fllg_sc2mg[which.max(flcc_fllg_sc2mg$log.likelihood),11:22],
+       pch=8,col="red",lwd=2)
+
+boxplot(flcc_fllg_im2mg[,11:21])
+points(1:11,
+       flcc_fllg_im2mg[which.max(flcc_fllg_im2mg$log.likelihood),11:21],
+       pch=8,col="red",lwd=2)
+```
+
+#### SC2mG
+
+```{r}
+flcc_fllg_sc2mg<-do.call(rbind,extract_dadi_params(flcc_fllg_opts[flcc_fllg_opts$Model=="SC2mG",]))
+```
+
+```{r}
+boxplot(flcc_fllg_sc2mg[,11:22])
+points(1:12,
+       flcc_fllg_sc2mg[which.max(flcc_fllg_sc2mg$log.likelihood),11:22],
+       pch=8,col="red",lwd=2)
+```
 
 
 
