@@ -190,18 +190,135 @@ points(1:11,
 ```
 
 #### SC2mG
+### FLLG vs ALFW
 
 ```{r}
-flcc_fllg_sc2mg<-do.call(rbind,extract_dadi_params(flcc_fllg_opts[flcc_fllg_opts$Model=="SC2mG",]))
-```
-
-```{r}
-boxplot(flcc_fllg_sc2mg[,11:22])
-points(1:12,
-       flcc_fllg_sc2mg[which.max(flcc_fllg_sc2mg$log.likelihood),11:22],
-       pch=8,col="red",lwd=2)
+fllg_alfw<-dadi_initialCompare("FLLG_ALFW")
 ```
 
 
+### FLLG_ALST
 
+```{r}
+fllg_alst<-dadi_initialCompare("FLLG_ALST")
+```
+
+
+### FLLG_LAFW
+
+```{r}
+fllg_lafw<-dadi_initialCompare("FLLG_LAFW")
+```
+
+### FLLG_TXFW
+
+```{r}
+fllg_txfw<-dadi_initialCompare("FLLG_TXFW")
+```
+
+### FLLG_TXCC
+
+```{r}
+fllg_txcc<-dadi_initialCompare("FLLG_TXCC")
+```
+
+
+### FLCC_ALFW
+
+```{r}
+flcc_alfw<-dadi_initialCompare("FLCC_ALFW")
+```
+
+### FLCC_ALST
+
+```{r}
+flcc_alst<-dadi_initialCompare("FLCC_ALST")
+```
+
+### FLCC_LAFW
+
+```{r}
+flcc_lafw<-dadi_initialCompare("FLCC_LAFW")
+```
+
+
+### FLCC_TXFW
+
+```{r}
+flcc_txfw<-dadi_initialCompare("FLCC_TXFW")
+```
+
+### FLCC_TXCC
+
+```{r}
+flcc_txcc<-dadi_initialCompare("FLCC_TXCC")
+```
+
+
+### ALFW_ALST
+
+```{r}
+alfw_alst<-dadi_initialCompare("ALFW_ALST")
+```
+
+
+### ALFW_LAFW
+
+```{r}
+alfw_lafw<-dadi_initialCompare("ALFW_LAFW")
+```
+
+### ALFW_TXFW
+
+```{r}
+alfw_txfw<-dadi_initialCompare("ALFW_TXFW")
+```
+
+### ALFW_TXCC
+
+```{r}
+alfw_txcc<-dadi_initialCompare("ALFW_TXCC")
+```
+
+### ALFW_ALST
+
+```{r}
+alfw_alst<-dadi_initialCompare("ALFW_ALST")
+```
+
+### ALST_LAFW
+
+```{r}
+alst_lafw<-dadi_initialCompare("ALST_LAFW")
+```
+
+### ALST_TXFW
+
+```{r}
+alst_txfw<-dadi_initialCompare("ALST_TXFW")
+```
+
+### ALST_TXCC
+
+```{r}
+alst_txc<-dadi_initialCompare("ALST_TXCC")
+```
+
+### LAFW_TXFW
+
+```{r}
+lafw_txfw<-dadi_initialCompare("LAFW_TXFW")
+```
+
+### LAFW_TXCC
+
+```{r}
+lafw_txcc<-dadi_initialCompare("LAFW_TXCC")
+```
+
+### TXFW_TXCC
+
+```{r}
+txfw_txcc<-dadi_initialCompare("TXFW_TXCC")
+```
 
