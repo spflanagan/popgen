@@ -24,6 +24,21 @@ pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 ```
 
 
+# 22 April 2020
+
+Update on what's running:
+
+- C001KR: still running IM2mG models, only one FLLG still going (FLLG vs TXCC)
+- abacus: only has 5 still running, one from 3 April, 2 from 6 April, and 2 from 15 April.
+- rccuser: still on round 1, not as many of the cores as I would have expected to be running being used, and still on FLCC and ALFW.
+
+So, it's definitely a good thing we've got more time!
+
+But I do think I can get started on some of the other combinations, so that's what I'm going to focus on this evening. Ok, well I've set up the script but I definitely don't have enough combinations for any other combination other than FLLG_FLCC, which is really disappointing. Of course ,that doesn't include combinations from the other machines that I haven't downloaded yet, so that could be a useful next step.
+
+I'm also trying to download files from the other computers that I haven't already downloaded. I'm fairly confident I now have all FLLG_FLCC and FLLG_ALFW runs from rccuser (latest of those files is from April 10th). 
+
+
 # 17 April 2020
 
 Today I want to re-vamp the 250_fwsw_dadi document.
