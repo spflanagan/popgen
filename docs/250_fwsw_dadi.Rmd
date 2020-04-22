@@ -149,14 +149,26 @@ write.csv(tasks,"model_list_dadi.csv",row.names = TRUE,quote=FALSE)
 
 
 ```{r}
-flcc_fllg_opts<-dadi.modelcomp(path = "dadi_results/FLLG_FLCC/",
-                               pattern="*optimized.*",id="FLLG_FLCC")
-flcc_fllg<-modelComparison(flcc_fllg_opts)
-plot(as.numeric(flcc_fllg_opts$log.likelihood)~
-              as.factor(flcc_fllg_opts$Model),las=3,
+dadi_initialCompare<-function(comparison){
+  opts<-dadi.modelcomp(path = paste0("dadi_results/",comparison,"/"),
+                               pattern="*optimized.*",id=comparison)
+  comp<-modelComparison(opts)
+  plot(as.numeric(opts$log.likelihood)~
+              as.factor(opts$Model),las=3,
         pch=19,xlab="Model",ylab="Maximum log likelihood")
-
+  return(list(opts,comp))
+}
 ```
+
+
+### FLLG vs FLCC
+
+
+```{r fllgOpts, fig.cap="Comparison of log likelihoods for FLLG-FLCC models"}
+fllg_alfw<-dadi_initialCompare("FLLG_FLCC")
+```
+
+
 It's looking like IM2mG model has a higher on average log likelihood than SC2mG. Let's see if the IM2mG parameter distributions are better
 
 ```{r}
