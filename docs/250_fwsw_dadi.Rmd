@@ -145,8 +145,8 @@ write.csv(tasks,"model_list_dadi.csv",row.names = TRUE,quote=FALSE)
 
 ## Analyzing $\delta_A\delta_I$ output {-}
 
-### FLLG vs FLCC
 
+## Analyzing dadi output {-}
 
 ```{r}
 dadi_initialCompare<-function(comparison){
@@ -171,12 +171,12 @@ fllg_alfw<-dadi_initialCompare("FLLG_FLCC")
 
 It's looking like IM2mG model has a higher on average log likelihood than SC2mG. Let's see if the IM2mG parameter distributions are better
 
-```{r}
+```{r fllgBestMods}
 flcc_fllg_sc2mg<-do.call(rbind,extract_dadi_params(flcc_fllg_opts[flcc_fllg_opts$Model=="SC2mG",]))
 flcc_fllg_im2mg<-do.call(rbind,extract_dadi_params(flcc_fllg_opts[flcc_fllg_opts$Model=="IM2mG",]))
 ```
 
-```{r}
+```{r fllgCompareMods}
 par(mfrow=c(1,2))
 boxplot(flcc_fllg_sc2mg[,11:22])
 points(1:12,
@@ -189,7 +189,6 @@ points(1:11,
        pch=8,col="red",lwd=2)
 ```
 
-#### SC2mG
 ### FLLG vs ALFW
 
 ```{r}
