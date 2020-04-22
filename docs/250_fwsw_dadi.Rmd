@@ -38,7 +38,7 @@ spacing: doublespacing
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE,out.extra='',fig.pos="H")
+knitr::opts_chunk$set(echo = TRUE,out.extra='')
 knitr::opts_knit$set(root.dir='../fwsw_results/')
 ```
 ```{r source}
@@ -113,7 +113,7 @@ TODO: Write code to read in the files and compare
 
 I'm going to use the 75% of individuals dataset.
 
-## Running $\delta_A\delta_I$ {-}
+## Running dadi {-}
 
 I ran the optimize functions from (dportik's $\delta_A\delta_I$ pipeline)[https://github.com/dportik/dadi_pipeline] for each pairwise combination of the 7 populations with the 26 models from Rougeux. These ran using python2.7 (because I used $\delta_A\delta_I$ v. xxx) using individual scripts for each population pair and each model (in dadi_scripts/). These scripts were generated using `252_generate_dadi_scripts.sh`. Each of the population-pair-model scripts runs `252_pairwise_dadi.py`, which requires the dadi-pipeline scripts and the file `rougeux_models.py`, which contains the 26 models run here. Each script was run using either `252_run_dadi_scripts.sh` or `run_dadi_scripts_abacus.sh`, depending on whether the scripts were run on a local machine (C001KR or rccuser\@10.195.0.46) or on the cluster (abacus). 
 
@@ -142,8 +142,6 @@ for(i in 1:(length(pops)-1)){
 write.csv(tasks,"model_list_dadi.csv",row.names = TRUE,quote=FALSE)
 ```
 
-
-## Analyzing $\delta_A\delta_I$ output {-}
 
 
 ## Analyzing dadi output {-}
