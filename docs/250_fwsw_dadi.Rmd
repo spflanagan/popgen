@@ -163,15 +163,15 @@ dadi_initialCompare<-function(comparison){
 
 
 ```{r fllgOpts, fig.cap="Comparison of log likelihoods for FLLG-FLCC models"}
-fllg_alfw<-dadi_initialCompare("FLLG_FLCC")
+fllg_flcc<-dadi_initialCompare("FLLG_FLCC")
 ```
 
 
 It's looking like IM2mG model has a higher on average log likelihood than SC2mG. Let's see if the IM2mG parameter distributions are better
 
 ```{r fllgBestMods}
-flcc_fllg_sc2mg<-do.call(rbind,extract_dadi_params(flcc_fllg_opts[flcc_fllg_opts$Model=="SC2mG",]))
-flcc_fllg_im2mg<-do.call(rbind,extract_dadi_params(flcc_fllg_opts[flcc_fllg_opts$Model=="IM2mG",]))
+flcc_fllg_sc2mg<-do.call(rbind,extract_dadi_params(fllg_flcc[[1]][fllg_flcc[[1]]$Model=="SC2mG",]))
+flcc_fllg_im2mg<-do.call(rbind,extract_dadi_params(fllg_flcc[[1]][fllg_flcc[[1]]$Model=="IM2mG",]))
 ```
 
 ```{r fllgCompareMods}
