@@ -41,7 +41,9 @@ spacing: doublespacing
 The initial analyses are in `200_fwsw_analysis.Rmd` and conducted the analyses on a dataset generated from comparing lumped 'freshwater' and 'saltwater' populations, containing SNPs found in 50% of individuals and with a minor allele frequency of at least 5%. The revised paper will instead focus on two datasets:
 
 1. A set of all 16 populations, generated from all pairwise comparisons of populations, containing SNPs found in 4 populations, in 75% of individuals, and with a minor allele frequency of at least 5%. ("P4" or "subset")
+
 2. A set containing only the 4 freshwater populations (TXFW, LAFW, ALFW, FLFW) and their 4 nearest saltwater populations (TXCC, ALST, ALST, FLCC)
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE,out.extra='',fig.pos="H")
