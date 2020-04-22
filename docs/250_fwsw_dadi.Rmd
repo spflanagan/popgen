@@ -146,7 +146,7 @@ write.csv(tasks,"model_list_dadi.csv",row.names = TRUE,quote=FALSE)
 
 ## Analyzing dadi output {-}
 
-```{r}
+```{r dadi_InitialCompare}
 dadi_initialCompare<-function(comparison){
   opts<-dadi.modelcomp(path = paste0("dadi_results/",comparison,"/"),
                                pattern="*optimized.*",id=comparison)
@@ -189,133 +189,127 @@ points(1:11,
 
 ### FLLG vs ALFW
 
-```{r}
+```{r ffafOpts, fig.cap="Comparison of log likelihoods for FLLG-ALFW models" }
 fllg_alfw<-dadi_initialCompare("FLLG_ALFW")
 ```
 
 
-### FLLG_ALST
+### FLLG vs ALST
 
-```{r}
+```{r ffasOpts, fig.cap="Comparison of log likelihoods for FLLG-ALST models"}
 fllg_alst<-dadi_initialCompare("FLLG_ALST")
 ```
 
 
-### FLLG_LAFW
+### FLLG vs LAFW
 
-```{r}
+```{r fflfOpts, fig.cap="Comparison of log likelihoods for FLLG-LAFW models"}
 fllg_lafw<-dadi_initialCompare("FLLG_LAFW")
 ```
 
-### FLLG_TXFW
+### FLLG vs TXFW
 
-```{r}
+```{r fftfOpts, fig.cap="Comparison of log likelihoods for FLLG-TXFW models"}
 fllg_txfw<-dadi_initialCompare("FLLG_TXFW")
 ```
 
-### FLLG_TXCC
+### FLLG vs TXCC
 
-```{r}
+```{r fftsOpts, fig.cap="Comparison of log likelihoods for FLLG-TXCC models"}
 fllg_txcc<-dadi_initialCompare("FLLG_TXCC")
 ```
 
 
-### FLCC_ALFW
+### FLCC vs ALFW
 
-```{r}
+```{r fsafOpts, fig.cap="Comparison of log likelihoods for FLCC-ALFW models"}
 flcc_alfw<-dadi_initialCompare("FLCC_ALFW")
 ```
 
-### FLCC_ALST
+### FLCC vs ALST
 
-```{r}
+```{r fsasOpts, fig.cap="Comparison of log likelihoods for FLCC-ALST models"}
 flcc_alst<-dadi_initialCompare("FLCC_ALST")
 ```
 
-### FLCC_LAFW
+### FLCC vs LAFW
 
-```{r}
+```{r fslfOpts, fig.cap="Comparison of log likelihoods for FLCC-LAFW models"}
 flcc_lafw<-dadi_initialCompare("FLCC_LAFW")
 ```
 
 
-### FLCC_TXFW
+### FLCC vs TXFW
 
-```{r}
+```{r fstfOpts, fig.cap="Comparison of log likelihoods for FLCC-TXFW models"}
 flcc_txfw<-dadi_initialCompare("FLCC_TXFW")
 ```
 
-### FLCC_TXCC
+### FLCC vs TXCC
 
-```{r}
+```{r fstsOpts, fig.cap="Comparison of log likelihoods for FLCC-TXCC models"}
 flcc_txcc<-dadi_initialCompare("FLCC_TXCC")
 ```
 
 
-### ALFW_ALST
+### ALFW vs ALST
 
-```{r}
+```{r afasOpts, fig.cap="Comparison of log likelihoods for ALFW-ALST models"}
 alfw_alst<-dadi_initialCompare("ALFW_ALST")
 ```
 
 
-### ALFW_LAFW
+### ALFW vs LAFW
 
-```{r}
+```{r aflfOpts, fig.cap="Comparison of log likelihoods for ALFW-LAFW models"}
 alfw_lafw<-dadi_initialCompare("ALFW_LAFW")
 ```
 
-### ALFW_TXFW
+### ALFW vs TXFW
 
-```{r}
+```{r aftfOpts, fig.cap="Comparison of log likelihoods for ALFW-TXFW models"}
 alfw_txfw<-dadi_initialCompare("ALFW_TXFW")
 ```
 
-### ALFW_TXCC
+### ALFW vs TXCC
 
-```{r}
+```{r aftsOpts, fig.cap="Comparison of log likelihoods for ALFW-TXCC models"}
 alfw_txcc<-dadi_initialCompare("ALFW_TXCC")
 ```
 
-### ALFW_ALST
+### ALST vs LAFW
 
-```{r}
-alfw_alst<-dadi_initialCompare("ALFW_ALST")
-```
-
-### ALST_LAFW
-
-```{r}
+```{r aslfOpts, fig.cap="Comparison of log likelihoods for ALST-LAFW models"}
 alst_lafw<-dadi_initialCompare("ALST_LAFW")
 ```
 
-### ALST_TXFW
+### ALST vs TXFW
 
-```{r}
+```{r astfOpts, fig.cap="Comparison of log likelihoods for ALST-TXFW models"}
 alst_txfw<-dadi_initialCompare("ALST_TXFW")
 ```
 
-### ALST_TXCC
+### ALST vs TXCC
 
-```{r}
+```{r astsOpts, fig.cap="Comparison of log likelihoods for ALST-TXCC models"}
 alst_txc<-dadi_initialCompare("ALST_TXCC")
 ```
 
-### LAFW_TXFW
+### LAFW vs TXFW
 
-```{r}
+```{r lftfOpts, fig.cap="Comparison of log likelihoods for LAFW-TXFW models"}
 lafw_txfw<-dadi_initialCompare("LAFW_TXFW")
 ```
 
-### LAFW_TXCC
+### LAFW vs TXCC
 
-```{r}
+```{r lftsOpts, fig.cap="Comparison of log likelihoods for LAFW-TXCC models"}
 lafw_txcc<-dadi_initialCompare("LAFW_TXCC")
 ```
 
-### TXFW_TXCC
+### TXFW vs TXCC
 
-```{r}
+```{r tftsOpts, fig.cap="Comparison of log likelihoods for TXFW-TXCC models"}
 txfw_txcc<-dadi_initialCompare("TXFW_TXCC")
 ```
 
