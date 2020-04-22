@@ -23,6 +23,13 @@ library(knitr)
 pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 ```
 
+# 23 April 2020
+
+To do:
+
+- improve the figure showing all possible models
+- figure out knitting issues
+- download completed output from abacus
 
 # 22 April 2020
 
