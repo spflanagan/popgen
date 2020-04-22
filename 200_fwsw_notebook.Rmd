@@ -29,7 +29,20 @@ To do:
 
 - improve the figure showing all possible models
 - figure out knitting issues
+    - I got the dadi doc to knit by removing an if(graphics) statement from manuscript.latex
 - download completed output from abacus
+    - I already have FLLG_FLCC and TXFW_TXCC model on C001KR
+        - TXFW_TXCC models were from Mar 23ish (ID 382) and 27th (ID 249)
+    - It looks like the ALFW_ALST model runs were the ones from 3 April (ID 420) [moved these]
+    - LAFW_TXFW, LAFW_TXCC and some TXFW_TXCC Mar 30 (ID 409) [moved these]
+    - It's easiest to wait to move any population pairs that still have currently running models
+        - Currently running are ID 439 (ALST_LAFW, ALST_TXFW, ALST_TXCC, and LAFW_TXFW) but only ALST_TXFW_SC2N2mG
+            - moved ALST_LAFW, ALST_TXCC
+        - 484 (ALFW_LAFW, ALFW_TXFW, and ALFW_TXCC), but only ALFW_LAFW_AM2N2mG and ALFW_TXFW_SC
+            - moved ALFW_TXCC
+* When I move things from abacus, I am deleting them -- this makes it easier to keep track.
+
+Also, I am going to start another set of runs on abacus, but I need to upload a new set of dadi scripts because I'm missing the IM2mG ones on abacus still. I started run 502 running 27-52 which should be FLLG_ALFW (had to fix up the scripts because i'd done something wrong before, but now it's running). 
 
 # 22 April 2020
 
