@@ -217,11 +217,50 @@ kable(pretty_sum)
 write.table(pretty_sum,"Table1_populationSummaries.txt",sep='\t',col.names = TRUE,quote=FALSE,row.names = FALSE)
 ```
 
+## Minor allele frequencies
+
+```{r calcAFS}
+fw.afs<-lapply(fw.list,function(pop,vcf){
+  this.vcf<-cbind(vcf[,locus.info],vcf[,grep(pop,colnames(vcf))])
+  this.afs<-do.call(rbind,apply(this.vcf,1,calc.afs.vcf))
+})
+names(fw.afs)<-c("TXFW","LAFW","ALFW","FLFW")
+sw.afs<-lapply(sw.list,function(pop,vcf){
+  this.vcf<-cbind(vcf[,locus.info],vcf[,grep(pop,colnames(vcf))])
+  this.afs<-do.call(rbind,apply(this.vcf,1,calc.afs.vcf))
+},vcf=ful_vcf)
+names(sw.afs)<-sw.list
+all.afs<-c(fw.afs,sw.afs)
+```
+
+```{r minorAFplot,figh.height=10,fig.width=10,dpi=300}
+
+par(mfrow=c(4,4),mar=c(2,2,1,0),oma=c(2,3,0.5,0.5))
+for(i in 1:length(pop.labs)){
+  if(pop.labs[i] %in% names(fw.afs)){
+    color<-"cornflowerblue"
+  }else{
+    color<-"black"
+  }
+  hist(all.afs[[pop.labs[i]]]$RefFreq,ylab="",xlab="",main="",
+       xlim=c(0,1),ylim=c(0,10000),axes=F,col=color)
+  axis(1,pos=0,cex.axis=2)
+  if(i %in% c(1,5,9,13)){
+    axis(2,pos=0,las=1,cex.axis=2,labels = seq(0,10,2),at=seq(0,10000,2000))
+  }else{
+    axis(2,pos=0,las=1,labels = FALSE,cex.axis=2)
+    }
+  mtext(pop.labs[i],3,col=color,cex=2*0.75,line=-1)
+}
+mtext("Reference Allele Frequency",1,outer=TRUE,cex=1.75*0.75)
+mtext("Number of SNPs (x 1000)",2,outer = TRUE,cex=1.75*0.75,line=1)
+
+```
 
 
 # Population structure of all 16 populations  {-}
 
-### $F_{ST}$s
+### FSTs
 
 This will calculate the pairwise $F_{ST}$s (but it's slow)
 
