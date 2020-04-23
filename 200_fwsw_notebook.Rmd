@@ -23,6 +23,30 @@ library(knitr)
 pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 ```
 
+
+# 24 April 2020
+
+I've been working on updating the text of the manuscript and on working through some of the reviewer comments, and have noted a few places where I need to make sure I actually include some analyses in the supplements. I've also noted that I need to include the drift parameter in the treemix tree in fig 1. So, here are my tasks for today:
+
+- Add drift parameter to tree in Fig 1 [NEED TO DO THIS]
+- Check treemix details are included in the supplement
+    - ensure the treemix no-migration tree is shown in the supplement [yep]
+    - residuals [yep]
+    - f3 and f4 outputs [NO NEED TO ADD]
+- Check details of the ADMIXTURE analysis
+    - Verify whether we checked ADMIXTURE for convergence and if so present those results in a supplement [Not relevant -- no mention of it in the manual]
+    - Show delta-K and LnK (if relevant) are presented in a supplement [yep]
+    - Show lower K values to help justify our choice of Ks. [NEED TO ADD TO SUPPLEMENT]
+    - Looking at the manual, we might want to consider bootstrapping to estimate standard errors for the parameters [consider this moving forward!]
+- Make sure we still show allele frequency spectra somewhere and that they show MINOR allele frequencies [added in]
+
+TODO:
+- compile the Rmd
+- add f3 and f4 treeness checks to the supplement
+- plot all K=1 through K=7 or 8 for admixture
+- run admixture with bootstraps to estimate SEs for best models
+- add drift parameter to fig 1 (and make sure it's in other supp figs)
+
 # 23 April 2020
 
 To do:
