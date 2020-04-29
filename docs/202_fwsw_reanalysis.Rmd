@@ -498,32 +498,12 @@ admixK5<-admixPlotting("admixture/fwsw_all_filt.5.Q",5)
 write.table(admixK5,"admixture/admixK5.txt",sep = '\t',quote = FALSE,col.names = TRUE,row.names = FALSE)
 ```
 
-```{r admixk7}
-qfile<-"admixture/fwsw_all_filt.7.Q"
-famfile<-"admixture/fwsw_all_filt.fam"
-poporderFile<-"treemix/poplist"
-K<-7
-
-# read files in 
-qtbl<-read.table(qfile,stringsAsFactors = F)
-famTable<- read.table(famfile,
-                      col.names = c("Pop","Ind","Father","Mother","Sex","phenotype"),stringsAsFactors = F)[1:2]
-poporder<-read.table(poporderFile,col.names = c("Pop"),stringsAsFactors = F)
-poporder$orderNum<-1:nrow(poporder)
-
-
-# create useful tables
-mergedAdmixtureTable <- cbind(qtbl, famTable)
-mergedAdmixTabOrderNs <- merge(mergedAdmixtureTable,poporder,by="Pop")
-ordered <- mergedAdmixTabOrderNs[order(mergedAdmixTabOrderNs$orderNum),]
 ```{r admixk6}
 admixK6<-admixPlotting("admixture/fwsw_all_filt.6.Q",6)
 ```
 
-par(mar=c(1,0,0,0))
-plotting.structure(ordered[,1:(ncol(ordered)-2)],k = 7,pop.order = poporder$Pop,make.file = FALSE)
-admixK7<-ordered[,1:(ncol(ordered)-2)]
-plotting.structure(admixK7,k = 7,pop.order = poporder$Pop,make.file = FALSE)
+```{r admixk7}
+admixK7<-admixPlotting("admixture/fwsw_all_filt.7.Q",7)
 write.table(admixK7,"admixture/admixK7.txt",sep = '\t',quote = FALSE,col.names = TRUE,row.names = FALSE)
 ```
 
