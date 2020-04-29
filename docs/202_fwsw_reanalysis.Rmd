@@ -226,7 +226,7 @@ locus.info<-colnames(ful_vcf[1:9])
 fw.afs<-lapply(fw.list,function(pop,vcf){
   this.vcf<-cbind(vcf[,locus.info],vcf[,grep(pop,colnames(vcf))])
   this.afs<-do.call(rbind,apply(this.vcf,1,calc.afs.vcf))
-})
+}, vcf=ful_vcf)
 names(fw.afs)<-c("TXFW","LAFW","ALFW","FLFW")
 sw.afs<-lapply(sw.list,function(pop,vcf){
   this.vcf<-cbind(vcf[,locus.info],vcf[,grep(pop,colnames(vcf))])
