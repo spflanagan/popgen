@@ -458,11 +458,8 @@ plot(admixK$K,admixK$CV,pch=19,type = "b",lty=1,xlab = "K",ylab="CV",las=1,lwd=2
 
 Looks like $K=5$ or $K=7$ are the best, let's look at all of the $K=2$ through $K=7$.
 
-
-```{r admix_k5}
 ```{r admixSetup}
 library(RColorBrewer)
-qfile<-"admixture/fwsw_all_filt.5.Q"
 famfile<-"admixture/fwsw_all_filt.fam"
 famTable<- read.table(famfile, col.names = 
                         c("Pop","Ind","Father","Mother","Sex","phenotype"),
@@ -496,8 +493,8 @@ admixK3<-admixPlotting("admixture/fwsw_all_filt.3.Q",3)
 admixK4<-admixPlotting("admixture/fwsw_all_filt.4.Q",4)
 ```
 
-plotting.structure(ordered[,1:(ncol(ordered)-2)],k = 5,pop.order = poporder$Pop,make.file = FALSE)
-admixK5<-ordered[,1:(ncol(ordered)-2)]
+```{r admix_k5}
+admixK5<-admixPlotting("admixture/fwsw_all_filt.5.Q",5)
 write.table(admixK5,"admixture/admixK5.txt",sep = '\t',quote = FALSE,col.names = TRUE,row.names = FALSE)
 ```
 
