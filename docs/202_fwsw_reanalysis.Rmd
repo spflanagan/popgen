@@ -267,7 +267,7 @@ mtext("Number of SNPs (x 1000)",2,outer = TRUE,cex=1.75*0.75,line=1)
 
 ```
 
-![Minor allele frequency plot of the full dataset (7433 SNPs)]("../figs/minorAFplot.png")
+![Minor allele frequency plot of the full dataset (7433 SNPs)](../figs/minorAFplot.png)
 
 
 # Population structure of all 16 populations  {-}
@@ -354,7 +354,7 @@ dev.off()
 
 ```
 
-![Heatmaps]("../figs/fst_heatmaps.png")
+![Heatmaps](../figs/fst_heatmaps.png)
 
 
 ### PCAdapt {-}
@@ -626,7 +626,7 @@ dev.off()
 
 ```
 
-![treemix figure]("../figs/FWSW_treemix_m3_FLPB.png")
+![treemix figure](../figs/FWSW_treemix_m3_FLPB.png)
 
 ### Choosing the optimal number of migration edges
 
@@ -645,9 +645,9 @@ Let's plot the no-migration-edge tree with the two-migration-edge tree, which op
 png("../figs/treemix_comparison.png",height = 4.5,width=8,units="in",res=300)
 par(mfrow=c(1,2),mar=c(1,1,1,2),oma=c(1,1,1,2),xpd=TRUE)
 t0<-plot_tree("treemix/fwsw_k100bFLPBr",scale=T,mbar=F,cex = 1.5,
-              lwd=2,mig_left=FALSE,disp=0.0002,xlab=FALSE,scadj=0.05)
+              lwd=2,mig_left=FALSE,disp=0.0002,scadj=0.05)
 t2<-plot_tree("treemix/fwsw_k100bFLPBrm2",scale=T,mbar=T,cex = 1.5,
-              lwd=2,mig_left=FALSE,disp=0.0002,xlab=FALSE,scadj=0.05)
+              lwd=2,mig_left=FALSE,disp=0.0002,scadj=0.05)
 dev.off()
 ```
 
@@ -705,7 +705,7 @@ text(x = 0.5,y=1.2,"C",cex = 2,font =2)
 #Treemix
 par(mar=c(0,0,0,1))
 t2<-plot_tree("treemix/fwsw_k100bFLPBrm2",scale=T,mbar=T,cex = 1.5,
-              lwd=2,mig_left=FALSE,disp=0.0002,xlab=FALSE,scadj=0.05)
+              lwd=2,mig_left=FALSE,disp=0.0002,scadj=0.05)
 text(x = 0.035,y=0.9,"B",cex = 2,font =2)
 #STRUCTURE
 par(mar=c(1,0,0,0))
