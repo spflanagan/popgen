@@ -650,7 +650,7 @@ t2<-plot_tree("treemix/fwsw_k100bFLPBrm2",scale=T,mbar=T,cex = 1.5,
               lwd=2,mig_left=FALSE,disp=0.0002,scadj=0.05)
 dev.off()
 ```
-
+![treemix comparison](../figs/treemix_comparison.png)
 
 ### Make figure
 
@@ -1671,7 +1671,7 @@ dev.off()
 
 ```
 
-![Multipanel figure]("../figs/fstPlots.png")
+![Multipanel figure](../figs/fstPlots.png)
 
 ### Annotations {-}
 
