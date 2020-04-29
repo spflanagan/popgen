@@ -143,6 +143,8 @@ dev.off()
 pop_map<-read.delim("../fwsw_pops_map.txt",header = FALSE,stringsAsFactors = FALSE)
 ful_vcf<-parse.vcf("filter_rad_20191014@1654/14_filtered/radiator_data_20191014@1710.vcf")
 colnames(ful_vcf)<-gsub("\\-","_",colnames(ful_vcf))
+```
+```{r readSubVCF,eval=FALSE}
 sub_vcf<-parse.vcf("stacks/populations_subset75/batch_2.pruned.vcf")
 sub_all_vcf<-parse.vcf("stacks/populations_subset75/all_pops_subset75/batch_2.vcf")
 # combine the two
@@ -219,7 +221,8 @@ write.table(pretty_sum,"Table1_populationSummaries.txt",sep='\t',col.names = TRU
 
 ## Minor allele frequencies
 
-```{r calcAFS}
+```{r calcAFS, eval=FALSE}
+locus.info<-colnames(ful_vcf[1:9])
 fw.afs<-lapply(fw.list,function(pop,vcf){
   this.vcf<-cbind(vcf[,locus.info],vcf[,grep(pop,colnames(vcf))])
   this.afs<-do.call(rbind,apply(this.vcf,1,calc.afs.vcf))
@@ -233,7 +236,7 @@ names(sw.afs)<-sw.list
 all.afs<-c(fw.afs,sw.afs)
 ```
 
-```{r minorAFplot,figh.height=10,fig.width=10,dpi=300}
+```{r minorAFplot,figh.height=10,fig.width=8,dpi=300,fig.keep='last', eval=FALSE}
 
 par(mfrow=c(4,4),mar=c(2,2,1,0),oma=c(2,3,0.5,0.5))
 for(i in 1:length(pop.labs)){
