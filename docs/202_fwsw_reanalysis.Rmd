@@ -461,22 +461,23 @@ Looks like $K=5$ or $K=7$ are the best, let's look at all of the $K=2$ through $
 ```{r admixSetup}
 library(RColorBrewer)
 famfile<-"admixture/fwsw_all_filt.fam"
-famTable<- read.table(famfile, col.names = 
-                        c("Pop","Ind","Father","Mother","Sex","phenotype"),
-                      stringsAsFactors = F)[1:2]
 
 poporderFile<-"treemix/poplist"
-poporder<-read.table(poporderFile,col.names = c("Pop"),stringsAsFactors = F)
-poporder$orderNum<-1:nrow(poporder)
+poporderDF<-read.table(poporderFile,col.names = c("Pop"),stringsAsFactors = F)
+poporderDF$orderNum<-1:nrow(poporderDF)
 ```
 
 ```{r plotAdmixFxn}
-admixPlotting<-function(qfile,K,famtable=famtable,poporder=poporder){
+admixPlotting<-function(qfile,K,famfile="admixture/fwsw_all_filt.fam",poporder=poporderDF){
   # read files in 
+  famTable<- read.table(famfile, col.names = 
+                        c("Pop","Ind","Father","Mother","Sex","phenotype"),
+                      stringsAsFactors = F)[1:2]
+
   qtbl<-read.table(qfile,stringsAsFactors = F)
   
   # create useful tables
-  mergedAdmixtureTable <- cbind(qtbl, famTable)
+  mergedAdmixtureTable <- cbind(qtbl, famtable)
   mergedAdmixTabOrderNs <- merge(mergedAdmixtureTable,poporder,by="Pop")
   ordered <- mergedAdmixTabOrderNs[order(mergedAdmixTabOrderNs$orderNum),]
   
