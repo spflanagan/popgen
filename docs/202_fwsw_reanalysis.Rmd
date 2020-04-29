@@ -251,8 +251,9 @@ for(i in 1:length(pop.labs)){
   }else{
     color<-"black"
   }
-  hist(all.afs[[pop.labs[i]]]$RefFreq,ylab="",xlab="",main="",
-       xlim=c(0,1),ylim=c(0,10000),axes=F,col=color)
+  hist(minAF[[pop.labs[i]]],ylab="",xlab="",main="",
+       xlim=c(0,0.5),ylim=c(0,10000),axes=F,col=color,
+       breaks=seq(0,0.5,0.05))
   axis(1,pos=0,cex.axis=2)
   if(i %in% c(1,5,9,13)){
     axis(2,pos=0,las=1,cex.axis=2,labels = seq(0,10,2),at=seq(0,10000,2000))
