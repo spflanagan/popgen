@@ -28,9 +28,14 @@ pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 I'm having trouble running the treemix analyses on my laptop, probably thanks to some weird dropbox syncing issue.
 
 So today my goals are:
-- figure out unknown graphics extension error --> I figured this out, I'd put them in quotes but I shouldn't have
-- added the drift parameter to fig 1 --> needed to change xlab=TRUE
-- show admixture K=1 through K=8 in supplement
+- figure out unknown graphics extension error 
+    --> I figured this out, when loading files ala markdown I'd put them in quotes but I shouldn't have
+    --> there were some other issues that I had to solve too, but it finally worked!
+- added the drift parameter to fig 1 
+    --> needed to change xlab=TRUE
+- show admixture K=1 through K=8 in supplement 
+    --> I need to be able to compile the PDF because I don't have admixture results on this computer. 
+    --> I have written the code that *should* do this, but it's throwing an error that needs to be debugged
 
 # 29 April 2020
 
