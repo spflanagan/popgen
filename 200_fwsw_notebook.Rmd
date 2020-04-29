@@ -36,6 +36,19 @@ I realized I'd been off by 1 because my list with numbers is from 1:num_models r
 
 Also rounding out the FLLG_ALST runs with numbers 53-77, job ID 525.
 
+
+Now let's see if I can keep moving forward on the supplement stuff from last time. 
+
+- I fixed the AFS plot.
+
+Still TODO:
+- compile the Rmd (solve 'unknown graphics extension' error)
+- add f3 and f4 treeness checks to the supplement
+- plot all K=1 through K=7 or 8 for admixture
+- run admixture with bootstraps to estimate SEs for best models
+- add drift parameter to fig 1 (and make sure it's in other supp figs)
+
+
 # 24 April 2020
 
 I've been working on updating the text of the manuscript and on working through some of the reviewer comments, and have noted a few places where I need to make sure I actually include some analyses in the supplements. I've also noted that I need to include the drift parameter in the treemix tree in fig 1. So, here are my tasks for today:
