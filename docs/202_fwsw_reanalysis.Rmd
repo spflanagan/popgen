@@ -560,7 +560,7 @@ These are the residuals assuming that FLPB is root.
 
 ```{r TreemixPlotResids}
 # visualize residuals
-png("treemix/treemix-residuals_FLPB.png",height=8,width=8,units="in",res=300)
+#png("treemix/treemix-residuals_FLPB.png",height=8,width=8,units="in",res=300)
 par(mfrow=c(3,3))
 t0<-plot_resid("treemix/fwsw_k100b",  "treemix/poplist")
 r0<-plot_resid("treemix/fwsw_k100bFLPBr",  "treemix/poplist")
@@ -569,14 +569,14 @@ r2<-plot_resid("treemix/fwsw_k100bFLPBrm2","treemix/poplist")
 r3<-plot_resid("treemix/fwsw_k100bFLPBrm3","treemix/poplist")
 r4<-plot_resid("treemix/fwsw_k100bFLPBrm4","treemix/poplist")
 r5<-plot_resid("treemix/fwsw_k100bFLPBrm5","treemix/poplist")
-dev.off()
+#dev.off()
 ```
 
 Here are the trees with a variety of migration edges.
 
 ```{r plotTreemixTrees}
 # look at the trees
-png("treemix/migration_trees_treemix_FLPB.png",height=6,width=11,units="in",res=300)
+#png("treemix/migration_trees_treemix_FLPB.png",height=6,width=11,units="in",res=300)
 par(mfrow=c(3,3),mar=c(1,1,1,1),oma=c(1,1,1,1))
 r0<-plot_tree("treemix/fwsw_k100b",plus=0.05,plotmig = F,scale=T,mbar=T)
 t0<-plot_tree("treemix/fwsw_k100bFLPBr",plotmig = F,plus=0.05,scale=T,mbar=F)
@@ -585,7 +585,7 @@ t2<-plot_tree("treemix/fwsw_k100bFLPBrm2",plus=0.05,scale=F,mbar=F)
 t3<-plot_tree("treemix/fwsw_k100bFLPBrm3",plus=0.05,scale=F,mbar=F)
 t4<-plot_tree("treemix/fwsw_k100bFLPBrm4",plus=0.05,scale=F,mbar=F)
 t5<-plot_tree("treemix/fwsw_k100bFLPBrm5",plus=0.05,scale=F,mbar=F)
-dev.off()
+#dev.off()
 ```
 ```{r migrationPvalues}
 # Evaluate migration p-values
