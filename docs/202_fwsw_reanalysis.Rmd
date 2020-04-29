@@ -460,18 +460,18 @@ Looks like $K=5$ or $K=7$ are the best, let's look at those outputs.
 
 
 ```{r admix_k5}
+```{r admixSetup}
 library(RColorBrewer)
 qfile<-"admixture/fwsw_all_filt.5.Q"
 famfile<-"admixture/fwsw_all_filt.fam"
-poporderFile<-"treemix/poplist"
-K<-5
+famTable<- read.table(famfile, col.names = 
+                        c("Pop","Ind","Father","Mother","Sex","phenotype"),
+                      stringsAsFactors = F)[1:2]
 
-# read files in 
-qtbl<-read.table(qfile,stringsAsFactors = F)
-famTable<- read.table(famfile,
-                      col.names = c("Pop","Ind","Father","Mother","Sex","phenotype"),stringsAsFactors = F)[1:2]
+poporderFile<-"treemix/poplist"
 poporder<-read.table(poporderFile,col.names = c("Pop"),stringsAsFactors = F)
 poporder$orderNum<-1:nrow(poporder)
+```
 
 ```{r plotAdmixFxn}
 admixPlotting<-function(qfile,K,famtable=famtable,poporder=poporder){
@@ -489,11 +489,6 @@ admixPlotting<-function(qfile,K,famtable=famtable,poporder=poporder){
   return(admix)
 }
 ```
-
-# create useful tables
-mergedAdmixtureTable <- cbind(qtbl, famTable)
-mergedAdmixTabOrderNs <- merge(mergedAdmixtureTable,poporder,by="Pop")
-ordered <- mergedAdmixTabOrderNs[order(mergedAdmixTabOrderNs$orderNum),]
 
 
 plotting.structure(ordered[,1:(ncol(ordered)-2)],k = 5,pop.order = poporder$Pop,make.file = FALSE)
