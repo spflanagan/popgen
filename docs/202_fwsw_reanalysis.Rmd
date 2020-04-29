@@ -267,6 +267,8 @@ mtext("Number of SNPs (x 1000)",2,outer = TRUE,cex=1.75*0.75,line=1)
 
 ```
 
+![Minor allele frequency plot of the full dataset (7433 SNPs)]("../figs/minorAFplot.png")
+
 
 # Population structure of all 16 populations  {-}
 
