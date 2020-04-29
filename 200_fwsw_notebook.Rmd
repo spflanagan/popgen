@@ -23,6 +23,18 @@ library(knitr)
 pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 ```
 
+# 29 April 2020
+
+The models on C001KR are almost done running (only 2 left to finish), and there are only 2 left running on abacus at the moment. The ones on rccuser are still going strong.
+
+- moved ALFW_LAFW_12 from abacus to C001KR (and deleted from abacus)
+- moved ALFW_TXFW_12 from abacus to C001KR (and deleted from abacus)
+
+abacus is still running LAST_TXFW_SC2N2mG and FLLG_ALFW_AM2NG
+
+I realized I'd been off by 1 because my list with numbers is from 1:num_models rather than 0:num_models. So I just started #26 on abacus (job ID 524) which should round out the FLLG_ALFW set with run 13.
+
+Also rounding out the FLLG_ALST runs with numbers 53-77, job ID 525.
 
 # 24 April 2020
 
