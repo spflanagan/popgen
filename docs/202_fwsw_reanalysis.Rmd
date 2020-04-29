@@ -234,6 +234,12 @@ sw.afs<-lapply(sw.list,function(pop,vcf){
 },vcf=ful_vcf)
 names(sw.afs)<-sw.list
 all.afs<-c(fw.afs,sw.afs)
+minAF<-lapply(all.afs,function(x){
+  mins<-apply(x,1,function(row){ return(min(row[4],row[6])) } )
+  return(as.numeric(mins))
+})
+names(minAF)<-names(all.afs)
+
 ```
 
 ```{r minorAFplot,figh.height=10,fig.width=8,dpi=300,fig.keep='last', eval=FALSE}
