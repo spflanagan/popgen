@@ -473,6 +473,22 @@ famTable<- read.table(famfile,
 poporder<-read.table(poporderFile,col.names = c("Pop"),stringsAsFactors = F)
 poporder$orderNum<-1:nrow(poporder)
 
+```{r plotAdmixFxn}
+admixPlotting<-function(qfile,K,famtable=famtable,poporder=poporder){
+  # read files in 
+  qtbl<-read.table(qfile,stringsAsFactors = F)
+  
+  # create useful tables
+  mergedAdmixtureTable <- cbind(qtbl, famTable)
+  mergedAdmixTabOrderNs <- merge(mergedAdmixtureTable,poporder,by="Pop")
+  ordered <- mergedAdmixTabOrderNs[order(mergedAdmixTabOrderNs$orderNum),]
+  
+  plotting.structure(ordered[,1:(ncol(ordered)-2)],k = K,
+                     pop.order = poporder$Pop,make.file = FALSE)
+  admix<-ordered[,1:(ncol(ordered)-2)]
+  return(admix)
+}
+```
 
 # create useful tables
 mergedAdmixtureTable <- cbind(qtbl, famTable)
