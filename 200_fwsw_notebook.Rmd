@@ -23,6 +23,34 @@ library(knitr)
 pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 ```
 
+# 1 May 2020
+
+On abacus starting FLLG_TXCC runs (number 13) with numbers 130-155, job ID 538
+All of the runs on C001KR have finished (those ar ethe IM2mG ones), so I can start some more!
+
+To run a subset of needed models, let's choose some. It's not that easy to know how many runs each set has. ALST-LAFW seems like a reasonable place to start, though. 
+
+```{r}
+pops=c('ALST', 'LAFW')   #
+models=c('SI2N', 'SIG', 'SI2NG', 'IMG', 'IM2N', 'IM2m', 'IM2NG',  'AM2N', 'AMG', 'AM2m', 'AM2NG', 'AM2N2m', 'AM2mG', 'AM2N2mG', 'SCG' ,'SC2N', 'SC2m', 'SC2NG', 'SC2N2m' ,'SC2mG' ,'SC2N2mG')
+ #'SI', 'IM', 'AM', 'SC','IM2mG', <- removing these because they've already been run once on C001KR 
+
+rundf<-data.frame(pops=NULL,model=NULL)
+count=1
+for(i in 1:(length(pops)-1)){
+  for(j in (i+1):length(pops)){
+    for(mod in 1:length(models)){
+      rundf[count,1]<-paste(pops[i],pops[j],sep="_")
+      rundf[count,2]<-models[mod]
+      count=(count+1)
+    }
+  }
+}
+
+write.table(rundf,"alst_lafw_mods.txt",col.names = FALSE,row.names = FALSE,quote=FALSE)
+```
+
+And...that worked! Now I'm running the non-commented models above with round 1 (and I will see how long that takes, then possibly start another round).
 # 30 April 2020
 
 I'm having trouble running the treemix analyses on my laptop, probably thanks to some weird dropbox syncing issue.
