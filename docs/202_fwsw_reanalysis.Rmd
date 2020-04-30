@@ -477,7 +477,7 @@ admixPlotting<-function(qfile,K,famfile="admixture/fwsw_all_filt.fam",poporder=p
   qtbl<-read.table(qfile,stringsAsFactors = F)
   
   # create useful tables
-  mergedAdmixtureTable <- cbind(qtbl, famtable)
+  mergedAdmixtureTable <- cbind(qtbl, famTable)
   mergedAdmixTabOrderNs <- merge(mergedAdmixtureTable,poporder,by="Pop")
   ordered <- mergedAdmixTabOrderNs[order(mergedAdmixTabOrderNs$orderNum),]
   
