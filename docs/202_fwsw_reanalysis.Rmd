@@ -488,22 +488,22 @@ admixPlotting<-function(qfile,K,famfile="admixture/fwsw_all_filt.fam",poporder=p
 }
 ```
 
-```{r admix_K2to4}
+```{r admix_K2to4,fig.height=2,fig.width=8}
 admixK2<-admixPlotting("admixture/fwsw_all_filt.2.Q",2)
 admixK3<-admixPlotting("admixture/fwsw_all_filt.3.Q",3)
 admixK4<-admixPlotting("admixture/fwsw_all_filt.4.Q",4)
 ```
 
-```{r admix_k5}
+```{r admix_k5,fig.height=2,fig.width=8}
 admixK5<-admixPlotting("admixture/fwsw_all_filt.5.Q",5)
 write.table(admixK5,"admixture/admixK5.txt",sep = '\t',quote = FALSE,col.names = TRUE,row.names = FALSE)
 ```
 
-```{r admixk6}
+```{r admixk6,fig.height=2,fig.width=8}
 admixK6<-admixPlotting("admixture/fwsw_all_filt.6.Q",6)
 ```
 
-```{r admixk7}
+```{r admixk7,fig.height=2,fig.width=8}
 admixK7<-admixPlotting("admixture/fwsw_all_filt.7.Q",7)
 write.table(admixK7,"admixture/admixK7.txt",sep = '\t',quote = FALSE,col.names = TRUE,row.names = FALSE)
 ```
@@ -558,7 +558,7 @@ These are the residuals assuming that FLPB is root.
 ```{r TreemixPlotResids, results='hide', fig.show='true',fig.height=6,fig.width=7}
 # visualize residuals
 #png("treemix/treemix-residuals_FLPB.png",height=8,width=8,units="in",res=300)
-par(mfrow=c(3,3))
+par(mfrow=c(3,3),mar=c(1,1,1,1),oma=c(1,1,1,1))
 t0<-plot_resid("treemix/fwsw_k100b",  "treemix/poplist")
 r0<-plot_resid("treemix/fwsw_k100bFLPBr",  "treemix/poplist")
 r1<-plot_resid("treemix/fwsw_k100bFLPBrm1","treemix/poplist")
@@ -1228,7 +1228,7 @@ for (i in 1:4)
 
 This suggests that loadings are not clustered (assuming these are grouped by space), so we don't need to worry about LD thinning. Now let's look chromosome by chromosome:
 
-```{r PcadaptLoadingsChr}
+```{r PcadaptLoadingsChr,fig.height=8}
 par(mfrow=c(6,4),mar=c(3,3,2,1.5))
 l<-lapply(lgs, function(lg,vcf){
   plot(res$loadings[which(vcf$`#CHROM` %in% lg), 1], pch = 19, cex = .3, xlab = paste0("Position on ", lg), ylab = "Loadings PC 1")
