@@ -528,7 +528,7 @@ write.table(cbind(poporder,colors),"poporder",quote=F,sep='\t')
 
 #### Tree with no migration edges and no root
 
-```{r treemixPrep}
+```{r treemixPrep, results='hide', fig.show='true'}
 source("../R/203_treemix_plotting_funcs.R") #I've modified the functions from treemix
 library(lattice); library(grid); library(RColorBrewer)
 poporder<-read.delim("treemix/poporder")
@@ -555,7 +555,7 @@ m5<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm5",poporder,split=c(3,2,3,2),more=
 
 These are the residuals assuming that FLPB is root.
 
-```{r TreemixPlotResids}
+```{r TreemixPlotResids, results='hide', fig.show='true',fig.height=6,fig.width=7}
 # visualize residuals
 #png("treemix/treemix-residuals_FLPB.png",height=8,width=8,units="in",res=300)
 par(mfrow=c(3,3))
@@ -571,7 +571,7 @@ r5<-plot_resid("treemix/fwsw_k100bFLPBrm5","treemix/poplist")
 
 Here are the trees with a variety of migration edges.
 
-```{r plotTreemixTrees}
+```{r plotTreemixTrees, results='hide', fig.show='true',fig.height=8}
 # look at the trees
 #png("treemix/migration_trees_treemix_FLPB.png",height=6,width=11,units="in",res=300)
 par(mfrow=c(3,3),mar=c(1,1,1,1),oma=c(1,1,1,1))
@@ -584,7 +584,7 @@ t4<-plot_tree("treemix/fwsw_k100bFLPBrm4",plus=0.05,scale=F,mbar=F)
 t5<-plot_tree("treemix/fwsw_k100bFLPBrm5",plus=0.05,scale=F,mbar=F)
 #dev.off()
 ```
-```{r migrationPvalues}
+```{r migrationPvalues, results='hide', fig.show='true'}
 # Evaluate migration p-values
 nort0<-read.table(gzfile("treemix/fwsw_k100b.treeout.gz"), as.is  = T, comment.char = "", quote = "")
 tree0<-read.table(gzfile("treemix/fwsw_k100bFLPBr.treeout.gz"), as.is  = T, comment.char = "", quote = "")
@@ -594,7 +594,7 @@ tree3<-read.table(gzfile("treemix/fwsw_k100bFLPBrm3.treeout.gz"), as.is  = T, co
 tree4<-read.table(gzfile("treemix/fwsw_k100bFLPBrm4.treeout.gz"), as.is  = T, comment.char = "", quote = "",skip=1)
 tree5<-read.table(gzfile("treemix/fwsw_k100bFLPBrm5.treeout.gz"), as.is  = T, comment.char = "", quote = "",skip=1)
 ```
-```{r TreemixVertices}
+```{r TreemixVertices, results='hide', fig.show='true'}
 d <- read.table("treemix/fwsw_k100bFLPBrm3.vertices.gz", as.is  = T, comment.char = "", quote = "")
 branch.cols<-rep("black",nrow(d))
 branch.cols[d[,2] %in% c("TXFW","ALFW","LAFW","FLLG")]<-"cornflowerblue"
@@ -603,7 +603,7 @@ tip.names<-as.vector(d[d[,5] == "TIP",2])
 tip.names<-data.frame(Original=tip.names,Replacement=tip.names,stringsAsFactors = FALSE)
 tip.names$Replacement[tip.names$Replacement=="FLLG"]<-"FLFW"
 ```
-```{r FWSW_treemix_m3_FLPB,fig.height=7,fig.width=7}
+```{r FWSW_treemix_m3_FLPB,fig.height=7,fig.width=7, results='hide', fig.show='true'}
 png("../figs/FWSW_treemix_m3_FLPB.png",height=7,width=7,units="in",res=300)
 t3<-plot_tree("treemix/fwsw_k100bFLPBrm3","poporder",plus=0.05,scale=F,mbar=F,arrow=0.1,tip.order = tip.names)
 ybar<-0.01
@@ -630,15 +630,15 @@ dev.off()
 To choose the optimal number of migration edges, we used the R package optM [@fitak_optm:_2019].
 
 
-```{r plotOptM}
+```{r plotOptM,results='hide',fig.show='true'}
 library(OptM)
 tmOpt<-optM("treemix")
-plot_optM(tmOpt)
+plot_optM(tmOpt,plot = TRUE)
 ```
 
 Let's plot the no-migration-edge tree with the two-migration-edge tree, which optM chose as the best fit using the Evanno method.
 
-```{r treemixCompare}
+```{r treemixCompare,results='hide'}
 png("../figs/treemix_comparison.png",height = 4.5,width=8,units="in",res=300)
 par(mfrow=c(1,2),mar=c(1,1,1,2),oma=c(1,1,1,2),xpd=TRUE)
 t0<-plot_tree("treemix/fwsw_k100bFLPBr",scale=T,mbar=F,cex = 1.5,
@@ -657,7 +657,7 @@ grp7colors<-c('#762a83','#9970ab','#c2a5cf','#d9f0d3','#a6dba0','#5aae61','#1b78
 grp5colors<-c('#762a83','#c2a5cf','#a6dba0','#5aae61','#1b7837')
 ```
 
-```{r NewPopStructurePrep,eval=FALSE}
+```{r NewPopStructurePrep,eval=TRUE,results='hide'}
 #admixture 
 admixK5<-read.delim("admixture/admixK5.txt",header = TRUE)
 admixK7<-read.delim("admixture/admixK7.txt",header = TRUE)
@@ -679,7 +679,7 @@ poporder<-poporder$poporder
 ```
 
 
-```{r NewPopStructure_v1,eval=FALSE}
+```{r NewPopStructure_v1,eval=TRUE,results='hide'}
 npop<-length(pop.list)
 pseq<-1:npop
 m<-matrix(c(rep(1,16),rep(2,6),
@@ -752,7 +752,7 @@ colnames(full_fsts)<-rownames(full_fsts)<-pop.labs
 fst_mat<-as.matrix(full_fsts)
 ```
 
-```{r covPlot}
+```{r covPlot,results='hide',fig.show='true'}
 cov<-read.table(gzfile("treemix/fwsw_k100b.cov.gz"), as.is = T, head = T, quote = "", comment.char = "")
 #reorder
 covplot <- data.frame(matrix(nrow = nrow(cov), ncol = ncol(cov)))
@@ -768,7 +768,7 @@ covplot<-as.matrix(covplot)
 
 
 ```
-```{r createFstExcel}
+```{r createFstExcel,eval=FALSE}
 library(xlsx); library(RColorBrewer); library(scales)
 
 table2<-fst_mat
@@ -1289,7 +1289,7 @@ This analysis is of just the freshwater and saltwater populations. First I ran b
 
 At this point I looked at the matrices
 
-[!Bayenv matrices]("bayenv/fwsw75_pruned.png")
+![Bayenv matrices](bayenv/fwsw75_pruned.png)
 
 They all looked fine so I chose the randomly selected matrix (`matrix`).
 
