@@ -51,6 +51,9 @@ write.table(rundf,"alst_lafw_mods.txt",col.names = FALSE,row.names = FALSE,quote
 ```
 
 And...that worked! Now I'm running the non-commented models above with round 1 (and I will see how long that takes, then possibly start another round).
+
+I've also gone through and tried to fix up some unhappy knitting issues with the reanalysis doc (printing out WAY TOO MUCH INFO -- I'm looking at you, treemix!, improving plot dimensions, etc). Now seeing if it will knit -- so far so good!
+
 # 30 April 2020
 
 I'm having trouble running the treemix analyses on my laptop, probably thanks to some weird dropbox syncing issue.
