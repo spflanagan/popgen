@@ -625,7 +625,7 @@ dev.off()
 
 ![treemix figure](../figs/FWSW_treemix_m3_FLPB.png)
 
-### Choosing the optimal number of migration edges
+#### Choosing the optimal number of migration edges
 
 To choose the optimal number of migration edges, we used the R package optM [@fitak_optm:_2019].
 
