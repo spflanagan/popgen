@@ -1358,7 +1358,7 @@ This analysis is of just the freshwater and saltwater populations. First I ran b
 
 At this point I looked at the matrices
 
-![Bayenv matrices](bayenv/fwsw75_pruned.png)
+![Bayenv matrices](../fwsw_results/bayenv/fwsw75_pruned.png)
 
 They all looked fine so I chose the randomly selected matrix (`matrix`).
 
