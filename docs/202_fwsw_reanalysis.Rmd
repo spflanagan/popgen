@@ -733,7 +733,7 @@ admixK7<-read.delim("admixture/admixK7.txt",header = TRUE)
 #pcadapt
 pa<-readRDS("fwsw_all_pcadapt.RDS")
 pa.props<-round((pa$singular.values/sum(pa$singular.values))*100,2)
-pap<-read.delim("pcadapt_colp.txt",sep=' ')
+pap<-read.delim("pcadapt_colp.txt",sep='\t')
 # map
 library(jpeg)
 img<-readJPEG("all_sites_map.jpeg")
