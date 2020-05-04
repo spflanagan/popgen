@@ -528,6 +528,8 @@ write.table(cbind(poporder,colors),"poporder",quote=F,sep='\t')
 
 #### Tree with no migration edges and no root
 
+It's informative to plot the treemix tree that does not have any migration edges added for comparison later.
+
 ```{r treemixPrep, results='hide', fig.show='true'}
 source("../R/203_treemix_plotting_funcs.R") #I've modified the functions from treemix
 library(lattice); library(grid); library(RColorBrewer)
@@ -689,9 +691,8 @@ fourpop[grep("TXCC,TXFW;.*FLSI.*",fourpop$pops),] # use this to see the order th
 fourpop[fourpop$pops=="TXCC,TXFW;FLSI,FLAB",] 
 as.numeric(as.character(fourpop$f4_stat[fourpop$pops=="TXCC,TXFW;FLSI,FLAB"]))+as.numeric(as.character(fourpop$f4_se[fourpop$pops=="TXCC,TXFW;FLSI,FLAB"]))
 ```
-The statistic is negative but overlaps with zero, so not indicative of gene flow. 
 
-Where are the bootstrap values? I think they're in the treeout as the 'jackknife estimates' - I'll deal with that later, it's for tree topology not migration edges anyway.
+The statistic is negative but overlaps with zero, so not indicative of gene flow. 
 
 
 **Edge 2: branch from west FL to others -> FLAB**
@@ -716,7 +717,7 @@ fourpop$f4_se<-as.numeric(as.character(fourpop$f4_se))
 abs(fourpop$f4_stat[grep("FLAB,FL.*;.*",fourpop$pops)])-fourpop$f4_se[grep("FLAB,FL.*;.*",fourpop$pops)]
 ```
 
-These are all pretty close to zero...
+These are all pretty close to zero.
 
 ### Make figure
 
