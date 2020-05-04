@@ -654,7 +654,7 @@ dev.off()
  
 We can take a closer look at the two migration edges that are in the best Treemix model using threepop and fourpop analyses. In the threepop analysis, significantly negative f3 statistics mean that the first pop in the list (A in A;B,C) is admixed. In the fourpop analysis, a significantly non-zero value indicates gene flow in the tree.
 
-```{r}
+```{r readf3f4}
 threepop<-data.frame(do.call(rbind,strsplit(grep(";",readLines("treemix/fwsw_threepop.txt"),value = TRUE),' ')))
 colnames(threepop)<-c("pops","f3_stat","f3_se","f3_z")
 threepop$f3_p<-pnorm(-abs(as.numeric(as.character(threepop$f3_z)))) # one sided
@@ -669,14 +669,14 @@ fourpop$f4_p<-2*pnorm(-abs(as.numeric(as.character(fourpop$f4_z))))
 
 **Edge 1: FLSI/FLAB -> TXFW/TX**
 
-```{r}
+```{r f3Edge1}
 threepop[grep("FLSI;.*TXFW",threepop$pops),] # use this to see the order that I want
 threepop[threepop$pops=="FLSI;TXFW,FLAB",] 
 ```
 
 This does not have a negative value so FLSI is not admixed -- but that's not really what's interesting, is it?
 
-```{r}
+```{r f3Edge1Rev}
 threepop[grep("TXFW;.*FLSI",threepop$pops),] # use this to see the order that I want
 threepop[threepop$pops=="TXFW;TXCC,FLSI",] 
 ```
@@ -684,7 +684,7 @@ threepop[threepop$pops=="TXFW;TXCC,FLSI",]
 But this is also not admixed, so does not support direct migration?
 
 
-```{r}
+```{r f4Edge1}
 fourpop[grep("TXCC,TXFW;.*FLSI.*",fourpop$pops),] # use this to see the order that I want
 fourpop[fourpop$pops=="TXCC,TXFW;FLSI,FLAB",] 
 as.numeric(as.character(fourpop$f4_stat[fourpop$pops=="TXCC,TXFW;FLSI,FLAB"]))+as.numeric(as.character(fourpop$f4_se[fourpop$pops=="TXCC,TXFW;FLSI,FLAB"]))
@@ -696,13 +696,13 @@ Where are the bootstrap values? I think they're in the treeout as the 'jackknife
 
 **Edge 2: branch from west FL to others -> FLAB**
 
-```{r}
+```{r f3Edge2}
 threepop[grep("FLAB;.*",threepop$pops),] # use this to see the order that I want
 threepop[threepop$pops=="FLAB;FLPB,FLLG",]
 ```
 This indicates no admixture, and none of the FLAB values are neggative
 
-```{r}
+```{r f4Edge2}
 fourpop[grep("FLAB,FL.*;.*",fourpop$pops),] # use this to see the order that I want
 fourpop[fourpop$pops=="FLAB,FLCC;FLPB,FLLG",] 
 as.numeric(as.character(fourpop$f4_stat[fourpop$pops=="FLAB,FLCC;FLPB,FLLG"]))+as.numeric(as.character(fourpop$f4_se[fourpop$pops=="FLAB,FLCC;FLPB,FLLG"]))
@@ -710,7 +710,7 @@ as.numeric(as.character(fourpop$f4_stat[fourpop$pops=="FLAB,FLCC;FLPB,FLLG"]))+a
 
 Also not indicative of gene flow. 
 
-```{r}
+```{r f4Edge2Contd}
 fourpop$f4_stat<-as.numeric(as.character(fourpop$f4_stat))
 fourpop$f4_se<-as.numeric(as.character(fourpop$f4_se))
 abs(fourpop$f4_stat[grep("FLAB,FL.*;.*",fourpop$pops)])-fourpop$f4_se[grep("FLAB,FL.*;.*",fourpop$pops)]
