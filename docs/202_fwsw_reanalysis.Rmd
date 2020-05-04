@@ -649,6 +649,75 @@ dev.off()
 ```
 ![treemix comparison](../figs/treemix_comparison.png)
 
+
+#### Threepop and fourpop analysis
+ 
+We can take a closer look at the two migration edges that are in the best Treemix model using threepop and fourpop analyses. In the threepop analysis, significantly negative f3 statistics mean that the first pop in the list (A in A;B,C) is admixed. In the fourpop analysis, a significantly non-zero value indicates gene flow in the tree.
+
+```{r}
+threepop<-data.frame(do.call(rbind,strsplit(grep(";",readLines("treemix/fwsw_threepop.txt"),value = TRUE),' ')))
+colnames(threepop)<-c("pops","f3_stat","f3_se","f3_z")
+threepop$f3_p<-pnorm(-abs(as.numeric(as.character(threepop$f3_z)))) # one sided
+
+fourpop<-data.frame(do.call(rbind,strsplit(grep(";",readLines("treemix/fwsw_fourpop_1.txt"),value = TRUE),' ')))
+colnames(fourpop)<-c("pops","f4_stat","f4_se","f4_z")
+fourpop$f4_p<-2*pnorm(-abs(as.numeric(as.character(fourpop$f4_z))))
+```
+
+
+
+
+**Edge 1: FLSI/FLAB -> TXFW/TX**
+
+```{r}
+threepop[grep("FLSI;.*TXFW",threepop$pops),] # use this to see the order that I want
+threepop[threepop$pops=="FLSI;TXFW,FLAB",] 
+```
+
+This does not have a negative value so FLSI is not admixed -- but that's not really what's interesting, is it?
+
+```{r}
+threepop[grep("TXFW;.*FLSI",threepop$pops),] # use this to see the order that I want
+threepop[threepop$pops=="TXFW;TXCC,FLSI",] 
+```
+
+But this is also not admixed, so does not support direct migration?
+
+
+```{r}
+fourpop[grep("TXCC,TXFW;.*FLSI.*",fourpop$pops),] # use this to see the order that I want
+fourpop[fourpop$pops=="TXCC,TXFW;FLSI,FLAB",] 
+as.numeric(as.character(fourpop$f4_stat[fourpop$pops=="TXCC,TXFW;FLSI,FLAB"]))+as.numeric(as.character(fourpop$f4_se[fourpop$pops=="TXCC,TXFW;FLSI,FLAB"]))
+```
+The statistic is negative but overlaps with zero, so not indicative of gene flow. 
+
+Where are the bootstrap values? I think they're in the treeout as the 'jackknife estimates' - I'll deal with that later, it's for tree topology not migration edges anyway.
+
+
+**Edge 2: branch from west FL to others -> FLAB**
+
+```{r}
+threepop[grep("FLAB;.*",threepop$pops),] # use this to see the order that I want
+threepop[threepop$pops=="FLAB;FLPB,FLLG",]
+```
+This indicates no admixture, and none of the FLAB values are neggative
+
+```{r}
+fourpop[grep("FLAB,FL.*;.*",fourpop$pops),] # use this to see the order that I want
+fourpop[fourpop$pops=="FLAB,FLCC;FLPB,FLLG",] 
+as.numeric(as.character(fourpop$f4_stat[fourpop$pops=="FLAB,FLCC;FLPB,FLLG"]))+as.numeric(as.character(fourpop$f4_se[fourpop$pops=="FLAB,FLCC;FLPB,FLLG"]))
+```
+
+Also not indicative of gene flow. 
+
+```{r}
+fourpop$f4_stat<-as.numeric(as.character(fourpop$f4_stat))
+fourpop$f4_se<-as.numeric(as.character(fourpop$f4_se))
+abs(fourpop$f4_stat[grep("FLAB,FL.*;.*",fourpop$pops)])-fourpop$f4_se[grep("FLAB,FL.*;.*",fourpop$pops)]
+```
+
+These are all pretty close to zero...
+
 ### Make figure
 
 ```{r defineColors}
