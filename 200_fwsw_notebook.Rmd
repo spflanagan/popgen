@@ -23,6 +23,48 @@ library(knitr)
 pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 ```
 
+
+# 11 May 2020
+
+dadi run updates:
+
+- ALST LAFW models have finished running on C001KR.
+- ALFW_TXFW, FLCC_ALFW, FLCC_LAFW, FLCC_TXCC, FLCC_TXFW still running on rccuser 
+- 1 model from 6 April, 1 from 23 April, 1 from 29 April, and 3 from 1 May are running on abacus
+
+Nothing new to move from abacus, but what about from rccuser?
+
+- Moved ALFW_LAFW_1.\*, ALFW_TXCC_1.\*, FLCC_ALST_1.\* from rccuser
+- All of the ones I moved I tar-zipped and left on rccuser for the moment.
+- I' can't tell if I already took the FLLG_FLCC results from rccuser or if I ran the same numbers on both rccuser & C001KR. 
+  - I'm pretty sure I donwloaded them because on C001KR they have the same timestamp, so I tar zipped them.
+  - same for FLLG_ALFW
+
+Now I need to choose what to run on abacus (rep # 13) and what to run on C001KR (rep # ?). To do this, I added the number of runs for each model into the plots in the fwsw_dadi doc. For now my goal is to get 5 reps of each model (then I'll go for 10, but let's start small). 
+
+- I want to finish off FLLG_FLCC models so I'm going to run AM2m, AMG, IM2N twice more - reps 4 through 6. 
+
+```{r}
+pops=c('FLLG', 'FLCC')   #
+models=c('AMG', 'AM2m', 'IM2N')
+
+rundf<-data.frame(pops=NULL,model=NULL)
+count=1
+for(i in 1:(length(pops)-1)){
+  for(j in (i+1):length(pops)){
+    for(mod in 1:length(models)){
+      rundf[count,1]<-paste(pops[i],pops[j],sep="_")
+      rundf[count,2]<-models[mod]
+      count=(count+1)
+    }
+  }
+}
+
+write.table(rundf,"dadi_mods_2020-05-11.txt",col.names = FALSE,row.names = FALSE,quote=FALSE,eol = '\n')
+```
+
+- On abaucs, I'll start TXFW vs TXCC (520-545) with rep 13 (run 582)
+
 # 4 May 2020
 
 It seems that the doc didn't knit properly but I didn't record what the issue was, so let's try that again.
