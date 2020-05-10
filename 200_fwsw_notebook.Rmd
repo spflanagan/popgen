@@ -65,6 +65,23 @@ write.table(rundf,"dadi_mods_2020-05-11.txt",col.names = FALSE,row.names = FALSE
 
 - On abaucs, I'll start TXFW vs TXCC (520-545) with rep 13 (run 582)
 
+Other TODOs:
+
+- check that the f3 and f4 treemix analyses were properly done & reported
+- finish & knit the fwsw_morphology supplement 
+- make the dadi supplement 'pretty' 
+- scaffold the dadi figure 2, even if I can't fill it in
+- Make the reanalysis doc 'pretty'
+  - Change settings so code is not double spaced
+  - make sure code wraps nicely
+  - Improve order of figures and code, if possible
+  - fix or remove numbering (it only appears sometimes?)
+  - Number and label figures properly
+
+
+
+  
+
 # 4 May 2020
 
 It seems that the doc didn't knit properly but I didn't record what the issue was, so let's try that again.
