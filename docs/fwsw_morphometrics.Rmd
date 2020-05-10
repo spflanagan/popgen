@@ -35,8 +35,8 @@ abstract: yes
 
 
 ```{r setup, include=FALSE}
-knitr::opts_knit$set(root.dir='../../../fwsw_results/', fig.pos='H')
-knitr::opts_chunk$set(fig.path = '../../../figs',dpi = 300)
+knitr::opts_knit$set(root.dir='../fwsw_results/', fig.pos='H')
+knitr::opts_chunk$set(fig.path = '../figs',dpi = 300)
 ```
 
 ```{r loadPackages}
