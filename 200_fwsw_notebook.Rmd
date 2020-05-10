@@ -23,6 +23,30 @@ library(knitr)
 pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 ```
 
+# 4 May 2020
+
+It seems that the doc didn't knit properly but I didn't record what the issue was, so let's try that again.
+It seems that it could not find the bayenv/fwsw75_pruned.png file.
+
+Other TODOs:
+
+- for some reason now the PCAdapt results are not shown in the fig 1
+  --> there had been an issue with reading in the colors, but it's fixed now
+- make sure I'm showing admixture K=1 through K=8 in supplement 
+- add f3 and f4 treeness checks to the supplement
+  --> found these in my notes from 21 Oct 2019. However, I'm not confident in my interpretation(s) in my notes, I need to check. 
+- check for drift parameter in figures
+  --> all good!
+
+Afeter looking at the PDF, what I want to do:
+- Change settings so code is not double spaced
+- make sure code wraps nicely
+- Improve order of figures and code, if possible
+- fix or remove numbering (it only appears sometimes?)
+- Number and label figures properly
+
+
+
 # 1 May 2020
 
 On abacus starting FLLG_TXCC runs (number 13) with numbers 130-155, job ID 538
