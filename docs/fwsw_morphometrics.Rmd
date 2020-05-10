@@ -1,20 +1,19 @@
 ---
-title: "Manuscript Template"
+title: "Supplemental Material \#3 for Multiple colonizations of freshwater by the Gulf pipefish reveal a shared genomic signature of adaptation"
 author:  
 - name: Sarah P. Flanagan
   affilnum: 1
-- name: Another Author 
+- name: Emily Rose 
   affilnum: 2
-  email: author.another@example.com
-- name: Another Author2
+- name: Adam G. Jones
   affilnum: 3
 affiliation:
-- affilnum: 1
-  affil: School of Biological Sciences, University of Canterbury, Private Bag 4800, Christchurch 8140, New Zealand
-- affilnum: 2
-  affil: Big Name University, Department of R, City, BN, 01020, USA
-- affilnum: 3
-  affil: Private Research Institute, Office of Large Thoughts, Department of Beer, Cool Town, ST, 99921, USA
+  - code: 1
+    address: School of Biological Sciences, University of Canterbury, 4800 Private Bag, Christchurch 8140 New Zealand
+  - code: 2
+    address: Department of Biology, The University of Tampa, Tampa, FL 33606 USA
+  - code: 3
+    address: Department of Biological Sciences, University of Idaho, Moscow, ID 83844 USA
 footerdate: yes
 output:
   pdf_document:
