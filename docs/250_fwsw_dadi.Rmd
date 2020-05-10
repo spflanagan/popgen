@@ -38,7 +38,7 @@ spacing: doublespacing
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE,out.extra='')
+knitr::opts_chunk$set(echo = TRUE,out.extra='',warning=FALSE,message=FALSE)
 knitr::opts_knit$set(root.dir='../fwsw_results/')
 ```
 ```{r source}
