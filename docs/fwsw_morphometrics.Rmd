@@ -39,7 +39,7 @@ knitr::opts_knit$set(root.dir='../../../fwsw_results/', fig.pos='H')
 knitr::opts_chunk$set(fig.path = '../../../figs',dpi = 300)
 ```
 
-```{r}
+```{r loadPackages}
 library(vegan)
 library(ggplot2)
 library(gdata);library(matrixcalc)
@@ -47,7 +47,7 @@ source("../scripts/plotting_functions.R")
 source("../scripts/phenotype_functions.R")
 ```
 
-```{r}
+```{r initialSetup}
 pop.list<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
 	"FLFD","FLSI","FLAB","FLPB","FLHB","FLCC","FLLG")
 pop.labs<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
@@ -61,7 +61,7 @@ npops<-16
 
 
 
-```{r, eval=FALSE}
+```{r organizeData, eval=FALSE}
 raw.pheno<-read.table("../sw_results/popgen.pheno.txt", sep="\t", header=T)
 	raw.pheno$PopID<-gsub("(\\w{4})\\w+","\\1",raw.pheno$ID)
 	raw.pheno<-raw.pheno[raw.pheno$PopID %in% pop.list,]
@@ -81,7 +81,7 @@ mal.pheno<-raw.pheno[raw.pheno$sex %in% c("P","N"),-8]
 	write.table(mal.pheno,"mal.pheno.txt",sep='\t',row.names=F,col.names=T,
 		quote=F)
 ```
-```{r}
+```{r readMalFem}
 fem.pheno<-read.table("fem.pheno.txt",header=T)
 	fem.pheno<-fem.pheno[!is.na(fem.pheno$BandNum),]
 mal.pheno<-read.table("mal.pheno.txt",header=T)
@@ -89,7 +89,7 @@ mal.pheno<-read.table("mal.pheno.txt",header=T)
 
 # PCA
 
-```{r}
+```{r PCA}
 fem.pheno$PopID<-factor(fem.pheno$PopID)
 fem.pheno<-fem.pheno[!is.na(fem.pheno$BandNum),]
 mal.pheno$PopID<-factor(mal.pheno$PopID)
@@ -102,7 +102,7 @@ mal.pheno.pca<-rda(mal.pheno[,4:9])
 
 ```
 
-```{r}
+```{r PCAplotSetup}
 pop.pchs<-c(0,1,3,5,4,15,8,17,18,19,21,22,23,24,25,13)
 fem.pop<-bands.pcdat$PopID
 fem.colors<-as.character(fem.pop)
@@ -136,7 +136,7 @@ fw.mal.rows<-which(mal.pheno$PopID %in% fw.list)
 
 ## Plot
 
-```{r,fig.height=8,fig.width=10}
+```{r plotPCA,fig.height=8,fig.width=10}
 
 par(mfrow=c(2,3),oma=c(2,2,2,2),mar=c(2,2,2,2),lwd=1.3)
 mp<-plot(mal.pheno.pca,type="n",xlim=c(-3,3),ylim=c(-8.2,4)
@@ -197,7 +197,7 @@ legend("top", pop.labs,
 	      rep("black",8),"cornflowerblue"),
 	pt.cex=1,bty='n',pch=pop.pchs, ncol=8)
 ```
-```{r}
+```{r extractEigenvalue}
 ####extract eigenvalue
 band.eig<-band.pca$CA$eig
 
@@ -235,7 +235,7 @@ mal.u.new<-rbind(mal.u.sep$TXSP,mal.u.sep$TXCC,mal.u.sep$TXCB,
 
 # P Matrix
 
-```{r}
+```{r setupPMatrix}
 #females
 pops.fem.uns.dat<-split(fem.pheno, fem.pheno$PopID)
 pmat.fem.uns.pops<-calc.pmat(pops.fem.uns.dat,4,11)
@@ -289,7 +289,7 @@ for(i in 1:length(pmat.mal.uns.pops)){
 
 ## Multiple Subspaces
 
-```{r}
+```{r multipleSubspaces}
 ###****************************MULTIPLE SUBSPACES**************************###
 h.fem<-calc.h(pmat.fem.uns.pops)
 h.mal<-calc.h(pmat.mal.uns.pops)
@@ -322,7 +322,7 @@ write.csv(cbind(eigen(h.fem)$values,eigen(h.fem)$vectors),
 write.csv(cbind(eigen(h.mal)$values,eigen(h.mal)$vectors),
 	"HmalesEigenvectors.csv")
 ```
-```{r}
+```{r tensors}
 ###*******************************TENSORS*********************************###
 #Adapted from Aguirre et al. 2013 supplemental material
 f.n.traits<-8
@@ -381,7 +381,7 @@ m.e11.proj <- lapply(pmat.mal.uns.pops, proj, b = m.e1.L)
 m.e21.proj <- lapply(pmat.mal.uns.pops, proj, b = m.e2.L)
 m.e31.proj <- lapply(pmat.mal.uns.pops, proj, b = m.e3.L)
 ```
-```{r}
+```{r writeTensors}
 ###Write info to files
 write.csv(fem.tensor$s.mat,"FemaleSmatrix.csv")
 write.csv(mal.tensor$s.mat,"MaleSmatrix.csv")
@@ -392,7 +392,7 @@ write.csv(mal.tensor$tensor.summary,"MaleTensorSummary.csv")
 
 ## Plot
 
-```{r}
+```{r plotPmatrix}
 #******************************PLOT PMATRIX**********************************#
 jpeg("FWSWPmatrix_analyses.jpeg", width=14, height=14, units="in", res=300)
 pdf("FWSWPmatrix_analyses.pdf",width=14,height=14)
@@ -486,7 +486,7 @@ dev.off()
 
 ```
 
-```{r}
+```{r supspaceEigenvalues}
 
 #**************************SUPPLEMENTAL FIGURES*****************************#
 #summary plots
@@ -509,7 +509,8 @@ points(seq(1.2,6.2,1),eigen(h.mal)$values,pch=15,col="blue")
 legend("top",c("Female","Male"),pch=c(25,15),
 	col=c("red","blue"),pt.bg=c("red","blue"))
 dev.off()
-
+```
+```{r EigentensorAlphas}
 jpeg("Eigentensor_alphas.jpeg", width=7, height=7, units="in", res=300)
 pdf("Eigentensor_alphas.pdf", width=7, height=7)
 par(lwd=1.3,cex=1.3,oma=c(2,2,2,2))
@@ -533,7 +534,8 @@ legend("top",c("Female","Male"),pch=c(25,15),
 mtext("Eigentensors of fourth-order covariance tensor",1,line=2,cex=1.3)
 text(x=11,y=395, "B", font=2)
 dev.off()
-
+```
+```{r FemaleCoordinates}
 fc1<-fem.tensor$p.coord[,1][match(pop.list,names(fem.tensor$p.coord[,1]))]
 fc2<-fem.tensor$p.coord[,2][match(pop.list,names(fem.tensor$p.coord[,2]))]
 fc3<-fem.tensor$p.coord[,3][match(pop.list,names(fem.tensor$p.coord[,3]))]
@@ -557,7 +559,8 @@ text(x=seq(1,npops,1), labels=pop.list, par("usr")[1]-35,
 text(x=1,y=-0.25,"E3")
 dev.off()
 
-
+```
+```{r maleCoordinates}
 
 mc1<-mal.tensor$p.coord[,1][match(pop.order,names(mal.tensor$p.coord[,1]))]
 mc2<-mal.tensor$p.coord[,2][match(pop.order,names(mal.tensor$p.coord[,2]))]
@@ -585,7 +588,7 @@ dev.off()
 
 # Pst-Fst
 
-```{r}
+```{r PstFst, eval=FALSE}
 
 setwd("pst-fst")
 #*******************************PST COMPARISONS******************************#
@@ -729,8 +732,7 @@ sig.all<-rownames(fpf)[rownames(fpf) %in% svl.sig &
 	rownames(fpf) %in% sntd.sig & rownames(fpf) %in% sntl.sig & 
 	rownames(fpf) %in% head.sig & rownames(fpf) %in% band.sig] # "7875_9"   "24777_60" "5317_10" 
 ```
-```{r}
-#WRITE TO FILE, after other files have been written
+```{r PstFstMatch2Loci}
 svl.sig<-read.table("pstfst/SVL_pstfst.txt")
 tail.sig<-read.table("pstfst/TailLength_pstfst.txt")
 body.sig<-read.table("pstfst/BodyDepth_pstfst.txt")
@@ -789,7 +791,7 @@ chroms<-levels(factor(c(as.character(svl.5kb$V1),as.character(body.5kb$V1),
 write.table(chroms,"pstfst/pstfst.sig_scaffolds.txt",col.names=F,row.names=F,
 	quote=F)
 ```
-```{r}
+```{r Compare2outliers}
 sig.fst.ibd<-ibd.by.loc[ibd.by.loc$P <= 0.05,]
 length(rownames(sig.fst.ibd)[rownames(sig.fst.ibd) %in% rownames(svl.sig)])
 length(rownames(sig.fst.ibd)[rownames(sig.fst.ibd) %in% rownames(tail.sig)])
@@ -812,7 +814,7 @@ pstfst.sig$analysis<-pstfst.sig$Trait
 pst.out.bf<-data.frame(rbind(pstfst.sig[,c("locus","scaffold","BP","analysis")],
 	outliers))
 ```
-```{r}
+```{r PstPCA}
 #***************PST PCA*****************#
 fem.pheno$PopID<-factor(fem.pheno$PopID)
 mal.pheno$PopID<-factor(mal.pheno$PopID)
@@ -852,7 +854,9 @@ mal.colors[mal.colors=="FLAB"]<-rainbow(12)[9]
 mal.colors[mal.colors=="FLPB"]<-rainbow(12)[10]
 mal.colors[mal.colors=="FLHB"]<-rainbow(12)[11]
 mal.colors[mal.colors=="FLCC"]<-rainbow(12)[12]
+```
 
+```{r PlotPstPCA}
 png("PhenotypePCA.png",height=4,width=10,units="in",res=300)
 pdf("PhenotypePCA.pdf",height=4,width=10)
 par(mfrow=c(1,3),oma=c(2,2,2,2),mar=c(2,2,2,2),lwd=1.3)
@@ -883,7 +887,7 @@ legend("top", pop.list, pch=19, pt.cex=1,bty='n',
 	col=alpha(rainbow(12), 0.5), ncol=12)
 dev.off()
 ```
-```{r}
+```{r PCscores2DistEnv}
 #extract eigenvalue
 band.eig<-band.pca$CA$eig
 
@@ -935,7 +939,7 @@ env.u<-rda(t(env.dat))$CA$u
 env.u.new<-env.u[match(pop.order,rownames(env.u)),1]
 env.dist<-dist(env.u.new)
 ```
-```{r}
+```{r PlotPstFstDist}
 ###************************************PLOT********************************###
 jpeg("Fig5.pst.fst.dist.jpeg",height=7,width=7, units="in", res=300)
 pdf("pst.fst.dist.pdf",height=7,width=7)
@@ -960,7 +964,7 @@ legend("top", ncol=2, col=c("black","blue","red","darkgreen"),pch=c(19,5,4,6),
 
 dev.off()
 ```
-```{r}
+```{r PhenotypeTtest}
 
 ##############################################################################
 #****************************************************************************#
