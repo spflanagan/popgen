@@ -50,7 +50,7 @@ Afeter looking at the PDF, what I want to do:
 # 1 May 2020
 
 On abacus starting FLLG_TXCC runs (number 13) with numbers 130-155, job ID 538
-All of the runs on C001KR have finished (those ar ethe IM2mG ones), so I can start some more!
+All of the runs on C001KR have finished (those are the IM2mG ones), so I can start some more!
 
 To run a subset of needed models, let's choose some. It's not that easy to know how many runs each set has. ALST-LAFW seems like a reasonable place to start, though. 
 
