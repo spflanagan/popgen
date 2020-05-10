@@ -151,9 +151,15 @@ dadi_initialCompare<-function(comparison){
   opts<-dadi.modelcomp(path = paste0("dadi_results/",comparison,"/"),
                                pattern="*optimized.*",id=comparison)
   comp<-modelComparison(opts)
+  Ns<-tapply(opts$log.likelihood,opts$Model,length)
   plot(as.numeric(opts$log.likelihood)~
               as.factor(opts$Model),las=3,
-        pch=19,xlab="Model",ylab="Maximum log likelihood")
+       ylim=c(min(as.numeric(opts$log.likelihood)-50),
+              max(as.numeric(opts$log.likelihood)+50)),
+        pch=19,xlab="",ylab="Maximum log likelihood")
+  text(x=1:length(Ns),
+       y=rep(min(as.numeric(opts$log.likelihood)-50),length(Ns)),
+       Ns,cex=0.75)
   return(list(opts,comp))
 }
 ```
