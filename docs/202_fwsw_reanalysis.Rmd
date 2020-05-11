@@ -221,8 +221,11 @@ pretty_sum<-data.frame(Population = pop_summaries$pop,
                        PercentPolymorphicLoci = paste0(round(pop_summaries$poly_ful,digits=1)," (",round(pop_summaries$poly_sub,digits=1),")"),
                        stringsAsFactors = FALSE)
 pretty_sum$Population[pretty_sum$Population=="FLLG"]<-"FLFW"
-kable(pretty_sum)
-write.table(pretty_sum,"Table1_populationSummaries.txt",sep='\t',col.names = TRUE,quote=FALSE,row.names = FALSE)
+write.table(pretty_sum,"Table1_populationSummaries.txt",
+            sep='\t',col.names = TRUE,quote=FALSE,row.names = FALSE)
+```
+```{r showPrettySum}
+landscape(kable(pretty_sum))
 ```
 
 ## Minor allele frequencies
