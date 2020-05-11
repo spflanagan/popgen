@@ -87,7 +87,6 @@ grp.colors<-c('#762a83','#af8dc3','#e7d4e8','#d9f0d3','#7fbf7b','#1b7837')
 col_vector<-c(red='#e6194b', green='#3cb44b', blue='#4363d8',yellow='#ffe119', cyan='#46f0f0',orange='#f58231', teal='#008080', purple='#911eb4',  magenta='#f032e6', lime='#bcf60c', pink='#fabebe',  lavendar='#e6beff', brown='#9a6324', olive='#808000', apricot='#ffd8b1',maroon='#800000', mint='#aaffc3', navy='#000075', beige='#fffac8', grey='#808080', white='#ffffff', black='#000000')
 
 col_vector<-c('#762a83','#762a83',"#2166ac",'#762a83',"#2166ac",'#af8dc3',"#2166ac",'#e7d4e8','#e7d4e8','#e7d4e8','#e7d4e8','#7fbf7b','#1b7837','#1b7837','#1b7837',"#2166ac")
-#ppi<-data.frame(Pop=pop.labs,cols = all.colors,pch=c(0,1,21,2,24,3,23,4,5,6,7,9,10,11,12,22))
 ppi<-data.frame(Pop=pop.labs,cols = col_vector,pch=rep(c(15,16,17,18),4))
 ppi$pch[grep("FW",ppi$Pop)]<-c(15,16,17,18)
 ```
