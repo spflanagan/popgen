@@ -46,7 +46,8 @@ The initial analyses are in `200_fwsw_analysis.Rmd` and conducted the analyses o
 
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE,out.extra='',fig.pos="H")
+knitr::opts_chunk$set(echo = TRUE,out.extra='',fig.pos="H",
+                      warning = FALSE,message = FALSE)
 knitr::opts_knit$set(root.dir='../fwsw_results/')
 ```
 ```{r source}
@@ -557,10 +558,10 @@ m5<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm5",poporder,split=c(3,2,3,2),more=
 
 These are the residuals assuming that FLPB is root.
 
-```{r TreemixPlotResids, results='hide', fig.show='true',fig.height=6,fig.width=7}
+```{r TreemixPlotResids, results='hide', fig.show='true',fig.height=7,fig.width=7}
 # visualize residuals
 #png("treemix/treemix-residuals_FLPB.png",height=8,width=8,units="in",res=300)
-par(mfrow=c(3,3),mar=c(1,1,1,1),oma=c(1,1,1,1))
+par(mfrow=c(3,3),mar=c(2,3,1,1),oma=c(1.5,1.5,1,1))
 t0<-plot_resid("treemix/fwsw_k100b",  "treemix/poplist")
 r0<-plot_resid("treemix/fwsw_k100bFLPBr",  "treemix/poplist")
 r1<-plot_resid("treemix/fwsw_k100bFLPBrm1","treemix/poplist")
@@ -654,7 +655,7 @@ dev.off()
 
 #### Threepop and fourpop analysis
  
-We can take a closer look at the two migration edges that are in the best Treemix model using threepop and fourpop analyses. In the threepop analysis, significantly negative f3 statistics mean that the first pop in the list (A in A;B,C) is admixed. In the fourpop analysis, a significantly non-zero value indicates gene flow in the tree.
+We can take a closer look at the two migration edges that are in the best Treemix model using threepop and fourpop analyses. In the threepop analysis, significantly negative f3 statistics mean that the first pop in the list (A in A;B,C) is admixed. Therefore, with the threepop analysis we want to look for the tree (A;B,C) where A corresponds to the end of an arrow and (B,C) corresponds to where an arrow begins. In the fourpop analysis, a significantly non-zero value indicates gene flow in the tree.
 
 ```{r readf3f4}
 threepop<-data.frame(do.call(rbind,strsplit(grep(";",readLines("treemix/fwsw_threepop.txt"),value = TRUE),' ')))
@@ -671,25 +672,31 @@ fourpop$f4_p<-2*pnorm(-abs(as.numeric(as.character(fourpop$f4_z))))
 
 **Edge 1: FLSI/FLAB -> TXFW/TX**
 
-```{r f3Edge1}
+```{r f3Edge1Old, include=FALSE}
 threepop[grep("FLSI;.*TXFW",threepop$pops),] # use this to see the order that I want
 threepop[threepop$pops=="FLSI;TXFW,FLAB",] 
+# This does not have a negative value so FLSI is not admixed -- but that's not really what's interesting, is it?
 ```
 
-This does not have a negative value so FLSI is not admixed -- but that's not really what's interesting, is it?
 
-```{r f3Edge1Rev}
+```{r f3Edge1}
 threepop[grep("TXFW;.*FLSI",threepop$pops),] # use this to see the order that I want
-threepop[threepop$pops=="TXFW;TXCC,FLSI",] 
 ```
 
-But this is also not admixed, so does not support direct migration?
+None of these f3 statistics are zero, so that suggests that TXFW is not admixed with FLSI and other populations. Most interesting would be the trees (TXFW;TXCB,FLSI) and (TXFW,FLSI,FLAB):
+
+```{r f3Edge1Specific}
+threepop[threepop$pops=="TXFW;TXCB,FLSI" | 
+           threepop$pops=="TXFW;FLSI,FLAB",] 
+```
+
 
 
 ```{r f4Edge1}
-fourpop[grep("TXCC,TXFW;.*FLSI.*",fourpop$pops),] # use this to see the order that I want
-fourpop[fourpop$pops=="TXCC,TXFW;FLSI,FLAB",] 
-as.numeric(as.character(fourpop$f4_stat[fourpop$pops=="TXCC,TXFW;FLSI,FLAB"]))+as.numeric(as.character(fourpop$f4_se[fourpop$pops=="TXCC,TXFW;FLSI,FLAB"]))
+fourpop[grep("TXCB,TXFW;.*FLSI.*",fourpop$pops),] 
+fourpop[fourpop$pops=="TXCB,TXFW;FLSI,FLAB",] 
+as.numeric(as.character(fourpop$f4_stat[fourpop$pops=="TXCB,TXFW;FLSI,FLAB"]))+
+  as.numeric(as.character(fourpop$f4_se[fourpop$pops=="TXCB,TXFW;FLSI,FLAB"]))
 ```
 
 The statistic is negative but overlaps with zero, so not indicative of gene flow. 
@@ -698,26 +705,27 @@ The statistic is negative but overlaps with zero, so not indicative of gene flow
 **Edge 2: branch from west FL to others -> FLAB**
 
 ```{r f3Edge2}
-threepop[grep("FLAB;.*",threepop$pops),] # use this to see the order that I want
+threepop[grep("FLAB;.*",threepop$pops),] 
 threepop[threepop$pops=="FLAB;FLPB,FLLG",]
 ```
 This indicates no admixture, and none of the FLAB values are neggative
 
 ```{r f4Edge2}
-fourpop[grep("FLAB,FL.*;.*",fourpop$pops),] # use this to see the order that I want
+fourpop[grep("FLAB,FL.*;.*",fourpop$pops),] 
 fourpop[fourpop$pops=="FLAB,FLCC;FLPB,FLLG",] 
 as.numeric(as.character(fourpop$f4_stat[fourpop$pops=="FLAB,FLCC;FLPB,FLLG"]))+as.numeric(as.character(fourpop$f4_se[fourpop$pops=="FLAB,FLCC;FLPB,FLLG"]))
 ```
 
-Also not indicative of gene flow. 
+This is negative but overlaps zero, so is also not indicative of gene flow. 
 
 ```{r f4Edge2Contd}
 fourpop$f4_stat<-as.numeric(as.character(fourpop$f4_stat))
 fourpop$f4_se<-as.numeric(as.character(fourpop$f4_se))
-abs(fourpop$f4_stat[grep("FLAB,FL.*;.*",fourpop$pops)])-fourpop$f4_se[grep("FLAB,FL.*;.*",fourpop$pops)]
+abs(fourpop$f4_stat[grep("FLAB,FL.*;.*",fourpop$pops)])-
+  fourpop$f4_se[grep("FLAB,FL.*;.*",fourpop$pops)]
 ```
 
-These are all pretty close to zero.
+All of these f4 statistics are very close to zero.
 
 ### Make figure
 
