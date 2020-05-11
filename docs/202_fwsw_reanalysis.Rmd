@@ -66,6 +66,7 @@ source("../../gwscaR/R/vcf2dadi.R")
 source("../R/203_treemix_plotting_funcs.R")#I've modified these functions
 library(knitr)
 library(scales)
+library(kableExtra)
 ```
 
 ```{r popSetup}
@@ -84,10 +85,19 @@ all.colors<-c(rep("black",2),"#2166ac","black","#2166ac","black","#2166ac",
         rep("black",8),"#2166ac")
 #grp.colors<-c('#e41a1c','#377eb8','#4daf4a','#984ea3','#ffff33','#f781bf')
 grp.colors<-c('#762a83','#af8dc3','#e7d4e8','#d9f0d3','#7fbf7b','#1b7837')
-col_vector<-c(red='#e6194b', green='#3cb44b', blue='#4363d8',yellow='#ffe119', cyan='#46f0f0',orange='#f58231', teal='#008080', purple='#911eb4',  magenta='#f032e6', lime='#bcf60c', pink='#fabebe',  lavendar='#e6beff', brown='#9a6324', olive='#808000', apricot='#ffd8b1',maroon='#800000', mint='#aaffc3', navy='#000075', beige='#fffac8', grey='#808080', white='#ffffff', black='#000000')
+col_vector<-c(red='#e6194b', green='#3cb44b', blue='#4363d8',yellow='#ffe119', 
+              cyan='#46f0f0',orange='#f58231', teal='#008080', purple='#911eb4',  
+              magenta='#f032e6', lime='#bcf60c', pink='#fabebe',  lavendar='#e6beff', 
+              brown='#9a6324', olive='#808000', apricot='#ffd8b1',maroon='#800000', 
+              mint='#aaffc3', navy='#000075', beige='#fffac8', grey='#808080', 
+              white='#ffffff', black='#000000')
 
-col_vector<-c('#762a83','#762a83',"#2166ac",'#762a83',"#2166ac",'#af8dc3',"#2166ac",'#e7d4e8','#e7d4e8','#e7d4e8','#e7d4e8','#7fbf7b','#1b7837','#1b7837','#1b7837',"#2166ac")
-ppi<-data.frame(Pop=pop.labs,cols = col_vector,pch=rep(c(15,16,17,18),4))
+col_vector<-c('#762a83','#762a83',"#2166ac",'#762a83',"#2166ac",'#af8dc3',
+              "#2166ac",'#e7d4e8','#e7d4e8','#e7d4e8','#e7d4e8','#7fbf7b',
+              '#1b7837','#1b7837','#1b7837',"#2166ac")
+
+ppi<-data.frame(Pop=pop.labs,cols = col_vector,
+                pch=rep(c(15,16,17,18),4))
 ppi$pch[grep("FW",ppi$Pop)]<-c(15,16,17,18)
 ```
 
@@ -210,15 +220,26 @@ pretty_sum<-data.frame(Population = pop_summaries$pop,
                        Temperature = pop_summaries$temp,
                        Salinity = pop_summaries$salinity,
                        SeagrassDensity=pop_summaries$seagrass,
-                       N_Pregnant = paste0(pop_summaries$preg_full," (",pop_summaries$preg_sub,")"),
-                       N_NonPregnant = paste0(pop_summaries$nonp_full," (",pop_summaries$nonp_sub,")"),
-                       N_Female = paste0(pop_summaries$nfem_full," (",pop_summaries$nfem_sub,")"),
-                       N_Juvenile = paste0(pop_summaries$njuv_full," (",pop_summaries$njuv_sub,")"),
-                       H_o = paste0(round(pop_summaries$ho_full,digits=3),"\u00B1",round(pop_summaries$hov_full,digits=3),
-                                   " (",round(pop_summaries$ho_sub,digits=3),"\u00B1",round(pop_summaries$hov_sub,digits=3),")"),
-                       MinorAlleleFrequency = paste0(round(1-pop_summaries$p_full,digits=3),"\u00B1",round(pop_summaries$pv_full,digits=3),
-                                                    " (",round(1-pop_summaries$p_sub,digits=3),"\u00B1",round(pop_summaries$pv_sub,digits = 3),")"),
-                       PercentPolymorphicLoci = paste0(round(pop_summaries$poly_ful,digits=1)," (",round(pop_summaries$poly_sub,digits=1),")"),
+                       N_Pregnant = paste0(pop_summaries$preg_full,
+                                           " (",pop_summaries$preg_sub,")"),
+                       N_NonPregnant = paste0(pop_summaries$nonp_full,
+                                              " (",pop_summaries$nonp_sub,")"),
+                       N_Female = paste0(pop_summaries$nfem_full,
+                                         " (",pop_summaries$nfem_sub,")"),
+                       N_Juvenile = paste0(pop_summaries$njuv_full,
+                                           " (",pop_summaries$njuv_sub,")"),
+                       H_o = paste0(round(pop_summaries$ho_full,digits=3),
+                                    "\u00B1",round(pop_summaries$hov_full,digits=3),
+                                   " (",round(pop_summaries$ho_sub,digits=3),
+                                   "\u00B1",round(pop_summaries$hov_sub,digits=3),")"),
+                       MinorAlleleFrequency = paste0(
+                         round(1-pop_summaries$p_full,digits=3),
+                         "\u00B1",round(pop_summaries$pv_full,digits=3),
+                         " (",round(1-pop_summaries$p_sub,digits=3),
+                         "\u00B1",round(pop_summaries$pv_sub,digits = 3),")"),
+                       PercentPolymorphicLoci = paste0(
+                         round(pop_summaries$poly_ful,digits=1),
+                         " (",round(pop_summaries$poly_sub,digits=1),")"),
                        stringsAsFactors = FALSE)
 pretty_sum$Population[pretty_sum$Population=="FLLG"]<-"FLFW"
 write.table(pretty_sum,"Table1_populationSummaries.txt",
