@@ -693,10 +693,10 @@ threepop[threepop$pops=="TXFW;TXCB,FLSI" |
 
 
 ```{r f4Edge1}
-fourpop[grep("TXCB,TXFW;.*FLSI.*",fourpop$pops),] 
-fourpop[fourpop$pops=="TXCB,TXFW;FLSI,FLAB",] 
-as.numeric(as.character(fourpop$f4_stat[fourpop$pops=="TXCB,TXFW;FLSI,FLAB"]))+
-  as.numeric(as.character(fourpop$f4_se[fourpop$pops=="TXCB,TXFW;FLSI,FLAB"]))
+fourpop[grep("TXFW,TXCB;.*FLSI.*",fourpop$pops),] 
+fourpop[fourpop$pops=="TXFW,TXCB;FLSI,FLAB",] 
+as.numeric(as.character(fourpop$f4_stat[fourpop$pops=="TXFW,TXCB;FLSI,FLAB"]))+
+  as.numeric(as.character(fourpop$f4_se[fourpop$pops=="TXFW,TXCB;FLSI,FLAB"]))
 ```
 
 The statistic is negative but overlaps with zero, so not indicative of gene flow. 
@@ -725,7 +725,7 @@ abs(fourpop$f4_stat[grep("FLAB,FL.*;.*",fourpop$pops)])-
   fourpop$f4_se[grep("FLAB,FL.*;.*",fourpop$pops)]
 ```
 
-All of these f4 statistics are very close to zero.
+All of these f4 statistics are very close to zero, which suggests that there is not much evidence for gene flow between these branches.
 
 ### Make figure
 
