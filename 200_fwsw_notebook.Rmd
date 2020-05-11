@@ -69,7 +69,9 @@ Other TODOs:
 
 - check that the f3 and f4 treemix analyses were properly done & reported
 - finish & knit the fwsw_morphology supplement 
+  - **[started on this but need to evaluate what needs re-doing]**
 - make the dadi supplement 'pretty' 
+  - **[started on this but can't verify until new runs are done]**
 - scaffold the dadi figure 2, even if I can't fill it in
 - Make the reanalysis doc 'pretty'
   - Change settings so code is not double spaced
