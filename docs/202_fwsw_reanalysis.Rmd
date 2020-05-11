@@ -24,6 +24,8 @@ header-includes: >
 bibliography: programs.bib
 output:
   pdf_document:
+    toc: true
+    toc_depth: 2
     fig_caption: yes
     keep_tex: yes
     number_sections: yes
