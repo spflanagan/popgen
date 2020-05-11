@@ -263,7 +263,7 @@ for(i in 1:length(pop.labs)){
     }
   mtext(pop.labs[i],3,col=color,cex=2*0.75,line=-1)
 }
-mtext("Reference Allele Frequency",1,outer=TRUE,cex=1.75*0.75)
+mtext("Minor Allele Frequency",1,outer=TRUE,cex=1.75*0.75)
 mtext("Number of SNPs (x 1000)",2,outer = TRUE,cex=1.75*0.75,line=1)
 
 ```
