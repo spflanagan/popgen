@@ -19,6 +19,10 @@ affiliation:
     address: Department of Biological Sciences, University of Idaho, Moscow, ID 83844 USA
 abstract: >
   This document includes supplementary material for the paper. 
+  In this document, we walk through the generation of each of the figures in the manuscript, including all of the additional analyses that were used to decide on the final presentation of results.
+  This document shows the population structure analyses (Fsts, PCAdapt, Admixture, and Treemix), which were used to generate Figure 1.
+  The second major section of this document deals with the identification of outliers and the interpretation of outliers from multiple analyses.
+  These analyses combined to create Figure 2 and Figure 3. 
 header-includes: >
   \usepackage{lipsum}
 bibliography: programs.bib
