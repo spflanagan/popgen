@@ -34,7 +34,7 @@ fontsize: 11pt
 capsize: normalsize
 csl: molecular-ecology.csl
 documentclass: article
-spacing: doublespacing
+spacing: singlespacing
 ---
 
 
