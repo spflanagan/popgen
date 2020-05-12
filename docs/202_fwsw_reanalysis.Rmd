@@ -32,7 +32,7 @@ output:
     toc_depth: 2
     fig_caption: yes
     keep_tex: yes
-    number_sections: yes
+    number_sections: no
     template: manuscript.latex
   html_document: null
   word_document: null
