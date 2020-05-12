@@ -428,7 +428,7 @@ write.table(pretty_sum,"Table1_populationSummaries.txt",
             sep='\t',col.names = TRUE,quote=FALSE,row.names = FALSE)
 ```
 ```{r showPrettySum}
-landscape(kable(pretty_sum))
+landscape(kable(pretty_sum,booktabs=T,longtable=T))
 ```
 
 
