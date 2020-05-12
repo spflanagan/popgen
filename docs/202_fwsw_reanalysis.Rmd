@@ -249,6 +249,7 @@ write.table(pretty_sum,"Table1_populationSummaries.txt",
 landscape(kable(pretty_sum))
 ```
 
+
 ## Minor allele frequencies
 
 ```{r calcAFS, eval=FALSE}
@@ -326,11 +327,13 @@ for(i in 1:(nrow(fst_mat)-1)){
   }
 }
 colnames(fst_mat)<-rownames(fst_mat)<-pop.labs
-write.table(fst_mat,"pairwise_fsts_full.txt",sep='\t',col.names = TRUE,row.names=TRUE,quote=FALSE)
+write.table(fst_mat,"pairwise_fsts_full.txt",sep='\t',
+            col.names = TRUE,row.names=TRUE,quote=FALSE)
 ```
 
 ```{r readStacksFstSumm}
-full_fsts<-read.delim("stacks/populations_whitelist/batch_2.fst_summary.tsv",row.names = 1)
+full_fsts<-read.delim("stacks/populations_whitelist/batch_2.fst_summary.tsv",
+                      row.names = 1)
 full_fsts<-rbind(full_fsts,TXSP=rep(NA,ncol(full_fsts))) #add the final row
 Tfull_fsts<-t(full_fsts)
 full_fsts[lower.tri(full_fsts)]<-Tfull_fsts[lower.tri(Tfull_fsts)] # now it's symmetric
@@ -395,7 +398,8 @@ library(pcadapt)
 ```
 
 ````{r pcadapt_choose}
-filename<-read.pcadapt("filter_rad_20191014@1654/14_filtered/radiator_data_20191014@1710.vcf",type="vcf")
+filename<-read.pcadapt("filter_rad_20191014@1654/14_filtered/radiator_data_20191014@1710.vcf",
+                       type="vcf")
 x<-pcadapt(filename, K=20)
 plot(x,option="screeplot") #K=7
 ```
@@ -435,29 +439,32 @@ plot(pa$scores[,1],pa$scores[,2],col=alpha(pap$cols,0.5),bg=alpha(pap$cols,0.75)
      pch=as.numeric(pap$pch),	cex=1.5)
 mtext(paste("PC1 (",pa.props[1],"%)",sep=""),1,line = 2,cex=0.75)
 mtext(paste("PC2 (",pa.props[2],"%)",sep=""),2,line = 2,cex=0.75)
-plot(pa$scores[,1],pa$scores[,3],col=alpha(pap$cols,0.5),bg=alpha(pap$cols,0.75),pch=as.numeric(pap$pch),
-	cex=1.5)
+plot(pa$scores[,1],pa$scores[,3],col=alpha(pap$cols,0.5),
+     bg=alpha(pap$cols,0.75),pch=as.numeric(pap$pch),cex=1.5)
 mtext(paste("PC1 (",pa.props[1],"%)",sep=""),1,line = 2,cex=0.75)
 mtext(paste("PC3 (",pa.props[3],"%)",sep=""),2,line = 2,cex=0.75)
-plot(pa$scores[,1],pa$scores[,4],col=alpha(pap$cols,0.5),bg=alpha(pap$cols,0.75),pch=as.numeric(pap$pch),
-	cex=1.5)
+plot(pa$scores[,1],pa$scores[,4],col=alpha(pap$cols,0.5),
+     bg=alpha(pap$cols,0.75),pch=as.numeric(pap$pch),cex=1.5)
 mtext(paste("PC1 (",pa.props[1],"%)",sep=""),1,line = 2,cex=0.75)
 mtext(paste("PC4 (",pa.props[4],"%)",sep=""),2,line = 2,cex=0.75)
 plot(pa$scores[grp=="freshwater",1],pa$scores[grp=="freshwater",2],
      col=alpha(pap$cols[pap$grp=="freshwater"],0.5),
-     bg=alpha(pap$cols[pap$grp=="freshwater"],0.75),pch=as.numeric(pap$pch[pap$grp=="freshwater"]),
+     bg=alpha(pap$cols[pap$grp=="freshwater"],0.75),
+     pch=as.numeric(pap$pch[pap$grp=="freshwater"]),
 	cex=1.5)
 mtext(paste("PC1 (",pa.props[1],"%)",sep=""),1,line = 2,cex=0.75)
 mtext(paste("PC2 (",pa.props[2],"%)",sep=""),2,line = 2,cex=0.75)
 plot(pa$scores[grp=="freshwater",3],pa$scores[grp=="freshwater",4],
      col=alpha(pap$cols[pap$grp=="freshwater"],0.5),
-     bg=alpha(pap$cols[pap$grp=="freshwater"],0.75),pch=as.numeric(pap$pch[pap$grp=="freshwater"]),
+     bg=alpha(pap$cols[pap$grp=="freshwater"],0.75),
+     pch=as.numeric(pap$pch[pap$grp=="freshwater"]),
 	cex=1.5)
 mtext(paste("PC3 (",pa.props[3],"%)",sep=""),1,line = 2,cex=0.75)
 mtext(paste("PC4 (",pa.props[4],"%)",sep=""),2,line = 2,cex=0.75)
 plot(pa$scores[grp=="freshwater",5],pa$scores[grp=="freshwater",6],
      col=alpha(pap$cols[pap$grp=="freshwater"],0.5),
-     bg=alpha(pap$cols[pap$grp=="freshwater"],0.75),pch=as.numeric(pap$pch[pap$grp=="freshwater"]),
+     bg=alpha(pap$cols[pap$grp=="freshwater"],0.75),
+     pch=as.numeric(pap$pch[pap$grp=="freshwater"]),
 	cex=1.5)
 mtext(paste("PC5 (",pa.props[5],"%)",sep=""),1,line = 2,cex=0.75)
 mtext(paste("PC6 (",pa.props[2],"%)",sep=""),2,line = 2,cex=0.75)
@@ -498,7 +505,8 @@ poporderDF$orderNum<-1:nrow(poporderDF)
 ```
 
 ```{r plotAdmixFxn}
-admixPlotting<-function(qfile,K,famfile="admixture/fwsw_all_filt.fam",poporder=poporderDF){
+admixPlotting<-function(qfile,K,famfile="admixture/fwsw_all_filt.fam",
+                        poporder=poporderDF){
   # read files in 
   famTable<- read.table(famfile, col.names = 
                         c("Pop","Ind","Father","Mother","Sex","phenotype"),
@@ -526,7 +534,8 @@ admixK4<-admixPlotting("admixture/fwsw_all_filt.4.Q",4)
 
 ```{r admix_k5,fig.height=2,fig.width=8}
 admixK5<-admixPlotting("admixture/fwsw_all_filt.5.Q",5)
-write.table(admixK5,"admixture/admixK5.txt",sep = '\t',quote = FALSE,col.names = TRUE,row.names = FALSE)
+write.table(admixK5,"admixture/admixK5.txt",sep = '\t',
+            quote = FALSE,col.names = TRUE,row.names = FALSE)
 ```
 
 ```{r admixk6,fig.height=2,fig.width=8}
@@ -618,26 +627,36 @@ t5<-plot_tree("treemix/fwsw_k100bFLPBrm5",plus=0.05,scale=F,mbar=F)
 ```
 ```{r migrationPvalues, results='hide', fig.show='true'}
 # Evaluate migration p-values
-nort0<-read.table(gzfile("treemix/fwsw_k100b.treeout.gz"), as.is  = T, comment.char = "", quote = "")
-tree0<-read.table(gzfile("treemix/fwsw_k100bFLPBr.treeout.gz"), as.is  = T, comment.char = "", quote = "")
-tree1<-read.table(gzfile("treemix/fwsw_k100bFLPBrm1.treeout.gz"), as.is  = T, comment.char = "", quote = "",skip=1)
-tree2<-read.table(gzfile("treemix/fwsw_k100bFLPBrm2.treeout.gz"), as.is  = T, comment.char = "", quote = "",skip=1)
-tree3<-read.table(gzfile("treemix/fwsw_k100bFLPBrm3.treeout.gz"), as.is  = T, comment.char = "", quote = "",skip=1)
-tree4<-read.table(gzfile("treemix/fwsw_k100bFLPBrm4.treeout.gz"), as.is  = T, comment.char = "", quote = "",skip=1)
-tree5<-read.table(gzfile("treemix/fwsw_k100bFLPBrm5.treeout.gz"), as.is  = T, comment.char = "", quote = "",skip=1)
+nort0<-read.table(gzfile("treemix/fwsw_k100b.treeout.gz"), 
+                  as.is  = T, comment.char = "", quote = "")
+tree0<-read.table(gzfile("treemix/fwsw_k100bFLPBr.treeout.gz"), 
+                  as.is  = T, comment.char = "", quote = "")
+tree1<-read.table(gzfile("treemix/fwsw_k100bFLPBrm1.treeout.gz"), 
+                  as.is  = T, comment.char = "", quote = "",skip=1)
+tree2<-read.table(gzfile("treemix/fwsw_k100bFLPBrm2.treeout.gz"), 
+                  as.is  = T, comment.char = "", quote = "",skip=1)
+tree3<-read.table(gzfile("treemix/fwsw_k100bFLPBrm3.treeout.gz"), 
+                  as.is  = T, comment.char = "", quote = "",skip=1)
+tree4<-read.table(gzfile("treemix/fwsw_k100bFLPBrm4.treeout.gz"), 
+                  as.is  = T, comment.char = "", quote = "",skip=1)
+tree5<-read.table(gzfile("treemix/fwsw_k100bFLPBrm5.treeout.gz"), 
+                  as.is  = T, comment.char = "", quote = "",skip=1)
 ```
 ```{r TreemixVertices, results='hide', fig.show='true'}
-d <- read.table("treemix/fwsw_k100bFLPBrm3.vertices.gz", as.is  = T, comment.char = "", quote = "")
+d <- read.table("treemix/fwsw_k100bFLPBrm3.vertices.gz", 
+                as.is  = T, comment.char = "", quote = "")
 branch.cols<-rep("black",nrow(d))
 branch.cols[d[,2] %in% c("TXFW","ALFW","LAFW","FLLG")]<-"cornflowerblue"
 
 tip.names<-as.vector(d[d[,5] == "TIP",2])
-tip.names<-data.frame(Original=tip.names,Replacement=tip.names,stringsAsFactors = FALSE)
+tip.names<-data.frame(Original=tip.names,Replacement=tip.names,
+                      stringsAsFactors = FALSE)
 tip.names$Replacement[tip.names$Replacement=="FLLG"]<-"FLFW"
 ```
 ```{r FWSW_treemix_m3_FLPB,fig.height=7,fig.width=7, results='hide', fig.show='true'}
 png("../figs/FWSW_treemix_m3_FLPB.png",height=7,width=7,units="in",res=300)
-t3<-plot_tree("treemix/fwsw_k100bFLPBrm3","poporder",plus=0.05,scale=F,mbar=F,arrow=0.1,tip.order = tip.names)
+t3<-plot_tree("treemix/fwsw_k100bFLPBrm3","poporder",
+              plus=0.05,scale=F,mbar=F,arrow=0.1,tip.order = tip.names)
 ybar<-0.01
 mcols = rev( heat.colors(150) )
 mcols = mcols[50:length(mcols)]
@@ -646,7 +665,8 @@ yma = ybar+0.35
 l = 0.2
 w = l/100
 xma = max(t3$d$x/20)
-rect( rep(0.15, 100), ymi+(0:99)*w, rep(0.15+xma, 100), ymi+(1:100)*w, col = mcols, border = mcols)
+rect( rep(0.15, 100), ymi+(0:99)*w, rep(0.15+xma, 100), ymi+(1:100)*w, 
+      col = mcols, border = mcols)
 text(0.15+xma+0.001, ymi, lab = "0", adj = 0, cex = 0.7)
 text(0.15+xma+0.001, yma, lab = "0.5", adj = 0, cex =0.7)
 text(0.15, yma+0.06, lab = "Migration", adj = 0 , cex = 0.6)
@@ -687,11 +707,17 @@ dev.off()
 We can take a closer look at the two migration edges that are in the best Treemix model using threepop and fourpop analyses. In the threepop analysis, significantly negative f3 statistics mean that the first pop in the list (A in A;B,C) is admixed. Therefore, with the threepop analysis we want to look for the tree (A;B,C) where A corresponds to the end of an arrow and (B,C) corresponds to where an arrow begins. In the fourpop analysis, a significantly non-zero value indicates gene flow in the tree.
 
 ```{r readf3f4}
-threepop<-data.frame(do.call(rbind,strsplit(grep(";",readLines("treemix/fwsw_threepop.txt"),value = TRUE),' ')))
+threepop<-data.frame(do.call(rbind,
+                             strsplit(grep(
+                               ";",readLines("treemix/fwsw_threepop.txt"),
+                               value = TRUE),' ')))
 colnames(threepop)<-c("pops","f3_stat","f3_se","f3_z")
 threepop$f3_p<-pnorm(-abs(as.numeric(as.character(threepop$f3_z)))) # one sided
 
-fourpop<-data.frame(do.call(rbind,strsplit(grep(";",readLines("treemix/fwsw_fourpop_1.txt"),value = TRUE),' ')))
+fourpop<-data.frame(do.call(rbind,
+                            strsplit(grep(";",
+                                          readLines("treemix/fwsw_fourpop_1.txt"),
+                                          value = TRUE),' ')))
 colnames(fourpop)<-c("pops","f4_stat","f4_se","f4_z")
 fourpop$f4_p<-2*pnorm(-abs(as.numeric(as.character(fourpop$f4_z))))
 ```
@@ -709,7 +735,7 @@ threepop[threepop$pops=="FLSI;TXFW,FLAB",]
 
 
 ```{r f3Edge1}
-threepop[grep("TXFW;.*FLSI",threepop$pops),] # use this to see the order that I want
+threepop[grep("TXFW;.*FLSI",threepop$pops),] 
 ```
 
 None of these f3 statistics are zero, so that suggests that TXFW is not admixed with FLSI and other populations. Most interesting would be the trees (TXFW;TXCB,FLSI) and (TXFW,FLSI,FLAB):
@@ -742,7 +768,8 @@ This indicates no admixture, and none of the FLAB values are neggative
 ```{r f4Edge2}
 fourpop[grep("FLAB,FL.*;.*",fourpop$pops),] 
 fourpop[fourpop$pops=="FLAB,FLCC;FLPB,FLLG",] 
-as.numeric(as.character(fourpop$f4_stat[fourpop$pops=="FLAB,FLCC;FLPB,FLLG"]))+as.numeric(as.character(fourpop$f4_se[fourpop$pops=="FLAB,FLCC;FLPB,FLLG"]))
+as.numeric(as.character(fourpop$f4_stat[fourpop$pops=="FLAB,FLCC;FLPB,FLLG"]))+
+  as.numeric(as.character(fourpop$f4_se[fourpop$pops=="FLAB,FLCC;FLPB,FLLG"]))
 ```
 
 This is negative but overlaps zero, so is also not indicative of gene flow. 
@@ -831,7 +858,8 @@ mtext(paste("PC1 (",pa.props[1],"%)",sep=""),1,line = 2.5,cex=1)
 mtext(paste("PC2 (",pa.props[2],"%)",sep=""),2,line = 2.5,cex=1)
 text(x = -0.07,y=0.1,"D",cex = 2,font =2)
 
-plot(pa$scores[,3],pa$scores[,4],col=alpha(pap$cols,0.5),bg=alpha(pap$cols,0.75),pch=as.numeric(pap$pch),
+plot(pa$scores[,3],pa$scores[,4],col=alpha(pap$cols,0.5),bg=alpha(pap$cols,0.75),
+     pch=as.numeric(pap$pch),
      cex=3,	bty="L",xlab="",ylab="",cex.axis=1.5)
 
 mtext(paste("PC3 (",pa.props[3],"%)",sep=""),1,line = 2.5,cex=1)
@@ -850,7 +878,8 @@ dev.off()
 
 
 ```{r fstMatrix}
-full_fsts<-read.delim("stacks/populations_whitelist/batch_2.fst_summary.tsv",row.names = 1)
+full_fsts<-read.delim("stacks/populations_whitelist/batch_2.fst_summary.tsv",
+                      row.names = 1)
 full_fsts<-rbind(full_fsts,TXSP=rep(NA,ncol(full_fsts))) #add the final row
 Tfull_fsts<-t(full_fsts)
 full_fsts[lower.tri(full_fsts)]<-Tfull_fsts[lower.tri(Tfull_fsts)] # now it's symmetric
@@ -860,7 +889,8 @@ fst_mat<-as.matrix(full_fsts)
 ```
 
 ```{r covPlot,results='hide',fig.show='true'}
-cov<-read.table(gzfile("treemix/fwsw_k100b.cov.gz"), as.is = T, head = T, quote = "", comment.char = "")
+cov<-read.table(gzfile("treemix/fwsw_k100b.cov.gz"), as.is = T, head = T, quote = "", 
+                comment.char = "")
 #reorder
 covplot <- data.frame(matrix(nrow = nrow(cov), ncol = ncol(cov)))
 for(i in 1:length(pop.list)){
@@ -936,14 +966,19 @@ convert.agp<-function(locus=NULL,old.agp,old.scf,new.agp,scf.agp,
     chr<-as.character(chr)
     id<-as.character(id)
   }
-  component<-as.data.frame(old.agp[old.agp$object == chr & old.agp$object_beg <= bp & old.agp$object_end >= bp,],stringsAsFactors=FALSE)
+  component<-as.data.frame(old.agp[old.agp$object == chr & 
+                                     old.agp$object_beg <= bp & 
+                                     old.agp$object_end >= bp,],
+                           stringsAsFactors=FALSE)
   if(nrow(component)>0){
     # it's found on one of the LGs
     comp.id<-component$component_id
     if(comp.id != 100){
       #make sure it's an actual scaffold as a component
-      comp.bp<-as.numeric(as.character(component$component_beg))+(bp-as.numeric(as.character(component$object_beg)))-1
-      if(comp.bp<as.numeric(as.character(component$component_end))){ #sanity check - is it a reasonable size?
+      comp.bp<-as.numeric(as.character(component$component_beg))+
+        (bp-as.numeric(as.character(component$object_beg)))-1
+      #sanity check - is it a reasonable size?
+      if(comp.bp<as.numeric(as.character(component$component_end))){ 
         updated<-new.agp[new.agp$component_id%in%comp.id & 
                   as.numeric(as.character(new.agp$component_beg)) <=comp.bp & 
                   as.numeric(as.character(new.agp$component_end)) >= comp.bp,]
@@ -967,10 +1002,15 @@ convert.agp<-function(locus=NULL,old.agp,old.scf,new.agp,scf.agp,
       updated.bp<-bp
       updated.chr<-NA
     }
-    out<-data.frame(Locus=id,OrigChr=chr,OrigBP=bp,NewChr=updated.chr,NewBP=updated.bp,stringsAsFactors = FALSE)
+    out<-data.frame(Locus=id,OrigChr=chr,OrigBP=bp,
+                    NewChr=updated.chr,NewBP=updated.bp,
+                    stringsAsFactors = FALSE)
   }else{
     #it's not on an LG - let's check the scaffolds
-    component<-as.data.frame(old.scf[old.scf$object == chr & old.scf$object_beg <= bp & old.scf$object_end >= bp,],stringsAsFactors=FALSE)
+    component<-as.data.frame(old.scf[old.scf$object == chr & 
+                                       old.scf$object_beg <= bp & 
+                                       old.scf$object_end >= bp,],
+                             stringsAsFactors=FALSE)
     if(nrow(component)>0){
       #then we found it
       #check to make sure my bp makes sense
@@ -996,9 +1036,13 @@ convert.agp<-function(locus=NULL,old.agp,old.scf,new.agp,scf.agp,
           updated.bp<-NA
           updated.chr<-NA
       }
-      out<-data.frame(Locus=id,OrigChr=chr,OrigBP=bp,NewChr=updated.chr,NewBP=updated.bp,stringsAsFactors = FALSE)
+      out<-data.frame(Locus=id,OrigChr=chr,OrigBP=bp,
+                      NewChr=updated.chr,NewBP=updated.bp,
+                      stringsAsFactors = FALSE)
     }else{
-      out<-data.frame(Locus=id,OrigChr=chr,OrigBP=bp,NewChr=NA,NewBP=NA,stringsAsFactors = FALSE)
+      out<-data.frame(Locus=id,OrigChr=chr,OrigBP=bp,
+                      NewChr=NA,NewBP=NA,
+                      stringsAsFactors = FALSE)
       print(paste("WARNING: locus ", id, " not found",sep=""))
     }
   }
@@ -1007,8 +1051,10 @@ convert.agp<-function(locus=NULL,old.agp,old.scf,new.agp,scf.agp,
 }
 convert.stacks<-function(stacks.fst,outname,lgs,ssc.agp,sscf.agp,chr.agp,scf.agp){
   for(i in 1:nrow(stacks.fst)){
-     convert<-convert.agp(old.agp=ssc.agp,old.scf=sscf.agp,new.agp=chr.agp[chr.agp$W=="W",],scf.agp = scf.agp,
-                                 chr=as.character(stacks.fst$Chr[i]),bp=stacks.fst$BP[i],id=as.character(stacks.fst$Locus.ID[i]))
+     convert<-convert.agp(old.agp=ssc.agp,old.scf=sscf.agp,
+                          new.agp=chr.agp[chr.agp$W=="W",],scf.agp = scf.agp,
+                          chr=as.character(stacks.fst$Chr[i]),
+                          bp=stacks.fst$BP[i],id=as.character(stacks.fst$Locus.ID[i]))
     stacks.fst[i,"Chr"]<-convert["NewChr"]
     stacks.fst[i,"BP"]<-convert["NewBP"]
   }
@@ -1028,22 +1074,33 @@ convert.stacks<-function(stacks.fst,outname,lgs,ssc.agp,sscf.agp,chr.agp,scf.agp
 
 ```{r gen_agp_lgs}
 # old agps
-ssc.agp<-read.delim("../../scovelli_genome/SSC_genome.agp",comment.char="#",header=FALSE)
-colnames(ssc.agp)<-c("object","object_beg","object_end","part_number","W","component_id","component_beg","component_end","orientation")
-sscf.agp<-read.delim("../../scovelli_genome/SSC_scaffolds.agp",comment.char="#",header=FALSE)
-colnames(sscf.agp)<-c("object","object_beg","object_end","part_number","W","component_id","component_beg","component_end","orientation")
+ssc.agp<-read.delim("../../scovelli_genome/SSC_genome.agp",
+                    comment.char="#",header=FALSE)
+colnames(ssc.agp)<-c("object","object_beg","object_end","part_number","W",
+                     "component_id","component_beg","component_end","orientation")
+sscf.agp<-read.delim("../../scovelli_genome/SSC_scaffolds.agp",
+                     comment.char="#",header=FALSE)
+colnames(sscf.agp)<-c("object","object_beg","object_end","part_number","W",
+                      "component_id","component_beg","component_end","orientation")
 # new scaffold and chrom level agps
-scf.agp<-read.delim(gzfile("../../scovelli_genome/ssc_2016_12_20_scafflevel.agp.gz"),comment.char="#",header=FALSE)
-chr.agp<-read.delim(gzfile("../../scovelli_genome/ssc_2016_12_20_chromlevel.agp.gz"),comment.char="#",header=FALSE)
-colnames(scf.agp)<-c("object","object_beg","object_end","part_number","W","component_id","component_beg","component_end","orientation")
-colnames(chr.agp)<-c("object","object_beg","object_end","part_number","W","component_id","component_beg","component_end","orientation")
+scf.agp<-read.delim(gzfile("../../scovelli_genome/ssc_2016_12_20_scafflevel.agp.gz"),
+                    comment.char="#",header=FALSE)
+chr.agp<-read.delim(gzfile("../../scovelli_genome/ssc_2016_12_20_chromlevel.agp.gz"),
+                    comment.char="#",header=FALSE)
+colnames(scf.agp)<-c("object","object_beg","object_end","part_number","W",
+                     "component_id","component_beg","component_end","orientation")
+colnames(chr.agp)<-c("object","object_beg","object_end","part_number","W",
+                     "component_id","component_beg","component_end","orientation")
 ```
 
 ```{r convert_vcf,eval=FALSE}
 vcf<-parse.vcf("stacks/populations_subset75/batch_2.pruned.vcf")
-converted<-data.frame(Locus=integer(),OrigChr=character(),OrigBP=integer(),NewChr=character(),NewBP=integer(),stringsAsFactors = FALSE)
+converted<-data.frame(Locus=integer(),OrigChr=character(),OrigBP=integer(),
+                      NewChr=character(),NewBP=integer(),
+                      stringsAsFactors = FALSE)
 for(i in 1:nrow(vcf)){
-  converted[i,]<-convert.agp(locus=vcf[i,],old.agp=ssc.agp,old.scf=sscf.agp,new.agp=chr.agp[chr.agp$W=="W",],scf.agp = scf.agp)
+  converted[i,]<-convert.agp(locus=vcf[i,],old.agp=ssc.agp,old.scf=sscf.agp,
+                             new.agp=chr.agp[chr.agp$W=="W",],scf.agp = scf.agp)
 }
 
 ```
@@ -1061,16 +1118,20 @@ for(i in 1:nrow(vcf)){
   new.vcf$POS[i]<-converted$NewBP[i]
   new.vcf$`#CHROM`[i]<-as.character(converted$NewChr[i])
 }
-write.table(new.vcf,"converted_subset.vcf",sep='\t',quote=FALSE,col.names = TRUE,row.names = FALSE)
+write.table(new.vcf,"converted_subset.vcf",sep='\t',
+            quote=FALSE,col.names = TRUE,row.names = FALSE)
 ```
 ```{r convertSWSW, eval=FALSE}
 swsw.fl<-read.delim("stacks/populations_whitelist/batch_2.fst_FLCC-FLHB.tsv")
 swsw.tx<-read.delim("stacks/populations_whitelist/batch_2.fst_TXCB-TXCC.tsv")
 swsw.al<-read.delim("stacks/populations_whitelist/batch_2.fst_ALST-FLSG.tsv")
 
-upd.st<-convert.stacks(swsw.tx,"stacks/converted.fst_TXCB-TXCC.txt",lgs,ssc.agp,sscf.agp,chr.agp,scf.agp)
-upd.sa<-convert.stacks(swsw.al,"stacks/converted.fst_ALST-FLSG.txt",lgs,ssc.agp,sscf.agp,chr.agp,scf.agp)
-upd.sf<-convert.stacks(swsw.fl,"stacks/converted.fst_FLCC-FLHB.txt",lgs,ssc.agp,sscf.agp,chr.agp,scf.agp)
+upd.st<-convert.stacks(swsw.tx,"stacks/converted.fst_TXCB-TXCC.txt",
+                       lgs,ssc.agp,sscf.agp,chr.agp,scf.agp)
+upd.sa<-convert.stacks(swsw.al,"stacks/converted.fst_ALST-FLSG.txt",
+                       lgs,ssc.agp,sscf.agp,chr.agp,scf.agp)
+upd.sf<-convert.stacks(swsw.fl,"stacks/converted.fst_FLCC-FLHB.txt",
+                       lgs,ssc.agp,sscf.agp,chr.agp,scf.agp)
 ```
 
 
@@ -1086,11 +1147,16 @@ fwsw.fl<-read.delim("stacks/converted.fst_FLCC-FLLG.txt")
 ```{r plot_stacks_fsts}
 source("../R/205_popgenPlotting.R")
 fst_dat<-list(fwsw.al,fwsw.la,fwsw.tx,fwsw.fl)
-fsts<-plot_multiple_LGs(list_fsts = fst_dat,fst_name = "Corrected.AMOVA.Fst",bp_name="BP",chr_name="Chr",
-                        lgs=lgs,plot_labs=list("ALFW vs ALST","ALST vs LAFW","TXFW vs TXCC","FLFW vs FLCC"),
-                        pt_cols = list(c(grp.colors[3],grp.colors[2]),c(grp.colors[2],grp.colors[3]),
-                                       c(grp.colors[1],grp.colors[2]),c(grp.colors[6],grp.colors[5])),
-                        ncol=1,addSmooth = FALSE,pch=19,y.lim = c(0,1),pt.cex=1,axis.size = 1)
+fsts<-plot_multiple_LGs(list_fsts = fst_dat,fst_name = "Corrected.AMOVA.Fst",
+                        bp_name="BP",chr_name="Chr",lgs=lgs,
+                        plot_labs=list("ALFW vs ALST","ALST vs LAFW",
+                                       "TXFW vs TXCC","FLFW vs FLCC"),
+                        pt_cols = list(c(grp.colors[3],grp.colors[2]),
+                                       c(grp.colors[2],grp.colors[3]),
+                                       c(grp.colors[1],grp.colors[2]),
+                                       c(grp.colors[6],grp.colors[5])),
+                        ncol=1,addSmooth = FALSE,pch=19,y.lim = c(0,1),
+                        pt.cex=1,axis.size = 1)
 ```
 
 So this generated a plot for each pairwise comparison. We could look for shared outliers and see if we can find anything.
@@ -1115,11 +1181,14 @@ swsw.fl<-read.delim("stacks/converted.fst_TXCB-TXCC.txt")
 swsw.tx<-read.delim("stacks/converted.fst_ALST-FLSG.txt")
 swsw.al<-read.delim("stacks/converted.fst_FLCC-FLHB.txt")
 fst_dat<-list(swsw.fl,swsw.tx,swsw.al)
-fsts<-plot_multiple_LGs(list_fsts = fst_dat,fst_name = "Corrected.AMOVA.Fst",bp_name="BP",chr_name="Chr",
-                        lgs=lgs,plot_labs=list("TXSP vs TXCC","ALST vs FLSG","FLHB vs FLCC"),
-                        pt_cols = list(c(grp.colors[1],grp.colors[2]),c(grp.colors[2],grp.colors[3]),
+fsts<-plot_multiple_LGs(list_fsts = fst_dat,fst_name = "Corrected.AMOVA.Fst",
+                        bp_name="BP",chr_name="Chr",lgs=lgs,
+                        plot_labs=list("TXSP vs TXCC","ALST vs FLSG","FLHB vs FLCC"),
+                        pt_cols = list(c(grp.colors[1],grp.colors[2]),
+                                       c(grp.colors[2],grp.colors[3]),
                                        c(grp.colors[6],grp.colors[5])),
-                        ncol=1,addSmooth = FALSE,pch=19,y.lim = c(0,1),pt.cex=1,axis.size = 1)
+                        ncol=1,addSmooth = FALSE,pch=19,y.lim = c(0,1),
+                        pt.cex=1,axis.size = 1)
 ```
 
 So this generated a plot for each pairwise comparison. We could look for shared outliers and see if we can find anything.
@@ -1192,7 +1261,8 @@ saveRDS(permuted_fsts,"permuted_fsts.RDS")
 Now let's visualize it.
 
 ```{r plot_fst_hists}
-plot_fst_hists<-function(perms,plot_lab=NULL,cols=NULL,permlab="mean_perm",reallab="Fst",baseplot=TRUE,inset=NULL){
+plot_fst_hists<-function(perms,plot_lab=NULL,cols=NULL,permlab="mean_perm",
+                         reallab="Fst",baseplot=TRUE,inset=NULL){
   require(scales)
   if(is.null(plot_lab)){
     plot_lab<-""
@@ -1206,10 +1276,12 @@ plot_fst_hists<-function(perms,plot_lab=NULL,cols=NULL,permlab="mean_perm",reall
   #browser()
   if(isTRUE(baseplot)){
     hist(perms[,permlab],col=alpha(cols[1],0.5),border = alpha(cols[1],0.5),
-         xlim=c(0,1),breaks = seq(0,1,0.01),main = plot_lab,xlab=expression(italic(F)[ST]),
+         xlim=c(0,1),breaks = seq(0,1,0.01),main = plot_lab,
+         xlab=expression(italic(F)[ST]),
          ylab="Number of SNPs")
     hist(perms[,reallab],col=alpha(cols[2],0.5),border = alpha(cols[2],0.5),
-         xlim=c(0,1),breaks = seq(0,1,0.01),main = "",xlab=expression(italic(F)[ST]),
+         xlim=c(0,1),breaks = seq(0,1,0.01),main = "",
+         xlab=expression(italic(F)[ST]),
          ylab="Number of SNPs",add=TRUE)
   }
   if(!is.null(inset)){ # add an inset
@@ -1217,11 +1289,13 @@ plot_fst_hists<-function(perms,plot_lab=NULL,cols=NULL,permlab="mean_perm",reall
     ifig<-c(inset[1]+0.25*(inset[2]-inset[1]),inset[2], 
             inset[3]+0.25*(inset[4]-inset[3]), inset[4])
     par(fig = ifig,new=TRUE) # start x, end x, start y, end y (percent plotting space)
-    hist(perms[,permlab][perms[,reallab]>0],col=alpha(cols[1],0.5),border = alpha(cols[1],0.5),
+    hist(perms[,permlab][perms[,reallab]>0],col=alpha(cols[1],0.5),
+         border = alpha(cols[1],0.5),
          xlim=c(0,1),breaks = seq(0,1,0.01),main = "",xlab="",
          ylab="")
     box() #give it a box
-    hist(perms[,reallab,][perms[,reallab]>0],col=alpha(cols[2],0.5),border = alpha(cols[2],0.5),
+    hist(perms[,reallab,][perms[,reallab]>0],col=alpha(cols[2],0.5),
+         border = alpha(cols[2],0.5),
          xlim=c(0,1),breaks = seq(0,1,0.01),main = "",xlab="",
          ylab="",add=TRUE)
   }
@@ -1236,7 +1310,8 @@ pt_cols<-list(TXTX=grp.colors[1],FLFL=grp.colors[6],
 png("../figs/permuted_fsts.png",pointsize = 16,height=7,width=8,units="in",res=300)
 par(mfrow=c(2,2),new=FALSE,mar=c(4,4,3,1))
 #plot the base
-pars<-mapply(plot_fst_hists,perms=permuted_fsts,plot_lab=plot_labs,cols=pt_cols,SIMPLIFY = FALSE)
+pars<-mapply(plot_fst_hists,perms=permuted_fsts,plot_lab=plot_labs,
+             cols=pt_cols,SIMPLIFY = FALSE)
 # add the insets
 ipars<-mapply(plot_fst_hists,perms=permuted_fsts,plot_lab=plot_labs,cols=pt_cols,
               inset=pars,
@@ -1263,22 +1338,34 @@ fw_SNPinfo<-data.frame(ID=vcf$ID,Chrom=vcf$`#CHROM`,Pos=vcf$POS,BP=vcf$POS-1,
 
 ```{r add2SnpInfo}
 # add Fsts
-fw_SNPinfo<-merge(fw_SNPinfo,fwsw.al,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),all.x=TRUE,all.y = FALSE)[,c(colnames(fw_SNPinfo),"Corrected.AMOVA.Fst")] 
+fw_SNPinfo<-merge(fw_SNPinfo,fwsw.al,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),
+                  all.x=TRUE,all.y = FALSE)[,c(colnames(fw_SNPinfo),
+                                               "Corrected.AMOVA.Fst")] 
 colnames(fw_SNPinfo)[ncol(fw_SNPinfo)]<-"stacks_AL"
-fw_SNPinfo<-merge(fw_SNPinfo,fwsw.la,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),all.x=TRUE,all.y = FALSE)[,c(colnames(fw_SNPinfo),"Corrected.AMOVA.Fst")] 
+fw_SNPinfo<-merge(fw_SNPinfo,fwsw.la,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),
+                  all.x=TRUE,all.y = FALSE)[,c(colnames(fw_SNPinfo),
+                                               "Corrected.AMOVA.Fst")] 
 colnames(fw_SNPinfo)[ncol(fw_SNPinfo)]<-"stacks_LA"
-fw_SNPinfo<-merge(fw_SNPinfo,fwsw.tx,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),all.x=TRUE,all.y = FALSE)[,c(colnames(fw_SNPinfo),"Corrected.AMOVA.Fst")] 
+fw_SNPinfo<-merge(fw_SNPinfo,fwsw.tx,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),
+                  all.x=TRUE,all.y = FALSE)[,c(colnames(fw_SNPinfo),
+                                               "Corrected.AMOVA.Fst")] 
 colnames(fw_SNPinfo)[ncol(fw_SNPinfo)]<-"stacks_TX"
-fw_SNPinfo<-merge(fw_SNPinfo,fwsw.fl,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),all.x=TRUE,all.y = FALSE)[,c(colnames(fw_SNPinfo),"Corrected.AMOVA.Fst")] 
+fw_SNPinfo<-merge(fw_SNPinfo,fwsw.fl,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),
+                  all.x=TRUE,all.y = FALSE)[,c(colnames(fw_SNPinfo),
+                                               "Corrected.AMOVA.Fst")] 
 colnames(fw_SNPinfo)[ncol(fw_SNPinfo)]<-"stacks_FL"
 # add p-values
-fw_SNPinfo<-merge(fw_SNPinfo,fwsw.al,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),all.x=TRUE,all.y = FALSE)[,c(colnames(fw_SNPinfo),"Fisher.s.P")] 
+fw_SNPinfo<-merge(fw_SNPinfo,fwsw.al,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),
+                  all.x=TRUE,all.y = FALSE)[,c(colnames(fw_SNPinfo),"Fisher.s.P")] 
 colnames(fw_SNPinfo)[ncol(fw_SNPinfo)]<-"stacks_AL_P"
-fw_SNPinfo<-merge(fw_SNPinfo,fwsw.la,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),all.x=TRUE,all.y = FALSE)[,c(colnames(fw_SNPinfo),"Fisher.s.P")] 
+fw_SNPinfo<-merge(fw_SNPinfo,fwsw.la,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),
+                  all.x=TRUE,all.y = FALSE)[,c(colnames(fw_SNPinfo),"Fisher.s.P")] 
 colnames(fw_SNPinfo)[ncol(fw_SNPinfo)]<-"stacks_LA_P"
-fw_SNPinfo<-merge(fw_SNPinfo,fwsw.tx,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),all.x=TRUE,all.y = FALSE)[,c(colnames(fw_SNPinfo),"Fisher.s.P")] 
+fw_SNPinfo<-merge(fw_SNPinfo,fwsw.tx,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),
+                  all.x=TRUE,all.y = FALSE)[,c(colnames(fw_SNPinfo),"Fisher.s.P")] 
 colnames(fw_SNPinfo)[ncol(fw_SNPinfo)]<-"stacks_TX_P"
-fw_SNPinfo<-merge(fw_SNPinfo,fwsw.fl,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),all.x=TRUE,all.y = FALSE)[,c(colnames(fw_SNPinfo),"Fisher.s.P")] 
+fw_SNPinfo<-merge(fw_SNPinfo,fwsw.fl,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),
+                  all.x=TRUE,all.y = FALSE)[,c(colnames(fw_SNPinfo),"Fisher.s.P")] 
 colnames(fw_SNPinfo)[ncol(fw_SNPinfo)]<-"stacks_FL_P"
 saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
 ```
@@ -1291,16 +1378,17 @@ For this analysis, to maintain consistency with the other outlier analyses, I'm 
 vcf<-parse.vcf("converted_subset.vcf")
 write.table("##fileformat=VCFv","pcadapt_fw/fwsw.pruned.vcf",quote=FALSE,
             col.names = FALSE,row.names = FALSE)
-suppressWarnings(write.table(vcf,"pcadapt_fw/fwsw.pruned.vcf",quote=FALSE,append = TRUE,
-            row.names = FALSE,col.names = TRUE,sep='\t'))
+suppressWarnings(write.table(vcf,"pcadapt_fw/fwsw.pruned.vcf",
+                             quote=FALSE,append = TRUE,
+                             row.names = FALSE,col.names = TRUE,sep='\t'))
 ```
 
 
 
 ```{r pcadaptOutliers}
 library(pcadapt)
-
-filename<-read.pcadapt("pcadapt_fw/fwsw.pruned.vcf",type="vcf") #need to remove the first line with a # 
+#need to remove the first line with a # 
+filename<-read.pcadapt("pcadapt_fw/fwsw.pruned.vcf",type="vcf") 
 x<-pcadapt(filename, K=20)
 plot(x,option="screeplot")
 ```
@@ -1338,7 +1426,8 @@ This suggests that loadings are not clustered (assuming these are grouped by spa
 ```{r PcadaptLoadingsChr,fig.height=8}
 par(mfrow=c(6,4),mar=c(3,3,2,1.5))
 l<-lapply(lgs, function(lg,vcf){
-  plot(res$loadings[which(vcf$`#CHROM` %in% lg), 1], pch = 19, cex = .3, xlab = paste0("Position on ", lg), ylab = "Loadings PC 1")
+  plot(res$loadings[which(vcf$`#CHROM` %in% lg), 1], pch = 19, cex = .3, 
+       xlab = paste0("Position on ", lg), ylab = "Loadings PC 1")
   mtext(lg,3,outer=FALSE)
 },vcf=vcf)
 ```
@@ -1389,7 +1478,9 @@ This analysis is of just the freshwater and saltwater populations. First I ran b
 
 ```{bash, eval=FALSE}
 # set up correct file formats
-../../scripts/run_bayenv2_matrix_general.sh FILEMANIP bayenv/sub75.pruned.clust stacks/populations_subset75/batch_2.pruned.ped stacks/populations_subset75/batch_2.pruned.map bayenv ~/Programs/bayenv 7
+../../scripts/run_bayenv2_matrix_general.sh FILEMANIP \
+bayenv/sub75.pruned.clust stacks/populations_subset75/batch_2.pruned.ped \
+stacks/populations_subset75/batch_2.pruned.map bayenv ~/Programs/bayenv 7
 # estimate matrices
 ../../scripts/run_bayenv2_matrix_general.sh MATRIX bayenv ~/Programs/bayenv/ 7
 ```
@@ -1404,7 +1495,8 @@ They all looked fine so I chose the randomly selected matrix (`matrix`).
 # Create the SNPFILES
 ../../scripts/run_bayenv2_matrix_general.sh SNPFILES SNPSFILE SNPFILES
 # Run bayenv
-nohup ../../scripts/run_bayenv2_matrix_general.sh BAYENV ~/Programs/bayenv/ matrix env_data_sub75.txt 7 3 SNPFILES > bayenv.log &
+nohup ../../scripts/run_bayenv2_matrix_general.sh BAYENV \
+~/Programs/bayenv/ matrix env_data_sub75.txt 7 3 SNPFILES > bayenv.log &
 ```
 
 #### Analyze Bayenv output
@@ -1443,7 +1535,8 @@ get_bayenv_results<-function(dir,env_vars){
 The SNP names are uninformative, just the row number the SNP was in. We can make these better using the freq info
 
 ```{r snpnames4bayenv, eval=FALSE}
-bayenv_dat<-get_bayenv_results(dir="bayenv/SNPFILES",env_vars=c("temp","salinity","seagrass"))
+bayenv_dat<-get_bayenv_results(dir="bayenv/SNPFILES",
+                               env_vars=c("temp","salinity","seagrass"))
 
 freq<-read.table("bayenv/bayenv.frq.strat",header=T, stringsAsFactors=F)
 #want to get $MAC for every snp at every pop 
@@ -1465,7 +1558,8 @@ pmap$locus<-gsub("(\\d+)_\\d+","\\1",pmap[,2])
 
 bayenv_dat<-merge(pmap[,c(1,4,5)],bayenv_dat,by.x="locus",by.y="SNPID")
 colnames(bayenv_dat)[2:3]<-c("Chrom","SNPID")
-write.table(bayenv_dat,"bayenv/bayenv_output.txt",sep="\t",col.names = TRUE,row.names = FALSE,quote = FALSE)
+write.table(bayenv_dat,"bayenv/bayenv_output.txt",sep="\t",
+            col.names = TRUE,row.names = FALSE,quote = FALSE)
 ```
 
 Merge it with other snp info
@@ -1475,7 +1569,9 @@ bayenv_dat$logSalBF<-log(bayenv_dat$salinity_BF)
 bayenv_dat$logTemBF<-log(bayenv_dat$temp_BF)
 bayenv_dat$logSegBF<-log(bayenv_dat$seagrass_BF)
 fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
-fw_SNPinfo<-merge(fw_SNPinfo,bayenv_dat[,c("locus","XtX","logSalBF","logTemBF","logSegBF")],by.x="ID",by.y="locus")
+fw_SNPinfo<-merge(fw_SNPinfo,
+                  bayenv_dat[,c("locus","XtX","logSalBF","logTemBF","logSegBF")],
+                  by.x="ID",by.y="locus")
 saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
 ```
 
@@ -1485,7 +1581,8 @@ Now we can investigate the outliers etc.
 #taken directly from fwsw_analysis.R
 bayenv.dat<-read.delim("bayenv/bayenv_output.txt",header=T)
 # calculate quantiles for bayes factors
-bf.co<-apply(bayenv.dat[,grep("BF",colnames(bayenv.dat))],2,quantile,0.99) #focus on Bayes Factors, because of Lotterhos & Whitlock (2015)
+#focus on Bayes Factors, because of Lotterhos & Whitlock (2015)
+bf.co<-apply(bayenv.dat[,grep("BF",colnames(bayenv.dat))],2,quantile,0.99) 
 temp.bf.sig<-bayenv.dat[bayenv.dat$temp_BF>bf.co["temp_BF"],]
 sal.bf.sig<-bayenv.dat[bayenv.dat$salinity_BF>bf.co["salinity_BF"],]
 grass.bf.sig<-bayenv.dat[bayenv.dat$seagrass_BF>bf.co["seagrass_BF"],]
@@ -1506,20 +1603,25 @@ Now, to plot.
 ```{r plotOutliersSetup}
 library(scales)
 fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
-cols<-c(perm=alpha('#e41a1c',0.75),sal=alpha('#377eb8',0.75),pc=alpha('#4daf4a',0.75),xtx=alpha('#984ea3',0.75),stacks=alpha('#ff7f00',0.75))
+cols<-c(perm=alpha('#e41a1c',0.75),sal=alpha('#377eb8',0.75),
+        pc=alpha('#4daf4a',0.75),xtx=alpha('#984ea3',0.75),
+        stacks=alpha('#ff7f00',0.75))
 ```
 ```{r plotOutliers}
 par(mfrow=c(2,1),oma=c(1,2,1,1),mar=c(2,2,1,1),xpd=TRUE)
 # plot XtX
-plot_dat<-fst.plot(fw_SNPinfo,scaffs.to.plot = lgs,fst.name = "XtX",chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19)
+plot_dat<-fst.plot(fw_SNPinfo,scaffs.to.plot = lgs,fst.name = "XtX",
+                   chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19)
 points(plot_dat$plot.pos[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
        plot_dat$XtX[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
        col=cols["xtx"],cex=0.75,pch=19)
 points(plot_dat$plot.pos[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
        plot_dat$XtX[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
        col=cols["sal"],cex=0.85,pch=17)
-points(plot_dat$plot.pos[rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
-       plot_dat$XtX[rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+points(plot_dat$plot.pos[
+  rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+       plot_dat$XtX[
+         rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
        col=cols["perm"],cex=1,pch=4,lwd=2)
 points(plot_dat$plot.pos[plot_dat$stacks_AL < 0.05 & plot_dat$stacks_LA < 0.05 &
                            plot_dat$stacks_TX < 0.05 & plot_dat$stacks_FL < 0.05],
@@ -1537,15 +1639,18 @@ midpts<-tapply(plot_dat$plot.pos,plot_dat$Chrom,median)
 text(x=midpts[lgs],y=0)
 
 # plot Bayes Factors
-plot_dat<-fst.plot(plot_dat,scaffs.to.plot = lgs,fst.name = "logSalBF",chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19)
+plot_dat<-fst.plot(plot_dat,scaffs.to.plot = lgs,fst.name = "logSalBF",
+                   chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19)
 points(plot_dat$plot.pos[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
        plot_dat$logSalBF[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
        col=cols["sal"],cex=0.85,pch=17)
 points(plot_dat$plot.pos[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
        plot_dat$logSalBF[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
        col=cols["xtx"],cex=0.75,pch=19)
-points(plot_dat$plot.pos[rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
-       plot_dat$logSalBF[rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+points(plot_dat$plot.pos[
+  rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+       plot_dat$logSalBF[
+         rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
        col=cols["perm"],cex=1,pch=4,lwd=2)
 points(plot_dat$plot.pos[plot_dat$stacks_AL < 0.05 & plot_dat$stacks_LA < 0.05 &
                            plot_dat$stacks_TX < 0.05 & plot_dat$stacks_FL < 0.05],
@@ -1570,9 +1675,11 @@ on.exit(par(opar))
 plot(0, 0, type='n', bty='n', xaxt='n', yaxt='n')
 legend("top",c(expression("Permutation"~italic("F")["ST"]),
          expression("Stacks"~italic("F")["ST"]),
-         "PCAdapt",expression(italic("X")^T~italic("X")),"Salinity BF"),xjust = 0.5,x.intersp = 0.5,
+         "PCAdapt",expression(italic("X")^T~italic("X")),"Salinity BF"),
+       xjust = 0.5,x.intersp = 0.5,
        col = cols[c("perm","stacks","pc","xtx","sal")],
-       pt.bg=cols[c("perm","stacks","pc","xtx","sal")],pch=c(4,5,0,19,17),bty='n',ncol=3)
+       pt.bg=cols[c("perm","stacks","pc","xtx","sal")],
+       pch=c(4,5,0,19,17),bty='n',ncol=3)
 ```
 
 
@@ -1581,19 +1688,23 @@ legend("top",c(expression("Permutation"~italic("F")["ST"]),
 First we'll get set up with the libraries, code, and data.
 
 ```{r getOutliers, eval=FALSE}
-library(UpSetR);library(scales);library(ggplot2);library(grid);library(gwscaR);library(gridGraphics)
+library(UpSetR);library(scales);library(ggplot2)
+library(grid);library(gwscaR);library(gridGraphics)
 source("../R/upset_hacked.R")
 source("../R/205_popgenPlotting.R")
 fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
 outliers<-list(xtx=fw_SNPinfo$ID[fw_SNPinfo$XtX >= quantile(fw_SNPinfo$XtX,0.99)],
-               salBF=fw_SNPinfo$ID[fw_SNPinfo$logSalBF>=quantile(fw_SNPinfo$logSalBF,0.99)],
-               permutations=fw_SNPinfo$ID[rowSums(fw_SNPinfo[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+               salBF=fw_SNPinfo$ID[fw_SNPinfo$logSalBF>=
+                                     quantile(fw_SNPinfo$logSalBF,0.99)],
+               permutations=fw_SNPinfo$ID[
+                 rowSums(fw_SNPinfo[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
                pcadapt=fw_SNPinfo$ID[which(fw_SNPinfo$pcadaptQ<0.01)],
                Alabama=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05)], 
                Louisiana=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_LA_P < 0.05)],
                Texas=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_TX_P < 0.05)],
                Florida=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_FL_P < 0.05)],
-               sharedStacks=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05 & fw_SNPinfo$stacks_LA_P < 0.05 &
+               sharedStacks=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05 & 
+                                                  fw_SNPinfo$stacks_LA_P < 0.05 &
                  fw_SNPinfo$stacks_TX_P < 0.05 & fw_SNPinfo$stacks_FL_P < 0.05)])
 ```
 
@@ -1608,28 +1719,37 @@ lgs<-c("LG1","LG2","LG3","LG4","LG5","LG6","LG7","LG8","LG9","LG10","LG11",
 	"LG12","LG13","LG14","LG15","LG16","LG17","LG18","LG19","LG20","LG21",
 	"LG22")
 lgn<-seq(1,22)
-cols<-c(perm=alpha('#e41a1c',0.75),sal=alpha('#377eb8',0.75),pc=alpha('#a65628',0.75),stacks=alpha('#f781bf',0.75),xtx=alpha('#ff7f00',0.75))
+cols<-c(perm=alpha('#e41a1c',0.75),sal=alpha('#377eb8',0.75),pc=alpha('#a65628',0.75),
+        stacks=alpha('#f781bf',0.75),xtx=alpha('#ff7f00',0.75))
 grp7colors<-c('#762a83','#9970ab','#c2a5cf','#d9f0d3','#a6dba0','#5aae61','#1b7837')
 png("../figs/FstOutliers.png",height=8,width=8.5,units="in",res=300,pointsize=20)
 par(mfrow=c(4,1),oma=c(1,1,0.5,1),mar=c(2,2,1,1),xpd=TRUE)
 # plot TX
-plot_dat<-fst.plot(fw_SNPinfo,scaffs.to.plot = lgs,fst.name = "stacks_TX",chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19,pt.cols = c(grp7colors[1],grp7colors[2]),pt.cex = 1)
+plot_dat<-fst.plot(fw_SNPinfo,scaffs.to.plot = lgs,fst.name = "stacks_TX",
+                   chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,
+                   pch=19,pt.cols = c(grp7colors[1],grp7colors[2]),pt.cex = 1)
 points(plot_dat$plot.pos[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
        plot_dat$stacks_TX[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
        col=cols["sal"],cex=1,pch=2)
 points(plot_dat$plot.pos[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
        plot_dat$stacks_TX[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
        col=cols["xtx"],cex=1,pch=3,lwd=2)
-points(plot_dat$plot.pos[rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
-       plot_dat$stacks_TX[rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+points(plot_dat$plot.pos[
+  rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+       plot_dat$stacks_TX[
+         rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
        col=cols["perm"],cex=1,pch=4,lwd=2)
 points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.01],
        plot_dat$stacks_TX[plot_dat$pcadaptQ<0.01],
        col=cols["pc"],cex=1,pch=0,lwd=2)
-points(plot_dat$plot.pos[which(plot_dat$stacks_AL_P < 0.05 & plot_dat$stacks_LA_P < 0.05 &
-                           plot_dat$stacks_TX_P < 0.05 & plot_dat$stacks_FL_P < 0.05)],
-       plot_dat$stacks_TX[which(plot_dat$stacks_AL_P < 0.05 & plot_dat$stacks_LA_P < 0.05 &
-                           plot_dat$stacks_TX_P < 0.05 & plot_dat$stacks_FL_P < 0.05)],
+points(plot_dat$plot.pos[which(plot_dat$stacks_AL_P < 0.05 & 
+                                 plot_dat$stacks_LA_P < 0.05 &
+                           plot_dat$stacks_TX_P < 0.05 & 
+                             plot_dat$stacks_FL_P < 0.05)],
+       plot_dat$stacks_TX[which(plot_dat$stacks_AL_P < 0.05 & 
+                                  plot_dat$stacks_LA_P < 0.05 &
+                           plot_dat$stacks_TX_P < 0.05 & 
+                             plot_dat$stacks_FL_P < 0.05)],
        col=cols["stacks"],cex=1,pch=5,lwd=2)
 axis(2,las=1,pos=-1500000)
 mtext("TXFW vs. TXCC",2,line=1,cex=0.65)
@@ -1638,23 +1758,31 @@ midpts<-tapply(plot_dat$plot.pos,plot_dat$Chrom,median)
 text(x=midpts[lgs],y=-0.15)
 
 # plot AL
-plot_dat<-fst.plot(fw_SNPinfo,scaffs.to.plot = lgs,fst.name = "stacks_AL",chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19,pt.cols = c(grp7colors[3],"lightgrey"),pt.cex = 1)
+plot_dat<-fst.plot(fw_SNPinfo,scaffs.to.plot = lgs,fst.name = "stacks_AL",
+                   chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,
+                   pch=19,pt.cols = c(grp7colors[3],"lightgrey"),pt.cex = 1)
 points(plot_dat$plot.pos[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
        plot_dat$stacks_AL[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
        col=cols["xtx"],cex=1,pch=3,lwd=2)
 points(plot_dat$plot.pos[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
        plot_dat$stacks_AL[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
        col=cols["sal"],cex=1,pch=2)
-points(plot_dat$plot.pos[rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
-       plot_dat$stacks_AL[rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+points(plot_dat$plot.pos[
+  rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+       plot_dat$stacks_AL[
+         rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
        col=cols["perm"],cex=1,pch=4,lwd=2)
 points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.01],
        plot_dat$stacks_AL[plot_dat$pcadaptQ<0.01],
        col=cols["pc"],cex=1,pch=0,lwd=2)
-points(plot_dat$plot.pos[which(plot_dat$stacks_AL_P < 0.05 & plot_dat$stacks_LA_P < 0.05 &
-                           plot_dat$stacks_TX_P < 0.05 & plot_dat$stacks_FL_P < 0.05)],
-       plot_dat$stacks_AL[which(plot_dat$stacks_AL_P < 0.05 & plot_dat$stacks_LA_P < 0.05 &
-                           plot_dat$stacks_TX_P < 0.05 & plot_dat$stacks_FL_P < 0.05)],
+points(plot_dat$plot.pos[which(plot_dat$stacks_AL_P < 0.05 & 
+                                 plot_dat$stacks_LA_P < 0.05 &
+                           plot_dat$stacks_TX_P < 0.05 & 
+                             plot_dat$stacks_FL_P < 0.05)],
+       plot_dat$stacks_AL[which(plot_dat$stacks_AL_P < 0.05 & 
+                                  plot_dat$stacks_LA_P < 0.05 &
+                           plot_dat$stacks_TX_P < 0.05 & 
+                             plot_dat$stacks_FL_P < 0.05)],
        col=cols["stacks"],cex=1,pch=5,lwd=2)
 axis(2,las=1,pos=-1500000)
 mtext("ALFW vs. ALST",2,line=1,cex=0.65)
@@ -1663,23 +1791,31 @@ midpts<-tapply(plot_dat$plot.pos,plot_dat$Chrom,median)
 text(x=midpts[lgs],y=-0.15)
 
 # plot LA
-plot_dat<-fst.plot(fw_SNPinfo,scaffs.to.plot = lgs,fst.name = "stacks_LA",chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19,pt.cols = c("lightgrey",grp7colors[3]),pt.cex = 1)
+plot_dat<-fst.plot(fw_SNPinfo,scaffs.to.plot = lgs,fst.name = "stacks_LA",
+                   chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19,
+                   pt.cols = c("lightgrey",grp7colors[3]),pt.cex = 1)
 points(plot_dat$plot.pos[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
        plot_dat$stacks_LA[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
        col=cols["sal"],cex=1,pch=2)
 points(plot_dat$plot.pos[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
        plot_dat$stacks_LA[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
        col=cols["xtx"],cex=1,pch=3,lwd=2)
-points(plot_dat$plot.pos[rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
-       plot_dat$stacks_LA[rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+points(plot_dat$plot.pos[
+  rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+       plot_dat$stacks_LA[
+         rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
        col=cols["perm"],cex=1,pch=4,lwd=2)
 points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.01],
        plot_dat$stacks_LA[plot_dat$pcadaptQ<0.01],
        col=cols["pc"],cex=1,pch=0,lwd=2)
-points(plot_dat$plot.pos[which(plot_dat$stacks_AL_P < 0.05 & plot_dat$stacks_LA_P < 0.05 &
-                           plot_dat$stacks_TX_P < 0.05 & plot_dat$stacks_FL_P < 0.05)],
-       plot_dat$stacks_LA[which(plot_dat$stacks_AL_P < 0.05 & plot_dat$stacks_LA_P < 0.05 &
-                           plot_dat$stacks_TX_P < 0.05 & plot_dat$stacks_FL_P < 0.05)],
+points(plot_dat$plot.pos[which(plot_dat$stacks_AL_P < 0.05 & 
+                                 plot_dat$stacks_LA_P < 0.05 &
+                           plot_dat$stacks_TX_P < 0.05 & 
+                             plot_dat$stacks_FL_P < 0.05)],
+       plot_dat$stacks_LA[which(plot_dat$stacks_AL_P < 0.05 & 
+                                  plot_dat$stacks_LA_P < 0.05 &
+                           plot_dat$stacks_TX_P < 0.05 & 
+                             plot_dat$stacks_FL_P < 0.05)],
        col=cols["stacks"],cex=1,pch=5,lwd=2)
 axis(2,las=1,pos=-1500000)
 mtext("LAFW vs. ALST",2,line=1,cex=0.65)
@@ -1689,23 +1825,31 @@ text(x=midpts[lgs],y=-0.15)
 
 
 # FL
-plot_dat<-fst.plot(fw_SNPinfo,scaffs.to.plot = lgs,fst.name = "stacks_FL",chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19,pt.cols = c(grp7colors[6],grp7colors[7]),pt.cex = 1)
+plot_dat<-fst.plot(fw_SNPinfo,scaffs.to.plot = lgs,fst.name = "stacks_FL",
+                   chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19,
+                   pt.cols = c(grp7colors[6],grp7colors[7]),pt.cex = 1)
 points(plot_dat$plot.pos[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
        plot_dat$stacks_FL[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
        col=cols["sal"],cex=1,pch=2)
 points(plot_dat$plot.pos[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
        plot_dat$stacks_FL[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
        col=cols["xtx"],cex=1,pch=3,lwd=2)
-points(plot_dat$plot.pos[rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
-       plot_dat$stacks_FL[rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+points(plot_dat$plot.pos[
+  rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+       plot_dat$stacks_FL[
+         rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
        col=cols["perm"],cex=1,pch=4,lwd=2)
 points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.01],
        plot_dat$stacks_FL[plot_dat$pcadaptQ<0.01],
        col=cols["pc"],cex=1,pch=0,lwd=2)
-points(plot_dat$plot.pos[which(plot_dat$stacks_AL_P < 0.05 & plot_dat$stacks_LA_P < 0.05 &
-                           plot_dat$stacks_TX_P < 0.05 & plot_dat$stacks_FL_P < 0.05)],
-       plot_dat$stacks_FL[which(plot_dat$stacks_AL_P < 0.05 & plot_dat$stacks_LA_P < 0.05 &
-                           plot_dat$stacks_TX_P < 0.05 & plot_dat$stacks_FL_P < 0.05)],
+points(plot_dat$plot.pos[which(plot_dat$stacks_AL_P < 0.05 & 
+                                 plot_dat$stacks_LA_P < 0.05 &
+                           plot_dat$stacks_TX_P < 0.05 & 
+                             plot_dat$stacks_FL_P < 0.05)],
+       plot_dat$stacks_FL[which(plot_dat$stacks_AL_P < 0.05 & 
+                                  plot_dat$stacks_LA_P < 0.05 &
+                           plot_dat$stacks_TX_P < 0.05 & 
+                             plot_dat$stacks_FL_P < 0.05)],
        col=cols["stacks"],cex=1,pch=5,lwd=2)
 axis(2,las=1,pos=-1500000)
 mtext("FLFW vs. FLCC",2,line=1,cex=0.65)
@@ -1721,9 +1865,11 @@ on.exit(par(opar))
 plot(0, 0, type='n', bty='n', xaxt='n', yaxt='n')
 legend("top",c(expression("Permutation"~italic("F")["ST"]),
          expression("Stacks"~italic("F")["ST"]),
-         "PCAdapt",expression(italic("X")^T~italic("X")),"Salinity BF"),xjust = 0.5,x.intersp = 0.5,
+         "PCAdapt",expression(italic("X")^T~italic("X")),"Salinity BF"),
+       xjust = 0.5,x.intersp = 0.5,
        col = cols[c("perm","stacks","pc","xtx","sal")],
-       pt.bg=cols[c("perm","stacks","pc","xtx","sal")],pch=c(4,5,0,3,2),bty='n',ncol=5)
+       pt.bg=cols[c("perm","stacks","pc","xtx","sal")],
+       pch=c(4,5,0,3,2),bty='n',ncol=5)
 dev.off()
 ```
 
@@ -1737,15 +1883,18 @@ png("../figs/upsetOutliers.png",res=300,height=4,width=7.5,units="in",pointsize 
 upset(fromList(outliers),sets=c("permutations","salBF","xtx","pcadapt","sharedStacks"),
       point.size=3.5,line.size=2,mainbar.y.label = "Number of Shared Outliers",
       sets.x.label = " Number of Outliers",text.scale=c(1.5,1.5,1.5,1.5,1.5,1.5),
-      sets.bar.color =cols[c("permutations","salBF","xtx","pcadapt","sharedStacks")],margin1scale = 0.2,
+      sets.bar.color =cols[c("permutations","salBF","xtx","pcadapt","sharedStacks")],
+      margin1scale = 0.2,
       sets.pt.color=cols[c("permutations","salBF","xtx","pcadapt","sharedStacks")])
 dev.off()
 png("../figs/sharedStacks.png",res=300,height=4,width=7.5,units="in",pointsize = 20)
 upset(fromList(outliers),sets=c("Texas","Alabama","Louisiana","Florida"),
       point.size=3.5,line.size=2,mainbar.y.label = "Number of Shared Outliers",
       sets.x.label = " Number of Outliers",text.scale=c(1.5,1.5,1.5,1.5,1.5,1.5),
-      sets.bar.color =cols[c("Texas","Alabama","Louisiana","Florida")],margin1scale = 0.2,
-      sets.pt.color=cols[c("Texas","Alabama","Louisiana","Florida")],keep.order = TRUE)
+      sets.bar.color =cols[c("Texas","Alabama","Louisiana","Florida")],
+      margin1scale = 0.2,
+      sets.pt.color=cols[c("Texas","Alabama","Louisiana","Florida")],
+      keep.order = TRUE)
 dev.off()
 
 
@@ -1768,7 +1917,8 @@ figure <- multi_panel_figure(
   unit = "inches",
   row_spacing = 0.0,column_spacing = 0
 )
-(figure %<>% fill_panel(image_files[1],row = 1:2,scaling="fit",allow_panel_overwriting = TRUE) )
+(figure %<>% fill_panel(image_files[1],row = 1:2,scaling="fit",
+                        allow_panel_overwriting = TRUE) )
 (figure %<>% fill_panel(image_files[3], column=2, row=1,scaling="fit") )
 (figure %<>% fill_panel(image_files[2],column=2,row=2,scaling="fit"))
 dev.off()
@@ -1781,14 +1931,17 @@ dev.off()
 
 
 ```{r annotate_snps}
-annotate_snps<-function(snpDF,gff,genome.blast,ID="Locus.ID",chrom="Chr",bp="BP",pos="Column")
+annotate_snps<-function(snpDF,gff,genome.blast,ID="Locus.ID",
+                        chrom="Chr",bp="BP",pos="Column")
 {
   fw.sig.reg<-do.call(rbind,apply(snpDF,1,function(sig){
-    this.gff<-gff[as.character(gff$seqname) %in% as.character(unlist(sig[chrom])),]
+    this.gff<-gff[as.character(gff$seqname) %in% 
+                    as.character(unlist(sig[chrom])),]
     description<-NA
     SSCID<-NA
     if(nrow(this.gff)>0){
-      this.reg<-this.gff[this.gff$start <= as.numeric(sig[bp]) & this.gff$end >= as.numeric(sig[bp]),]
+      this.reg<-this.gff[this.gff$start <= as.numeric(sig[bp]) & 
+                           this.gff$end >= as.numeric(sig[bp]),]
       if(nrow(this.reg) == 0){
         if(as.numeric(sig[bp]) > max(as.numeric(this.gff$end))){
           region<-"beyond.last.contig"
@@ -1797,8 +1950,12 @@ annotate_snps<-function(snpDF,gff,genome.blast,ID="Locus.ID",chrom="Chr",bp="BP"
         }
       }else{
         if(length(grep("SSCG\\d+",this.reg$attribute))>0){
-          geneID<-unique(gsub(".*(SSCG\\d+).*","\\1",this.reg$attribute[grep("SSCG\\d+",this.reg$attribute)]))
-          gene<-genome.blast[genome.blast$sscv4_gene_ID %in% geneID,"blastp_hit_description"]
+          geneID<-unique(gsub(".*(SSCG\\d+).*",
+                              "\\1",
+                              this.reg$attribute[grep("SSCG\\d+",
+                                                      this.reg$attribute)]))
+          gene<-genome.blast[genome.blast$sscv4_gene_ID %in% geneID,
+                             "blastp_hit_description"]
         }else{
           geneID<-NA
           gene<-NA
@@ -1812,7 +1969,8 @@ annotate_snps<-function(snpDF,gff,genome.blast,ID="Locus.ID",chrom="Chr",bp="BP"
       region<-"scaffNotFound"
     }
     return(data.frame(Locus=sig[[ID]],Chr=sig[chrom],BP=sig[bp],SNPCol=sig[pos],
-                      region=region, description=description,SSCID=SSCID,row.names=NULL))
+                      region=region, description=description,SSCID=SSCID,
+                      row.names=NULL))
   }))
 }
 ```
@@ -1824,28 +1982,35 @@ if(length(grep("gz",gff.name))>0){
 } else{
   gff<-read.delim(paste("../../scovelli_genome/",gff.name,sep=""),header=F)
 }
-colnames(gff)<-c("seqname","source","feature","start","end","score","strand","frame","attribute")
-genome.blast<-read.csv("../../scovelli_genome/ssc_2016_12_20_cds_nr_blast_results.csv",skip=1,header=T)#I saved it as a csv
+colnames(gff)<-c("seqname","source","feature","start","end","score",
+                 "strand","frame","attribute")
+genome.blast<-read.csv("../../scovelli_genome/ssc_2016_12_20_cds_nr_blast_results.csv",
+                       skip=1,header=T)#I saved it as a csv
 ```
 ```{r annotate_snpinfo}
 fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
 outliers<-list(xtx=fw_SNPinfo$ID[fw_SNPinfo$XtX >= quantile(fw_SNPinfo$XtX,0.99)],
-               salBF=fw_SNPinfo$ID[fw_SNPinfo$logSalBF>=quantile(fw_SNPinfo$logSalBF,0.99)],
-               permutations=fw_SNPinfo$ID[rowSums(fw_SNPinfo[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+               salBF=fw_SNPinfo$ID[fw_SNPinfo$logSalBF>=
+                                     quantile(fw_SNPinfo$logSalBF,0.99)],
+               permutations=fw_SNPinfo$ID[
+                 rowSums(fw_SNPinfo[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
                pcadapt=fw_SNPinfo$ID[which(fw_SNPinfo$pcadaptQ<0.01)],
                Alabama=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05)], 
                Louisiana=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_LA_P < 0.05)],
                Texas=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_TX_P < 0.05)],
                Florida=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_FL_P < 0.05)],
-               sharedStacks=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05 & fw_SNPinfo$stacks_LA_P < 0.05 &
+               sharedStacks=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05 & 
+                                                  fw_SNPinfo$stacks_LA_P < 0.05 &
                  fw_SNPinfo$stacks_TX_P < 0.05 & fw_SNPinfo$stacks_FL_P < 0.05)])
 out_snps<-fw_SNPinfo[fw_SNPinfo$ID %in% unlist(outliers),]
-out_ann<-annotate_snps(out_snps,gff,genome.blast,ID="ID",chrom="Chrom",bp="BP",pos = "Pos")
+out_ann<-annotate_snps(out_snps,gff,genome.blast,ID="ID",
+                       chrom="Chrom",bp="BP",pos = "Pos")
 ```
 
 
 ```{r saveAnnotations}
-snp_annotate<-annotate_snps(fw_SNPinfo,gff,genome.blast,ID="ID",chrom="Chrom",bp="BP",pos = "Pos")
+snp_annotate<-annotate_snps(fw_SNPinfo,gff,genome.blast,ID="ID",
+                            chrom="Chrom",bp="BP",pos = "Pos")
 snp_annotate$Locus<-as.character(snp_annotate$Locus)
 fw_SNPinfo$ID<-as.character(fw_SNPinfo$ID)
 fw_SNPinfo<-merge(fw_SNPinfo,snp_annotate,by.x="ID",by.y="Locus",all.x=TRUE)
