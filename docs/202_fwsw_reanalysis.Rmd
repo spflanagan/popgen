@@ -43,6 +43,7 @@ documentclass: article
 spacing: singlespacing
 ---
 
+# Overview of the study {-}
 
 The initial analyses are in `200_fwsw_analysis.Rmd` and conducted the analyses on a dataset generated from comparing lumped 'freshwater' and 'saltwater' populations, containing SNPs found in 50% of individuals and with a minor allele frequency of at least 5%. The revised paper will instead focus on two datasets:
 
@@ -102,7 +103,7 @@ ppi<-data.frame(Pop=pop.labs,cols = col_vector,
 ppi$pch[grep("FW",ppi$Pop)]<-c(15,16,17,18)
 ```
 
-# Overview of the study populations {-}
+
 
 ## Map of the populations
 
