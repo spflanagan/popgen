@@ -24,6 +24,24 @@ pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 ```
 
 
+# 12 May 2020
+
+The run on abacus from 29 April has finished running -- it looks like it was FLLG_ALST #13. Moved them to C001KR and deleted off abacus.
+
+My TODOs:
+
+- check that the f3 and f4 treemix analyses were properly done & reported - I'd updated the text in the reanalysis doc yesterday
+- need to evaluate which morphometric analyses need re-doing
+- make the dadi supplement 'pretty'when new runs on C001KR are done
+- scaffold the dadi figure 2, even if I can't fill it in
+- Make the reanalysis doc 'pretty'
+  - Change settings so code is not double spaced
+  - make sure code wraps nicely
+  - Improve order of figures and code, if possible
+  - fix or remove numbering (it only appears sometimes?)
+  - Number and label figures properly
+
+
 # 11 May 2020
 
 dadi run updates:
