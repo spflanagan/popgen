@@ -71,6 +71,7 @@ source("../R/203_treemix_plotting_funcs.R")#I've modified these functions
 library(knitr)
 library(scales)
 library(kableExtra)
+library(vegan)
 ```
 
 ```{r popSetup}
@@ -155,6 +156,182 @@ dev.off()
 
 ```
 
+## Phenotypic variation
+
+
+```{r organizeData, eval=FALSE}
+raw.pheno<-read.table("../sw_results/popgen.pheno.txt", sep="\t", header=T)
+	raw.pheno$PopID<-gsub("(\\w{4})\\w+","\\1",raw.pheno$ID)
+	raw.pheno<-raw.pheno[raw.pheno$PopID %in% pop.list,]
+	raw.pheno$sex<-gsub("\\w{4}(\\w)\\w+","\\1",raw.pheno$ID)
+	raw.pheno$TailLength<-raw.pheno$std.length-raw.pheno$SVL
+	raw.pheno$HeadLength<-raw.pheno$HeadLength-raw.pheno$SnoutLength
+
+fem.pheno<-raw.pheno[raw.pheno$sex %in% c("F","D"),-8]
+	fem.pheno<-fem.pheno[,c(11,1,10,2,12,4,5,6,7,8,9)]
+	fem.pheno<-fem.pheno[order(match(fem.pheno$PopID,pop.list)),]
+	write.table(fem.pheno,"fem.pheno.txt",sep='\t',row.names=F,col.names=T,
+		quote=F)
+	
+mal.pheno<-raw.pheno[raw.pheno$sex %in% c("P","N"),-8]
+	mal.pheno<-mal.pheno[,c(11,1,10,2,12,4,5,6,7)]
+	mal.pheno<-mal.pheno[order(match(mal.pheno$PopID,pop.list)),]
+	write.table(mal.pheno,"mal.pheno.txt",sep='\t',row.names=F,col.names=T,
+		quote=F)
+```
+```{r readMalFem}
+fem.pheno<-read.table("fem.pheno.txt",header=T)
+	fem.pheno<-fem.pheno[!is.na(fem.pheno$BandNum),]
+mal.pheno<-read.table("mal.pheno.txt",header=T)
+```
+
+```{r PCA}
+fem.pheno$PopID<-factor(fem.pheno$PopID)
+fem.pheno<-fem.pheno[!is.na(fem.pheno$BandNum),]
+mal.pheno$PopID<-factor(mal.pheno$PopID)
+bands.pcdat<-fem.pheno[!is.na(fem.pheno$BandNum),
+	c("PopID","ID","MBandArea","BandNum")]
+# run pcas
+band.pca<-rda(bands.pcdat[,3:4])
+fem.pheno.pca<-rda(fem.pheno[,4:9])
+mal.pheno.pca<-rda(mal.pheno[,4:9])
+
+```
+```{r extractEigenvalue}
+####extract eigenvalue
+band.eig<-band.pca$CA$eig
+band.pc<-band.eig/sum(band.eig)*100
+
+#extract PC scores
+band.u<-data.frame(bands.pcdat[,1:2],
+                   "BandPC1"=band.pca$CA$u[,1],stringsAsFactors=F)
+band.u.sep<-split(band.u, band.u[,1])
+band.u.new<-rbind(band.u.sep$TXSP,band.u.sep$TXCC,band.u.sep$TXCB,
+	band.u.sep$ALST,band.u.sep$FLSG,band.u.sep$FLKB,
+	band.u.sep$FLFD,band.u.sep$FLSI,band.u.sep$FLAB,
+	band.u.sep$FLPB,band.u.sep$FLHB,band.u.sep$FLCC)
+
+fem.pheno.eig<-fem.pheno.pca$CA$eig
+fem.pheno.pc<-fem.pheno.eig/sum(fem.pheno.eig)*100
+
+#extract PC scores
+fem.pheno.u<-data.frame(fem.pheno[,1:2],
+	"FemBodyPC1"=fem.pheno.pca$CA$u[,1],stringsAsFactors=F)
+fem.u.sep<-split(fem.pheno.u, fem.pheno.u[,1])
+fem.u.new<-rbind(fem.u.sep$TXSP,fem.u.sep$TXCC,fem.u.sep$TXCB,
+	fem.u.sep$ALST,fem.u.sep$FLSG,fem.u.sep$FLKB,
+	fem.u.sep$FLFD,fem.u.sep$FLSI,fem.u.sep$FLAB,
+	fem.u.sep$FLPB,fem.u.sep$FLHB,fem.u.sep$FLCC)
+
+mal.pheno.eig<-mal.pheno.pca$CA$eig
+mal.pheno.pc<-mal.pheno.eig/sum(mal.pheno.eig)*100
+
+#extract PC scores
+mal.u<-data.frame(mal.pheno[,1:2],"MalBodyPC1"=mal.pheno.pca$CA$u[,1],
+	stringsAsFactors=F)
+mal.u.sep<-split(mal.u, mal.u[,1])
+mal.u.new<-rbind(mal.u.sep$TXSP,mal.u.sep$TXCC,mal.u.sep$TXCB,
+	mal.u.sep$ALST,mal.u.sep$FLSG,mal.u.sep$FLKB,
+	mal.u.sep$FLFD,mal.u.sep$FLSI,mal.u.sep$FLAB,
+	mal.u.sep$FLPB,mal.u.sep$FLHB,mal.u.sep$FLCC)
+
+```
+
+```{r PCAplotSetup}
+# females
+fem.pop<-as.character(bands.pcdat$PopID)
+fem.pop[fem.pop=="FLLG"]<-"FLFW"
+fem.colors<-as.character(fem.pop)
+fem.pch<-as.character(fem.pop)
+fw.fem.col<-as.character(fem.pop[fem.pop %in% fw.list])
+for(i in 1:length(fem.pop)){
+  fem.colors[i]<-as.character(ppi[ppi$Pop %in% fem.pop[i],"cols"])
+  fem.pch[i]<-as.numeric(as.character(ppi[ppi$Pop %in% fem.pop[i],"pch"]))
+}
+fem.pch<-as.numeric(fem.pch)
+
+# males
+mal.pop<-as.character(mal.pheno$PopID)
+mal.pop[mal.pop=="FLLG"]<-"FLFW"
+mal.colors<-as.character(mal.pop)
+mal.pch<-as.character(mal.pop)
+fw.mal.col<-as.character(mal.pop[mal.pop %in% fw.list])
+for(i in 1:length(mal.pop)){
+  mal.colors[i]<-as.character(ppi[ppi$Pop %in% mal.pop[i],"cols"])
+  mal.pch[i]<-as.character(ppi[ppi$Pop %in% mal.pop[i],"pch"])
+}
+mal.pch<-as.numeric(mal.pch)
+
+
+fw.fem.rows<-which(fem.pheno$PopID %in% fw.list)
+fw.mal.rows<-which(mal.pheno$PopID %in% fw.list)
+
+```
+
+
+```{r plotPCA,fig.height=8,fig.width=10}
+ptCex<-2
+
+par(mfrow=c(2,3),oma=c(2,2,2,2),mar=c(2,2,2,2),lwd=1.3)
+mp<-plot(mal.pheno.pca,type="n",xlim=c(-3,3),ylim=c(-8.2,4)
+	,xlab="",ylab="",las=1,cex.axis=1.5)
+points(mal.pheno.pca,col=alpha(mal.colors,0.5),cex=ptCex,pch=mal.pch)
+mtext(paste0("PC1 (",round(mal.pheno.pc[1],2),"%)"),1,line=2)
+mtext(paste0("PC2 (",round(mal.pheno.pc[2],2),"%)"),2,line=2.5)
+legend("top",bty='n',c("Male Body Traits"),cex=1.5)
+
+fp<-plot(fem.pheno.pca,type="n",xlab="",ylab="",las=1,cex.axis=1.5,ylim=c(-4,12),
+	xlim=c(-3,3))
+points(fem.pheno.pca,col=alpha(fem.colors,0.5),cex=ptCex,pch=fem.pch)
+mtext(paste0("PC1 (",round(fem.pheno.pc[1],2),"%)"),1,line=2)
+mtext(paste0("PC2 (",round(fem.pheno.pc[2],2),"%)"),2,line=2.5)
+legend("top",bty='n',c("Female Body Traits"),cex=1.5)
+
+bp<-plot(band.pca,type="n",xlab="",ylab="",las=1,
+         cex.axis=1.5,xlim=c(-2,2),ylim=c(-3,1))
+points(band.pca,pch=fem.pch,col=alpha(fem.colors,0.5),cex=ptCex)
+mtext(paste0("PC1 (",round(band.pc[1],2),"%)"),1,line=2)
+mtext(paste0("PC2 (",round(band.pc[2],2),"%)"),2,line=2.5)
+legend("top",bty='n',c("Female Band Traits"),cex=1.5)
+
+
+plot(mp$sites[fw.mal.rows,],type="n",xlab="",ylab="",las=1,cex.axis=1.5)
+abline(h=0,lty=3)
+abline(v=0,lty=3)
+points(mp$sites[fw.mal.rows,],xlim=c(-0.1,0.1),ylim=c(-.2,.2),
+	col=alpha(mal.colors[fw.mal.rows],0.5),cex=ptCex,pch=mal.pch[fw.mal.rows])
+mtext(paste0("PC1 (",round(mal.pheno.pc[1],2),"%)"),1,line=2)
+mtext(paste0("PC2 (",round(mal.pheno.pc[2],2),"%)"),2,line=2.5)
+
+
+plot(fp$sites[fw.fem.rows,],type="n",xlab="",ylab="",las=1,
+	cex.axis=1.5,ylim=c(-4,12),xlim=c(-3,3))
+abline(h=0,lty=3)
+abline(v=0,lty=3)
+points(fp$sites[fw.fem.rows,],
+	col=alpha(fem.colors[fw.fem.rows],0.5),cex=ptCex,
+	pch=fem.pch[fw.fem.rows])
+mtext(paste0("PC1 (",round(fem.pheno.pc[1],2),"%)"),1,line=2)
+mtext(paste0("PC2 (",round(fem.pheno.pc[2],2),"%)"),2,line=2.5)
+
+
+plot(bp$sites[fw.fem.rows,],type="n",xlab="",ylab="",las=1,
+	cex.axis=1.5,xlim=c(-2,2),ylim=c(-3,1))
+points(bp$sites[fw.fem.rows,],
+	pch=fem.pch[fw.fem.rows],col=alpha(fem.colors[fw.fem.rows],0.5),
+	cex=ptCex)
+mtext(paste0("PC1 (",round(band.pc[1],2),"%)"),1,line=2)
+mtext(paste0("PC2 (",round(band.pc[2],2),"%)"),2,line=2.5)
+abline(h=0,lty=3)
+abline(v=0,lty=3)
+
+par(fig = c(0, 1, 0, 1), oma=c(2,1,0,1), 
+    mar = c(0, 0, 0, 0), new = TRUE, cex=1)
+plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
+legend("top", legend=ppi$Pop, 
+	col=as.character(ppi$col),
+	pt.cex=ptCex,bty='n',pch=ppi$pch, ncol=8)
+```
 
 ## Table of summary statistics
 
