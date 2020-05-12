@@ -274,7 +274,7 @@ names(minAF)<-names(all.afs)
 
 ```
 
-```{r minorAFplot,figh.height=10,fig.width=8,dpi=300,fig.keep='last', eval=FALSE}
+```{r minorAFplot,fig.height=10,fig.width=8,dpi=300,fig.keep='last', fig.path="../figs/",eval=FALSE}
 
 par(mfrow=c(4,4),mar=c(2,2,1,0),oma=c(2,3,0.5,0.5))
 for(i in 1:length(pop.labs)){
@@ -299,7 +299,7 @@ mtext("Number of SNPs (x 1000)",2,outer = TRUE,cex=1.75*0.75,line=1)
 
 ```
 
-![Minor allele frequency plot of the full dataset (7433 SNPs)](../figs/minorAFplot.png)
+![Minor allele frequency plot of the full dataset (7433 SNPs)](../figs/minorAFplot-1.png)
 
 
 # Population structure of all 16 populations  {-}
