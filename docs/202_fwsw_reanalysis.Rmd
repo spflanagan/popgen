@@ -53,7 +53,8 @@ The initial analyses are in `200_fwsw_analysis.Rmd` and conducted the analyses o
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE,out.extra='',fig.pos="H",
-                      warning = FALSE,message = FALSE)
+                      warning = FALSE,message = FALSE,
+                      dev='png',dpi=300)
 knitr::opts_knit$set(root.dir='../fwsw_results/')
 ```
 ```{r source}
