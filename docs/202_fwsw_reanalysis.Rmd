@@ -305,7 +305,7 @@ mtext("Number of SNPs (x 1000)",2,outer = TRUE,cex=1.75*0.75,line=1)
 
 # Population structure of all 16 populations  {-}
 
-### FSTs
+## FSTs
 
 This will calculate the pairwise $F_{ST}$s (but it's slow)
 
@@ -392,7 +392,7 @@ dev.off()
 ![Heatmaps](../figs/fst_heatmaps.png)
 
 
-### PCAdapt {-}
+## PCAdapt {-}
 
 
 ```{r loadPCAdapt}
@@ -481,7 +481,7 @@ legend("top", legend=ppi$Pop, pch=as.numeric(ppi$pch), pt.cex=1.5,cex=0.85,
 ```
 
 
-### Admixture scree plots {-}
+## Admixture scree plots {-}
 
 
 ```{r admixScree}
@@ -550,7 +550,7 @@ write.table(admixK7,"admixture/admixK7.txt",sep = '\t',quote = FALSE,col.names =
 ```
 
 
-### Treemix analysis {-}
+## Treemix analysis {-}
 
 
 ```{r treemixPoporder}
@@ -567,7 +567,7 @@ colors[colors %in% c("TXSP","TXCC","TXFW","TXCB")]<-grp.colors[1]
 write.table(cbind(poporder,colors),"poporder",quote=F,sep='\t')
 ```
 
-#### Tree with no migration edges and no root
+### Tree with no migration edges and no root
 
 It's informative to plot the treemix tree that does not have any migration edges added for comparison later.
 
@@ -584,7 +584,7 @@ resid<-plot_resid("treemix/fwsw_k100b","treemix/poporder",wcols="rb")
 
 ```
 
-#### Tree with FLPB as root
+### Tree with FLPB as root
 
 ```{r treemixCovPlots,eval=FALSE,echo=FALSE}
 nr<-treemix.cov.plot("treemix/fwsw_k100b",poporder)
@@ -679,7 +679,7 @@ dev.off()
 
 ![treemix figure](../figs/FWSW_treemix_m3_FLPB.png)
 
-#### Choosing the optimal number of migration edges
+### Choosing the optimal number of migration edges
 
 To choose the optimal number of migration edges, we used the R package optM [@fitak_optm:_2019].
 
@@ -704,7 +704,7 @@ dev.off()
 ![treemix comparison](../figs/treemix_comparison.png)
 
 
-#### Threepop and fourpop analysis
+### Threepop and fourpop analysis
  
 We can take a closer look at the two migration edges that are in the best Treemix model using threepop and fourpop analyses. In the threepop analysis, significantly negative f3 statistics mean that the first pop in the list (A in A;B,C) is admixed. Therefore, with the threepop analysis we want to look for the tree (A;B,C) where A corresponds to the end of an arrow and (B,C) corresponds to where an arrow begins. In the fourpop analysis, a significantly non-zero value indicates gene flow in the tree.
 
@@ -785,7 +785,7 @@ abs(fourpop$f4_stat[grep("FLAB,FL.*;.*",fourpop$pops)])-
 
 All of these f4 statistics are very close to zero, which suggests that there is not much evidence for gene flow between these branches.
 
-### Make figure
+## Make figure
 
 ```{r defineColors}
 grp.colors<-c('#762a83','#af8dc3','#e7d4e8','#d9f0d3','#7fbf7b','#1b7837') 
@@ -876,7 +876,7 @@ dev.off()
 ![Figure 2. Population Structure](../figs/NewPopStructure_v1.jpeg)
 
 
-### Make table
+## Make table
 
 
 ```{r fstMatrix}
@@ -1137,7 +1137,7 @@ upd.sf<-convert.stacks(swsw.fl,"stacks/converted.fst_FLCC-FLHB.txt",
 ```
 
 
-### Stacks {-}
+## Stacks {-}
 
 ```{r read_stacks_fsts}
 fwsw.al<-read.delim("stacks/converted.fst_ALFW-ALST.txt")
@@ -1204,7 +1204,7 @@ all.shared<-fl.sig[fl.sig %in% al.sig & fl.sig %in% tx.sig]
 
 There are `r length(unique(all.shared))` outliers (as determined by Fisher's P from stacks < 0.01).
 
-### Permutations {-}
+## Permutations {-}
 
 ```{r permute.gwsca}
 permute.gwsca<-function(vcf,map1,nperms,z=1.96, maf.cutoff = 0.05,cov.thresh=0.2){
@@ -1372,7 +1372,7 @@ colnames(fw_SNPinfo)[ncol(fw_SNPinfo)]<-"stacks_FL_P"
 saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
 ```
 
-### PCAdapt {-}
+## PCAdapt {-}
 
 For this analysis, to maintain consistency with the other outlier analyses, I'm using the subestted dataset. So I need to run PCAdapt [@luu_pcadapt:_2017] another time.
 
@@ -1463,7 +1463,7 @@ saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
 
 I should note that for some of these PCAdapt gives "NA" -- not sure what causes this behaviour but there it is. It's true for the residuals and everything else. It looks to be due to low allele frequencies -- though stacks should have been run with a minimum allele frequency cutoff, so this is perplexing.
 
-### Bayenv {-}
+## Bayenv {-}
 
 Investigate the environmental data
 
@@ -1501,7 +1501,7 @@ nohup ../../scripts/run_bayenv2_matrix_general.sh BAYENV \
 ~/Programs/bayenv/ matrix env_data_sub75.txt 7 3 SNPFILES > bayenv.log &
 ```
 
-#### Analyze Bayenv output
+### Analyze Bayenv output
 
 Now I can aggregate the output:
 
@@ -1685,7 +1685,7 @@ legend("top",c(expression("Permutation"~italic("F")["ST"]),
 ```
 
 
-### Summary plot of outliers
+## Summary plot of outliers
 
 First we'll get set up with the libraries, code, and data.
 
@@ -1929,7 +1929,7 @@ dev.off()
 
 ![Multipanel figure](../figs/fstPlots.png)
 
-### Annotations {-}
+## Annotations {-}
 
 
 ```{r annotate_snps}
@@ -2020,6 +2020,6 @@ saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
 ```
 
 
-# References
+# References {-}
 
 
