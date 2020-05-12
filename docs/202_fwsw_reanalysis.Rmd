@@ -25,6 +25,8 @@ abstract: >
   These analyses combined to create Figure 2 and Figure 3. 
 header-includes: >
   \usepackage{lipsum}
+  \usepackage{float}
+  \floatplacement{figure}{H}
 bibliography: programs.bib
 output:
   pdf_document:
