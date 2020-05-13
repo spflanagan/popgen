@@ -24,6 +24,16 @@ pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 ```
 
 
+# 13 May 2020
+
+Goals for today:
+- Revisit PCA of phenotypes and add to reanalysis doc
+- Number and label figures properly in reanalysis doc
+- make the dadi supplement 'pretty'when new runs on C001KR are done
+- scaffold the dadi figure 2, even if I can't fill it in
+
+
+
 # 12 May 2020
 
 The run on abacus from 29 April has finished running -- it looks like it was FLLG_ALST #13. Moved them to C001KR and deleted off abacus.
