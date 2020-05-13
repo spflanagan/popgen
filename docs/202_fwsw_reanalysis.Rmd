@@ -915,21 +915,21 @@ threepop[threepop$pops=="FLSI;TXFW,FLAB",]
 
 
 ```{r f3Edge1}
-threepop[grep("TXFW;.*FLSI",threepop$pops),] 
+kable(threepop[grep("TXFW;.*FLSI",threepop$pops),] )
 ```
 
 None of these f3 statistics are zero, so that suggests that TXFW is not admixed with FLSI and other populations. Most interesting would be the trees (TXFW;TXCB,FLSI) and (TXFW,FLSI,FLAB):
 
 ```{r f3Edge1Specific}
-threepop[threepop$pops=="TXFW;TXCB,FLSI" | 
-           threepop$pops=="TXFW;FLSI,FLAB",] 
+kable(threepop[threepop$pops=="TXFW;TXCB,FLSI" | 
+           threepop$pops=="TXFW;FLSI,FLAB",] )
 ```
 
 
 
 ```{r f4Edge1}
 fourpop[grep("TXFW,TXCB;.*FLSI.*",fourpop$pops),] 
-fourpop[fourpop$pops=="TXFW,TXCB;FLSI,FLAB",] 
+kable(fourpop[fourpop$pops=="TXFW,TXCB;FLSI,FLAB",] )
 as.numeric(as.character(fourpop$f4_stat[fourpop$pops=="TXFW,TXCB;FLSI,FLAB"]))+
   as.numeric(as.character(fourpop$f4_se[fourpop$pops=="TXFW,TXCB;FLSI,FLAB"]))
 ```
@@ -941,13 +941,13 @@ The statistic is negative but overlaps with zero, so not indicative of gene flow
 
 ```{r f3Edge2}
 threepop[grep("FLAB;.*",threepop$pops),] 
-threepop[threepop$pops=="FLAB;FLPB,FLLG",]
+kable(threepop[threepop$pops=="FLAB;FLPB,FLLG",])
 ```
 This indicates no admixture, and none of the FLAB values are neggative
 
 ```{r f4Edge2}
-fourpop[grep("FLAB,FL.*;.*",fourpop$pops),] 
-fourpop[fourpop$pops=="FLAB,FLCC;FLPB,FLLG",] 
+kable(fourpop[grep("FLAB,FL.*;.*",fourpop$pops),] )
+kable(fourpop[fourpop$pops=="FLAB,FLCC;FLPB,FLLG",] )
 as.numeric(as.character(fourpop$f4_stat[fourpop$pops=="FLAB,FLCC;FLPB,FLLG"]))+
   as.numeric(as.character(fourpop$f4_se[fourpop$pops=="FLAB,FLCC;FLPB,FLLG"]))
 ```
