@@ -589,8 +589,9 @@ saveRDS(pa,"fwsw_all_pcadapt.RDS")
 pa.props<-round((pa$singular.values/sum(pa$singular.values))*100,2)
 pa.props
 
-ind_dat<-read.table("filter_rad_20191014@1654/14_filtered/individuals.qc.stats_20191014@1654.tsv",header=T,
-                    stringsAsFactors = F)
+ind_dat<-read.table(
+  "filter_rad_20191014@1654/14_filtered/individuals.qc.stats_20191014@1654.tsv",
+  header=T, stringsAsFactors = F)
 pops<-ind_dat$STRATA	
 grp<-pops
 grp[grp=="TXFW" | grp=="LAFW" | grp=="ALFW" | grp=="FLLG"]<-"freshwater"
