@@ -619,14 +619,14 @@ plot(pa$scores[,1],pa$scores[,2],col=alpha(pap$cols,0.5),bg=alpha(pap$cols,0.75)
      pch=as.numeric(pap$pch),	cex=1.5)
 mtext(paste("PC1 (",pa.props[1],"%)",sep=""),1,line = 2,cex=0.75)
 mtext(paste("PC2 (",pa.props[2],"%)",sep=""),2,line = 2,cex=0.75)
-plot(pa$scores[,1],pa$scores[,3],col=alpha(pap$cols,0.5),
+plot(pa$scores[,3],pa$scores[,4],col=alpha(pap$cols,0.5),
      bg=alpha(pap$cols,0.75),pch=as.numeric(pap$pch),cex=1.5)
-mtext(paste("PC1 (",pa.props[1],"%)",sep=""),1,line = 2,cex=0.75)
-mtext(paste("PC3 (",pa.props[3],"%)",sep=""),2,line = 2,cex=0.75)
-plot(pa$scores[,1],pa$scores[,4],col=alpha(pap$cols,0.5),
-     bg=alpha(pap$cols,0.75),pch=as.numeric(pap$pch),cex=1.5)
-mtext(paste("PC1 (",pa.props[1],"%)",sep=""),1,line = 2,cex=0.75)
+mtext(paste("PC3 (",pa.props[3],"%)",sep=""),1,line = 2,cex=0.75)
 mtext(paste("PC4 (",pa.props[4],"%)",sep=""),2,line = 2,cex=0.75)
+plot(pa$scores[,5],pa$scores[,6],col=alpha(pap$cols,0.5),
+     bg=alpha(pap$cols,0.75),pch=as.numeric(pap$pch),cex=1.5)
+mtext(paste("PC5 (",pa.props[5],"%)",sep=""),1,line = 2,cex=0.75)
+mtext(paste("PC6 (",pa.props[6],"%)",sep=""),2,line = 2,cex=0.75)
 plot(pa$scores[grp=="freshwater",1],pa$scores[grp=="freshwater",2],
      col=alpha(pap$cols[pap$grp=="freshwater"],0.5),
      bg=alpha(pap$cols[pap$grp=="freshwater"],0.75),
@@ -647,7 +647,7 @@ plot(pa$scores[grp=="freshwater",5],pa$scores[grp=="freshwater",6],
      pch=as.numeric(pap$pch[pap$grp=="freshwater"]),
 	cex=1.5)
 mtext(paste("PC5 (",pa.props[5],"%)",sep=""),1,line = 2,cex=0.75)
-mtext(paste("PC6 (",pa.props[2],"%)",sep=""),2,line = 2,cex=0.75)
+mtext(paste("PC6 (",pa.props[6],"%)",sep=""),2,line = 2,cex=0.75)
 
 par(fig = c(0, 1, 0, 1), oma=c(2,1,0,1), mar = c(0, 0, 0, 0), new = TRUE,
 	cex=1)
