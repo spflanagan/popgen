@@ -477,7 +477,7 @@ mtext("Number of SNPs (x 1000)",2,outer = TRUE,cex=1.75*0.75,line=1)
 
 ```
 
-![Minor allele frequency plot of the full dataset (7433 SNPs)](../figs/minorAFplot-1.png)
+![Minor allele frequency distributions of the full dataset (7433 SNPs) for each population. Freshwater populations are plotted in blue. The histograms show the number of SNPs with various frequencies of the reference alleles. All populations are skewed towards having small minor allele frequencies, but the TXFW and FLFW have additional reductions in genetic variation.](../figs/minorAFplot-1.png)
 
 
 # Population structure of all 16 populations  {-}
