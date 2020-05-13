@@ -21,12 +21,16 @@ abstract: >
   This document includes supplementary material for the paper. 
 header-includes: >
   \usepackage{lipsum}
+  \usepackage{float}
+  \floatplacement{figure}{H}
 bibliography: programs.bib
 output:
   pdf_document:
     fig_caption: yes
     keep_tex: yes
-    number_sections: yes
+    number_sections: no
+    toc: true
+    toc_depth: 2
     template: manuscript.latex
   html_document: null
   word_document: null
@@ -34,7 +38,7 @@ fontsize: 11pt
 capsize: normalsize
 csl: molecular-ecology.csl
 documentclass: article
-spacing: doublespacing
+spacing: singlespacing
 ---
 
 ```{r setup, include=FALSE}
