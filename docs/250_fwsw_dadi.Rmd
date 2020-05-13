@@ -232,7 +232,7 @@ dadi_initialCompare<-function(comparison){
 ```
 
 
-### FLLG vs FLCC
+### FLFW vs FLCC
 
 
 ```{r fllgOpts, fig.cap="Comparison of log likelihoods for FLLG-FLCC models"}
@@ -264,7 +264,6 @@ points(1:11,
        pch=8,col="red",lwd=2)
 ```
 
-### FLLG vs ALFW
 ```{r saveBest1}
 bestModels<-data.frame(Pop1="FLFW",
                        Pop2="FLCC",
@@ -272,17 +271,18 @@ bestModels<-data.frame(Pop1="FLFW",
                        stringsAsFactors = FALSE)
 ```
 
-```{r ffafOpts, fig.cap="Comparison of log likelihoods for FLLG-ALFW models" }
+### FLFW vs ALFW
+
+```{r ffafOpts, fig.cap="Comparison of log likelihoods for FLFW-ALFW models" }
 fllg_alfw<-dadi_initialCompare("FLLG_ALFW")
 ```
 ```{r saveBest2}
 bestModels[2,]<-c("FLFW","ALFW",Model="AM2NG")
 ```
 
+### FLFW vs ALST
 
-### FLLG vs ALST
-
-```{r ffasOpts, fig.cap="Comparison of log likelihoods for FLLG-ALST models"}
+```{r ffasOpts, fig.cap="Comparison of log likelihoods for FLFW-ALST models"}
 fllg_alst<-dadi_initialCompare("FLLG_ALST")
 ```
 
@@ -290,27 +290,27 @@ fllg_alst<-dadi_initialCompare("FLLG_ALST")
 bestModels[3,]<-c("FLFW","ALST",Model="AM2mG")
 ```
 
-### FLLG vs LAFW
+### FLFW vs LAFW
 
-```{r fflfOpts, fig.cap="Comparison of log likelihoods for FLLG-LAFW models"}
+```{r fflfOpts, fig.cap="Comparison of log likelihoods for FLFW-LAFW models"}
 fllg_lafw<-dadi_initialCompare("FLLG_LAFW")
 ```
 ```{r saveBest4}
 bestModels[4,]<-c("FLFW","LAFW",Model="SC2N2mG")
 ```
 
-### FLLG vs TXFW
+### FLFW vs TXFW
 
-```{r fftfOpts, fig.cap="Comparison of log likelihoods for FLLG-TXFW models"}
+```{r fftfOpts, fig.cap="Comparison of log likelihoods for FLFW-TXFW models"}
 fllg_txfw<-dadi_initialCompare("FLLG_TXFW")
 ```
 ```{r saveBest5}
 bestModels[5,]<-c("FLFW","TXFW",Model="AM2N2mG")
 ```
 
-### FLLG vs TXCC
+### FLFW vs TXCC
 
-```{r fftsOpts, fig.cap="Comparison of log likelihoods for FLLG-TXCC models"}
+```{r fftsOpts, fig.cap="Comparison of log likelihoods for FLFW-TXCC models"}
 fllg_txcc<-dadi_initialCompare("FLLG_TXCC")
 ```
 ```{r saveBest6}
