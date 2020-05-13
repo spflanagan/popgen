@@ -54,6 +54,7 @@ source("../../gwscaR/R/gwscaR_popgen.R")
 source("../../gwscaR/R/vcf2dadi.R")
 source("../R/250_dadi_analysis.R")
 library(knitr)
+library(png)
 pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 ```
 
@@ -463,4 +464,45 @@ txfw_txcc<-dadi_initialCompare("TXFW_TXCC")
 ```{r saveBest21}
 bestModels[21,]<-c("TXFW","TXCC",Model="AM2N2mG")
 ```
+
+
+## Summarizing output for best models
+
+```{r}
+pop.list<-c(unique(bestModels[,1]),"TXCC")
+colors<-c(SI="gray66",IM="forestgreen",AM="darkgoldenrod",SC="dodgerblue4")
+lbcols<-c("#2166ac",'#1b7837',
+          "#2166ac",'#af8dc3',"#2166ac",
+          "#2166ac",'#762a83')
+par(mfrow=c(length(pop.list),length(pop.list)),mar=c(0,0,0,0),oma=c(3,0,3,0))
+for(i in 1:length(pop.list)){
+  for(j in 1:length(pop.list)){
+    
+    exists<-nrow(bestModels[which(bestModels[,1] %in% pop.list[i] & 
+                                    bestModels[,2] %in% pop.list[j]),])
+    if(exists>0){
+      
+      model<-bestModels[which(bestModels[,1] %in% pop.list[i] &
+                              bestModels[,2] %in% pop.list[j]),"Model"]
+      col<-colors[names(colors) %in% gsub("(\\w\\w).*","\\1",model)]
+      plot(c(0,1),c(0,1),type='n',axes=FALSE,xlab="",ylab="",bty='n')
+      rect(0,0,1,1,col=col,border=col)
+      legend("center",model,cex=2,bg='transparent',bty='n',
+             adj=0.1,xjust=0,text.font = 2)
+    } else{
+      plot(c(0,1),c(0,1),type='n',axes=FALSE,xlab="",ylab="",bty='n')
+    }
+    if(i==1){
+      mtext(pop.list[j],3,font = 2,outer = FALSE,cex=1.5,col=lbcols[j])
+    }
+    if(j==1){
+      mtext(pop.list[i],2,font = 2,outer = FALSE,line=-1.6,
+            cex=1.5,xpd=TRUE,col=lbcols[i])
+    }
+  }
+}
+
+```
+
+
 
