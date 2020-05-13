@@ -12,6 +12,7 @@
 \usepackage{lmodern}
 \usepackage{amssymb,amsmath}
 \usepackage{ifxetex,ifluatex}
+\usepackage{xcolor}
 \usepackage{fixltx2e} % provides \textsubscript
 \def\tightlist{}
 % use upquote if available, for straight quotes in verbatim environments
