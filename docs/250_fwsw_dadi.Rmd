@@ -136,7 +136,50 @@ I'm going to use the 75% of individuals dataset.
 
 ## Running dadi {-}
 
-I ran the optimize functions from (dportik's $\delta_A\delta_I$ pipeline)[https://github.com/dportik/dadi_pipeline] for each pairwise combination of the 7 populations with the 26 models from Rougeux. These ran using python2.7 (because I used $\delta_A\delta_I$ v. xxx) using individual scripts for each population pair and each model (in dadi_scripts/). These scripts were generated using `252_generate_dadi_scripts.sh`. Each of the population-pair-model scripts runs `252_pairwise_dadi.py`, which requires the dadi-pipeline scripts and the file `rougeux_models.py`, which contains the 26 models run here. Each script was run using either `252_run_dadi_scripts.sh` or `run_dadi_scripts_abacus.sh`, depending on whether the scripts were run on a local machine (C001KR or rccuser\@10.195.0.46) or on the cluster (abacus). 
+I ran the optimize functions from (dportik's $\delta_A\delta_I$ pipeline)[https://github.com/dportik/dadi_pipeline] for each pairwise combination of the 7 populations with the 26 models from Rougeux. These ran using python2.7 (because I used $\delta_A\delta_I$ v. xxx) using individual scripts for each population pair and each model (in dadi_scripts/). These scripts were generated using `252_generate_dadi_scripts.sh`. Each of the population-pair-model scripts runs `252_pairwise_dadi.py`, which requires the dadi-pipeline scripts and the file `rougeux_models.py`, which contains the 26 models run here. Each script was run using either `252_run_dadi_scripts.sh` or `run_dadi_scripts_abacus.sh`, depending on whether the scripts were run on a local machine (C001KR or rccuser\@10.195.0.46) or on the cluster (abacus).
+
+This is a visualization of all of the different models.
+
+```{r dadiModels,fig.height=10,fig.width=8,dpi=300,dev='png',fig.path="../figs/"}
+figPath<-"../figs/dadi_models/"
+mods<-c("SI","IM","AM","SC")
+adds<-c("","G","2N","2NG","2m","2mG","2N2m","2N2mG")
+
+par(mfrow=c(8,4),oma=c(1,6,2,1),mar=c(1,1,1,1))
+
+for(j in 1:length(adds)){
+  for(i in 1:length(mods)){
+    plot(c(0,1),c(0,1),type='n',axes=FALSE)
+    imgName<-paste0(figPath,mods[i],adds[j],".PNG")
+    if(file.exists(imgName)){
+      img<-readPNG(imgName)
+      rasterImage(img,0,0,1,1,xpd=TRUE)
+    }
+  }
+}
+
+# add headers
+mtext("Strict Isolation",side=3,outer=TRUE,at=0.125,font=2)
+mtext("Isolation w/ Migration",side=3,outer=TRUE,at=0.375,font=2)
+mtext("Ancient Migration",side=3,outer=TRUE,at=0.62,font=2)
+mtext("Secondary Contact",side=3,outer=TRUE,at=0.875,font=2)
+
+# add rownames
+mtext("Growth",side=2,outer=TRUE,at=(7/8)-0.05,font=2,las=1,adj=0.65)
+mtext("Introgression",side=2,outer=TRUE,at=(6/8)-0.05,font=2,las=1,adj=0.65)
+mtext("Introgression+
+Growth",side=2,outer=TRUE,at=(5/8)-0.05,font=2,las=1,adj=0.65)
+mtext("Het. Migration",side=2,outer=TRUE,at=(4/8)-0.05,font=2,las=1,adj=0.65)
+mtext("Het. Migration+
+Growth",side=2,outer=TRUE,at=(3/8)-0.05,font=2,las=1,adj=0.65)
+mtext("Introgression+
+Het. Migration",side=2,outer=TRUE,at=(2/8)-0.05,font=2,las=1,adj=0.65)
+mtext("Introgression+
+Het. Migration+
+Growth",side=2,outer=TRUE,at=(1/8)-0.05,font=2,las=1,adj=0.65)
+
+```
+
 
 Single population plots were generated using `250_dadiPlots.py`.
 
