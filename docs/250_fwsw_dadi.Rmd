@@ -486,7 +486,7 @@ for(i in 1:length(pop.list)){
                               bestModels[,2] %in% pop.list[j]),"Model"]
       col<-colors[names(colors) %in% gsub("(\\w\\w).*","\\1",model)]
       plot(c(0,1),c(0,1),type='n',axes=FALSE,xlab="",ylab="",bty='n')
-      rect(0,0,1,1,col=col,border=col)
+      rect(0,0,1,1,col=alpha(col,0.75),border=col)
       legend("center",model,cex=2,bg='transparent',bty='n',
              adj=0.1,xjust=0,text.font = 2)
     } else{
