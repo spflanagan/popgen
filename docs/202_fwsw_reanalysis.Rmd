@@ -566,7 +566,7 @@ dev.off()
 
 ```
 
-![Heatmaps](../figs/fst_heatmaps.png)
+![Heatmaps depicting population structure. In all graphs, dark colors depict similarity between populations and light grey and blue depict populations with high differentiation. The left panel shows pairwise FST values calculated by the populations module in Stacks (Catchen et al. 2013). The right panel shows covariances between populations as calculated by TreeMix (Pickrell and Pritchard 2012).](../figs/fst_heatmaps.png)
 
 
 ## PCAdapt {-}
