@@ -28,9 +28,13 @@ pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 
 Goals for today:
 - Revisit PCA of phenotypes and add to reanalysis doc
+  - **done**
 - Number and label figures properly in reanalysis doc
+  - I am wondering if I should actually have a separate supplementary doc with just the requested figures/analyses. 
 - make the dadi supplement 'pretty'when new runs on C001KR are done
+  - **done**
 - scaffold the dadi figure 2, even if I can't fill it in
+  - To present the models and parameters, I'm considering two tables: one with the best-fitting model information and one that could be more of a color-coded figure to show the most-likely demographic relationship from the models for each pair, where the color shows the overall *type* of model.
 
 
 
