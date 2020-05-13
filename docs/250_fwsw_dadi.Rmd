@@ -237,7 +237,7 @@ dadi_initialCompare<-function(comparison){
 ### FLFW vs FLCC
 
 
-```{r fllgOpts, fig.cap="Comparison of log likelihoods for FLLG-FLCC models"}
+```{r fllgOpts, fig.cap="Comparison of log likelihoods for FLFW-FLCC models"}
 fllg_flcc<-dadi_initialCompare("FLLG_FLCC")
 ```
 

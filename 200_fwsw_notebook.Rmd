@@ -38,6 +38,11 @@ Goals for today:
   - I made diagrams in powerpoint and saved them as PNG files, then created an overview file in R. 
   - I also made a summary/overview thing with color-coded boxes to show the type of model. 
 
+Remaining TODOs:
+- scaffold summary dadi table (?)
+- add more captions to the reanalysis doc and/or make a unique supplemental document(s)
+- update references in supplement(s)
+- update the numbers of SNPs etc in the manuscript
 
 # 12 May 2020
 
