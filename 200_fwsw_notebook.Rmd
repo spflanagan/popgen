@@ -35,7 +35,8 @@ Goals for today:
   - **done**
 - scaffold the dadi figure 2, even if I can't fill it in
   - To present the models and parameters, I'm considering two tables: one with the best-fitting model information and one that could be more of a color-coded figure to show the most-likely demographic relationship from the models for each pair, where the color shows the overall *type* of model.
-
+  - I made diagrams in powerpoint and saved them as PNG files, then created an overview file in R. 
+  - I also made a summary/overview thing with color-coded boxes to show the type of model. 
 
 
 # 12 May 2020
