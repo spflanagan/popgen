@@ -222,9 +222,18 @@ points(1:11,
 ```
 
 ### FLLG vs ALFW
+```{r saveBest1}
+bestModels<-data.frame(Pop1="FLFW",
+                       Pop2="FLCC",
+                       Model="IM2mG",
+                       stringsAsFactors = FALSE)
+```
 
 ```{r ffafOpts, fig.cap="Comparison of log likelihoods for FLLG-ALFW models" }
 fllg_alfw<-dadi_initialCompare("FLLG_ALFW")
+```
+```{r saveBest2}
+bestModels[2,]<-c("FLFW","ALFW",Model="AM2NG")
 ```
 
 
@@ -234,11 +243,17 @@ fllg_alfw<-dadi_initialCompare("FLLG_ALFW")
 fllg_alst<-dadi_initialCompare("FLLG_ALST")
 ```
 
+```{r saveBest3}
+bestModels[3,]<-c("FLFW","ALST",Model="AM2mG")
+```
 
 ### FLLG vs LAFW
 
 ```{r fflfOpts, fig.cap="Comparison of log likelihoods for FLLG-LAFW models"}
 fllg_lafw<-dadi_initialCompare("FLLG_LAFW")
+```
+```{r saveBest4}
+bestModels[4,]<-c("FLFW","LAFW",Model="SC2N2mG")
 ```
 
 ### FLLG vs TXFW
@@ -246,18 +261,26 @@ fllg_lafw<-dadi_initialCompare("FLLG_LAFW")
 ```{r fftfOpts, fig.cap="Comparison of log likelihoods for FLLG-TXFW models"}
 fllg_txfw<-dadi_initialCompare("FLLG_TXFW")
 ```
+```{r saveBest5}
+bestModels[5,]<-c("FLFW","TXFW",Model="AM2N2mG")
+```
 
 ### FLLG vs TXCC
 
 ```{r fftsOpts, fig.cap="Comparison of log likelihoods for FLLG-TXCC models"}
 fllg_txcc<-dadi_initialCompare("FLLG_TXCC")
 ```
-
+```{r saveBest6}
+bestModels[6,]<-c("FLFW","TXCC",Model="AM2mG")
+```
 
 ### FLCC vs ALFW
 
 ```{r fsafOpts, fig.cap="Comparison of log likelihoods for FLCC-ALFW models"}
 flcc_alfw<-dadi_initialCompare("FLCC_ALFW")
+```
+```{r saveBest7}
+bestModels[7,]<-c("FLCC","ALFW",Model="IM")
 ```
 
 ### FLCC vs ALST
@@ -265,18 +288,26 @@ flcc_alfw<-dadi_initialCompare("FLCC_ALFW")
 ```{r fsasOpts, fig.cap="Comparison of log likelihoods for FLCC-ALST models"}
 flcc_alst<-dadi_initialCompare("FLCC_ALST")
 ```
+```{r saveBest8}
+bestModels[8,]<-c("FLCC","ALST",Model="SC2N")
+```
 
 ### FLCC vs LAFW
 
 ```{r fslfOpts, fig.cap="Comparison of log likelihoods for FLCC-LAFW models"}
 flcc_lafw<-dadi_initialCompare("FLCC_LAFW")
 ```
-
+```{r saveBest9}
+bestModels[9,]<-c("FLCC","LAFW",Model="IM2mG")
+```
 
 ### FLCC vs TXFW
 
 ```{r fstfOpts, fig.cap="Comparison of log likelihoods for FLCC-TXFW models"}
 flcc_txfw<-dadi_initialCompare("FLCC_TXFW")
+```
+```{r saveBest10}
+bestModels[10,]<-c("FLCC","TXFW",Model="IM2mG")
 ```
 
 ### FLCC vs TXCC
@@ -285,6 +316,9 @@ flcc_txfw<-dadi_initialCompare("FLCC_TXFW")
 flcc_txcc<-dadi_initialCompare("FLCC_TXCC")
 ```
 
+```{r saveBest11}
+bestModels[11,]<-c("FLCC","TXCC",Model="IM2mG")
+```
 
 ### ALFW vs ALST
 
@@ -292,11 +326,18 @@ flcc_txcc<-dadi_initialCompare("FLCC_TXCC")
 alfw_alst<-dadi_initialCompare("ALFW_ALST")
 ```
 
+```{r saveBest12}
+bestModels[12,]<-c("ALFW","ALST",Model="SC2m")
+```
 
 ### ALFW vs LAFW
 
 ```{r aflfOpts, fig.cap="Comparison of log likelihoods for ALFW-LAFW models"}
 alfw_lafw<-dadi_initialCompare("ALFW_LAFW")
+```
+
+```{r saveBest13}
+bestModels[13,]<-c("ALFW","LAFW",Model="SC2N2mG")
 ```
 
 ### ALFW vs TXFW
@@ -305,45 +346,78 @@ alfw_lafw<-dadi_initialCompare("ALFW_LAFW")
 alfw_txfw<-dadi_initialCompare("ALFW_TXFW")
 ```
 
+```{r saveBest14}
+bestModels[14,]<-c("ALFW","TXFW",Model="IM2N")
+```
+
+
 ### ALFW vs TXCC
 
 ```{r aftsOpts, fig.cap="Comparison of log likelihoods for ALFW-TXCC models"}
 alfw_txcc<-dadi_initialCompare("ALFW_TXCC")
 ```
 
+```{r saveBest15}
+bestModels[15,]<-c("ALFW","TXCC",Model="SC2N2mG")
+```
+
+
 ### ALST vs LAFW
 
 ```{r aslfOpts, fig.cap="Comparison of log likelihoods for ALST-LAFW models"}
 alst_lafw<-dadi_initialCompare("ALST_LAFW")
 ```
+```{r saveBest16}
+bestModels[16,]<-c("ALST","LAFW",Model="IM2NG")
+```
+
 
 ### ALST vs TXFW
 
 ```{r astfOpts, fig.cap="Comparison of log likelihoods for ALST-TXFW models"}
 alst_txfw<-dadi_initialCompare("ALST_TXFW")
 ```
+```{r saveBest17}
+bestModels[17,]<-c("ALST","TXFW",Model="IM")
+```
+
 
 ### ALST vs TXCC
 
 ```{r astsOpts, fig.cap="Comparison of log likelihoods for ALST-TXCC models"}
 alst_txc<-dadi_initialCompare("ALST_TXCC")
 ```
+```{r saveBest18}
+bestModels[18,]<-c("ALST","TXCC",Model="AM2mG")
+```
+
 
 ### LAFW vs TXFW
 
 ```{r lftfOpts, fig.cap="Comparison of log likelihoods for LAFW-TXFW models"}
 lafw_txfw<-dadi_initialCompare("LAFW_TXFW")
 ```
+```{r saveBest19}
+bestModels[19,]<-c("LAFW","TXFW",Model="SCG")
+```
+
 
 ### LAFW vs TXCC
 
 ```{r lftsOpts, fig.cap="Comparison of log likelihoods for LAFW-TXCC models"}
 lafw_txcc<-dadi_initialCompare("LAFW_TXCC")
 ```
+```{r saveBest20}
+bestModels[20,]<-c("LAFW","TXCC",Model="SC2NG")
+```
+
 
 ### TXFW vs TXCC
 
 ```{r tftsOpts, fig.cap="Comparison of log likelihoods for TXFW-TXCC models"}
 txfw_txcc<-dadi_initialCompare("TXFW_TXCC")
+```
+```{r saveBest21}
+bestModels[21,]<-c("TXFW","TXCC",Model="AM2N2mG")
 ```
 
