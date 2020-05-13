@@ -269,7 +269,7 @@ fw.mal.rows<-which(mal.pheno$PopID %in% fw.list)
 ```
 
 
-```{r plotPCA,fig.height=8,fig.width=10}
+```{r plotPCA,fig.height=8,fig.width=10,fig.keep='last',fig.path="../figs/",fig.cap="Principal components analysis of morphological traits in S. scovelli reveals that phenotypic variation among populations is not based on habitat type. The top set of panels show the results of the PCA with all 16 populations, color-coded by populations and point shape. The bottom set of panels show the same PCA results, but with different x- and y-axis scaling and without the saltwater populations plotted, to facilitate visualizing the differences among saltwater populations. The left panels show male body traits (SVL, tail length, trunk depth, head length, snout length, and snout depth), the middle panels show those same traits in females, and the right panels show the female band traits (band number and band area)."}
 ptCex<-2
 
 par(mfrow=c(2,3),oma=c(2,2,2,2),mar=c(2,2,2,2),lwd=1.3)
