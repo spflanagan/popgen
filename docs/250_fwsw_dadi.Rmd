@@ -55,6 +55,7 @@ source("../../gwscaR/R/vcf2dadi.R")
 source("../R/250_dadi_analysis.R")
 library(knitr)
 library(png)
+library(scales)
 pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 ```
 
