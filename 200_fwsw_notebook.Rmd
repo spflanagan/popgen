@@ -42,6 +42,7 @@ My TODOs:
   - make sure code wraps nicely
     - **done**
   - Improve order of figures and code, if possible
+    - **done**
   - fix or remove numbering (it only appears sometimes?)
     - **done**
   - Number and label figures properly
