@@ -24,6 +24,15 @@ pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 ```
 
 
+# 14 May 2020
+
+Goals:
+- check dadi model comparison functions/scripts
+- scaffold summary dadi table
+- add more captions to the reanalysis doc and/or make a unique supplemental document(s)
+- update references in supplement(s)
+- update the numbers of SNPs etc in the manuscript
+
 # 13 May 2020
 
 Goals for today:
