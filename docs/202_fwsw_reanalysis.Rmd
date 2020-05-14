@@ -576,7 +576,7 @@ dev.off()
 library(pcadapt)
 ```
 
-````{r pcadapt_choose}
+````{r pcadapt_choose,fig.cap="Scree plot from PCAdapt, specifying keeping 20 PC axes."}
 filename<-read.pcadapt("filter_rad_20191014@1654/14_filtered/radiator_data_20191014@1710.vcf",
                        type="vcf")
 x<-pcadapt(filename, K=20)
@@ -660,10 +660,12 @@ legend("top", legend=ppi$Pop, pch=as.numeric(ppi$pch), pt.cex=1.5,cex=0.85,
 ```
 
 
+
+
 ## Admixture scree plots {-}
 
 
-```{r admixScree}
+```{r admixScree,fig.cap="Admixture screeplot for K=1 through K=16. The coefficient of variation (CV) is shown on the y-axis."}
 admixK<-read.delim("admixture/K_CVs.txt",header = FALSE)
 admixK$K<-as.numeric(gsub(".*\\(K=(\\d+)\\).*","\\1",admixK$V1))
 admixK$CV<-as.numeric(gsub("^.*\\: (\\d+\\.\\d+)$","\\1",admixK$V1))
@@ -707,23 +709,28 @@ admixPlotting<-function(qfile,K,famfile="admixture/fwsw_all_filt.fam",
 }
 ```
 
-```{r admix_K2to4,fig.height=2,fig.width=8}
+```{r admix_K2,fig.height=2,fig.width=8,fig.cap="Admixture plot for K=2. The colors represent different genetic populations."}
 admixK2<-admixPlotting("admixture/fwsw_all_filt.2.Q",2)
+```
+
+```{r admix_K3,fig.height=2,fig.width=8,fig.cap="Admixture plot for K=3. The colors represent different genetic populations."}
 admixK3<-admixPlotting("admixture/fwsw_all_filt.3.Q",3)
+```
+```{r admix_K4,fig.height=2,fig.width=8,fig.cap="Admixture plot for K=4. The colors represent different genetic populations."}
 admixK4<-admixPlotting("admixture/fwsw_all_filt.4.Q",4)
 ```
 
-```{r admix_k5,fig.height=2,fig.width=8}
+```{r admix_k5,fig.height=2,fig.width=8,fig.cap="Admixture plot for K=5. The colors represent different genetic populations."}
 admixK5<-admixPlotting("admixture/fwsw_all_filt.5.Q",5)
 write.table(admixK5,"admixture/admixK5.txt",sep = '\t',
             quote = FALSE,col.names = TRUE,row.names = FALSE)
 ```
 
-```{r admixk6,fig.height=2,fig.width=8}
+```{r admixk6,fig.height=2,fig.width=8,fig.cap="Admixture plot for K=6. The colors represent different genetic populations."}
 admixK6<-admixPlotting("admixture/fwsw_all_filt.6.Q",6)
 ```
 
-```{r admixk7,fig.height=2,fig.width=8}
+```{r admixk7,fig.height=2,fig.width=8,fig.cap="Admixture plot for K=7. The colors represent different genetic populations."}
 admixK7<-admixPlotting("admixture/fwsw_all_filt.7.Q",7)
 write.table(admixK7,"admixture/admixK7.txt",sep = '\t',quote = FALSE,col.names = TRUE,row.names = FALSE)
 ```
@@ -750,7 +757,7 @@ write.table(cbind(poporder,colors),"poporder",quote=F,sep='\t')
 
 It's informative to plot the treemix tree that does not have any migration edges added for comparison later.
 
-```{r treemixPrep, results='hide', fig.show='true'}
+```{r treemixPrep, results='hide', fig.show='true',fig.cap="The population tree from running Treemix without any migration edges (left) and the resulting residuals (right). No populations were specified as root in this analysis."}
 source("../R/203_treemix_plotting_funcs.R") #I've modified the functions from treemix
 library(lattice); library(grid); library(RColorBrewer)
 poporder<-read.delim("treemix/poporder")
@@ -765,7 +772,9 @@ resid<-plot_resid("treemix/fwsw_k100b","treemix/poporder",wcols="rb")
 
 ### Tree with FLPB as root
 
-```{r treemixCovPlots,eval=FALSE,echo=FALSE}
+We ran Treemix assuming the FLPB was the root with 0 through 5 migration edges. We can compare the residuals, trees, and migration edges, with the root-free, no-migration tree included for comparison. 
+
+```{r treemixCovPlots,eval=FALSE,echo=FALSE,fig.cap="The Treemix covariance plots."}
 nr<-treemix.cov.plot("treemix/fwsw_k100b",poporder)
 m0<-treemix.cov.plot("treemix/fwsw_k100bFLPBr",poporder,split=c(1,1,3,2),more=TRUE)
 m1<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm1",poporder,split=c(2,1,3,2),more=TRUE)
@@ -776,7 +785,8 @@ m5<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm5",poporder,split=c(3,2,3,2),more=
 ```
 
 
-```{r TreemixPlotResids, results='hide', fig.show='true',fig.height=7,fig.width=7}
+
+```{r TreemixPlotResids, results='hide', fig.show='true',fig.height=7,fig.width=7,fig.cap="The Treemix residual plots. Shown are the tree with no root and no migration edges (top left), the tree with FLPB as root but no migration edges (top center), the tree with FLPB as root and one migration edge (top right), the tree with FLPB as root and two migration edges (middle left), the tree with FLPB as root and three migration edges (middle center), the tree with FLPB as root and four migration edges (middle right), and the tree with FLPB as root and five migration edges (bottom left)."}
 # visualize residuals
 #png("treemix/treemix-residuals_FLPB.png",height=8,width=8,units="in",res=300)
 par(mfrow=c(3,3),mar=c(2,3,1,1),oma=c(1.5,1.5,1,1))
@@ -791,12 +801,13 @@ r5<-plot_resid("treemix/fwsw_k100bFLPBrm5","treemix/poplist")
 ```
 
 
-```{r plotTreemixTrees, results='hide', fig.show='true',fig.height=8}
+
+```{r plotTreemixTrees, results='hide', fig.show='true',fig.height=8,fig.cap="The Treemix trees for each model. Shown are the tree with no root and no migration edges (top left), the tree with FLPB as root but no migration edges (top center), the tree with FLPB as root and one migration edge (top right), the tree with FLPB as root and two migration edges (middle left), the tree with FLPB as root and three migration edges (middle center), the tree with FLPB as root and four migration edges (middle right), and the tree with FLPB as root and five migration edges (bottom left). The drift parameters are shown on the x-axis, and the migration weight bar is included in the top center plot."}
 # look at the trees
 #png("treemix/migration_trees_treemix_FLPB.png",height=6,width=11,units="in",res=300)
 par(mfrow=c(3,3),mar=c(1,1,1,1),oma=c(1,1,1,1))
-r0<-plot_tree("treemix/fwsw_k100b",plus=0.05,plotmig = F,scale=T,mbar=T)
-t0<-plot_tree("treemix/fwsw_k100bFLPBr",plotmig = F,plus=0.05,scale=T,mbar=F)
+r0<-plot_tree("treemix/fwsw_k100b",plus=0.05,plotmig = F,scale=T,mbar=F)
+t0<-plot_tree("treemix/fwsw_k100bFLPBr",plotmig = F,plus=0.05,scale=T,mbar=T)
 t1<-plot_tree("treemix/fwsw_k100bFLPBrm1",plus=0.05,scale=F,mbar=F)
 t2<-plot_tree("treemix/fwsw_k100bFLPBrm2",plus=0.05,scale=F,mbar=F)
 t3<-plot_tree("treemix/fwsw_k100bFLPBrm3",plus=0.05,scale=F,mbar=F)
@@ -832,7 +843,7 @@ tip.names<-data.frame(Original=tip.names,Replacement=tip.names,
                       stringsAsFactors = FALSE)
 tip.names$Replacement[tip.names$Replacement=="FLLG"]<-"FLFW"
 ```
-```{r FWSW_treemix_m3_FLPB,fig.height=7,fig.width=7, results='hide', fig.show='true'}
+```{r FWSW_treemix_m3_FLPB,fig.height=7,fig.width=7, results='hide', fig.show='true',include=FALSE}
 png("../figs/FWSW_treemix_m3_FLPB.png",height=7,width=7,units="in",res=300)
 t3<-plot_tree("treemix/fwsw_k100bFLPBrm3","poporder",
               plus=0.05,scale=F,mbar=F,arrow=0.1,tip.order = tip.names)
@@ -854,14 +865,13 @@ dev.off()
 
 ```
 
-![treemix figure](../figs/FWSW_treemix_m3_FLPB.png)
 
 ### Choosing the optimal number of migration edges
 
 To choose the optimal number of migration edges, we used the R package optM [@fitak_optm:_2019].
 
 
-```{r plotOptM,results='hide',fig.show='true'}
+```{r plotOptM,message=FALSE,fig.show='true',fig.cap="Scree plot showing the comparison of Treemix number of migration edges."}
 library(OptM)
 tmOpt<-optM("treemix")
 plot_optM(tmOpt,plot = TRUE)
@@ -878,7 +888,7 @@ t2<-plot_tree("treemix/fwsw_k100bFLPBrm2",scale=T,mbar=T,cex = 1.5,
               lwd=2,mig_left=FALSE,disp=0.0002,scadj=0.05)
 dev.off()
 ```
-![treemix comparison](../figs/treemix_comparison.png)
+![The plot of the tree with FLPB as root but no migration edges (left) compared to the tree with FLPB as root and two migration edges. The drift parameter is plottex on the x-axis, and migration edges are colored based on the migration weight.](../figs/treemix_comparison.png)
 
 
 ### Threepop and fourpop analysis
@@ -1051,7 +1061,7 @@ legend("bottom", legend=ppi$Pop, pch=as.numeric(ppi$pch), pt.cex=3,cex=1.5,
 dev.off()
 ```
 
-![Figure 2. Population Structure](../figs/NewPopStructure_v1.jpeg)
+![Population Structure summary plot (Figure 1 in main document)](../figs/NewPopStructure_v1.jpeg)
 
 
 ## Make table
@@ -1324,7 +1334,7 @@ fwsw.tx<-read.delim("stacks/converted.fst_TXCC-TXFW.txt")
 fwsw.fl<-read.delim("stacks/converted.fst_FLCC-FLLG.txt")
 ```
 
-```{r plot_stacks_fsts}
+```{r plot_stacks_fsts,fig.height=8,fig.width=6,fig.cap="Manhattan plot of pairwise AMOVA-corrected Fst values from Stacks for each freshwater - nearest saltwater population pair. The x-axis corresponds to genomic locations, with chromosomes labelled. To the right are loci that mapped to unanchored scaffolds."}
 source("../R/205_popgenPlotting.R")
 fst_dat<-list(fwsw.al,fwsw.la,fwsw.tx,fwsw.fl)
 fsts<-plot_multiple_LGs(list_fsts = fst_dat,fst_name = "Corrected.AMOVA.Fst",
@@ -1356,7 +1366,7 @@ There are `r length(unique(all.shared))` outliers (as determined by Fisher's P f
 
 As a point of comparison, we can repeat this with the similar pairwise saltwater-saltwater $F_{ST}$ comparisons.
 
-```{r plot_stacks_fsts_swsw}
+```{r plot_stacks_fsts_swsw,fig.height=8,fig.width=6,fig.cap="Manhattan plot of pairwise AMOVA-corrected Fst values from Stacks for the saltwater populations nearest to freshwater populations compared to their nearest saltwater neightbor. The x-axis corresponds to genomic locations, with chromosomes labelled. To the right are loci that mapped to unanchored scaffolds."}
 swsw.fl<-read.delim("stacks/converted.fst_TXCB-TXCC.txt")
 swsw.tx<-read.delim("stacks/converted.fst_ALST-FLSG.txt")
 swsw.al<-read.delim("stacks/converted.fst_FLCC-FLHB.txt")
@@ -1499,7 +1509,7 @@ ipars<-mapply(plot_fst_hists,perms=permuted_fsts,plot_lab=plot_labs,cols=pt_cols
 dev.off()
 ```
 
-![Permuted Fsts](../figs/permuted_fsts.png)
+![Histograms of pairwise Fst values generated by the permutations. The inset in each shows the same data but with a smaller range on the y-axis to provide an imporved visualisation.](../figs/permuted_fsts.png)
 
 Now let's start to aggregate everything.
 
@@ -1565,7 +1575,7 @@ suppressWarnings(write.table(vcf,"pcadapt_fw/fwsw.pruned.vcf",
 
 
 
-```{r pcadaptOutliers}
+```{r pcadaptOutliers, fig.cap="Screeplot for the subsetted dataset with 20 PC axes retained in the analysis."}
 library(pcadapt)
 #need to remove the first line with a # 
 filename<-read.pcadapt("pcadapt_fw/fwsw.pruned.vcf",type="vcf") 
@@ -1584,9 +1594,9 @@ grp[grp!="freshwater"]<-"saltwater"
 ```
 
 
-```{r PcadaptK4}
+```{r PcadaptK4, fig.cap="Manhattan plot for the PCAdapt outlier analysis with the subsetted dataset and 4 PC axes retained in the analysis."}
 res<-pcadapt(filename,K=4)
-par(mfrow=c(2,2))
+layout(matrix(c(1,2,3,4),2,2,byrow=TRUE))
 plot(res, option="manhattan")
 plot(res, option="qqplot")
 plot(res, option="stat.distribution")
@@ -1595,7 +1605,7 @@ plot(res, option="scores",pop=pops)
 
 The vignette recommends displaying the loadings and evaluate if loadings are clustered in single or several genomic regions
 
-```{r PcadaptLoadings}
+```{r PcadaptLoadings, fig.cap="Plots of the loadings for the four PC axes according to genomic position (on the x-axis)."}
 par(mfrow = c(2, 2))
 for (i in 1:4)
   plot(res$loadings[, i], pch = 19, cex = .3, ylab = paste0("Loadings PC", i))
@@ -1603,7 +1613,7 @@ for (i in 1:4)
 
 This suggests that loadings are not clustered (assuming these are grouped by space), so we don't need to worry about LD thinning. Now let's look chromosome by chromosome:
 
-```{r PcadaptLoadingsChr,fig.height=8}
+```{r PcadaptLoadingsChr,fig.height=8, fig.cap="Inspecting the loadings for the four PC axes according to genomic position (on the x-axis) for each chromosome individually."}
 par(mfrow=c(6,4),mar=c(3,3,2,1.5))
 l<-lapply(lgs, function(lg,vcf){
   plot(res$loadings[which(vcf$`#CHROM` %in% lg), 1], pch = 19, cex = .3, 
@@ -1667,9 +1677,9 @@ stacks/populations_subset75/batch_2.pruned.map bayenv ~/Programs/bayenv 7
 
 At this point I looked at the matrices
 
-![Bayenv matrices](../fwsw_results/bayenv/fwsw75_pruned.png)
+![Heatmap plots of each of the ten replicate Bayenv matrices. Colors represent xx](../fwsw_results/bayenv/fwsw75_pruned.png)
 
-They all looked fine so I chose the randomly selected matrix (`matrix`).
+They all looked fine so I chose the randomly selected a matrix to use for the remainder of the analyses.
 
 ```{bash, eval=FALSE}
 # Create the SNPFILES
@@ -1787,7 +1797,7 @@ cols<-c(perm=alpha('#e41a1c',0.75),sal=alpha('#377eb8',0.75),
         pc=alpha('#4daf4a',0.75),xtx=alpha('#984ea3',0.75),
         stacks=alpha('#ff7f00',0.75))
 ```
-```{r plotOutliers}
+```{r plotOutliers,fig.keep='last',fig.cap="Manhattan plots of the Bayenv XTX statistic and the log of the Bayes factors associated with salinity. Shown are only loci that mapped to regions on chromosomes. Grey points represent loci that are not outlier in any analyses. Colored points represent outliers in both the Bayenv analyses and the other outlier analyses."}
 par(mfrow=c(2,1),oma=c(1,2,1,1),mar=c(2,2,1,1),xpd=TRUE)
 # plot XtX
 plot_dat<-fst.plot(fw_SNPinfo,scaffs.to.plot = lgs,fst.name = "XtX",
@@ -2105,7 +2115,7 @@ dev.off()
 
 ```
 
-![Multipanel figure](../figs/fstPlots.png)
+![Multipanel figure showing the locations of outlier loci in the genome (A) as well as overlap between the outlier analyses (B and C). This figure is Figure 2 in the main text.](../figs/fstPlots.png)
 
 ## Annotations {-}
 
