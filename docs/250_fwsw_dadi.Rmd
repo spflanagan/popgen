@@ -269,8 +269,24 @@ points(1:11,
        flcc_fllg_im2mg[which.max(flcc_fllg_im2mg$log.likelihood),11:21],
        pch=8,col="red",lwd=2)
 ```
+```{r setupOutTable}
+outNames<-colnames(do.call(rbind,
+                           extract_dadi_params(
+                             fllg_flcc[[1]][fllg_flcc[[1]]$Model=="SC2N2mG",])))
+outNames<-outNames[!outNames %in% c("Replicate","params","optimized_params","rank","id")]
+outNames<-c("PopPair",outNames,"Tam")
+
+outTable<-data.frame(matrix(nrow = 1,ncol=length(outNames),
+                            dimnames = list("",outNames)))
+```
+
 
 ```{r saveBest1}
+best<-flcc_fllg_im2mg[which.max(flcc_fllg_im2mg$log.likelihood),]
+
+outTable[1,1]<-c("FLFW_FLCC")
+outTable[1,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
+
 bestModels<-data.frame(Pop1="FLFW",
                        Pop2="FLCC",
                        Model="IM2mG",
@@ -282,7 +298,19 @@ bestModels<-data.frame(Pop1="FLFW",
 ```{r ffafOpts, fig.cap="Comparison of log likelihoods for FLFW-ALFW models" }
 fllg_alfw<-dadi_initialCompare("FLLG_ALFW")
 ```
+```{r BestMods2}
+fllg_alfw_am2ng<-do.call(rbind,
+                         extract_dadi_params(fllg_alfw[[1]][fllg_alfw[[1]]$Model==
+                                                              "AM2NG",]))
+```
+
 ```{r saveBest2}
+best<-fllg_alfw_am2ng[which.max(fllg_alfw_am2ng$log.likelihood),]
+
+outTable[2,1]<-c("FLFW_ALFW")
+outTable[2,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
+
+
 bestModels[2,]<-c("FLFW","ALFW",Model="AM2NG")
 ```
 
@@ -291,8 +319,19 @@ bestModels[2,]<-c("FLFW","ALFW",Model="AM2NG")
 ```{r ffasOpts, fig.cap="Comparison of log likelihoods for FLFW-ALST models"}
 fllg_alst<-dadi_initialCompare("FLLG_ALST")
 ```
+```{r BestMods3}
+fllg_alst_am2mg<-do.call(rbind,
+                         extract_dadi_params(fllg_alst[[1]][fllg_alst[[1]]$Model==
+                                                              "AM2mG",]))
+```
 
 ```{r saveBest3}
+best<-fllg_alst_am2mg[which.max(fllg_alst_am2mg$log.likelihood),]
+
+outTable[3,1]<-c("FLFW_ALST")
+outTable[3,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
+
+
 bestModels[3,]<-c("FLFW","ALST",Model="AM2mG")
 ```
 
@@ -301,7 +340,18 @@ bestModels[3,]<-c("FLFW","ALST",Model="AM2mG")
 ```{r fflfOpts, fig.cap="Comparison of log likelihoods for FLFW-LAFW models"}
 fllg_lafw<-dadi_initialCompare("FLLG_LAFW")
 ```
+```{r BestMods4}
+fllg_lafw_SC2N2mG<-do.call(rbind,
+                         extract_dadi_params(fllg_lafw[[1]][fllg_lafw[[1]]$Model==
+                                                              "SC2N2mG",]))
+```
 ```{r saveBest4}
+best<-fllg_lafw_SC2N2mG[which.max(fllg_lafw_SC2N2mG$log.likelihood),]
+
+outTable[4,1]<-c("FLFW_LAFW")
+outTable[4,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
+
+
 bestModels[4,]<-c("FLFW","LAFW",Model="SC2N2mG")
 ```
 
@@ -310,7 +360,17 @@ bestModels[4,]<-c("FLFW","LAFW",Model="SC2N2mG")
 ```{r fftfOpts, fig.cap="Comparison of log likelihoods for FLFW-TXFW models"}
 fllg_txfw<-dadi_initialCompare("FLLG_TXFW")
 ```
+```{r BestMods5}
+fllg_txfw_AM2N2mG<-do.call(rbind,
+                         extract_dadi_params(fllg_txfw[[1]][fllg_txfw[[1]]$Model==
+                                                              "AM2N2mG",]))
+```
 ```{r saveBest5}
+best<-fllg_txfw_AM2N2mG[which.max(fllg_txfw_AM2N2mG$log.likelihood),]
+
+outTable[5,1]<-c("FLFW_TXFW")
+outTable[5,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
+
 bestModels[5,]<-c("FLFW","TXFW",Model="AM2N2mG")
 ```
 
@@ -319,7 +379,17 @@ bestModels[5,]<-c("FLFW","TXFW",Model="AM2N2mG")
 ```{r fftsOpts, fig.cap="Comparison of log likelihoods for FLFW-TXCC models"}
 fllg_txcc<-dadi_initialCompare("FLLG_TXCC")
 ```
+```{r BestMods6}
+fllg_txcc_AM2mG<-do.call(rbind,
+                         extract_dadi_params(fllg_txcc[[1]][fllg_txcc[[1]]$Model==
+                                                              "AM2mG",]))
+```
 ```{r saveBest6}
+best<-fllg_txcc_AM2mG[which.max(fllg_txcc_AM2mG$log.likelihood),]
+
+outTable[6,1]<-c("FLFW_TXCC")
+outTable[6,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
+
 bestModels[6,]<-c("FLFW","TXCC",Model="AM2mG")
 ```
 
@@ -328,7 +398,17 @@ bestModels[6,]<-c("FLFW","TXCC",Model="AM2mG")
 ```{r fsafOpts, fig.cap="Comparison of log likelihoods for FLCC-ALFW models"}
 flcc_alfw<-dadi_initialCompare("FLCC_ALFW")
 ```
+```{r BestMods7}
+flcc_alfw_IM<-do.call(rbind,
+                         extract_dadi_params(flcc_alfw[[1]][flcc_alfw[[1]]$Model==
+                                                              "IM",]))
+```
 ```{r saveBest7}
+best<-flcc_alfw_IM[which.max(flcc_alfw_IM$log.likelihood),]
+
+outTable[7,1]<-c("FLCC_ALFW")
+outTable[7,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
+
 bestModels[7,]<-c("FLCC","ALFW",Model="IM")
 ```
 
@@ -337,7 +417,18 @@ bestModels[7,]<-c("FLCC","ALFW",Model="IM")
 ```{r fsasOpts, fig.cap="Comparison of log likelihoods for FLCC-ALST models"}
 flcc_alst<-dadi_initialCompare("FLCC_ALST")
 ```
+```{r BestMods8}
+flcc_alst_sc2n<-do.call(rbind,
+                      extract_dadi_params(
+                        flcc_alst[[1]][flcc_alst[[1]]$Model=="SC2N",]))
+```
 ```{r saveBest8}
+best<-flcc_alst_sc2n[which.max(flcc_alst_sc2n$log.likelihood),]
+
+outTable[8,1]<-c("FLCC_ALST")
+outTable[8,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
+
+
 bestModels[8,]<-c("FLCC","ALST",Model="SC2N")
 ```
 
@@ -346,7 +437,17 @@ bestModels[8,]<-c("FLCC","ALST",Model="SC2N")
 ```{r fslfOpts, fig.cap="Comparison of log likelihoods for FLCC-LAFW models"}
 flcc_lafw<-dadi_initialCompare("FLCC_LAFW")
 ```
+```{r BestMods9}
+flcc_lafw_im2mg<-do.call(rbind,
+                      extract_dadi_params(
+                        flcc_lafw[[1]][flcc_lafw[[1]]$Model=="IM2mG",]))
+```
 ```{r saveBest9}
+best<-flcc_lafw_im2mg[which.max(flcc_lafw_im2mg$log.likelihood),]
+
+outTable[9,1]<-c("FLCC_LAFW")
+outTable[9,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
+
 bestModels[9,]<-c("FLCC","LAFW",Model="IM2mG")
 ```
 
@@ -355,7 +456,17 @@ bestModels[9,]<-c("FLCC","LAFW",Model="IM2mG")
 ```{r fstfOpts, fig.cap="Comparison of log likelihoods for FLCC-TXFW models"}
 flcc_txfw<-dadi_initialCompare("FLCC_TXFW")
 ```
+```{r BestMods10}
+flcc_txfw_im2mg<-do.call(rbind,
+                      extract_dadi_params(
+                        flcc_txfw[[1]][flcc_txfw[[1]]$Model=="IM2mG",]))
+```
 ```{r saveBest10}
+best<-flcc_txfw_im2mg[which.max(flcc_txfw_im2mg$log.likelihood),]
+
+outTable[10,1]<-c("FLCC_TXFW")
+outTable[10,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
+
 bestModels[10,]<-c("FLCC","TXFW",Model="IM2mG")
 ```
 
@@ -364,8 +475,17 @@ bestModels[10,]<-c("FLCC","TXFW",Model="IM2mG")
 ```{r fstsOpts, fig.cap="Comparison of log likelihoods for FLCC-TXCC models"}
 flcc_txcc<-dadi_initialCompare("FLCC_TXCC")
 ```
-
+```{r BestMods11}
+flcc_txcc_im2mg<-do.call(rbind,
+                      extract_dadi_params(
+                        flcc_txcc[[1]][flcc_txcc[[1]]$Model=="IM2mG",]))
+```
 ```{r saveBest11}
+best<-flcc_txcc_im2mg[which.max(flcc_txcc_im2mg$log.likelihood),]
+
+outTable[11,1]<-c("FLCC_TXCC")
+outTable[11,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
+
 bestModels[11,]<-c("FLCC","TXCC",Model="IM2mG")
 ```
 
@@ -374,8 +494,17 @@ bestModels[11,]<-c("FLCC","TXCC",Model="IM2mG")
 ```{r afasOpts, fig.cap="Comparison of log likelihoods for ALFW-ALST models"}
 alfw_alst<-dadi_initialCompare("ALFW_ALST")
 ```
-
+```{r BestMods12}
+alfw_alst_sc2m<-do.call(rbind,
+                      extract_dadi_params(
+                        alfw_alst[[1]][alfw_alst[[1]]$Model=="SC2m",]))
+```
 ```{r saveBest12}
+best<-alfw_alst_sc2m[which.max(alfw_alst_sc2m$log.likelihood),]
+
+outTable[12,1]<-c("ALFW_ALST")
+outTable[12,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
+
 bestModels[12,]<-c("ALFW","ALST",Model="SC2m")
 ```
 
@@ -384,8 +513,17 @@ bestModels[12,]<-c("ALFW","ALST",Model="SC2m")
 ```{r aflfOpts, fig.cap="Comparison of log likelihoods for ALFW-LAFW models"}
 alfw_lafw<-dadi_initialCompare("ALFW_LAFW")
 ```
-
+```{r BestMods13}
+alfw_lafw_sc2n2mg<-do.call(rbind,
+                      extract_dadi_params(
+                        alfw_lafw[[1]][alfw_lafw[[1]]$Model=="SC2N2mG",]))
+```
 ```{r saveBest13}
+best<-alfw_lafw_sc2n2mg[which.max(alfw_lafw_sc2n2mg$log.likelihood),]
+
+outTable[13,1]<-c("ALFW_LAFW")
+outTable[13,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
+
 bestModels[13,]<-c("ALFW","LAFW",Model="SC2N2mG")
 ```
 
@@ -394,8 +532,17 @@ bestModels[13,]<-c("ALFW","LAFW",Model="SC2N2mG")
 ```{r aftfOpts, fig.cap="Comparison of log likelihoods for ALFW-TXFW models"}
 alfw_txfw<-dadi_initialCompare("ALFW_TXFW")
 ```
-
+```{r BestMods14}
+alfw_txfw_im2n<-do.call(rbind,
+                      extract_dadi_params(
+                        alfw_txfw[[1]][alfw_txfw[[1]]$Model=="IM2N",]))
+```
 ```{r saveBest14}
+best<-alfw_txfw_im2n[which.max(alfw_txfw_im2n$log.likelihood),]
+
+outTable[14,1]<-c("ALFW_TXFW")
+outTable[14,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
+
 bestModels[14,]<-c("ALFW","TXFW",Model="IM2N")
 ```
 
@@ -405,8 +552,17 @@ bestModels[14,]<-c("ALFW","TXFW",Model="IM2N")
 ```{r aftsOpts, fig.cap="Comparison of log likelihoods for ALFW-TXCC models"}
 alfw_txcc<-dadi_initialCompare("ALFW_TXCC")
 ```
-
+```{r BestMods15}
+alfw_txcc_sc2n2mg<-do.call(rbind,
+                      extract_dadi_params(
+                        alfw_txcc[[1]][alfw_txcc[[1]]$Model=="SC2N2mG",]))
+```
 ```{r saveBest15}
+best<-alfw_txcc_sc2n2mg[which.max(alfw_txcc_sc2n2mg$log.likelihood),]
+
+outTable[15,1]<-c("ALFW_TXCC")
+outTable[15,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
+
 bestModels[15,]<-c("ALFW","TXCC",Model="SC2N2mG")
 ```
 
@@ -416,7 +572,17 @@ bestModels[15,]<-c("ALFW","TXCC",Model="SC2N2mG")
 ```{r aslfOpts, fig.cap="Comparison of log likelihoods for ALST-LAFW models"}
 alst_lafw<-dadi_initialCompare("ALST_LAFW")
 ```
+```{r BestMods16}
+alst_lafw_im2ng<-do.call(rbind,
+                      extract_dadi_params(
+                        alst_lafw[[1]][alst_lafw[[1]]$Model=="IM2NG",]))
+```
 ```{r saveBest16}
+best<-alst_lafw_im2ng[which.max(alst_lafw_im2ng$log.likelihood),]
+
+outTable[16,1]<-c("ALST_LAFW")
+outTable[16,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
+
 bestModels[16,]<-c("ALST","LAFW",Model="IM2NG")
 ```
 
@@ -426,7 +592,17 @@ bestModels[16,]<-c("ALST","LAFW",Model="IM2NG")
 ```{r astfOpts, fig.cap="Comparison of log likelihoods for ALST-TXFW models"}
 alst_txfw<-dadi_initialCompare("ALST_TXFW")
 ```
+```{r BestMods17}
+alst_txfw_im<-do.call(rbind,
+                      extract_dadi_params(
+                        alst_txfw[[1]][alst_txfw[[1]]$Model=="IM",]))
+```
 ```{r saveBest17}
+best<-alst_txfw_im[which.max(alst_txfw_im$log.likelihood),]
+
+outTable[17,1]<-c("ALST_TXFW")
+outTable[17,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
+
 bestModels[17,]<-c("ALST","TXFW",Model="IM")
 ```
 
@@ -434,9 +610,19 @@ bestModels[17,]<-c("ALST","TXFW",Model="IM")
 ### ALST vs TXCC
 
 ```{r astsOpts, fig.cap="Comparison of log likelihoods for ALST-TXCC models"}
-alst_txc<-dadi_initialCompare("ALST_TXCC")
+alst_txcc<-dadi_initialCompare("ALST_TXCC")
+```
+```{r BestMods18}
+alst_txcc_am2mg<-do.call(rbind,
+                      extract_dadi_params(
+                        alst_txcc[[1]][alst_txcc[[1]]$Model=="AM2mG",]))
 ```
 ```{r saveBest18}
+best<-alst_txcc_am2mg[which.max(alst_txcc_am2mg$log.likelihood),]
+
+outTable[18,1]<-c("ALST_TXCC")
+outTable[18,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
+
 bestModels[18,]<-c("ALST","TXCC",Model="AM2mG")
 ```
 
@@ -446,7 +632,17 @@ bestModels[18,]<-c("ALST","TXCC",Model="AM2mG")
 ```{r lftfOpts, fig.cap="Comparison of log likelihoods for LAFW-TXFW models"}
 lafw_txfw<-dadi_initialCompare("LAFW_TXFW")
 ```
+```{r BestMods19}
+lafw_txfw_scg<-do.call(rbind,
+                      extract_dadi_params(
+                        lafw_txfw[[1]][lafw_txfw[[1]]$Model=="SCG",]))
+```
 ```{r saveBest19}
+best<-lafw_txfw_scg[which.max(lafw_txfw_scg$log.likelihood),]
+
+outTable[19,1]<-c("LAFW_TXFW")
+outTable[19,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
+
 bestModels[19,]<-c("LAFW","TXFW",Model="SCG")
 ```
 
@@ -456,7 +652,17 @@ bestModels[19,]<-c("LAFW","TXFW",Model="SCG")
 ```{r lftsOpts, fig.cap="Comparison of log likelihoods for LAFW-TXCC models"}
 lafw_txcc<-dadi_initialCompare("LAFW_TXCC")
 ```
+```{r BestMods20}
+lafw_txcc_sc2ng<-do.call(rbind,
+                      extract_dadi_params(
+                        lafw_txcc[[1]][lafw_txcc[[1]]$Model=="SC2NG",]))
+```
 ```{r saveBest20}
+best<-lafw_txcc_sc2ng[which.max(lafw_txcc_sc2ng$log.likelihood),]
+
+outTable[20,1]<-c("LAFW_TXCC")
+outTable[20,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
+
 bestModels[20,]<-c("LAFW","TXCC",Model="SC2NG")
 ```
 
@@ -466,7 +672,17 @@ bestModels[20,]<-c("LAFW","TXCC",Model="SC2NG")
 ```{r tftsOpts, fig.cap="Comparison of log likelihoods for TXFW-TXCC models"}
 txfw_txcc<-dadi_initialCompare("TXFW_TXCC")
 ```
+```{r BestMods21}
+txfw_txcc_am2n2mg<-do.call(rbind,
+                      extract_dadi_params(
+                        txfw_txcc[[1]][txfw_txcc[[1]]$Model=="AM2N2mG",]))
+```
 ```{r saveBest21}
+best<-txfw_txcc_am2n2mg[which.max(txfw_txcc_am2n2mg$log.likelihood),]
+
+outTable[21,1]<-c("TXFW_TXCC")
+outTable[21,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
+
 bestModels[21,]<-c("TXFW","TXCC",Model="AM2N2mG")
 ```
 
