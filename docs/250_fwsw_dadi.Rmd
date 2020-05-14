@@ -147,7 +147,7 @@ figPath<-"../figs/dadi_models/"
 mods<-c("SI","IM","AM","SC")
 adds<-c("","G","2N","2NG","2m","2mG","2N2m","2N2mG")
 
-par(mfrow=c(8,4),oma=c(1,6,2,1),mar=c(1,1,1,1))
+par(mfrow=c(8,4),oma=c(1,6,4,1),mar=c(0,0,0,0))
 
 for(j in 1:length(adds)){
   for(i in 1:length(mods)){
@@ -161,22 +161,26 @@ for(j in 1:length(adds)){
 }
 
 # add headers
-mtext("Strict Isolation",side=3,outer=TRUE,at=0.125,font=2)
-mtext("Isolation w/ Migration",side=3,outer=TRUE,at=0.375,font=2)
-mtext("Ancient Migration",side=3,outer=TRUE,at=0.62,font=2)
-mtext("Secondary Contact",side=3,outer=TRUE,at=0.875,font=2)
+mtext("Strict
+Isolation",side=3,outer=TRUE,at=0.125,font=2)
+mtext("Isolation w/ 
+Migration",side=3,outer=TRUE,at=0.375,font=2)
+mtext("Ancient
+Migration",side=3,outer=TRUE,at=0.62,font=2)
+mtext("Secondary
+Contact",side=3,outer=TRUE,at=0.875,font=2)
 
 # add rownames
 mtext("Growth",side=2,outer=TRUE,at=(7/8)-0.05,font=2,las=1,adj=0.65)
-mtext("Introgression",side=2,outer=TRUE,at=(6/8)-0.05,font=2,las=1,adj=0.65)
-mtext("Introgression+
+mtext("Linked Sel.",side=2,outer=TRUE,at=(6/8)-0.05,font=2,las=1,adj=0.65)
+mtext("Linked Sel.+
 Growth",side=2,outer=TRUE,at=(5/8)-0.05,font=2,las=1,adj=0.65)
 mtext("Het. Migration",side=2,outer=TRUE,at=(4/8)-0.05,font=2,las=1,adj=0.65)
 mtext("Het. Migration+
 Growth",side=2,outer=TRUE,at=(3/8)-0.05,font=2,las=1,adj=0.65)
-mtext("Introgression+
+mtext("Linked Sel.+
 Het. Migration",side=2,outer=TRUE,at=(2/8)-0.05,font=2,las=1,adj=0.65)
-mtext("Introgression+
+mtext("Linked Sel.+
 Het. Migration+
 Growth",side=2,outer=TRUE,at=(1/8)-0.05,font=2,las=1,adj=0.65)
 
