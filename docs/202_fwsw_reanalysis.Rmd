@@ -587,8 +587,9 @@ plot(x,option="screeplot") #K=7
 pa<-pcadapt(filename,K=7)
 saveRDS(pa,"fwsw_all_pcadapt.RDS")
 pa.props<-round((pa$singular.values/sum(pa$singular.values))*100,2)
-pa.props
-
+kable(pa.props,caption="Proportion of variation explained by all 7 of the retained PC axes in PCAdapt")
+```
+```{r pcadaptSummarize}
 ind_dat<-read.table(
   "filter_rad_20191014@1654/14_filtered/individuals.qc.stats_20191014@1654.tsv",
   header=T, stringsAsFactors = F)
@@ -928,7 +929,7 @@ kable(threepop[threepop$pops=="TXFW;TXCB,FLSI" |
 
 
 ```{r f4Edge1}
-fourpop[grep("TXFW,TXCB;.*FLSI.*",fourpop$pops),] 
+kable(fourpop[grep("TXFW,TXCB;.*FLSI.*",fourpop$pops),] )
 kable(fourpop[fourpop$pops=="TXFW,TXCB;FLSI,FLAB",] )
 as.numeric(as.character(fourpop$f4_stat[fourpop$pops=="TXFW,TXCB;FLSI,FLAB"]))+
   as.numeric(as.character(fourpop$f4_se[fourpop$pops=="TXFW,TXCB;FLSI,FLAB"]))
@@ -940,7 +941,7 @@ The statistic is negative but overlaps with zero, so not indicative of gene flow
 **Edge 2: branch from west FL to others -> FLAB**
 
 ```{r f3Edge2}
-threepop[grep("FLAB;.*",threepop$pops),] 
+kable(threepop[grep("FLAB;.*",threepop$pops),] )
 kable(threepop[threepop$pops=="FLAB;FLPB,FLLG",])
 ```
 This indicates no admixture, and none of the FLAB values are neggative
