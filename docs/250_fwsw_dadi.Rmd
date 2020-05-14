@@ -474,9 +474,9 @@ bestModels[21,]<-c("TXFW","TXCC",Model="AM2N2mG")
 
 ## Summarizing output for best models
 
-```{r}
+```{r dadiSummaryPlot,fig.width=6,fig.height=6}
 pop.list<-c(unique(bestModels[,1]),"TXCC")
-colors<-c(SI="gray66",IM="forestgreen",AM="darkgoldenrod",SC="dodgerblue4")
+colors<-c(SI="gray66",IM="#1f78b4",AM="#b2df8a",SC="#a6cee3")
 lbcols<-c("#2166ac",'#1b7837',
           "#2166ac",'#af8dc3',"#2166ac",
           "#2166ac",'#762a83')
