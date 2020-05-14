@@ -775,7 +775,6 @@ m4<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm4",poporder,split=c(2,2,3,2),more=
 m5<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm5",poporder,split=c(3,2,3,2),more=FALSE)
 ```
 
-These are the residuals assuming that FLPB is root.
 
 ```{r TreemixPlotResids, results='hide', fig.show='true',fig.height=7,fig.width=7}
 # visualize residuals
@@ -791,7 +790,6 @@ r5<-plot_resid("treemix/fwsw_k100bFLPBrm5","treemix/poplist")
 #dev.off()
 ```
 
-Here are the trees with a variety of migration edges.
 
 ```{r plotTreemixTrees, results='hide', fig.show='true',fig.height=8}
 # look at the trees
@@ -944,7 +942,8 @@ The statistic is negative but overlaps with zero, so not indicative of gene flow
 kable(threepop[grep("FLAB;.*",threepop$pops),] )
 kable(threepop[threepop$pops=="FLAB;FLPB,FLLG",])
 ```
-This indicates no admixture, and none of the FLAB values are neggative
+
+Inspecting this three-population tree (FLAB;FLPB,FLLG) shows that the statistic is positive does not overlap with zero, and none of the FLAB values are negative, suggesting that this migration edge is unlikely to represent admixture. 
 
 ```{r f4Edge2}
 kable(fourpop[grep("FLAB,FL.*;.*",fourpop$pops),] )
@@ -1129,7 +1128,7 @@ saveWorkbook(wb, file)
 
 # Outliers: Fsts from Stacks, permutations, PCadapt  {-}
 
-The alignments were done with a preliminary genome assembly that is different from the published, updated one. The data that I need to convert ar the vcf and the stacks files. 
+The alignments were done with a preliminary genome assembly that is different from the published, updated one. The data that I need to convert are the vcf and the stacks files. 
 
 
 
@@ -1682,7 +1681,7 @@ nohup ../../scripts/run_bayenv2_matrix_general.sh BAYENV \
 
 ### Analyze Bayenv output
 
-Now I can aggregate the output:
+Once Bayenv was finished running, I first aggregated all of the output. 
 
 ```{r getBayenvResults}
 get_bayenv_results<-function(dir,env_vars){
