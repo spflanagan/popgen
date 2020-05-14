@@ -54,6 +54,7 @@ source("../../gwscaR/R/gwscaR_popgen.R")
 source("../../gwscaR/R/vcf2dadi.R")
 source("../R/250_dadi_analysis.R")
 library(knitr)
+library(knitr); library(kableExtra)
 library(png)
 library(scales)
 pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
@@ -508,6 +509,13 @@ for(i in 1:length(pop.list)){
 }
 
 ```
+
+```{r showBestTable}
+landscape(kable(outTable,booktabs=TRUE))
+```
+
+
+## References
 
 
 
