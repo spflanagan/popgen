@@ -142,7 +142,7 @@ I ran the optimize functions from (dportik's $\delta_A\delta_I$ pipeline)[https:
 
 This is a visualization of all of the different models.
 
-```{r dadiModels,fig.height=10,fig.width=8,dpi=300,dev='png',fig.path="../figs/"}
+```{r dadiModels,fig.height=8,fig.width=6,dpi=300,dev='png',fig.path="../figs/", fig.cap="Schematic diagrams of each model, color-coded by base model (Strict Isolation, Isolation with Migration, Ancient Migration, or Secondary Contact). 'Linked Sel.' refers to linked selection, where a sub-section of the genome experienced a different effective population size than the remainder of the genome (hrf). 'Het. Migration' refers to differential introgression, where some regions of the genome experienced different migration rates than others. Each row demonstrates how parameters were added to the base models. Strict Isolation models contained now migration, so only linked selection and growth could be incorporated. Under Isolation with Migration scenarios, differentiating between linked selection and heterogeneous migration is difficult, so the models that combined both were not included for the Isolation with Migration scenarios."}
 figPath<-"../figs/dadi_models/"
 mods<-c("SI","IM","AM","SC")
 adds<-c("","G","2N","2NG","2m","2mG","2N2m","2N2mG")
