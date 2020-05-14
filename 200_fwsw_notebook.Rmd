@@ -28,8 +28,12 @@ pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 
 Goals:
 - check dadi model comparison functions/scripts
+  - Zach suggests choosing rep with median log likelihood
 - scaffold summary dadi table
+  - **done**
 - add more captions to the reanalysis doc and/or make a unique supplemental document(s)
+  - added captions to all of the plots included in the reanalysis doc. 
+  - noticed strange formatting issues
 - update references in supplement(s)
 - update the numbers of SNPs etc in the manuscript
 
