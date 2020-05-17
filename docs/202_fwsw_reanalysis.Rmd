@@ -1,5 +1,5 @@
 ---
-title: Supplemental Material \#1 for "Multiple colonizations of freshwater by the Gulf pipefish reveal a shared genomic signature of adaptation"
+title: Supplemental Material for "Multiple colonizations of freshwater by the Gulf pipefish reveal a shared genomic signature of adaptation"
 preprint: false
 author: 
   - name: Sarah P. Flanagan
@@ -49,9 +49,9 @@ spacing: singlespacing
 
 The initial analyses are in `200_fwsw_analysis.Rmd` and conducted the analyses on a dataset generated from comparing lumped 'freshwater' and 'saltwater' populations, containing SNPs found in 50% of individuals and with a minor allele frequency of at least 5%. The revised paper will instead focus on two datasets:
 
-1. A set of all 16 populations, generated from all pairwise comparisons of populations, containing SNPs found in 4 populations, in 75% of individuals, and with a minor allele frequency of at least 5%. ("P4" or "subset")
+1. A dataset with all 16 populations, generated from all pairwise comparisons of populations, containing SNPs found in every population, in 75% of individuals, and with a minor allele frequency of at least 5%.
 
-2. A set containing only the 4 freshwater populations (TXFW, LAFW, ALFW, FLFW) and their 4 nearest saltwater populations (TXCC, ALST, ALST, FLCC)
+2. A dataset containing only the 4 freshwater populations (TXFW, LAFW, ALFW, FLFW) and their nearest saltwater populations (TXCC, ALST, FLCC -- note ALST is the nearest neighbor to both ALFW and LAFW). This dataset also contains SNPs found in 75% of individuals with a minor allele frequency of at least 5%. 
 
 
 ```{r setup, include=FALSE}
