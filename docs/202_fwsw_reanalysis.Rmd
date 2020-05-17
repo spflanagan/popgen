@@ -1606,7 +1606,7 @@ plot(res, option="stat.distribution")
 plot(res, option="scores",pop=pops)
 ```
 
-The vignette recommends displaying the loadings and evaluate if loadings are clustered in single or several genomic regions
+The PCAdapt vignette recommends displaying the loadings and evaluate if loadings are clustered in single or several genomic regions
 
 ```{r PcadaptLoadings, fig.cap="Plots of the loadings for the four PC axes according to genomic position (on the x-axis)."}
 par(mfrow = c(2, 2))
