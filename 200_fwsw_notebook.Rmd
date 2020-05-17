@@ -23,6 +23,18 @@ library(knitr)
 pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 ```
 
+# 18 May 2020
+
+What to do today?
+- dadi updates
+- Run more dadi models on C001KR and abacus
+- Fix up supplements
+  - hiding code [done]
+  - improving text 
+  - references
+- summarize annotations somehow
+- update results in MS
+
 # 15 May 2020
 
 - change dadi model comparison code
