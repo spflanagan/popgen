@@ -1764,7 +1764,7 @@ bayenv_dat$logSegBF<-log(bayenv_dat$seagrass_BF)
 fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
 fw_SNPinfo<-merge(fw_SNPinfo,
                   bayenv_dat[,c("locus","XtX","logSalBF","logTemBF","logSegBF")],
-                  by.x="ID",by.y="locus")
+                  by.x="ID",by.y="locus",all.x=TRUE)
 saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
 ```
 
@@ -1886,9 +1886,9 @@ library(grid);library(gwscaR);library(gridGraphics)
 source("../R/upset_hacked.R")
 source("../R/205_popgenPlotting.R")
 fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
-outliers<-list(xtx=fw_SNPinfo$ID[fw_SNPinfo$XtX >= quantile(fw_SNPinfo$XtX,0.99)],
+outliers<-list(xtx=fw_SNPinfo$ID[fw_SNPinfo$XtX >= quantile(fw_SNPinfo$XtX,0.99,na.rm=TRUE)],
                salBF=fw_SNPinfo$ID[fw_SNPinfo$logSalBF>=
-                                     quantile(fw_SNPinfo$logSalBF,0.99)],
+                                     quantile(fw_SNPinfo$logSalBF,0.99,na.rm=TRUE)],
                permutations=fw_SNPinfo$ID[
                  rowSums(fw_SNPinfo[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
                pcadapt=fw_SNPinfo$ID[which(fw_SNPinfo$pcadaptQ<0.01)],
