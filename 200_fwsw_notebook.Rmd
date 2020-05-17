@@ -26,6 +26,8 @@ pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 # 15 May 2020
 
 - change dadi model comparison code
+  - Done.
+  - Added a table to show the chosen rep of each model
 - Run more dadi models on C001KR
 
 - update references in supplement(s)
