@@ -27,13 +27,48 @@ pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 
 What to do today?
 - dadi updates
+  - abacus is still running 1 job from 6 April, 1 from 23 April, 2 from 2 May, and 2 from 11 May. So nothing new to move.
+  - everything is done on C001KR
+  - rccuser is onto round 2 with ALFW_LAFW and still finishing round 1 for ALFW_TXFW_SC2NG, FLCC_ALFW_SC2NG, FLCC_LAFW_AM2NG, FLCC_TXCC_AM2N2mG, FLCC_TXCC_SC2NG, and FLCC_TXFW_AM2m.
 - Run more dadi models on C001KR and abacus
+  - Round out FLFW_ALFW runs on C001KR using the code below (and doing rounds numbered 5 through 10)
+  - starting LAFW vs TXCC on abacus (run number 13, models 494-519, job number 603)
 - Fix up supplements
   - hiding code [done]
   - improving text 
   - references
 - summarize annotations somehow
 - update results in MS
+
+```{r}
+pops=c('FLLG', 'ALFW')   #
+models=c('AM2mG', 'AM2N2m', 'AM2N2mG', 'IM2NG',
+         'SC2m','SC2mG','SC2N','SC2N2m','SC2N2mG','SCG')
+
+rundf<-data.frame(pops=NULL,model=NULL)
+count=1
+for(i in 1:(length(pops)-1)){
+  for(j in (i+1):length(pops)){
+    for(mod in 1:length(models)){
+      rundf[count,1]<-paste(pops[i],pops[j],sep="_")
+      rundf[count,2]<-models[mod]
+      count=(count+1)
+    }
+  }
+}
+
+write.table(rundf,"dadi_mods_2020-05-18.txt",col.names = FALSE,
+            row.names = FALSE,quote=FALSE,eol = '\n')
+```
+
+With the annotations, what do I want to know?
+(1) Number of SNPs in genes
+(2) Number of outliers in genes (are outliers enriched for coding regions?)
+(3) Enrichment of any pathways/gene sets in outliers
+(4) Enrichment of salinity-associated genes
+
+*I've discovered that somewhere along the way the fw_SNPinfo dataset has gotten shortened. So now I need to track down where that happens (probably a merge that didn't keep everything)*. I've done #1 and #2 easily, the enrichment could be tricky. I do have the list of putative salinity genes so that could work
+
 
 # 15 May 2020
 
