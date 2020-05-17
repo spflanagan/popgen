@@ -23,6 +23,16 @@ library(knitr)
 pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 ```
 
+# 15 May 2020
+
+- change dadi model comparison code
+- Run more dadi models on C001KR
+
+- update references in supplement(s)
+- update the numbers of SNPs etc in the manuscript
+
+I created two docs from the reanalysis doc -- a population structure supplement and an outlier supplement.
+
 
 # 14 May 2020
 
