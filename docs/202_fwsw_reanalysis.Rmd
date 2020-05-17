@@ -2182,9 +2182,20 @@ genome.blast<-read.csv("../../scovelli_genome/ssc_2016_12_20_cds_nr_blast_result
 ```
 ```{r annotate_snpinfo, eval=FALSE}
 fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
-outliers<-list(xtx=fw_SNPinfo$ID[fw_SNPinfo$XtX >= quantile(fw_SNPinfo$XtX,0.99)],
+
+snp_annotate<-annotate_snps(fw_SNPinfo,gff,genome.blast,ID="ID",
+                            chrom="Chrom",bp="BP",pos = "Pos")
+snp_annotate$Locus<-as.character(snp_annotate$Locus)
+fw_SNPinfo$ID<-as.character(fw_SNPinfo$ID)
+fw_SNPinfo<-merge(fw_SNPinfo,snp_annotate,by.x="ID",by.y="Locus",all.x=TRUE)
+saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
+```
+
+```{r ann2outlier,eval=TRUE}
+fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
+outliers<-list(xtx=fw_SNPinfo$ID[fw_SNPinfo$XtX >= quantile(fw_SNPinfo$XtX,0.99,na.rm = TRUE)],
                salBF=fw_SNPinfo$ID[fw_SNPinfo$logSalBF>=
-                                     quantile(fw_SNPinfo$logSalBF,0.99)],
+                                     quantile(fw_SNPinfo$logSalBF,0.99,na.rm = TRUE)],
                permutations=fw_SNPinfo$ID[
                  rowSums(fw_SNPinfo[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
                pcadapt=fw_SNPinfo$ID[which(fw_SNPinfo$pcadaptQ<0.01)],
@@ -2196,19 +2207,26 @@ outliers<-list(xtx=fw_SNPinfo$ID[fw_SNPinfo$XtX >= quantile(fw_SNPinfo$XtX,0.99)
                                                   fw_SNPinfo$stacks_LA_P < 0.05 &
                  fw_SNPinfo$stacks_TX_P < 0.05 & fw_SNPinfo$stacks_FL_P < 0.05)])
 out_snps<-fw_SNPinfo[fw_SNPinfo$ID %in% unlist(outliers),]
-out_ann<-annotate_snps(out_snps,gff,genome.blast,ID="ID",
-                       chrom="Chrom",bp="BP",pos = "Pos")
+```
+
+````{r summarizeAnnotations, eval=TRUE}
+annInfo<-fw_SNPinfo[,c("ID","SSCID")]
+annInfo$SSCID<-as.character(annInfo$SSCID)
+annInfo$SSCID[!is.na(annInfo$SSCID)]<-"coding"
+annInfo$SSCID[is.na(annInfo$SSCID)]<-"non-coding"
+annInfo$outlier<-"not-outlier"
+annInfo$outlier[annInfo$ID %in% unlist(outliers)]<-"outlier"
+kable(table(annInfo$SSCID,annInfo$outlier),booktabs=TRUE,
+      caption="The number of SNPs in the subsetted dataset that were outliers in coding and non-coding regions of the genome.")
 ```
 
 
-```{r saveAnnotations}
-snp_annotate<-annotate_snps(fw_SNPinfo,gff,genome.blast,ID="ID",
-                            chrom="Chrom",bp="BP",pos = "Pos")
-snp_annotate$Locus<-as.character(snp_annotate$Locus)
-fw_SNPinfo$ID<-as.character(fw_SNPinfo$ID)
-fw_SNPinfo<-merge(fw_SNPinfo,snp_annotate,by.x="ID",by.y="Locus",all.x=TRUE)
-saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
+
+
+```{r}
+put_genes<-read.delim("putative_genes.txt")
 ```
+
 
 
 # References {-}
