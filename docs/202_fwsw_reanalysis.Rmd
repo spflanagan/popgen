@@ -1525,6 +1525,7 @@ fw_SNPinfo<-data.frame(ID=vcf$ID,Chrom=vcf$`#CHROM`,Pos=vcf$POS,BP=vcf$POS-1,
                        stringsAsFactors = FALSE)
 ```
 
+The fw_SNPinfo dataset has `r nrow(fw_SNPinfo)`.
 
 ```{r add2SnpInfo, eval=TRUE}
 # add Fsts
@@ -1559,6 +1560,8 @@ fw_SNPinfo<-merge(fw_SNPinfo,fwsw.fl,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),
 colnames(fw_SNPinfo)[ncol(fw_SNPinfo)]<-"stacks_FL_P"
 saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
 ```
+
+The fw_SNPinfo dataset has `r nrow(fw_SNPinfo)`.
 
 ## PCAdapt {-}
 
@@ -1649,7 +1652,7 @@ fw_SNPinfo$pcadaptPC<-get.pc(res,1:length(qval))$PC
 saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
 ```
 
-I should note that for some of these PCAdapt gives "NA" -- not sure what causes this behaviour but there it is. It's true for the residuals and everything else. It looks to be due to low allele frequencies -- though stacks should have been run with a minimum allele frequency cutoff, so this is perplexing.
+I should note that for some of these PCAdapt gives "NA" -- not sure what causes this behaviour but there it is. It's true for the residuals and everything else. It looks to be due to low allele frequencies -- though stacks should have been run with a minimum allele frequency cutoff, so this is perplexing. The fw_SNPinfo dataset has `r nrow(fw_SNPinfo)`.
 
 ## Bayenv {-}
 
@@ -1765,7 +1768,7 @@ fw_SNPinfo<-merge(fw_SNPinfo,
 saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
 ```
 
-Now we can investigate the outliers etc.
+The fw_SNPinfo dataset has `r nrow(fw_SNPinfo)`. Now we can investigate the outliers etc.
 
 ```{r bayenv}
 #taken directly from fwsw_analysis.R
