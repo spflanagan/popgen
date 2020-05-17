@@ -67,7 +67,9 @@ With the annotations, what do I want to know?
 (3) Enrichment of any pathways/gene sets in outliers
 (4) Enrichment of salinity-associated genes
 
-*I've discovered that somewhere along the way the fw_SNPinfo dataset has gotten shortened. So now I need to track down where that happens (probably a merge that didn't keep everything)*. I've done #1 and #2 easily, the enrichment could be tricky. I do have the list of putative salinity genes so that could work
+*I've discovered that somewhere along the way the fw_SNPinfo dataset has gotten shortened. So now I need to track down where that happens (probably a merge that didn't keep everything)* -- this happened with the Bayenv analysis, and is now fixed.
+
+I've done #1 and #2 easily, the enrichment could be tricky. I do have the list of putative salinity genes so that's probably the best way forward. 
 
 
 # 15 May 2020
