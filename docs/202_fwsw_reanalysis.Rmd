@@ -1513,7 +1513,7 @@ dev.off()
 
 Now let's start to aggregate everything.
 
-```{r create_fw_SNPinfo, eval=TRUE}
+```{r create_fw_SNPinfo, eval=FALSE}
 permuted_fsts<-readRDS("permuted_fsts.RDS")
 vcf<-parse.vcf("converted_subset.vcf")
 fw_SNPinfo<-data.frame(ID=vcf$ID,Chrom=vcf$`#CHROM`,Pos=vcf$POS,BP=vcf$POS-1,
@@ -1526,7 +1526,8 @@ fw_SNPinfo<-data.frame(ID=vcf$ID,Chrom=vcf$`#CHROM`,Pos=vcf$POS,BP=vcf$POS-1,
 ```
 
 
-```{r add2SnpInfo, eval=TRUE}
+
+```{r add2SnpInfo, eval=FALSE}
 # add Fsts
 fw_SNPinfo<-merge(fw_SNPinfo,fwsw.al,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),
                   all.x=TRUE,all.y = FALSE)[,c(colnames(fw_SNPinfo),
@@ -1566,7 +1567,7 @@ saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
 
 For this analysis, to maintain consistency with the other outlier analyses, I'm using the subestted dataset. So I need to run PCAdapt [@luu_pcadapt:_2017] another time.
 
-```{r convertVCF, eval=FALSE}
+```{r convertVCF, eval=TRUE}
 vcf<-parse.vcf("converted_subset.vcf")
 write.table("##fileformat=VCFv","pcadapt_fw/fwsw.pruned.vcf",quote=FALSE,
             col.names = FALSE,row.names = FALSE)
@@ -2172,7 +2173,7 @@ annotate_snps<-function(snpDF,gff,genome.blast,ID="Locus.ID",
 }
 ```
 
-```{r getGFF, eval=TRUE}
+```{r getGFF, eval=FALSE}
 gff.name<-"ssc_2016_12_20_chromlevel.gff.gz"
 if(length(grep("gz",gff.name))>0){
   gff<-read.delim(gzfile(paste("../../scovelli_genome/",gff.name,sep="")),header=F)
