@@ -1525,7 +1525,6 @@ fw_SNPinfo<-data.frame(ID=vcf$ID,Chrom=vcf$`#CHROM`,Pos=vcf$POS,BP=vcf$POS-1,
                        stringsAsFactors = FALSE)
 ```
 
-The fw_SNPinfo dataset has `r nrow(fw_SNPinfo)`.
 
 ```{r add2SnpInfo, eval=TRUE}
 # add Fsts
@@ -1561,7 +1560,7 @@ colnames(fw_SNPinfo)[ncol(fw_SNPinfo)]<-"stacks_FL_P"
 saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
 ```
 
-The fw_SNPinfo dataset has `r nrow(fw_SNPinfo)`.
+
 
 ## PCAdapt {-}
 
@@ -1650,14 +1649,14 @@ table(snp_pc$PC)
 
 Now we can add the qvalues to the fw_SNPinfo dataframe
 
-```{r Pcadapt2Snpinfo, eval=TRUE}
+```{r Pcadapt2Snpinfo, eval=FALSE}
 fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
 fw_SNPinfo$pcadaptQ<-qval
 fw_SNPinfo$pcadaptPC<-get.pc(res,1:length(qval))$PC
 saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
 ```
 
-I should note that for some of these PCAdapt gives "NA" -- not sure what causes this behaviour but there it is. It's true for the residuals and everything else. It looks to be due to low allele frequencies -- though stacks should have been run with a minimum allele frequency cutoff, so this is perplexing. The fw_SNPinfo dataset has `r nrow(fw_SNPinfo)`.
+I should note that for some of these PCAdapt gives "NA" -- not sure what causes this behaviour but there it is. It's true for the residuals and everything else. It looks to be due to low allele frequencies -- though stacks should have been run with a minimum allele frequency cutoff, so this is perplexing. 
 
 ## Bayenv {-}
 
@@ -1761,7 +1760,7 @@ write.table(bayenv_dat,"bayenv/bayenv_output.txt",sep="\t",
 ```
 
 Merge it with other snp info
-```{r bayenv2snpinfo, eval=TRUE}
+```{r bayenv2snpinfo, eval=FALSE}
 bayenv_dat<-read.delim("bayenv/bayenv_output.txt",header = TRUE)
 bayenv_dat$logSalBF<-log(bayenv_dat$salinity_BF)
 bayenv_dat$logTemBF<-log(bayenv_dat$temp_BF)
@@ -1773,7 +1772,7 @@ fw_SNPinfo<-merge(fw_SNPinfo,
 saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
 ```
 
-The fw_SNPinfo dataset has `r nrow(fw_SNPinfo)`. Now we can investigate the outliers etc.
+Now we can investigate the outliers etc.
 
 ```{r bayenv}
 #taken directly from fwsw_analysis.R
