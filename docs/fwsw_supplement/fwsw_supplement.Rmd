@@ -58,7 +58,7 @@ This supplement focuses on the analysis of dataset #1, which was used to investi
 knitr::opts_chunk$set(echo = FALSE,out.extra='',fig.pos="H",
                       warning = FALSE,message = FALSE,
                       dev='png',dpi=300)
-knitr::opts_knit$set(root.dir='../fwsw_results/')
+knitr::opts_knit$set(root.dir='../../fwsw_results/')
 ```
 ```{r source}
 source("../../gwscaR/R/gwscaR.R")
@@ -334,7 +334,7 @@ mtext("Number of SNPs (x 1000)",2,outer = TRUE,cex=1.75*0.75,line=1)
 
 ```
 
-![Minor allele frequency distributions of the full dataset (7433 SNPs) for each population. Freshwater populations are plotted in blue. The histograms show the number of SNPs with various frequencies of the reference alleles. All populations are skewed towards having small minor allele frequencies, but the TXFW and FLFW have additional reductions in genetic variation.](../figs/minorAFplot-1.png)
+![Minor allele frequency distributions of the full dataset (7433 SNPs) for each population. Freshwater populations are plotted in blue. The histograms show the number of SNPs with various frequencies of the reference alleles. All populations are skewed towards having small minor allele frequencies, but the TXFW and FLFW have additional reductions in genetic variation.](../../figs/minorAFplot-1.png)
 
 
 # Population structure of all 16 populations  {-}
@@ -423,7 +423,7 @@ dev.off()
 
 ```
 
-![Heatmaps depicting population structure. In all graphs, dark colors depict similarity between populations and light grey and blue depict populations with high differentiation. The left panel shows pairwise FST values calculated by the populations module in Stacks (Catchen et al. 2013). The right panel shows covariances between populations as calculated by TreeMix (Pickrell and Pritchard 2012).](../figs/fst_heatmaps.png)
+![Heatmaps depicting population structure. In all graphs, dark colors depict similarity between populations and light grey and blue depict populations with high differentiation. The left panel shows pairwise FST values calculated by the populations module in Stacks (Catchen et al. 2013). The right panel shows covariances between populations as calculated by TreeMix (Pickrell and Pritchard 2012).](../../figs/fst_heatmaps.png)
 
 
 ## PCAdapt {-}
@@ -746,7 +746,7 @@ t2<-plot_tree("treemix/fwsw_k100bFLPBrm2",scale=T,mbar=T,cex = 1.5,
               lwd=2,mig_left=FALSE,disp=0.0002,scadj=0.05)
 dev.off()
 ```
-![The plot of the tree with FLPB as root but no migration edges (left) compared to the tree with FLPB as root and two migration edges. The drift parameter is plottex on the x-axis, and migration edges are colored based on the migration weight.](../figs/treemix_comparison.png)
+![The plot of the tree with FLPB as root but no migration edges (left) compared to the tree with FLPB as root and two migration edges. The drift parameter is plottex on the x-axis, and migration edges are colored based on the migration weight.](../../figs/treemix_comparison.png)
 
 
 ### Threepop and fourpop analysis
