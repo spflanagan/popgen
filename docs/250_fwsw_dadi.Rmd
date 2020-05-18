@@ -42,7 +42,8 @@ spacing: singlespacing
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE,out.extra='',warning=FALSE,message=FALSE)
+knitr::opts_chunk$set(echo = TRUE,out.extra='',fig.pos="H",
+                      warning=FALSE,message=FALSE)
 knitr::opts_knit$set(root.dir='../fwsw_results/')
 ```
 ```{r source}
