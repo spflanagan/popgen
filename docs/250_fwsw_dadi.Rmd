@@ -258,14 +258,14 @@ flcc_fllg_im2mg<-do.call(rbind,
                                                               "IM2mG",]))
 ```
 
-```{r fllgCompareMods}
+```{r fllgCompareMods, fig.cap="Boxplot showing the parameter estimates from the replicates of the SC2mG model (left) and the IM2mG model (right) for the FLFW vs FLCC pairwise comparison. The red stars represent the model parameters from the run with the highest log likelihood."}
 par(mfrow=c(1,2))
-boxplot(flcc_fllg_sc2mg[,11:22])
+boxplot(flcc_fllg_sc2mg[,11:22],main="SC2mG")
 points(1:12,
        flcc_fllg_sc2mg[which.max(flcc_fllg_sc2mg$log.likelihood),11:22],
        pch=8,col="red",lwd=2)
 
-boxplot(flcc_fllg_im2mg[,11:21])
+boxplot(flcc_fllg_im2mg[,11:21],main="IM2mG")
 points(1:11,
        flcc_fllg_im2mg[which.max(flcc_fllg_im2mg$log.likelihood),11:21],
        pch=8,col="red",lwd=2)
