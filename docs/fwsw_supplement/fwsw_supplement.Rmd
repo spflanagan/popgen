@@ -399,7 +399,7 @@ rev.cols<-rev.pal(ncol)
 hm.height<-list(x=2,units="in")#2.2/3.8
 hm.width<-list(x=2.4,units="in")#2.4 in RStudio/3.9
 
-heatmaps.name<-"../figs/fst_heatmaps.png"
+heatmaps.name<-"../../figs/fst_heatmaps.png"
 
 png(heatmaps.name,height=5,width=8,units="in",res=300)
 
