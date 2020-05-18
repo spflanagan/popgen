@@ -243,8 +243,23 @@ dadi_initialCompare<-function(comparison,modSel="max"){
 
 
 ```{r fllgOpts, fig.cap="Comparison of log likelihoods for FLFW-FLCC models"}
-fllg_flcc<-dadi_initialCompare("FLLG_FLCC")
+fllg_flcc<-dadi_initialCompare("FLLG_FLCC",modSel="median")
 ```
+```{r fffwTable}
+sumTab<-fllg_flcc[[2]]
+sumTab<-sumTab[,-2]
+sumTab<-sumTab[,c(9,1:5,10:12,6,7)]
+sumTab$parms<-apply(sumTab,1,function(dat){
+  return(paste0(unlist(strsplit(dat["params"],",")),"=",
+         unlist(strsplit(dat["optimized_params"],","))))
+})
+sumTab<-sumTab[,-c(10,11)]  
+
+landscape(kable(sumTab,booktabs=TRUE,
+      caption = "Table showing the results of the run with the median log likelihood for each model",
+      row.names = FALSE))
+```
+
 
 
 It's looking like IM2mG model has a higher on average log likelihood than SC2mG. Let's see if the IM2mG parameter distributions are better
