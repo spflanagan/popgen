@@ -2250,6 +2250,7 @@ dat<-do.call(rbind,apply(genes,1,function(gene,snpinfo){
 
 info<-merge(fw_SNPinfo,dat,by="ID",all.x=TRUE)
 fw_SNPinfo<-info[unique(info$ID),]
+colnames(fw_SNPinfo)[colnames(fw_SNPinfo)=="SSCID.x"]<-"SSCID"
 saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
 ```
 ```{r putativeGeneAnns}
