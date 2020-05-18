@@ -1,5 +1,5 @@
 ---
-title: Supplemental Material for "Multiple colonizations of freshwater by the Gulf pipefish reveal a shared genomic signature of adaptation"
+title: Supplemental Material \#1 for "Multiple colonizations of freshwater by the Gulf pipefish reveal a shared genomic signature of adaptation"
 preprint: false
 author: 
   - name: Sarah P. Flanagan
@@ -18,15 +18,21 @@ affiliation:
   - code: 3
     address: Department of Biological Sciences, University of Idaho, Moscow, ID 83844 USA
 abstract: >
-  This document includes supplementary material for the paper.
+  This document includes supplementary material for the paper. 
+  In this document, we show additional methods and results that were involved in the analysis of population structure analyses (Fsts, PCAdapt, Admixture, and Treemix).
+  These analyses ultimately contributed to Figure 1 in the main text.
 header-includes: >
   \usepackage{lipsum}
+  \usepackage{float}
+  \floatplacement{figure}{H}
 bibliography: programs.bib
 output:
   pdf_document:
+    toc: true
+    toc_depth: 2
     fig_caption: yes
     keep_tex: yes
-    number_sections: yes
+    number_sections: no
     template: manuscript.latex
   html_document: null
   word_document: null
@@ -34,12 +40,25 @@ fontsize: 11pt
 capsize: normalsize
 csl: molecular-ecology.csl
 documentclass: article
-spacing: doublespacing
+spacing: singlespacing
 ---
 
+# Overview of the study {-}
+
+The initial analyses are in `200_fwsw_analysis.Rmd` and conducted the analyses on a dataset generated from comparing lumped 'freshwater' and 'saltwater' populations, containing SNPs found in 50% of individuals and with a minor allele frequency of at least 5%. The revised paper will instead focus on two datasets:
+
+1. A dataset with all 16 populations, generated from all pairwise comparisons of populations, containing SNPs found in every population, in 75% of individuals, and with a minor allele frequency of at least 5%.
+
+2. A dataset containing only the 4 freshwater populations (TXFW, LAFW, ALFW, FLFW) and their nearest saltwater populations (TXCC, ALST, FLCC -- note ALST is the nearest neighbor to both ALFW and LAFW). This dataset also contains SNPs found in 75% of individuals with a minor allele frequency of at least 5%. 
+
+This supplement focuses on the analysis of dataset #1, which was used to investigate population structure. 
+
+
 ```{r setup, include=FALSE}
-knitr::opts_knit$set(root.dir='../../fwsw_results/', fig.pos='H')
-knitr::opts_chunk$set(fig.path = '../../figs',echo=FALSE,dpi=300)
+knitr::opts_chunk$set(echo = FALSE,out.extra='',fig.pos="H",
+                      warning = FALSE,message = FALSE,
+                      dev='png',dpi=300)
+knitr::opts_knit$set(root.dir='../fwsw_results/')
 ```
 ```{r source}
 source("../../gwscaR/R/gwscaR.R")
@@ -51,9 +70,11 @@ source("../../gwscaR/R/vcf2dadi.R")
 source("../R/203_treemix_plotting_funcs.R")#I've modified these functions
 library(knitr)
 library(scales)
+library(kableExtra)
+library(vegan)
 ```
 
-```{r}
+```{r popSetup}
 pop.list<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
 	"FLFD","FLSI","FLAB","FLPB","FLHB","FLCC","FLLG")
 pop.labs<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
@@ -69,84 +90,423 @@ all.colors<-c(rep("black",2),"#2166ac","black","#2166ac","black","#2166ac",
         rep("black",8),"#2166ac")
 #grp.colors<-c('#e41a1c','#377eb8','#4daf4a','#984ea3','#ffff33','#f781bf')
 grp.colors<-c('#762a83','#af8dc3','#e7d4e8','#d9f0d3','#7fbf7b','#1b7837')
-col_vector<-c(red='#e6194b', green='#3cb44b', blue='#4363d8',yellow='#ffe119', cyan='#46f0f0',orange='#f58231', teal='#008080', purple='#911eb4',  magenta='#f032e6', lime='#bcf60c', pink='#fabebe',  lavendar='#e6beff', brown='#9a6324', olive='#808000', apricot='#ffd8b1',maroon='#800000', mint='#aaffc3', navy='#000075', beige='#fffac8', grey='#808080', white='#ffffff', black='#000000')
+col_vector<-c(red='#e6194b', green='#3cb44b', blue='#4363d8',yellow='#ffe119', 
+              cyan='#46f0f0',orange='#f58231', teal='#008080', purple='#911eb4',  
+              magenta='#f032e6', lime='#bcf60c', pink='#fabebe',  lavendar='#e6beff', 
+              brown='#9a6324', olive='#808000', apricot='#ffd8b1',maroon='#800000', 
+              mint='#aaffc3', navy='#000075', beige='#fffac8', grey='#808080', 
+              white='#ffffff', black='#000000')
 
-col_vector<-c('#762a83','#762a83',"#2166ac",'#762a83',"#2166ac",'#af8dc3',"#2166ac",'#e7d4e8','#e7d4e8','#e7d4e8','#e7d4e8','#7fbf7b','#1b7837','#1b7837','#1b7837',"#2166ac")
-#ppi<-data.frame(Pop=pop.labs,cols = all.colors,pch=c(0,1,21,2,24,3,23,4,5,6,7,9,10,11,12,22))
-ppi<-data.frame(Pop=pop.labs,cols = col_vector,pch=rep(c(15,16,17,18),4))
+col_vector<-c('#762a83','#762a83',"#2166ac",'#762a83',"#2166ac",'#af8dc3',
+              "#2166ac",'#e7d4e8','#e7d4e8','#e7d4e8','#e7d4e8','#7fbf7b',
+              '#1b7837','#1b7837','#1b7837',"#2166ac")
+
+ppi<-data.frame(Pop=pop.labs,cols = col_vector,
+                pch=rep(c(15,16,17,18),4))
+ppi$pch[grep("FW",ppi$Pop)]<-c(15,16,17,18)
+```
+
+
+## Phenotypic variation
+
+
+```{r organizeData, eval=FALSE}
+raw.pheno<-read.table("../sw_results/popgen.pheno.txt", sep="\t", header=T)
+	raw.pheno$PopID<-gsub("(\\w{4})\\w+","\\1",raw.pheno$ID)
+	raw.pheno<-raw.pheno[raw.pheno$PopID %in% pop.list,]
+	raw.pheno$sex<-gsub("\\w{4}(\\w)\\w+","\\1",raw.pheno$ID)
+	raw.pheno$TailLength<-raw.pheno$std.length-raw.pheno$SVL
+	raw.pheno$HeadLength<-raw.pheno$HeadLength-raw.pheno$SnoutLength
+
+fem.pheno<-raw.pheno[raw.pheno$sex %in% c("F","D"),-8]
+	fem.pheno<-fem.pheno[,c(11,1,10,2,12,4,5,6,7,8,9)]
+	fem.pheno<-fem.pheno[order(match(fem.pheno$PopID,pop.list)),]
+	write.table(fem.pheno,"fem.pheno.txt",sep='\t',row.names=F,col.names=T,
+		quote=F)
+	
+mal.pheno<-raw.pheno[raw.pheno$sex %in% c("P","N"),-8]
+	mal.pheno<-mal.pheno[,c(11,1,10,2,12,4,5,6,7)]
+	mal.pheno<-mal.pheno[order(match(mal.pheno$PopID,pop.list)),]
+	write.table(mal.pheno,"mal.pheno.txt",sep='\t',row.names=F,col.names=T,
+		quote=F)
+```
+```{r readMalFem}
+fem.pheno<-read.table("fem.pheno.txt",header=T)
+	fem.pheno<-fem.pheno[!is.na(fem.pheno$BandNum),]
+mal.pheno<-read.table("mal.pheno.txt",header=T)
+```
+
+```{r PCA}
+fem.pheno$PopID<-factor(fem.pheno$PopID)
+fem.pheno<-fem.pheno[!is.na(fem.pheno$BandNum),]
+mal.pheno$PopID<-factor(mal.pheno$PopID)
+bands.pcdat<-fem.pheno[!is.na(fem.pheno$BandNum),
+	c("PopID","ID","MBandArea","BandNum")]
+# run pcas
+band.pca<-rda(bands.pcdat[,3:4])
+fem.pheno.pca<-rda(fem.pheno[,4:9])
+mal.pheno.pca<-rda(mal.pheno[,4:9])
+
+```
+```{r extractEigenvalue}
+####extract eigenvalue
+band.eig<-band.pca$CA$eig
+band.pc<-band.eig/sum(band.eig)*100
+
+#extract PC scores
+band.u<-data.frame(bands.pcdat[,1:2],
+                   "BandPC1"=band.pca$CA$u[,1],stringsAsFactors=F)
+band.u.sep<-split(band.u, band.u[,1])
+band.u.new<-rbind(band.u.sep$TXSP,band.u.sep$TXCC,band.u.sep$TXCB,
+	band.u.sep$ALST,band.u.sep$FLSG,band.u.sep$FLKB,
+	band.u.sep$FLFD,band.u.sep$FLSI,band.u.sep$FLAB,
+	band.u.sep$FLPB,band.u.sep$FLHB,band.u.sep$FLCC)
+
+fem.pheno.eig<-fem.pheno.pca$CA$eig
+fem.pheno.pc<-fem.pheno.eig/sum(fem.pheno.eig)*100
+
+#extract PC scores
+fem.pheno.u<-data.frame(fem.pheno[,1:2],
+	"FemBodyPC1"=fem.pheno.pca$CA$u[,1],stringsAsFactors=F)
+fem.u.sep<-split(fem.pheno.u, fem.pheno.u[,1])
+fem.u.new<-rbind(fem.u.sep$TXSP,fem.u.sep$TXCC,fem.u.sep$TXCB,
+	fem.u.sep$ALST,fem.u.sep$FLSG,fem.u.sep$FLKB,
+	fem.u.sep$FLFD,fem.u.sep$FLSI,fem.u.sep$FLAB,
+	fem.u.sep$FLPB,fem.u.sep$FLHB,fem.u.sep$FLCC)
+
+mal.pheno.eig<-mal.pheno.pca$CA$eig
+mal.pheno.pc<-mal.pheno.eig/sum(mal.pheno.eig)*100
+
+#extract PC scores
+mal.u<-data.frame(mal.pheno[,1:2],"MalBodyPC1"=mal.pheno.pca$CA$u[,1],
+	stringsAsFactors=F)
+mal.u.sep<-split(mal.u, mal.u[,1])
+mal.u.new<-rbind(mal.u.sep$TXSP,mal.u.sep$TXCC,mal.u.sep$TXCB,
+	mal.u.sep$ALST,mal.u.sep$FLSG,mal.u.sep$FLKB,
+	mal.u.sep$FLFD,mal.u.sep$FLSI,mal.u.sep$FLAB,
+	mal.u.sep$FLPB,mal.u.sep$FLHB,mal.u.sep$FLCC)
+
+```
+
+```{r PCAplotSetup}
+# females
+fem.pop<-as.character(bands.pcdat$PopID)
+fem.pop[fem.pop=="FLLG"]<-"FLFW"
+fem.colors<-as.character(fem.pop)
+fem.pch<-as.character(fem.pop)
+fw.fem.col<-as.character(fem.pop[fem.pop %in% fw.list])
+for(i in 1:length(fem.pop)){
+  fem.colors[i]<-as.character(ppi[ppi$Pop %in% fem.pop[i],"cols"])
+  fem.pch[i]<-as.numeric(as.character(ppi[ppi$Pop %in% fem.pop[i],"pch"]))
+}
+fem.pch<-as.numeric(fem.pch)
+
+# males
+mal.pop<-as.character(mal.pheno$PopID)
+mal.pop[mal.pop=="FLLG"]<-"FLFW"
+mal.colors<-as.character(mal.pop)
+mal.pch<-as.character(mal.pop)
+fw.mal.col<-as.character(mal.pop[mal.pop %in% fw.list])
+for(i in 1:length(mal.pop)){
+  mal.colors[i]<-as.character(ppi[ppi$Pop %in% mal.pop[i],"cols"])
+  mal.pch[i]<-as.character(ppi[ppi$Pop %in% mal.pop[i],"pch"])
+}
+mal.pch<-as.numeric(mal.pch)
+
+
+fw.fem.rows<-which(fem.pheno$PopID %in% fw.list)
+fw.mal.rows<-which(mal.pheno$PopID %in% fw.list)
+
+```
+
+
+```{r plotPCA,fig.height=8,fig.width=10,fig.keep='last',fig.path="../figs/",fig.cap="Principal components analysis of morphological traits in S. scovelli reveals that phenotypic variation among populations is not based on habitat type. The top set of panels show the results of the PCA with all 16 populations, color-coded by populations and point shape. The bottom set of panels show the same PCA results, but with different x- and y-axis scaling and without the saltwater populations plotted, to facilitate visualizing the differences among saltwater populations. The left panels show male body traits (SVL, tail length, trunk depth, head length, snout length, and snout depth), the middle panels show those same traits in females, and the right panels show the female band traits (band number and band area)."}
+ptCex<-2
+
+par(mfrow=c(2,3),oma=c(2,2,2,2),mar=c(2,2,2,2),lwd=1.3)
+mp<-plot(mal.pheno.pca,type="n",xlim=c(-3,3),ylim=c(-8.2,4)
+	,xlab="",ylab="",las=1,cex.axis=1.5)
+points(mal.pheno.pca,col=alpha(mal.colors,0.5),cex=ptCex,pch=mal.pch)
+mtext(paste0("PC1 (",round(mal.pheno.pc[1],2),"%)"),1,line=2)
+mtext(paste0("PC2 (",round(mal.pheno.pc[2],2),"%)"),2,line=2.5)
+legend("top",bty='n',c("Male Body Traits"),cex=1.5)
+
+fp<-plot(fem.pheno.pca,type="n",xlab="",ylab="",las=1,cex.axis=1.5,ylim=c(-4,12),
+	xlim=c(-3,3))
+points(fem.pheno.pca,col=alpha(fem.colors,0.5),cex=ptCex,pch=fem.pch)
+mtext(paste0("PC1 (",round(fem.pheno.pc[1],2),"%)"),1,line=2)
+mtext(paste0("PC2 (",round(fem.pheno.pc[2],2),"%)"),2,line=2.5)
+legend("top",bty='n',c("Female Body Traits"),cex=1.5)
+
+bp<-plot(band.pca,type="n",xlab="",ylab="",las=1,
+         cex.axis=1.5,xlim=c(-2,2),ylim=c(-3,1))
+points(band.pca,pch=fem.pch,col=alpha(fem.colors,0.5),cex=ptCex)
+mtext(paste0("PC1 (",round(band.pc[1],2),"%)"),1,line=2)
+mtext(paste0("PC2 (",round(band.pc[2],2),"%)"),2,line=2.5)
+legend("top",bty='n',c("Female Band Traits"),cex=1.5)
+
+
+plot(mp$sites[fw.mal.rows,],type="n",xlab="",ylab="",las=1,cex.axis=1.5)
+abline(h=0,lty=3)
+abline(v=0,lty=3)
+points(mp$sites[fw.mal.rows,],xlim=c(-0.1,0.1),ylim=c(-.2,.2),
+	col=alpha(mal.colors[fw.mal.rows],0.5),cex=ptCex,pch=mal.pch[fw.mal.rows])
+mtext(paste0("PC1 (",round(mal.pheno.pc[1],2),"%)"),1,line=2)
+mtext(paste0("PC2 (",round(mal.pheno.pc[2],2),"%)"),2,line=2.5)
+
+
+plot(fp$sites[fw.fem.rows,],type="n",xlab="",ylab="",las=1,
+	cex.axis=1.5,ylim=c(-4,12),xlim=c(-3,3))
+abline(h=0,lty=3)
+abline(v=0,lty=3)
+points(fp$sites[fw.fem.rows,],
+	col=alpha(fem.colors[fw.fem.rows],0.5),cex=ptCex,
+	pch=fem.pch[fw.fem.rows])
+mtext(paste0("PC1 (",round(fem.pheno.pc[1],2),"%)"),1,line=2)
+mtext(paste0("PC2 (",round(fem.pheno.pc[2],2),"%)"),2,line=2.5)
+
+
+plot(bp$sites[fw.fem.rows,],type="n",xlab="",ylab="",las=1,
+	cex.axis=1.5,xlim=c(-2,2),ylim=c(-3,1))
+points(bp$sites[fw.fem.rows,],
+	pch=fem.pch[fw.fem.rows],col=alpha(fem.colors[fw.fem.rows],0.5),
+	cex=ptCex)
+mtext(paste0("PC1 (",round(band.pc[1],2),"%)"),1,line=2)
+mtext(paste0("PC2 (",round(band.pc[2],2),"%)"),2,line=2.5)
+abline(h=0,lty=3)
+abline(v=0,lty=3)
+
+par(fig = c(0, 1, 0, 1), oma=c(2,1,0,1), 
+    mar = c(0, 0, 0, 0), new = TRUE, cex=1)
+plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
+legend("top", legend=ppi$Pop, 
+	col=as.character(ppi$col),
+	pt.cex=ptCex,bty='n',pch=ppi$pch, ncol=8)
 ```
 
 
 
-# Introduction {-}
+## Minor allele frequencies
 
-This document contains additional data and figures that support our genetic analyses.
-
-
-# Population Structure {-}
-
-## Admixture scree plots {-}
-
-
-```{r}
-admixK<-read.delim("admixture/K_CVs.txt",header = FALSE)
-admixK$K<-as.numeric(gsub(".*\\(K=(\\d+)\\).*","\\1",admixK$V1))
-admixK$CV<-as.numeric(gsub("^.*\\: (\\d+\\.\\d+)$","\\1",admixK$V1))
-
-admixK<-admixK[order(admixK$K),]
-
-plot(admixK$K,admixK$CV,pch=19,type = "b",lty=1,xlab = "K",ylab="CV",las=1,lwd=2)
+```{r calcAFS, eval=FALSE}
+locus.info<-colnames(ful_vcf[1:9])
+fw.afs<-lapply(fw.list,function(pop,vcf){
+  this.vcf<-cbind(vcf[,locus.info],vcf[,grep(pop,colnames(vcf))])
+  this.afs<-do.call(rbind,apply(this.vcf,1,calc.afs.vcf))
+}, vcf=ful_vcf)
+names(fw.afs)<-c("TXFW","LAFW","ALFW","FLFW")
+sw.afs<-lapply(sw.list,function(pop,vcf){
+  this.vcf<-cbind(vcf[,locus.info],vcf[,grep(pop,colnames(vcf))])
+  this.afs<-do.call(rbind,apply(this.vcf,1,calc.afs.vcf))
+},vcf=ful_vcf)
+names(sw.afs)<-sw.list
+all.afs<-c(fw.afs,sw.afs)
+minAF<-lapply(all.afs,function(x){
+  mins<-apply(x,1,function(row){ return(min(row[4],row[6])) } )
+  return(as.numeric(mins))
+})
+names(minAF)<-names(all.afs)
 
 ```
 
+```{r minorAFplot,fig.height=10,fig.width=8,dpi=300,fig.keep='last', fig.path="../figs/",eval=FALSE}
 
-## PCAdapt  {-}
+par(mfrow=c(4,4),mar=c(2,2,1,0),oma=c(2,3,0.5,0.5))
+for(i in 1:length(pop.labs)){
+  if(pop.labs[i] %in% names(fw.afs)){
+    color<-"cornflowerblue"
+  }else{
+    color<-"black"
+  }
+  hist(minAF[[pop.labs[i]]],ylab="",xlab="",main="",
+       xlim=c(0,0.5),ylim=c(0,10000),axes=F,col=color,
+       breaks=seq(0,0.5,0.05))
+  axis(1,pos=0,cex.axis=2)
+  if(i %in% c(1,5,9,13)){
+    axis(2,pos=0,las=1,cex.axis=2,labels = seq(0,10,2),at=seq(0,10000,2000))
+  }else{
+    axis(2,pos=0,las=1,labels = FALSE,cex.axis=2)
+    }
+  mtext(pop.labs[i],3,col=color,cex=2*0.75,line=-1)
+}
+mtext("Minor Allele Frequency",1,outer=TRUE,cex=1.75*0.75)
+mtext("Number of SNPs (x 1000)",2,outer = TRUE,cex=1.75*0.75,line=1)
+
+```
+
+![Minor allele frequency distributions of the full dataset (7433 SNPs) for each population. Freshwater populations are plotted in blue. The histograms show the number of SNPs with various frequencies of the reference alleles. All populations are skewed towards having small minor allele frequencies, but the TXFW and FLFW have additional reductions in genetic variation.](../figs/minorAFplot-1.png)
 
 
-````{r pcadapt_choose}
+# Population structure of all 16 populations  {-}
+
+## FSTs
+
+This will calculate the pairwise $F_{ST}$s (but it's slow)
+
+```{r pairwiseFstsCalc, eval=FALSE}
+pop_map<-read.delim("../fwsw_pops_map.txt",header = FALSE,stringsAsFactors = FALSE)
+fst_mat<-matrix(NA,
+                nrow=length(unique(pop_map$V2)),ncol=length(unique(pop_map$V2)),
+                dimnames = list(pop.list,pop.list))
+vcf<-parse.vcf("filter_rad_20191014@1654/14_filtered/radiator_data_20191014@1710.vcf")
+colnames(vcf)<-gsub("\\-","_",colnames(vcf)) # fix individual names
+# loop through each population pair
+for(i in 1:(nrow(fst_mat)-1)){
+  for(j in (i+1):ncol(fst_mat)){
+    
+    if(rownames(fst_mat)[i] != colnames(fst_mat)[j]){ # sanity check
+      map1<-pop_map[pop_map[,2]==rownames(fst_mat)[i],]
+      map2<-pop_map[pop_map[,2]==colnames(fst_mat)[j],]
+      pwfsts<-gwsca(vcf,colnames(vcf)[1:9],map1[,1],map2[,1])
+      fst_mat[i,j]<-mean(pwfsts$Fst,na.rm = TRUE)
+    }
+  }
+}
+colnames(fst_mat)<-rownames(fst_mat)<-pop.labs
+write.table(fst_mat,"pairwise_fsts_full.txt",sep='\t',
+            col.names = TRUE,row.names=TRUE,quote=FALSE)
+```
+
+```{r readStacksFstSumm}
+full_fsts<-read.delim("stacks/populations_whitelist/batch_2.fst_summary.tsv",
+                      row.names = 1)
+full_fsts<-rbind(full_fsts,TXSP=rep(NA,ncol(full_fsts))) #add the final row
+Tfull_fsts<-t(full_fsts)
+full_fsts[lower.tri(full_fsts)]<-Tfull_fsts[lower.tri(Tfull_fsts)] # now it's symmetric
+full_fsts<-full_fsts[pop.list,pop.list]
+colnames(full_fsts)<-rownames(full_fsts)<-pop.labs
+fst_mat<-as.matrix(full_fsts)
+```
+
+
+```{r fst_heatmaps,fig.width=8,fig.height=5,eval=FALSE}
+library(lattice); library(grid); library(RColorBrewer)
+poporder<-read.delim("treemix/poporder")
+colors<-poporder$colors
+poporder<-poporder$poporder
+
+nr<-treemix.cov.plot("treemix/fwsw_k100b",poporder)
+dimnames(nr)[[1]]<-dimnames(nr)[[2]]<-pop.labs
+# colors
+colors<-c("black","darkgrey","grey","lightgrey","cornflowerblue")
+pal<-colorRampPalette(colors)
+ncol=80
+cols<-pal(ncol)
+rev.colors<-c("cornflowerblue","lightgrey","grey","darkgrey","black")
+rev.pal<-colorRampPalette(rev.colors)
+rev.cols<-rev.pal(ncol)
+
+hm.height<-list(x=2,units="in")#2.2/3.8
+hm.width<-list(x=2.4,units="in")#2.4 in RStudio/3.9
+
+heatmaps.name<-"../figs/fst_heatmaps.png"
+
+png(heatmaps.name,height=5,width=8,units="in",res=300)
+
+fst.lv<-levelplot(as.matrix(fst_mat),col.regions=cols,alpha.regions=0.7,
+                  scales = list(x=list(rot=90),tck = 0),xlab="",ylab="")
+print(fst.lv,split=c(1,1,2,1),more=TRUE,panel.width=hm.width,
+      panel.height=hm.height,cex=2)
+trellis.focus("legend", side="right", clipp.off=TRUE, highlight=FALSE)
+grid.text(expression(italic(F)[ST]), 0.2, 0, hjust=0.5, vjust=1.2,gp=gpar(cex=0.75))
+trellis.unfocus()
+
+nr.lv<-levelplot(nr,col.regions=cols,alpha.regions=0.7,
+                 scales = list(x=list(rot=90),tck = 0),xlab="",ylab="")
+print(nr.lv,split=c(2,1,2,1),more=FALSE,newpage=FALSE,panel.width=hm.width,
+      panel.height=hm.height,cex=2)
+trellis.focus("legend", side="right", clipp.off=TRUE, highlight=FALSE)
+grid.text("Treemix", 0.2, 0, hjust=0.5, vjust=1.2,gp=gpar(cex=0.75))
+trellis.unfocus()
+
+dev.off()
+
+```
+
+![Heatmaps depicting population structure. In all graphs, dark colors depict similarity between populations and light grey and blue depict populations with high differentiation. The left panel shows pairwise FST values calculated by the populations module in Stacks (Catchen et al. 2013). The right panel shows covariances between populations as calculated by TreeMix (Pickrell and Pritchard 2012).](../figs/fst_heatmaps.png)
+
+
+## PCAdapt {-}
+
+
+```{r loadPCAdapt}
 library(pcadapt)
-filename<-read.pcadapt("filter_rad_20191014@1654/14_filtered/radiator_data_20191014@1710.vcf",type="vcf")
+```
+
+````{r pcadapt_choose,fig.cap="Scree plot from PCAdapt, specifying keeping 20 PC axes."}
+filename<-read.pcadapt("filter_rad_20191014@1654/14_filtered/radiator_data_20191014@1710.vcf",
+                       type="vcf")
 x<-pcadapt(filename, K=20)
 plot(x,option="screeplot") #K=7
 ```
 
-
-```{r pcadapt_pc1thru6, fig.height=8,fig.width=10.5,dev=c('png', 'pdf'),fig.dim="in"}
-pa<-readRDS("fwsw_all_pcadapt.RDS")
-pap<-read.delim("pcadapt_colp.txt",header = TRUE)
+```{r pcadapt_analyze}
+pa<-pcadapt(filename,K=7)
+saveRDS(pa,"fwsw_all_pcadapt.RDS")
 pa.props<-round((pa$singular.values/sum(pa$singular.values))*100,2)
+kable(pa.props,caption="Proportion of variation explained by all 7 of the retained PC axes in PCAdapt")
+```
+```{r pcadaptSummarize}
+ind_dat<-read.table(
+  "filter_rad_20191014@1654/14_filtered/individuals.qc.stats_20191014@1654.tsv",
+  header=T, stringsAsFactors = F)
+pops<-ind_dat$STRATA	
+grp<-pops
+grp[grp=="TXFW" | grp=="LAFW" | grp=="ALFW" | grp=="FLLG"]<-"freshwater"
+grp[grp!="freshwater"]<-"saltwater"
+
+#colors
+pap<-data.frame(Pop=pops,cols=pops,pch=pops,grp=grp,stringsAsFactors = F)
+pap$Pop[pap$Pop == "FLLG"]<-"FLFW"
+for(i in 1:nrow(pap)){
+  pap[i,"cols"]<-as.character(ppi[ppi$Pop %in% pap[i,"Pop"],"cols"])
+}
+for(i in 1:nrow(pap)){
+  pap[i,"pch"]<-as.numeric(ppi[ppi$Pop %in% pap[i,"Pop"],"pch"])
+}
+write.table(pap,"pcadapt_colp.txt",col.names=TRUE,sep='\t',quote=F)
+
+```
+
+We can also visualize the first 6 retained axes, which make up `r sum(pa.props[1:6])*100`% of the variation. 
+
+```{r plot_pcadapt_initial, fig.height=8,fig.width=10.5,dev='png',fig.dim="in",fig.cap="Principal components analysis of genotypes in S. scovelli reveals population structure due to geographic distance and habitat type. The top set of panels show the results of the PCA with all 16 populations, color-coded by populations and point shape. The bottom set of panels show the same PCA results, but with different x- and y-axis scaling and without the saltwater populations plotted, to facilitate visualizing the differences among saltwater populations. The left panels show the first and second PC axes, whcih together account for 53.5% of the varation, the middle panels show the 3rd and 4th PC axes (another 26.8% of the variation), and the right panels the fifth and sixth axes (another % of variation)."}
+
 #plot
 par(mfrow=c(2,3),oma=c(2,2,2,2),mar=c(2,2,2,2))
 plot(pa$scores[,1],pa$scores[,2],col=alpha(pap$cols,0.5),bg=alpha(pap$cols,0.75),
      pch=as.numeric(pap$pch),	cex=1.5)
 mtext(paste("PC1 (",pa.props[1],"%)",sep=""),1,line = 2,cex=0.75)
 mtext(paste("PC2 (",pa.props[2],"%)",sep=""),2,line = 2,cex=0.75)
-plot(pa$scores[,1],pa$scores[,3],col=alpha(pap$cols,0.5),bg=alpha(pap$cols,0.75),pch=as.numeric(pap$pch),
-	cex=1.5)
-mtext(paste("PC1 (",pa.props[1],"%)",sep=""),1,line = 2,cex=0.75)
-mtext(paste("PC3 (",pa.props[3],"%)",sep=""),2,line = 2,cex=0.75)
-plot(pa$scores[,1],pa$scores[,4],col=alpha(pap$cols,0.5),bg=alpha(pap$cols,0.75),pch=as.numeric(pap$pch),
-	cex=1.5)
-mtext(paste("PC1 (",pa.props[1],"%)",sep=""),1,line = 2,cex=0.75)
+plot(pa$scores[,3],pa$scores[,4],col=alpha(pap$cols,0.5),
+     bg=alpha(pap$cols,0.75),pch=as.numeric(pap$pch),cex=1.5)
+mtext(paste("PC3 (",pa.props[3],"%)",sep=""),1,line = 2,cex=0.75)
 mtext(paste("PC4 (",pa.props[4],"%)",sep=""),2,line = 2,cex=0.75)
-plot(pa$scores[pap$grp=="freshwater",1],pa$scores[pap$grp=="freshwater",2],
+plot(pa$scores[,5],pa$scores[,6],col=alpha(pap$cols,0.5),
+     bg=alpha(pap$cols,0.75),pch=as.numeric(pap$pch),cex=1.5)
+mtext(paste("PC5 (",pa.props[5],"%)",sep=""),1,line = 2,cex=0.75)
+mtext(paste("PC6 (",pa.props[6],"%)",sep=""),2,line = 2,cex=0.75)
+plot(pa$scores[grp=="freshwater",1],pa$scores[grp=="freshwater",2],
      col=alpha(pap$cols[pap$grp=="freshwater"],0.5),
-     bg=alpha(pap$cols[pap$grp=="freshwater"],0.75),pch=as.numeric(pap$pch[pap$grp=="freshwater"]),
+     bg=alpha(pap$cols[pap$grp=="freshwater"],0.75),
+     pch=as.numeric(pap$pch[pap$grp=="freshwater"]),
 	cex=1.5)
 mtext(paste("PC1 (",pa.props[1],"%)",sep=""),1,line = 2,cex=0.75)
 mtext(paste("PC2 (",pa.props[2],"%)",sep=""),2,line = 2,cex=0.75)
-plot(pa$scores[pap$grp=="freshwater",1],pa$scores[pap$grp=="freshwater",3],
+plot(pa$scores[grp=="freshwater",3],pa$scores[grp=="freshwater",4],
      col=alpha(pap$cols[pap$grp=="freshwater"],0.5),
-     bg=alpha(pap$cols[pap$grp=="freshwater"],0.75),pch=as.numeric(pap$pch[pap$grp=="freshwater"]),
+     bg=alpha(pap$cols[pap$grp=="freshwater"],0.75),
+     pch=as.numeric(pap$pch[pap$grp=="freshwater"]),
 	cex=1.5)
-mtext(paste("PC1 (",pa.props[1],"%)",sep=""),1,line = 2,cex=0.75)
-mtext(paste("PC3 (",pa.props[3],"%)",sep=""),2,line = 2,cex=0.75)
-plot(pa$scores[pap$grp=="freshwater",1],pa$scores[pap$grp=="freshwater",4],
-     col=alpha(pap$cols[pap$grp=="freshwater"],0.5),
-     bg=alpha(pap$cols[pap$grp=="freshwater"],0.75),pch=as.numeric(pap$pch[pap$grp=="freshwater"]),
-	cex=1.5)
-mtext(paste("PC1 (",pa.props[1],"%)",sep=""),1,line = 2,cex=0.75)
+mtext(paste("PC3 (",pa.props[3],"%)",sep=""),1,line = 2,cex=0.75)
 mtext(paste("PC4 (",pa.props[4],"%)",sep=""),2,line = 2,cex=0.75)
+plot(pa$scores[grp=="freshwater",5],pa$scores[grp=="freshwater",6],
+     col=alpha(pap$cols[pap$grp=="freshwater"],0.5),
+     bg=alpha(pap$cols[pap$grp=="freshwater"],0.75),
+     pch=as.numeric(pap$pch[pap$grp=="freshwater"]),
+	cex=1.5)
+mtext(paste("PC5 (",pa.props[5],"%)",sep=""),1,line = 2,cex=0.75)
+mtext(paste("PC6 (",pa.props[6],"%)",sep=""),2,line = 2,cex=0.75)
 
 par(fig = c(0, 1, 0, 1), oma=c(2,1,0,1), mar = c(0, 0, 0, 0), new = TRUE,
 	cex=1)
@@ -158,11 +518,104 @@ legend("top", legend=ppi$Pop, pch=as.numeric(ppi$pch), pt.cex=1.5,cex=0.85,
 ```
 
 
-## Treemix extras {-}
+
+
+## Admixture scree plots {-}
+
+
+```{r admixScree,fig.cap="Admixture screeplot for K=1 through K=16. The coefficient of variation (CV) is shown on the y-axis."}
+admixK<-read.delim("admixture/K_CVs.txt",header = FALSE)
+admixK$K<-as.numeric(gsub(".*\\(K=(\\d+)\\).*","\\1",admixK$V1))
+admixK$CV<-as.numeric(gsub("^.*\\: (\\d+\\.\\d+)$","\\1",admixK$V1))
+
+admixK<-admixK[order(admixK$K),]
+
+plot(admixK$K,admixK$CV,pch=19,type = "b",lty=1,xlab = "K",ylab="CV",las=1,lwd=2)
+
+```
+
+Looks like $K=5$ or $K=7$ are the best, let's look at all of the $K=2$ through $K=7$.
+
+```{r admixSetup}
+library(RColorBrewer)
+famfile<-"admixture/fwsw_all_filt.fam"
+
+poporderFile<-"treemix/poplist"
+poporderDF<-read.table(poporderFile,col.names = c("Pop"),stringsAsFactors = F)
+poporderDF$orderNum<-1:nrow(poporderDF)
+```
+
+```{r plotAdmixFxn}
+admixPlotting<-function(qfile,K,famfile="admixture/fwsw_all_filt.fam",
+                        poporder=poporderDF){
+  # read files in 
+  famTable<- read.table(famfile, col.names = 
+                        c("Pop","Ind","Father","Mother","Sex","phenotype"),
+                      stringsAsFactors = F)[1:2]
+
+  qtbl<-read.table(qfile,stringsAsFactors = F)
+  
+  # create useful tables
+  mergedAdmixtureTable <- cbind(qtbl, famTable)
+  mergedAdmixTabOrderNs <- merge(mergedAdmixtureTable,poporder,by="Pop")
+  ordered <- mergedAdmixTabOrderNs[order(mergedAdmixTabOrderNs$orderNum),]
+  
+  plotting.structure(ordered[,1:(ncol(ordered)-2)],k = K,
+                     pop.order = poporder$Pop,make.file = FALSE)
+  admix<-ordered[,1:(ncol(ordered)-2)]
+  return(admix)
+}
+```
+
+```{r admix_K2,fig.height=2,fig.width=8,fig.cap="Admixture plot for K=2. The colors represent different genetic populations."}
+admixK2<-admixPlotting("admixture/fwsw_all_filt.2.Q",2)
+```
+
+```{r admix_K3,fig.height=2,fig.width=8,fig.cap="Admixture plot for K=3. The colors represent different genetic populations."}
+admixK3<-admixPlotting("admixture/fwsw_all_filt.3.Q",3)
+```
+```{r admix_K4,fig.height=2,fig.width=8,fig.cap="Admixture plot for K=4. The colors represent different genetic populations."}
+admixK4<-admixPlotting("admixture/fwsw_all_filt.4.Q",4)
+```
+
+```{r admix_k5,fig.height=2,fig.width=8,fig.cap="Admixture plot for K=5. The colors represent different genetic populations."}
+admixK5<-admixPlotting("admixture/fwsw_all_filt.5.Q",5)
+write.table(admixK5,"admixture/admixK5.txt",sep = '\t',
+            quote = FALSE,col.names = TRUE,row.names = FALSE)
+```
+
+```{r admixk6,fig.height=2,fig.width=8,fig.cap="Admixture plot for K=6. The colors represent different genetic populations."}
+admixK6<-admixPlotting("admixture/fwsw_all_filt.6.Q",6)
+```
+
+```{r admixk7,fig.height=2,fig.width=8,fig.cap="Admixture plot for K=7. The colors represent different genetic populations."}
+admixK7<-admixPlotting("admixture/fwsw_all_filt.7.Q",7)
+write.table(admixK7,"admixture/admixK7.txt",sep = '\t',quote = FALSE,col.names = TRUE,row.names = FALSE)
+```
+
+
+## Treemix analysis {-}
+
+
+```{r treemixPoporder}
+poporder<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST",
+            "ALFW","FLSG","FLKB","FLFD","FLSI","FLAB",
+            "FLPB","FLHB","FLCC","FLLG")
+colors<-poporder
+colors[colors %in% "FLLG"]<-grp.colors[6]
+colors[colors %in% c("FLPB","FLHB","FLCC")]<-grp.colors[6]
+colors[colors %in% c("FLAB")]<-grp.colors[5]
+colors[colors %in% c("FLSI","FLFD","FLKB","FLSG")]<-grp.colors[3]
+colors[colors %in% c("ALST","ALFW","LAFW")]<-grp.colors[2]
+colors[colors %in% c("TXSP","TXCC","TXFW","TXCB")]<-grp.colors[1]
+write.table(cbind(poporder,colors),"poporder",quote=F,sep='\t')
+```
 
 ### Tree with no migration edges and no root
 
-```{r}
+It's informative to plot the treemix tree that does not have any migration edges added for comparison later.
+
+```{r treemixPrep, results='hide', fig.show='true',fig.cap="The population tree from running Treemix without any migration edges (left) and the resulting residuals (right). No populations were specified as root in this analysis."}
 source("../R/203_treemix_plotting_funcs.R") #I've modified the functions from treemix
 library(lattice); library(grid); library(RColorBrewer)
 poporder<-read.delim("treemix/poporder")
@@ -172,355 +625,215 @@ par(mfrow=c(1,2),oma=c(2,2,2,2),mar=c(2,2,2,2))
 tree<-plot_tree("treemix/fwsw_k100b",plotmig=F,scale=F,mbar=F,plus=0.05)
 mtext("Drift parameter",1,line=2)
 resid<-plot_resid("treemix/fwsw_k100b","treemix/poporder",wcols="rb")
+
 ```
 
-### Residuals for trees with migration edges
+### Tree with FLPB as root
 
-These assume FLPB is the root.
+We ran Treemix assuming the FLPB was the root with 0 through 5 migration edges. We can compare the residuals, trees, and migration edges, with the root-free, no-migration tree included for comparison. 
 
-```{r,fig.width=8,fig.height=7}
-par(mfrow=c(2,3),oma=c(6,4,2,1))
+```{r treemixCovPlots,eval=FALSE,echo=FALSE,fig.cap="The Treemix covariance plots."}
+nr<-treemix.cov.plot("treemix/fwsw_k100b",poporder)
+m0<-treemix.cov.plot("treemix/fwsw_k100bFLPBr",poporder,split=c(1,1,3,2),more=TRUE)
+m1<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm1",poporder,split=c(2,1,3,2),more=TRUE)
+m2<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm2",poporder,split=c(3,1,3,2),more=TRUE)
+m3<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm3",poporder,split=c(1,2,3,2),more=TRUE)
+m4<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm4",poporder,split=c(2,2,3,2),more=TRUE)
+m5<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm5",poporder,split=c(3,2,3,2),more=FALSE)
+```
+
+
+
+```{r TreemixPlotResids, results='hide', fig.show='true',fig.height=7,fig.width=7,fig.cap="The Treemix residual plots. Shown are the tree with no root and no migration edges (top left), the tree with FLPB as root but no migration edges (top center), the tree with FLPB as root and one migration edge (top right), the tree with FLPB as root and two migration edges (middle left), the tree with FLPB as root and three migration edges (middle center), the tree with FLPB as root and four migration edges (middle right), and the tree with FLPB as root and five migration edges (bottom left)."}
+# visualize residuals
+#png("treemix/treemix-residuals_FLPB.png",height=8,width=8,units="in",res=300)
+par(mfrow=c(3,3),mar=c(2,3,1,1),oma=c(1.5,1.5,1,1))
+t0<-plot_resid("treemix/fwsw_k100b",  "treemix/poplist")
 r0<-plot_resid("treemix/fwsw_k100bFLPBr",  "treemix/poplist")
-mtext("m = 0",3)
 r1<-plot_resid("treemix/fwsw_k100bFLPBrm1","treemix/poplist")
-mtext("m = 1",3)
 r2<-plot_resid("treemix/fwsw_k100bFLPBrm2","treemix/poplist")
-mtext("m = 2",3)
 r3<-plot_resid("treemix/fwsw_k100bFLPBrm3","treemix/poplist")
-mtext("m = 3",3)
 r4<-plot_resid("treemix/fwsw_k100bFLPBrm4","treemix/poplist")
-mtext("m = 4",3)
 r5<-plot_resid("treemix/fwsw_k100bFLPBrm5","treemix/poplist")
-mtext("m = 5",3)
+#dev.off()
 ```
 
-### Trees with migration edges
 
-```{r}
-par(mfrow=c(2,3),mar=c(1,1,1,1),oma=c(1,1,1,1))
-t0<-plot_tree("treemix/fwsw_k100bFLPBr",plotmig = F,plus=0.05,scale=T,mbar=T,mig_left = FALSE)
-t1<-plot_tree("treemix/fwsw_k100bFLPBrm1",plus=0.05,scale=F,mbar=T,mig_left = FALSE)
-t2<-plot_tree("treemix/fwsw_k100bFLPBrm2",plus=0.05,scale=F,mbar=T,mig_left = FALSE)
-t3<-plot_tree("treemix/fwsw_k100bFLPBrm3",plus=0.05,scale=F,mbar=T,mig_left = FALSE)
-t4<-plot_tree("treemix/fwsw_k100bFLPBrm4",plus=0.05,scale=F,mbar=T,mig_left = FALSE)
-t5<-plot_tree("treemix/fwsw_k100bFLPBrm5",plus=0.05,scale=F,mbar=T,mig_left = FALSE)
+
+```{r plotTreemixTrees, results='hide', fig.show='true',fig.height=8,fig.cap="The Treemix trees for each model. Shown are the tree with no root and no migration edges (top left), the tree with FLPB as root but no migration edges (top center), the tree with FLPB as root and one migration edge (top right), the tree with FLPB as root and two migration edges (middle left), the tree with FLPB as root and three migration edges (middle center), the tree with FLPB as root and four migration edges (middle right), and the tree with FLPB as root and five migration edges (bottom left). The drift parameters are shown on the x-axis, and the migration weight bar is included in the top center plot."}
+# look at the trees
+#png("treemix/migration_trees_treemix_FLPB.png",height=6,width=11,units="in",res=300)
+par(mfrow=c(3,3),mar=c(1,1,1,1),oma=c(1,1,1,1))
+r0<-plot_tree("treemix/fwsw_k100b",plus=0.05,plotmig = F,scale=T,mbar=F)
+t0<-plot_tree("treemix/fwsw_k100bFLPBr",plotmig = F,plus=0.05,scale=T,mbar=T)
+t1<-plot_tree("treemix/fwsw_k100bFLPBrm1",plus=0.05,scale=F,mbar=F)
+t2<-plot_tree("treemix/fwsw_k100bFLPBrm2",plus=0.05,scale=F,mbar=F)
+t3<-plot_tree("treemix/fwsw_k100bFLPBrm3",plus=0.05,scale=F,mbar=F)
+t4<-plot_tree("treemix/fwsw_k100bFLPBrm4",plus=0.05,scale=F,mbar=F)
+t5<-plot_tree("treemix/fwsw_k100bFLPBrm5",plus=0.05,scale=F,mbar=F)
+#dev.off()
 ```
+```{r migrationPvalues, results='hide', fig.show='true'}
+# Evaluate migration p-values
+nort0<-read.table(gzfile("treemix/fwsw_k100b.treeout.gz"), 
+                  as.is  = T, comment.char = "", quote = "")
+tree0<-read.table(gzfile("treemix/fwsw_k100bFLPBr.treeout.gz"), 
+                  as.is  = T, comment.char = "", quote = "")
+tree1<-read.table(gzfile("treemix/fwsw_k100bFLPBrm1.treeout.gz"), 
+                  as.is  = T, comment.char = "", quote = "",skip=1)
+tree2<-read.table(gzfile("treemix/fwsw_k100bFLPBrm2.treeout.gz"), 
+                  as.is  = T, comment.char = "", quote = "",skip=1)
+tree3<-read.table(gzfile("treemix/fwsw_k100bFLPBrm3.treeout.gz"), 
+                  as.is  = T, comment.char = "", quote = "",skip=1)
+tree4<-read.table(gzfile("treemix/fwsw_k100bFLPBrm4.treeout.gz"), 
+                  as.is  = T, comment.char = "", quote = "",skip=1)
+tree5<-read.table(gzfile("treemix/fwsw_k100bFLPBrm5.treeout.gz"), 
+                  as.is  = T, comment.char = "", quote = "",skip=1)
+```
+```{r TreemixVertices, results='hide', fig.show='true'}
+d <- read.table("treemix/fwsw_k100bFLPBrm3.vertices.gz", 
+                as.is  = T, comment.char = "", quote = "")
+branch.cols<-rep("black",nrow(d))
+branch.cols[d[,2] %in% c("TXFW","ALFW","LAFW","FLLG")]<-"cornflowerblue"
+
+tip.names<-as.vector(d[d[,5] == "TIP",2])
+tip.names<-data.frame(Original=tip.names,Replacement=tip.names,
+                      stringsAsFactors = FALSE)
+tip.names$Replacement[tip.names$Replacement=="FLLG"]<-"FLFW"
+```
+```{r FWSW_treemix_m3_FLPB,fig.height=7,fig.width=7, results='hide', fig.show='true',include=FALSE}
+png("../figs/FWSW_treemix_m3_FLPB.png",height=7,width=7,units="in",res=300)
+t3<-plot_tree("treemix/fwsw_k100bFLPBrm3","poporder",
+              plus=0.05,scale=F,mbar=F,arrow=0.1,tip.order = tip.names)
+ybar<-0.01
+mcols = rev( heat.colors(150) )
+mcols = mcols[50:length(mcols)]
+ymi = ybar+0.15
+yma = ybar+0.35
+l = 0.2
+w = l/100
+xma = max(t3$d$x/20)
+rect( rep(0.15, 100), ymi+(0:99)*w, rep(0.15+xma, 100), ymi+(1:100)*w, 
+      col = mcols, border = mcols)
+text(0.15+xma+0.001, ymi, lab = "0", adj = 0, cex = 0.7)
+text(0.15+xma+0.001, yma, lab = "0.5", adj = 0, cex =0.7)
+text(0.15, yma+0.06, lab = "Migration", adj = 0 , cex = 0.6)
+text(0.15, yma+0.03, lab = "weight", adj = 0 , cex = 0.6)
+dev.off()
+
+```
+
 
 ### Choosing the optimal number of migration edges
 
 To choose the optimal number of migration edges, we used the R package optM [@fitak_optm:_2019].
 
-```{r}
+
+```{r plotOptM,message=FALSE,fig.show='true',fig.cap="Scree plot showing the comparison of Treemix number of migration edges."}
 library(OptM)
 tmOpt<-optM("treemix")
+plot_optM(tmOpt,plot = TRUE)
 ```
-
-```{r,fig.height=8}
-plot_optM(tmOpt)
-```
-
 
 Let's plot the no-migration-edge tree with the two-migration-edge tree, which optM chose as the best fit using the Evanno method.
 
-```{r,fig.height = 4.5,fig.width=8}
+```{r treemixCompare,results='hide'}
+png("../figs/treemix_comparison.png",height = 4.5,width=8,units="in",res=300)
 par(mfrow=c(1,2),mar=c(1,1,1,2),oma=c(1,1,1,2),xpd=TRUE)
 t0<-plot_tree("treemix/fwsw_k100bFLPBr",scale=T,mbar=F,cex = 1.5,
-              lwd=2,mig_left=FALSE,disp=0.0002,xlab=FALSE,scadj=0.05)
+              lwd=2,mig_left=FALSE,disp=0.0002,scadj=0.05)
 t2<-plot_tree("treemix/fwsw_k100bFLPBrm2",scale=T,mbar=T,cex = 1.5,
-              lwd=2,mig_left=FALSE,disp=0.0002,xlab=FALSE,scadj=0.05)
-
+              lwd=2,mig_left=FALSE,disp=0.0002,scadj=0.05)
+dev.off()
 ```
+![The plot of the tree with FLPB as root but no migration edges (left) compared to the tree with FLPB as root and two migration edges. The drift parameter is plottex on the x-axis, and migration edges are colored based on the migration weight.](../figs/treemix_comparison.png)
 
 
-# Demographic history {-}
-
-dadi analyses.
-
-# Outliers {-}
-
-## Stacks 
-
-```{r stacks_fsts_swsw}
-swsw.al<-read.delim("stacks/populations_subset75/all_pops_subset75/batch_2.fst_ALST-FLSG.tsv")
-swsw.la<-read.delim("stacks/populations_subset75/all_pops_subset75/batch_2.fst_ALST-TXCB.tsv")
-swsw.tx<-read.delim("stacks/populations_subset75/all_pops_subset75/batch_2.fst_TXCC-TXSP.tsv")
-swsw.fl<-read.delim("stacks/populations_subset75/all_pops_subset75/batch_2.fst_FLCC-FLHB.tsv")
-```
-
-```{r assignplotpos}
-assign.plotpos<-function(df, plot.scaffs, bounds, df.chrom="Chrom", df.bp="BP"){
-  colnames(bounds)<-c("Chrom","End")
-  new.dat<-data.frame(stringsAsFactors = F)
-  last.max<-0
-  for(i in 1:length(plot.scaffs)){
-    #pull out the data for this scaffold
-    if(nrow(bounds[bounds$Chrom %in% plot.scaffs[i],])>0){ #sanity check
-      chrom.dat<-df[df[[df.chrom]] %in% plot.scaffs[i],]
-      if(nrow(chrom.dat)>0){
-        chrom.dat$plot.pos<-as.numeric(as.character(chrom.dat[[df.bp]]))+last.max
-        new.dat<-rbind(new.dat,chrom.dat)
-        #last.max<-max(chrom.dat$plot.pos)+
-        #               as.numeric(scaffold.widths[scaffold.widths[,1] %in% scaffs.to.plot[i],2])
-      }
-      last.max<-last.max+
-        as.numeric(bounds[bounds$Chrom %in% plot.scaffs[i],2])
-    }
-  }
-  #make sure everything is the correct class
-  new.dat$plot.pos<-as.numeric(as.character(new.dat$plot.pos))
-  return(new.dat)
-}
-```
-```{r perlglines}
-perlg.add.lines<-function(fwsw.plot,lgs,width=NULL,lwds=4,color="cornflowerblue"){
+### Threepop and fourpop analysis
  
-  for(i in 1:length(lgs)){
-    this.df<-fwsw.plot[fwsw.plot$Chr %in% lgs[i],]
-    if(is.null(width)){
-      width<-(nrow(this.df)*0.15)
-    }
-    this.smooth<-do.call("rbind",lapply(seq(1,nrow(this.df),width/5),sliding.avg,
-                                        dat=data.frame(Pos=this.df$plot.pos,
-                                                       Fst=this.df$Corrected.AMOVA.Fst),
-                                        width=width))
-    points(this.smooth,col=color,type="l",lwd=lwds)
-  }
-}
-```
+We can take a closer look at the two migration edges that are in the best Treemix model using threepop and fourpop analyses. In the threepop analysis, significantly negative f3 statistics mean that the first pop in the list (A in A;B,C) is admixed. Therefore, with the threepop analysis we want to look for the tree (A;B,C) where A corresponds to the end of an arrow and (B,C) corresponds to where an arrow begins. In the fourpop analysis, a significantly non-zero value indicates gene flow in the tree.
 
+```{r readf3f4}
+threepop<-data.frame(do.call(rbind,
+                             strsplit(grep(
+                               ";",readLines("treemix/fwsw_threepop.txt"),
+                               value = TRUE),' ')))
+colnames(threepop)<-c("pops","f3_stat","f3_se","f3_z")
+threepop$f3_p<-pnorm(-abs(as.numeric(as.character(threepop$f3_z)))) # one sided
 
-```{r plotmultiplelgs}
-plot_multiple_LGs<-function(list_fsts,fst_name,chr_name,bp_name,lgs,plot_labs,pt_cols=NULL,plot_scaffs=NULL,addSmooth=TRUE,smoothFst="Smoothed.Fst",smoothcol="cornflowerblue",ncol=2,...){
-  nrow<-length(list_fsts)/ncol
-  
-  # check the variables
-  if(length(list_fsts)>1){
-    if(length(fst_name)==1){
-      fst_names<-rep(list(fst_name),length(list_fsts))
-    }else if(length(list_fsts)==length(fst_name)){
-      fst_names<-fst_name
-    }else{
-      print("ERROR: invalid fst_name")
-      return(NULL)
-    }
-    if(length(chr_name)==1){
-      chr_names<-rep(list(chr_name),length(list_fsts))
-    }else if(length(list_fsts)==length(chr_name)){
-      chr_names<-chr_name
-    }else{
-      print("ERROR: invalid chr_name")
-      return(NULL)
-    }
-    if(length(bp_name)==1){
-      bp_names<-rep(list(bp_name),length(list_fsts))
-    }else if(length(list_fsts)==length(bp_name)){
-      bp_names<-bp_name
-    }else{
-      print("ERROR: invalid bp_name")
-      return(NULL)
-    }
-    if(length(smoothFst)==1){
-      smoothFsts<-rep(list(smoothFst),length(list_fsts))
-    }else if(length(list_fsts)==length(smoothFst)){
-      smoothFsts<-smoothFst
-    }else{
-      print("ERROR: invalid smoothFst")
-      return(NULL)
-    }
-    if(!is.null(pt_cols)){ #if it's not null, then need to check it's a list
-      if(length(pt_cols)==1){
-        pch_cols<-rep(list(pt_cols),length(list_fsts))
-      }else if(length(list_fsts)==length(pt_cols)){
-        pch_cols<-pt_cols
-      }else{
-        print("WARNING: invalid pt_cols, using defaults")
-        pch_cols<-c("darkgrey","lightgrey")
-      }
-    }
-  }
-  if(length(plot_labs) != length(list_fsts) | is.null(plot_labs)){
-    print("WARNING: invalid plot labels (plot_labs). Omitting plot labels")
-    plot_labs<-rep(list(""),length(list_fsts))
-  }
-  
-  # aggregate data
-  all_chr<-data.frame(Chr=unlist(lapply(list_fsts,function(x){ as.character(x[,chr_name])})),
-                      BP=unlist(lapply(list_fsts,function(x){ as.character(x[,bp_name])})),stringsAsFactors = F)
-  bounds<-tapply(as.numeric(as.character(all_chr$BP)), all_chr$Chr,max)
-  bounds<-data.frame(Chrom=dimnames(bounds),End=bounds)
-  colnames(bounds)<-c("Chrom","End")
-  if(is.null(plot_scaffs)){
-    plot_scaffs<-levels(bounds$Chr)
-    plot_scaffs[1:22]<-lgs
-  }
-  bounds<-bounds[match(plot_scaffs,bounds$Chrom),]
-  
-  #Plot
-  if(nrow*ncol < length(list_fsts)) nrow<-nrow+1
-  par(mfrow=c(nrow,ncol),mar=c(3,3,2,2),oma=c(2,2,2,2))
-  fsts<-mapply(function(f, fst,bp,chr,cols, plot_lab,smF,plot_scaffs,bounds,smoothcol,...){
-
-    fst<-fst.plot(f,fst.name = fst, bp.name = bp,chrom.name = chr, 
-                    scaffs.to.plot=plot_scaffs, scaffold.widths = bounds,
-                    pt.cols = cols,...) #pch=19,y.lim = c(0,1),pt.cex=1,axis.size = 1
-    
-    if(addSmooth==TRUE) points(fst$plot.pos,fst[,smF],col=smoothcol,type="l") 
-    
-    clip(0,max(fst$plot.pos),0,1)
-    
-    mtext(plot_lab,2,cex=0.75)#,line=-1)
-    labs<-tapply(fst$plot.pos,fst[,chr],median)
-    text(x=labs[lgs],y=-0.1,labels=lgn,xpd=TRUE)
-    
-    return(fst)
-  },f=list_fsts,fst=fst_names,bp=bp_names,chr=chr_names,cols=pch_cols,plot_lab=plot_labs,smF=smoothFsts,MoreArgs = list(plot_scaffs=plot_scaffs,bounds=bounds, smoothcol=smoothcol,...))
-  return(fsts)
-}
-```
-```{r plot_stacks_fsts_swsw}
-fst_dat<-list(swsw.al,swsw.la,swsw.tx,swsw.fl)
-fsts<-plot_multiple_LGs(list_fsts = fst_dat,fst_name = "Corrected.AMOVA.Fst",bp_name="BP",chr_name="Chr",
-                        lgs=lgs,plot_labs=list("ALST vs FLSG","ALST vs TXCC","TXSP vs TXCC","FLHB vs FLCC"),
-                        pt_cols = list(c(grp.colors[3],grp.colors[2]),c(grp.colors[2],grp.colors[3]),
-                                       c(grp.colors[1],grp.colors[2]),c(grp.colors[6],grp.colors[5])),
-                        ncol=1,addSmooth = FALSE,pch=19,y.lim = c(0,1),pt.cex=1,axis.size = 1)
-```
-
-So this generated a plot for each pairwise comparison. We could look for shared outliers and see if we can find anything.
-
-```{r get_stacks_sig_swsw}
-tx.sig<-swsw.tx[swsw.tx$Fisher.s.P<0.01,"Locus.ID"]
-la.sig<-swsw.la[swsw.la$Fisher.s.P<0.01,"Locus.ID"]
-al.sig<-swsw.al[swsw.al$Fisher.s.P<0.01,"Locus.ID"]
-fl.sig<-swsw.fl[swsw.fl$Fisher.s.P<0.01,"Locus.ID"]
-all.shared<-fl.sig[fl.sig %in% la.sig & fl.sig %in% al.sig & fl.sig %in% tx.sig]
-```
-
-There are `r length(unique(all.shared))` outliers (as determined by Fisher's P from stacks < 0.01).
-
-These results can be compared to pairwise freshwater-saltwater comparisons
-
-```{r stacks_fsts}
-fwsw.al<-read.delim("stacks/populations_subset75/batch_2.fst_ALFW-ALST.tsv")
-fwsw.la<-read.delim("stacks/populations_subset75/batch_2.fst_ALST-LAFW.tsv")
-fwsw.tx<-read.delim("stacks/populations_subset75/batch_2.fst_TXCC-TXFW.tsv")
-fwsw.fl<-read.delim("stacks/populations_subset75/batch_2.fst_FLCC-FLFW.tsv")
-```
-
-```{r plot_stacks_fsts}
-fst_dat<-list(fwsw.al,fwsw.la,fwsw.tx,fwsw.fl)
-fsts<-plot_multiple_LGs(list_fsts = fst_dat,fst_name = "Corrected.AMOVA.Fst",bp_name="BP",chr_name="Chr",
-                        lgs=lgs,plot_labs=list("ALFW vs ALST","ALST vs LAFW","TXFW vs TXCC","FLFW vs FLCC"),
-                        pt_cols = list(c(grp.colors[3],grp.colors[2]),c(grp.colors[2],grp.colors[3]),
-                                       c(grp.colors[1],grp.colors[2]),c(grp.colors[6],grp.colors[5])),
-                        ncol=1,addSmooth = FALSE,pch=19,y.lim = c(0,1),pt.cex=1,axis.size = 1)
-```
-```{r get_stacks_sig}
-tx.sig<-fwsw.tx[fwsw.tx$Fisher.s.P<0.01,"Locus.ID"]
-la.sig<-fwsw.la[fwsw.la$Fisher.s.P<0.01,"Locus.ID"]
-al.sig<-fwsw.al[fwsw.al$Fisher.s.P<0.01,"Locus.ID"]
-fl.sig<-fwsw.fl[fwsw.fl$Fisher.s.P<0.01,"Locus.ID"]
-all.shared<-fl.sig[fl.sig %in% la.sig & fl.sig %in% al.sig & fl.sig %in% tx.sig]
-```
-
-There are `r length(unique(all.shared))` outliers (as determined by Fisher's P from stacks < 0.01) 
-
-
-## PCAdapt
-
-For this analysis, to maintain consistency with the other outlier analyses, I'm using the subestted dataset. So I need to run PCAdapt [@luu_pcadapt:_2017] another time.
-
-
-```{r}
-library(pcadapt)
-#pap<-read.delim("pca_pcadapt.txt",sep=" ")
-#snp_info<-read.delim("subset.map",header=FALSE)
-
-filename<-read.pcadapt("pcadapt_fw/fwsw.pruned.vcf",type="vcf") #need to remove the first line with a # 
-x<-pcadapt(filename, K=20)
-plot(x,option="screeplot")
-```
-
-*K=4* seems like the best choice here to keep values to the left of the straight line. 
-
-```{r}
-# Organize pop info
-vcf<-parse.vcf("pcadapt_fw/fwsw.pruned.vcf")
-pops<-gsub("sample_(\\w{4}).*","\\1",colnames(vcf)[10:ncol(vcf)])	
-grp<-pops
-grp[grp=="TXFW" | grp=="LAFW" | grp=="ALFW" | grp=="FLLG"]<-"freshwater"
-grp[grp!="freshwater"]<-"saltwater"
-```
-
-
-```{r}
-res<-pcadapt(filename,K=4)
-par(mfrow=c(2,2))
-plot(res, option="manhattan")
-plot(res, option="qqplot")
-plot(res, option="stat.distribution")
-plot(res, option="scores",pop=pops)
-```
-
-The vignette recommends displaying the loadings and evaluate if loadings are clustered in single or several genomic regions
-
-```{r}
-par(mfrow = c(2, 2))
-for (i in 1:4)
-  plot(res$loadings[, i], pch = 19, cex = .3, ylab = paste0("Loadings PC", i))
-```
-
-This suggests that loadings are not clustered (assuming these are grouped by space), so we don't need to worry about LD thinning. Now let's look chromosome by chromosome:
-
-```{r}
-par(mfrow=c(6,4),mar=c(3,3,2,1.5))
-l<-lapply(lgs, function(lg,vcf){
-  plot(res$loadings[which(vcf$`#CHROM` %in% lg), 1], pch = 19, cex = .3, xlab = paste0("Position on ", lg), ylab = "Loadings PC 1")
-  mtext(lg,3,outer=FALSE)
-},vcf=vcf)
-```
-
-None of the LGs seem to have huge clusters of outliers so we can move on, lumping them all together.
-
-We need to choose a cutoff for outlier detection. I'll use the qvalue approach, which identifies outliers with a false discovery rate of $\alpha$, which I'm setting here to 0.05.
-
-```{r}
-library(qvalue)
-qval <- qvalue(res$pvalues)$qvalues
-alpha <- 0.05
-outliers <- which(qval < alpha)
-snp_pc<-get.pc(res,outliers) # Get the PCs associated with outliers
-```
-
-We identified `r length(outliers)` outliers with this analysis, which are associated with `r length(unique(snp_pc$PC))` of the 4 clusters. If we look at the distribution of these, though, we see that most are associated with PC 1
-
-```{r}
-summary(as.factor(snp_pc$SNP))
+fourpop<-data.frame(do.call(rbind,
+                            strsplit(grep(";",
+                                          readLines("treemix/fwsw_fourpop_1.txt"),
+                                          value = TRUE),' ')))
+colnames(fourpop)<-c("pops","f4_stat","f4_se","f4_z")
+fourpop$f4_p<-2*pnorm(-abs(as.numeric(as.character(fourpop$f4_z))))
 ```
 
 
 
-## Bayenv
 
+**Edge 1: FLSI/FLAB -> TXFW/TX**
 
-Investigate the environmental data
-
-```{r compareEnvVar}
-env.data<-read.csv("bayenv/env_data_raw.csv",row.names = 1)
-env.data<-rbind(env.data,pop=c(rep("SW",12),rep("FW",4)))
-env.data<-as.data.frame(t(env.data))
-wilcox.test(as.numeric(env.data$temp)~env.data$pop) #ties, but p=0.539
-wilcox.test(as.numeric(env.data$seagrass)~env.data$pop) #ties, but p=0.897
+```{r f3Edge1Old, include=FALSE}
+threepop[grep("FLSI;.*TXFW",threepop$pops),] # use this to see the order that I want
+threepop[threepop$pops=="FLSI;TXFW,FLAB",] 
+# This does not have a negative value so FLSI is not admixed -- but that's not really what's interesting, is it?
 ```
 
-Here are all of the matrices - I randomly chose one of them to analyse.
 
-[!Bayenv matrices]("bayenv/fwsw75_pruned.png")
+```{r f3Edge1}
+kable(threepop[grep("TXFW;.*FLSI",threepop$pops),] )
+```
 
-The rest of the results are in Fig. 3. 
+None of these f3 statistics are zero, so that suggests that TXFW is not admixed with FLSI and other populations. Most interesting would be the trees (TXFW;TXCB,FLSI) and (TXFW,FLSI,FLAB):
 
-## Annotating shared outliers
+```{r f3Edge1Specific}
+kable(threepop[threepop$pops=="TXFW;TXCB,FLSI" | 
+           threepop$pops=="TXFW;FLSI,FLAB",] )
+```
 
-I can do this.
 
-# References
+
+```{r f4Edge1}
+kable(fourpop[grep("TXFW,TXCB;.*FLSI.*",fourpop$pops),] )
+kable(fourpop[fourpop$pops=="TXFW,TXCB;FLSI,FLAB",] )
+as.numeric(as.character(fourpop$f4_stat[fourpop$pops=="TXFW,TXCB;FLSI,FLAB"]))+
+  as.numeric(as.character(fourpop$f4_se[fourpop$pops=="TXFW,TXCB;FLSI,FLAB"]))
+```
+
+The statistic is negative but overlaps with zero, so not indicative of gene flow. 
+
+
+**Edge 2: branch from west FL to others -> FLAB**
+
+```{r f3Edge2}
+kable(threepop[grep("FLAB;.*",threepop$pops),] )
+kable(threepop[threepop$pops=="FLAB;FLPB,FLLG",])
+```
+
+Inspecting this three-population tree (FLAB;FLPB,FLLG) shows that the statistic is positive does not overlap with zero, and none of the FLAB values are negative, suggesting that this migration edge is unlikely to represent admixture. 
+
+```{r f4Edge2}
+kable(fourpop[grep("FLAB,FL.*;.*",fourpop$pops),] )
+kable(fourpop[fourpop$pops=="FLAB,FLCC;FLPB,FLLG",] )
+as.numeric(as.character(fourpop$f4_stat[fourpop$pops=="FLAB,FLCC;FLPB,FLLG"]))+
+  as.numeric(as.character(fourpop$f4_se[fourpop$pops=="FLAB,FLCC;FLPB,FLLG"]))
+```
+
+This is negative but overlaps zero, so is also not indicative of gene flow. 
+
+```{r f4Edge2Contd}
+fourpop$f4_stat<-as.numeric(as.character(fourpop$f4_stat))
+fourpop$f4_se<-as.numeric(as.character(fourpop$f4_se))
+abs(fourpop$f4_stat[grep("FLAB,FL.*;.*",fourpop$pops)])-
+  fourpop$f4_se[grep("FLAB,FL.*;.*",fourpop$pops)]
+```
+
+All of these f4 statistics are very close to zero, which suggests that there is not much evidence for gene flow between these branches.
+
+
+
+
+# References {-}
+
+
