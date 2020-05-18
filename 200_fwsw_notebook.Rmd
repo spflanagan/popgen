@@ -27,6 +27,8 @@ pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 
 I did a bit of an analysis on the annotations -- there seems to be an enrichment of outliers in coding regions, but not in the putative genes that I'd found in my literature search. Still to do: Make the supplements pretty & properly referenced, update results in MS. And of course finishing the dadi runs. 
 
+I knitted the two new supplement docs so hopefully that will help identify what text/captioning/fixing-up needs to happen.
+
 # 18 May 2020
 
 What to do today?
