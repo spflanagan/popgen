@@ -221,10 +221,10 @@ write.csv(tasks,"model_list_dadi.csv",row.names = TRUE,quote=FALSE)
 ## Analyzing dadi output {-}
 
 ```{r dadi_InitialCompare}
-dadi_initialCompare<-function(comparison){
+dadi_initialCompare<-function(comparison,modSel="max"){
   opts<-dadi.modelcomp(path = paste0("dadi_results/",comparison,"/"),
                                pattern="*optimized.*",id=comparison)
-  comp<-modelComparison(opts)
+  comp<-modelComparison(opts,modSel)
   Ns<-tapply(opts$log.likelihood,opts$Model,length)
   plot(as.numeric(opts$log.likelihood)~
               as.factor(opts$Model),las=3,
