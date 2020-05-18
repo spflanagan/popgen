@@ -117,13 +117,23 @@ calc_wAIC<-function(opts){
   return(w)
 }
 
-modelComparison<-function(opts){
+modelComparison<-function(opts,modSel="max"){
   # make sure log likelihood is numeric
   opts$log.likelihood<-as.numeric(as.character(opts$log.likelihood))
   # choose best replicate for each model
-  mod_dat<-do.call(rbind,by(opts,opts$Model,function(modDat){
-    return(modDat[which.max(modDat$log.likelihood),])
-  }))
+  mod_dat<-do.call(rbind,by(opts,opts$Model,function(modDat,modSel){
+    if(tolower(modSel)=="max"){
+      return(modDat[which.max(modDat$log.likelihood),])  
+    } else if(tolower(modSel)=="median"){
+      return(modDat[which(modDat$log.likelihood==
+                            median(modDat$log.likelihood)),])  
+    }else{
+      print("Unknown modSel selection (options are max or median). 
+            Max log likelihood returned.")
+      return(modDat[which.max(modDat$log.likelihood),])  
+    }
+    
+  },modSel=modSel))
   # calc dAIC
   mod_dat$dAIC<-calc_dAIC(mod_dat)
   # calculate dMax
