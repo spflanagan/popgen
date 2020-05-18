@@ -23,6 +23,10 @@ library(knitr)
 pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 ```
 
+# 19 May 2020
+
+I did a bit of an analysis on the annotations -- there seems to be an enrichment of outliers in coding regions, but not in the putative genes that I'd found in my literature search. Still to do: Make the supplements pretty & properly referenced, update results in MS. And of course finishing the dadi runs. 
+
 # 18 May 2020
 
 What to do today?
