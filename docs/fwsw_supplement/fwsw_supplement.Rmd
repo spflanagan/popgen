@@ -424,6 +424,8 @@ library(pcadapt)
 filename<-read.pcadapt("filter_rad_20191014@1654/14_filtered/radiator_data_20191014@1710.vcf",
                        type="vcf")
 x<-pcadapt(filename, K=20)
+```
+```{r pcadapt_scree,fig.cap="Scree plot from PCAdapt, with 20 principal components axes retained."}
 plot(x,option="screeplot") #K=7
 ```
 
