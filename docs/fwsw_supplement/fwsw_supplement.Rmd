@@ -25,7 +25,9 @@ header-includes: >
   \usepackage{lipsum}
   \usepackage{float}
   \floatplacement{figure}{H}
-bibliography: programs.bib
+bibliography: 
+  - programs.bib
+  - RADseq.bib
 output:
   pdf_document:
     toc: true
@@ -43,15 +45,6 @@ documentclass: article
 spacing: singlespacing
 ---
 
-# Overview of the study {-}
-
-The initial analyses are in `200_fwsw_analysis.Rmd` and conducted the analyses on a dataset generated from comparing lumped 'freshwater' and 'saltwater' populations, containing SNPs found in 50% of individuals and with a minor allele frequency of at least 5%. The revised paper will instead focus on two datasets:
-
-1. A dataset with all 16 populations, generated from all pairwise comparisons of populations, containing SNPs found in every population, in 75% of individuals, and with a minor allele frequency of at least 5%.
-
-2. A dataset containing only the 4 freshwater populations (TXFW, LAFW, ALFW, FLFW) and their nearest saltwater populations (TXCC, ALST, FLCC -- note ALST is the nearest neighbor to both ALFW and LAFW). This dataset also contains SNPs found in 75% of individuals with a minor allele frequency of at least 5%. 
-
-This supplement focuses on the analysis of dataset #1, which was used to investigate population structure. 
 
 
 ```{r setup, include=FALSE}
@@ -106,6 +99,24 @@ ppi<-data.frame(Pop=pop.labs,cols = col_vector,
 ppi$pch[grep("FW",ppi$Pop)]<-c(15,16,17,18)
 ```
 
+
+
+# Sequencing library preparation additional methods {-}
+
+DNA was extracted from the frozen tissues of the pipefish using an ethanol-precipitation method with an RNase-A step (Qiagen PureGene). The ensuing DNA samples were evaluated for quality using a Nanodrop spectrophotometer, a Qubit 2.0 Fluorometer (Life Technologies), and by examination of the extracted DNA on a 1% agarose gel.
+
+We then followed published double-digest restriction site associated DNA sequencing protocols. Specifically, we used the single indexing scheme from the single-digest RAD-seq protocols [@bairdRapidSNPDiscovery2008; @millerRapidCosteffectivePolymorphism2007], and the enzymes PstI-HF (New England Biolabs) and MboI (New England Biolabs). We digested 1 $\mu$g of each DNA sample with the two enzymes, and 250ng of each digest was used in the ligation step, when barcodes were added to individual samples. Following the ligation, 96 samples were pooled to form a single library, and we selected for 250-500bp fragments using a 1% agarose gel. Fragments containing the sequencing primers were selected and amplified in four separate PCRs per sequencing library, each with 12 cycles, and those PCRs were pooled. All purification steps were done with AMPure XP beads (Agilent), except for the gel purification following the size selection, in which we used the Zymo Gel purification kit.  For a detailed description of these methods, please see [@flanaganPopulationGenomicsReveals2016]. 
+
+As described in the main manuscript, we then analyzed the resulting RAD loci to create two sets of single nucleotide polymorphisms (SNPs):
+
+1. A dataset with all 16 populations, generated from all pairwise comparisons of populations, containing SNPs found in every population, in 75% of individuals, and with a minor allele frequency of at least 5%.
+
+2. A dataset containing only the 4 freshwater populations (TXFW, LAFW, ALFW, FLFW) and their nearest saltwater populations (TXCC, ALST, FLCC -- note ALST is the nearest neighbor to both ALFW and LAFW). This dataset also contains SNPs found in 75% of individuals with a minor allele frequency of at least 5%. 
+
+This supplement focuses on providing supplementary methods and results of the analysis of dataset #1, which was used to investigate population structure. Supplements 2 and 3 focus on the second dataset.
+
+
+# Analysis of population structure {-}
 
 ## Phenotypic variation
 
