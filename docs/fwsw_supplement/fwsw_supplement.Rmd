@@ -299,6 +299,7 @@ legend("top", legend=ppi$Pop,
 
 
 
+
 ## Minor allele frequencies
 
 ```{r calcAFS, eval=FALSE}
@@ -350,9 +351,6 @@ mtext("Number of SNPs (x 1000)",2,outer = TRUE,cex=1.75*0.75,line=1)
 ![Minor allele frequency distributions of the full dataset (7433 SNPs) for each population. Freshwater populations are plotted in blue. The histograms show the number of SNPs with various frequencies of the reference alleles. All populations are skewed towards having small minor allele frequencies, but the TXFW and FLFW have additional reductions in genetic variation.](../../figs/minorAFplot-1.png)
 
 
-# Population structure of all 16 populations  {-}
-
-## FSTs
 
 This will calculate the pairwise $F_{ST}$s (but it's slow)
 
@@ -379,6 +377,8 @@ colnames(fst_mat)<-rownames(fst_mat)<-pop.labs
 write.table(fst_mat,"pairwise_fsts_full.txt",sep='\t',
             col.names = TRUE,row.names=TRUE,quote=FALSE)
 ```
+## Fst Values
+
 
 ```{r readStacksFstSumm}
 full_fsts<-read.delim("stacks/populations_whitelist/batch_2.fst_summary.tsv",
