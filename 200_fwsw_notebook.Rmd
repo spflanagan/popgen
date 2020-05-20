@@ -23,6 +23,17 @@ library(knitr)
 pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 ```
 
+# 20 May 2020
+
+On rccuser ALFW_TXFW #1 runs are now done. I moved the results to C001KR and tar-zipped them on rccuser. Now there's just FLCC_ALFW, FLCC_TXCC, and FLCC_TXFW still on the first runs on rccuser.
+
+Still each of the population pairs going on abacus are still running at least one combo (ALST_TXFW_12,FLLG_ALFW_13,FLLG_TXCC_13,LAFW_TXCC_13, and TXFW_TXCC_13), but there are only 8 models currently running, so I can start another set. I'll do LAFW_TXFW (468-493), run number 13, which is job 606 on abacus.
+
+I've also cleaned up the supplement document a bit, trying to make the formatting a bit nicer.
+
+In knitting supplement 1 I'm getting a couple of warnings: '!h' float specifier changed to '!ht' and "Float too large for page"...not sure how to fix these.
+
+
 # 19 May 2020
 
 I did a bit of an analysis on the annotations -- there seems to be an enrichment of outliers in coding regions, but not in the putative genes that I'd found in my literature search. Still to do: Make the supplements pretty & properly referenced, update results in MS. And of course finishing the dadi runs. 
