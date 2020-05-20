@@ -793,8 +793,6 @@ kable(fourpop[fourpop$pops=="TXFW,TXCB;FLSI,FLAB",] ,"latex",booktabs=TRUE,
 
 
 
-kable(fourpop[grep("TXFW,TXCB;.*FLSI.*",fourpop$pops),] )
-kable(fourpop[fourpop$pops=="TXFW,TXCB;FLSI,FLAB",] )
 ```{r f3Edge2,fig.pos='H'}
 kable(threepop[grep("FLAB;.*",threepop$pops),],"latex",booktabs=TRUE,
       caption = "Three-population trees with FLAB their f3 statistic, standard error, z-score, and p-value.") %>%
@@ -811,10 +809,6 @@ kable(threepop[threepop$pops=="FLAB;FLPB,FLLG",],"latex",booktabs=TRUE,
 
 **Edge 2: branch from west FL to others -> FLAB**
 
-```{r f3Edge2}
-kable(threepop[grep("FLAB;.*",threepop$pops),] )
-kable(threepop[threepop$pops=="FLAB;FLPB,FLLG",])
-```
 
 Inspecting this three-population tree (FLAB;FLPB,FLLG) shows that the statistic is positive does not overlap with zero, and none of the FLAB values are negative, suggesting that this migration edge is unlikely to represent admixture. 
 ```{r f4Edge2,fig.pos='H'}
@@ -822,20 +816,8 @@ kable(fourpop[grep("FLAB,FL.*;.*",fourpop$pops),],"latex",booktabs=TRUE,longtabl
       caption = "Four-population trees with FLAB and one other Florida population and their f4 statistic, standard error, z-score, and p-value." )%>%
   kable_styling(latex_options=c("hold_position","repeat_header"))
 
-```{r f4Edge2}
-kable(fourpop[grep("FLAB,FL.*;.*",fourpop$pops),] )
-kable(fourpop[fourpop$pops=="FLAB,FLCC;FLPB,FLLG",] )
-as.numeric(as.character(fourpop$f4_stat[fourpop$pops=="FLAB,FLCC;FLPB,FLLG"]))+
-  as.numeric(as.character(fourpop$f4_se[fourpop$pops=="FLAB,FLCC;FLPB,FLLG"]))
 ```
 
-This is negative but overlaps zero, so is also not indicative of gene flow. 
-
-```{r f4Edge2Contd}
-fourpop$f4_stat<-as.numeric(as.character(fourpop$f4_stat))
-fourpop$f4_se<-as.numeric(as.character(fourpop$f4_se))
-abs(fourpop$f4_stat[grep("FLAB,FL.*;.*",fourpop$pops)])-
-  fourpop$f4_se[grep("FLAB,FL.*;.*",fourpop$pops)]
 ```{r f4Edge2best,fig.pos='H'}
 kable(fourpop[fourpop$pops=="FLAB,FLCC;FLPB,FLLG",],"latex",booktabs=TRUE,
       caption = "The most relevant four-population tree with TXFW, TXCB, and FLSI and its f4 statistic, standard error, z-score, and p-value.")%>%
