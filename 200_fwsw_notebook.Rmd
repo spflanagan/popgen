@@ -23,6 +23,19 @@ library(knitr)
 pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 ```
 
+
+# 21 May 2020
+
+Still to do:
+- why is kableExtra's longtable not working properly?
+- why are some tables kept in place but others are not?
+- why are affiliations not properly showing up, and why are there no commas between author names?
+- Referencing tables and figures
+- adding context to the figures (i.e., text)
+- improving the discussion of f3 and f4 analysis for treemix
+- bootstrapping of treemix?
+
+
 # 20 May 2020
 
 On rccuser ALFW_TXFW #1 runs are now done. I moved the results to C001KR and tar-zipped them on rccuser. Now there's just FLCC_ALFW, FLCC_TXCC, and FLCC_TXFW still on the first runs on rccuser.
