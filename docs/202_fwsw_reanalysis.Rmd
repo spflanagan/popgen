@@ -3,20 +3,20 @@ title: Supplemental Material for "Multiple colonizations of freshwater by the Gu
 preprint: false
 author: 
   - name: Sarah P. Flanagan
-    affiliation: 1
+    affilnum: 1
     corresponding: true
     email: spflanagan.phd@gmail.com
   - name: Emily Rose
-    affiliation: 2
+    affilnum: 2
   - name: Adam Jones
-    affiliation: 3
+    affilnum: 3
 affiliation:
-  - code: 1
-    address: School of Biological Sciences, University of Canterbury, 4800 Private Bag, Christchurch 8140 New Zealand
-  - code: 2
-    address: Department of Biology, The University of Tampa, Tampa, FL 33606 USA
-  - code: 3
-    address: Department of Biological Sciences, University of Idaho, Moscow, ID 83844 USA
+  - affilnum: 1
+    affil: School of Biological Sciences, University of Canterbury, 4800 Private Bag, Christchurch 8140 New Zealand
+  - affilnum: 2
+    affil: Department of Biology, The University of Tampa, Tampa, FL 33606 USA
+  - affilnum: 3
+    affil: Department of Biological Sciences, University of Idaho, Moscow, ID 83844 USA
 abstract: >
   This document includes supplementary material for the paper. 
   In this document, we walk through the generation of each of the figures in the manuscript, including all of the additional analyses that were used to decide on the final presentation of results.
