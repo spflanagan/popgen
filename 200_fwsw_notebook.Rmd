@@ -26,10 +26,17 @@ pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 
 # 21 May 2020
 
+dadi runs are still plugging along.
+
+In the meantime, I'm working on fixing the supplements. The odd formatting issue I was having with the PCAdapt figure was due to a long figure caption in the chunk label.
+
 Still to do:
 - why is kableExtra's longtable not working properly?
+  - Because I was using it on the wrong table, oops
 - why are some tables kept in place but others are not?
+  - fixed this, use `kable_styling(latex_options="HOLD_position")` instead of `kable_styling(latex_options="hold_position")`
 - why are affiliations not properly showing up, and why are there no commas between author names?
+  - Incorrect yaml formatting!
 - Referencing tables and figures
 - adding context to the figures (i.e., text)
 - improving the discussion of f3 and f4 analysis for treemix
