@@ -1,0 +1,761 @@
+---
+title: Supplemental Material \# 2 for "Multiple colonizations of freshwater by the Gulf pipefish reveal a shared genomic signature of adaptation"
+preprint: false
+author: 
+  - name: Sarah P. Flanagan
+    affilnum: 1
+    corresponding: true
+    email: spflanagan.phd@gmail.com
+  - name: Emily Rose
+    affilnum: 2
+  - name: Adam Jones
+    affilnum: 3
+affiliation:
+  - affilnum: 1
+    affil: School of Biological Sciences, University of Canterbury, 4800 Private Bag, Christchurch 8140 New Zealand
+  - affilnum: 2
+    affil: Department of Biology, The University of Tampa, Tampa, FL 33606 USA
+  - affilnum: 3
+    affil: Department of Biological Sciences, University of Idaho, Moscow, ID 83844 USA
+abstract: >
+  This document includes supplementary material for the paper. 
+  In this document, we provide additional methods and results associated with the identification of outliers and the interpretation of outliers from multiple analyses.
+  These analyses combined to create Figure 2 and Figure 3. 
+header-includes: >
+  \usepackage{lipsum}
+  \usepackage{float}
+  \floatplacement{figure}{H}
+bibliography: programs.bib
+output:
+  pdf_document:
+    toc: true
+    toc_depth: 2
+    fig_caption: yes
+    keep_tex: yes
+    number_sections: no
+    template: manuscript.latex
+  html_document: null
+  word_document: null
+fontsize: 11pt
+capsize: normalsize
+csl: molecular-ecology.csl
+documentclass: article
+spacing: singlespacing
+editor_options: 
+  chunk_output_type: console
+---
+
+# Overview of the study {-}
+
+The initial analyses are in `200_fwsw_analysis.Rmd` and conducted the analyses on a dataset generated from comparing lumped 'freshwater' and 'saltwater' populations, containing SNPs found in 50% of individuals and with a minor allele frequency of at least 5%. The revised paper will instead focus on two datasets:
+
+1. A dataset with all 16 populations, generated from all pairwise comparisons of populations, containing SNPs found in every population, in 75% of individuals, and with a minor allele frequency of at least 5%.
+
+2. A dataset containing only the 4 freshwater populations (TXFW, LAFW, ALFW, FLFW) and their nearest saltwater populations (TXCC, ALST, FLCC -- note ALST is the nearest neighbor to both ALFW and LAFW). This dataset also contains SNPs found in 75% of individuals with a minor allele frequency of at least 5%. 
+
+This supplement focuses on the analysis of dataset #2, focused on the investigation of outliers and potential targets of selection. 
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,out.extra='',fig.pos="H",
+                      warning = FALSE,message = FALSE,
+                      dev='png',dpi=300)
+knitr::opts_knit$set(root.dir='../fwsw_results/')
+```
+```{r source}
+source("../../gwscaR/R/gwscaR.R")
+source("../../gwscaR/R/gwscaR_plot.R")
+source("../../gwscaR/R/gwscaR_utility.R")
+source("../../gwscaR/R/gwscaR_fsts.R")
+source("../../gwscaR/R/gwscaR_popgen.R")
+source("../../gwscaR/R/vcf2dadi.R")
+source("../R/203_treemix_plotting_funcs.R")#I've modified these functions
+library(knitr)
+library(scales)
+library(kableExtra)
+library(vegan)
+```
+
+```{r popSetup}
+pop.list<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
+	"FLFD","FLSI","FLAB","FLPB","FLHB","FLCC","FLLG")
+pop.labs<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
+            "FLFD","FLSI","FLAB","FLPB","FLHB","FLCC","FLFW")
+fw.list<-c("TXFW","LAFW","ALFW","FLLG")
+sw.list<-c("TXSP","TXCC","TXCB","ALST","FLSG","FLKB",
+	"FLFD","FLSI","FLAB","FLPB","FLHB","FLCC")
+lgs<-c("LG1","LG2","LG3","LG4","LG5","LG6","LG7","LG8","LG9","LG10","LG11",
+	"LG12","LG13","LG14","LG15","LG16","LG17","LG18","LG19","LG20","LG21",
+	"LG22")
+lgn<-seq(1,22)
+all.colors<-c(rep("black",2),"#2166ac","black","#2166ac","black","#2166ac",
+        rep("black",8),"#2166ac")
+#grp.colors<-c('#e41a1c','#377eb8','#4daf4a','#984ea3','#ffff33','#f781bf')
+grp.colors<-c('#762a83','#af8dc3','#e7d4e8','#d9f0d3','#7fbf7b','#1b7837')
+col_vector<-c(red='#e6194b', green='#3cb44b', blue='#4363d8',yellow='#ffe119', 
+              cyan='#46f0f0',orange='#f58231', teal='#008080', purple='#911eb4',  
+              magenta='#f032e6', lime='#bcf60c', pink='#fabebe',  lavendar='#e6beff', 
+              brown='#9a6324', olive='#808000', apricot='#ffd8b1',maroon='#800000', 
+              mint='#aaffc3', navy='#000075', beige='#fffac8', grey='#808080', 
+              white='#ffffff', black='#000000')
+
+col_vector<-c('#762a83','#762a83',"#2166ac",'#762a83',"#2166ac",'#af8dc3',
+              "#2166ac",'#e7d4e8','#e7d4e8','#e7d4e8','#e7d4e8','#7fbf7b',
+              '#1b7837','#1b7837','#1b7837',"#2166ac")
+
+ppi<-data.frame(Pop=pop.labs,cols = col_vector,
+                pch=rep(c(15,16,17,18),4))
+ppi$pch[grep("FW",ppi$Pop)]<-c(15,16,17,18)
+```
+
+
+# Outliers: Fsts from Stacks, permutations, PCadapt  {-}
+
+The alignments were done with a preliminary genome assembly that is different from the published, updated one. The data that I need to convert are the vcf and the stacks files. 
+
+
+
+```{r convert_agp}
+
+convert.agp<-function(locus=NULL,old.agp,old.scf,new.agp,scf.agp,
+                      chr=NULL,bp=NULL,id=NULL){
+  
+  if(!is.null(locus)){
+    chr<-locus$`#CHROM`
+    bp<-locus$POS
+    id<-locus$ID
+  }else{
+    bp<-as.numeric(unlist(bp))
+    chr<-as.character(chr)
+    id<-as.character(id)
+  }
+  component<-as.data.frame(old.agp[old.agp$object == chr & 
+                                     old.agp$object_beg <= bp & 
+                                     old.agp$object_end >= bp,],
+                           stringsAsFactors=FALSE)
+  if(nrow(component)>0){
+    # it's found on one of the LGs
+    comp.id<-component$component_id
+    if(comp.id != 100){
+      #make sure it's an actual scaffold as a component
+      comp.bp<-as.numeric(as.character(component$component_beg))+
+        (bp-as.numeric(as.character(component$object_beg)))-1
+      #sanity check - is it a reasonable size?
+      if(comp.bp<as.numeric(as.character(component$component_end))){ 
+        updated<-new.agp[new.agp$component_id%in%comp.id & 
+                  as.numeric(as.character(new.agp$component_beg)) <=comp.bp & 
+                  as.numeric(as.character(new.agp$component_end)) >= comp.bp,]
+        if(nrow(updated)==0){ #if you didn't find it, check scaffold
+          updated<-scf.agp[scf.agp$object%in%comp.id & 
+                  as.numeric(as.character(scf.agp$object_beg)) <=comp.bp & 
+                  as.numeric(as.character(scf.agp$object_end)) >= comp.bp,]
+          updated.bp<-comp.bp
+          updated.chr<-as.character(comp.id)
+        } else{
+          updated.bp<-updated$object_beg+comp.bp
+          updated.chr<-as.character(updated$object)  
+        }
+      }else {
+        print("WARNING: position in component larger than component")
+        updated.bp<-comp.id
+        updated.chr<-as.character(comp.id)
+      }
+    }else{
+      print(paste("WARNING: locus ",id, " is not on a scaffold",sep=""))
+      updated.bp<-bp
+      updated.chr<-NA
+    }
+    out<-data.frame(Locus=id,OrigChr=chr,OrigBP=bp,
+                    NewChr=updated.chr,NewBP=updated.bp,
+                    stringsAsFactors = FALSE)
+  }else{
+    #it's not on an LG - let's check the scaffolds
+    component<-as.data.frame(old.scf[old.scf$object == chr & 
+                                       old.scf$object_beg <= bp & 
+                                       old.scf$object_end >= bp,],
+                             stringsAsFactors=FALSE)
+    if(nrow(component)>0){
+      #then we found it
+      #check to make sure my bp makes sense
+      if(bp < max(old.scf[old.scf$object==chr,"object_end"])){
+        comp.bp<-bp
+        comp.id<-as.character(chr)
+        #look for it in the new assembly
+        updated<-new.agp[new.agp$component_id%in%comp.id & 
+                  as.numeric(as.character(new.agp$component_beg)) <=comp.bp &   
+                  as.numeric(as.character(new.agp$component_end)) >= comp.bp,]
+        if(nrow(updated)==0){ #if you didn't find it, check scaffold
+          updated<-scf.agp[scf.agp$object%in%comp.id & 
+                  as.numeric(as.character(scf.agp$object_beg)) <=comp.bp & 
+                  as.numeric(as.character(scf.agp$object_end)) >= comp.bp,]
+          updated.bp<-comp.bp
+          updated.chr<-as.character(comp.id)
+        } else{
+          updated.bp<-updated$object_beg+comp.bp
+          updated.chr<-as.character(updated$object)  
+        }
+      } else {
+          print("WARNING: position in scaffold larger than scaffold")
+          updated.bp<-NA
+          updated.chr<-NA
+      }
+      out<-data.frame(Locus=id,OrigChr=chr,OrigBP=bp,
+                      NewChr=updated.chr,NewBP=updated.bp,
+                      stringsAsFactors = FALSE)
+    }else{
+      out<-data.frame(Locus=id,OrigChr=chr,OrigBP=bp,
+                      NewChr=NA,NewBP=NA,
+                      stringsAsFactors = FALSE)
+      print(paste("WARNING: locus ", id, " not found",sep=""))
+    }
+  }
+  
+  return(out)
+}
+convert.stacks<-function(stacks.fst,outname,lgs,ssc.agp,sscf.agp,chr.agp,scf.agp){
+  for(i in 1:nrow(stacks.fst)){
+     convert<-convert.agp(old.agp=ssc.agp,old.scf=sscf.agp,
+                          new.agp=chr.agp[chr.agp$W=="W",],scf.agp = scf.agp,
+                          chr=as.character(stacks.fst$Chr[i]),
+                          bp=stacks.fst$BP[i],id=as.character(stacks.fst$Locus.ID[i]))
+    stacks.fst[i,"Chr"]<-convert["NewChr"]
+    stacks.fst[i,"BP"]<-convert["NewBP"]
+  }
+  # reorder by chrom
+  scaffs<-levels(as.factor(stacks.fst$Chr))
+  scaffs[1:22]<-lgs
+  upd.fst<-do.call(rbind,lapply(scaffs,function(lg){
+    this.chr<-stacks.fst[stacks.fst$Chr==lg,]
+    this.chr<-this.chr[order(as.numeric(this.chr$BP)),]
+    return(this.chr)
+  }))
+  write.table(upd.fst,outname,col.names = TRUE,row.names = FALSE,quote=FALSE,sep='\t')
+  print(by(upd.fst,upd.fst$Chr,function(chr){ return(max(chr$BP)/1000000) })[lgs])
+  return(upd.fst)
+}
+```
+
+```{r gen_agp_lgs}
+# old agps
+ssc.agp<-read.delim("../../scovelli_genome/SSC_genome.agp",
+                    comment.char="#",header=FALSE)
+colnames(ssc.agp)<-c("object","object_beg","object_end","part_number","W",
+                     "component_id","component_beg","component_end","orientation")
+sscf.agp<-read.delim("../../scovelli_genome/SSC_scaffolds.agp",
+                     comment.char="#",header=FALSE)
+colnames(sscf.agp)<-c("object","object_beg","object_end","part_number","W",
+                      "component_id","component_beg","component_end","orientation")
+# new scaffold and chrom level agps
+scf.agp<-read.delim(gzfile("../../scovelli_genome/ssc_2016_12_20_scafflevel.agp.gz"),
+                    comment.char="#",header=FALSE)
+chr.agp<-read.delim(gzfile("../../scovelli_genome/ssc_2016_12_20_chromlevel.agp.gz"),
+                    comment.char="#",header=FALSE)
+colnames(scf.agp)<-c("object","object_beg","object_end","part_number","W",
+                     "component_id","component_beg","component_end","orientation")
+colnames(chr.agp)<-c("object","object_beg","object_end","part_number","W",
+                     "component_id","component_beg","component_end","orientation")
+```
+
+```{r convert_vcf,eval=FALSE}
+vcf<-parse.vcf("stacks/populations_subset75/batch_2.pruned.vcf")
+converted<-data.frame(Locus=integer(),OrigChr=character(),OrigBP=integer(),
+                      NewChr=character(),NewBP=integer(),
+                      stringsAsFactors = FALSE)
+for(i in 1:nrow(vcf)){
+  converted[i,]<-convert.agp(locus=vcf[i,],old.agp=ssc.agp,old.scf=sscf.agp,
+                             new.agp=chr.agp[chr.agp$W=="W",],scf.agp = scf.agp)
+}
+
+```
+
+```{r lgs}
+lgs<-c("LG1","LG2","LG3","LG4","LG5","LG6","LG7","LG8","LG9","LG10","LG11",
+	"LG12","LG13","LG14","LG15","LG16","LG17","LG18","LG19","LG20","LG21",
+	"LG22")
+```
+
+
+```{r replace_vcf,eval=FALSE}
+new.vcf<-as.data.frame(vcf,stringsAsFactor=FALSE)
+for(i in 1:nrow(vcf)){
+  new.vcf$POS[i]<-converted$NewBP[i]
+  new.vcf$`#CHROM`[i]<-as.character(converted$NewChr[i])
+}
+write.table(new.vcf,"converted_subset.vcf",sep='\t',
+            quote=FALSE,col.names = TRUE,row.names = FALSE)
+```
+```{r convertSWSW, eval=FALSE}
+swsw.fl<-read.delim("stacks/populations_whitelist/batch_2.fst_FLCC-FLHB.tsv")
+swsw.tx<-read.delim("stacks/populations_whitelist/batch_2.fst_TXCB-TXCC.tsv")
+swsw.al<-read.delim("stacks/populations_whitelist/batch_2.fst_ALST-FLSG.tsv")
+
+upd.st<-convert.stacks(swsw.tx,"stacks/converted.fst_TXCB-TXCC.txt",
+                       lgs,ssc.agp,sscf.agp,chr.agp,scf.agp)
+upd.sa<-convert.stacks(swsw.al,"stacks/converted.fst_ALST-FLSG.txt",
+                       lgs,ssc.agp,sscf.agp,chr.agp,scf.agp)
+upd.sf<-convert.stacks(swsw.fl,"stacks/converted.fst_FLCC-FLHB.txt",
+                       lgs,ssc.agp,sscf.agp,chr.agp,scf.agp)
+```
+
+
+## Stacks {-}
+
+```{r read_stacks_fsts}
+fwsw.al<-read.delim("stacks/converted.fst_ALFW-ALST.txt")
+fwsw.la<-read.delim("stacks/converted.fst_ALST-LAFW.txt")
+fwsw.tx<-read.delim("stacks/converted.fst_TXCC-TXFW.txt")
+fwsw.fl<-read.delim("stacks/converted.fst_FLCC-FLLG.txt")
+```
+
+```{r plot_stacks_fsts,fig.height=9,fig.width=6,fig.cap="Manhattan plot of pairwise AMOVA-corrected Fst values from Stacks for each freshwater - nearest saltwater population pair. The x-axis corresponds to genomic locations, with chromosomes labelled. To the right are loci that mapped to unanchored scaffolds."}
+source("../R/205_popgenPlotting.R")
+fst_dat<-list(fwsw.al,fwsw.la,fwsw.tx,fwsw.fl)
+fsts<-plot_multiple_LGs(list_fsts = fst_dat,fst_name = "Corrected.AMOVA.Fst",
+                        bp_name="BP",chr_name="Chr",lgs=lgs,
+                        plot_labs=list("ALFW vs ALST","ALST vs LAFW",
+                                       "TXFW vs TXCC","FLFW vs FLCC"),
+                        pt_cols = list(c(grp.colors[3],grp.colors[2]),
+                                       c(grp.colors[2],grp.colors[3]),
+                                       c(grp.colors[1],grp.colors[2]),
+                                       c(grp.colors[6],grp.colors[5])),
+                        ncol=1,addSmooth = FALSE,pch=19,y.lim = c(0,1),
+                        pt.cex=1,axis.size = 1)
+```
+
+So this generated a plot for each pairwise comparison. We could look for shared outliers and see if we can find anything.
+
+```{r get_stacks_sig}
+tx.sig<-fwsw.tx[fwsw.tx$Fisher.s.P<0.01,"Locus.ID"]
+la.sig<-fwsw.la[fwsw.la$Fisher.s.P<0.01,"Locus.ID"]
+al.sig<-fwsw.al[fwsw.al$Fisher.s.P<0.01,"Locus.ID"]
+fl.sig<-fwsw.fl[fwsw.fl$Fisher.s.P<0.01,"Locus.ID"]
+length(tx.sig[(tx.sig %in% c(la.sig,al.sig,fl.sig))])
+length(la.sig[(la.sig %in% c(tx.sig,al.sig,fl.sig))])
+length(al.sig[(al.sig %in% c(la.sig,tx.sig,fl.sig))])
+all.shared<-fl.sig[fl.sig %in% la.sig & fl.sig %in% al.sig & fl.sig %in% tx.sig]
+```
+
+There are `r length(unique(all.shared))` outliers (as determined by Fisher's P from stacks < 0.01). 
+
+As a point of comparison, we can repeat this with the similar pairwise saltwater-saltwater $F_{ST}$ comparisons.
+
+```{r plot_stacks_fsts_swsw,fig.height=9,fig.width=6,fig.cap="Manhattan plot of pairwise AMOVA-corrected Fst values from Stacks for the saltwater populations nearest to freshwater populations compared to their nearest saltwater neightbor. The x-axis corresponds to genomic locations, with chromosomes labelled. To the right are loci that mapped to unanchored scaffolds."}
+swsw.fl<-read.delim("stacks/converted.fst_TXCB-TXCC.txt")
+swsw.tx<-read.delim("stacks/converted.fst_ALST-FLSG.txt")
+swsw.al<-read.delim("stacks/converted.fst_FLCC-FLHB.txt")
+fst_dat<-list(swsw.fl,swsw.tx,swsw.al)
+fsts<-plot_multiple_LGs(list_fsts = fst_dat,fst_name = "Corrected.AMOVA.Fst",
+                        bp_name="BP",chr_name="Chr",lgs=lgs,
+                        plot_labs=list("TXSP vs TXCC","ALST vs FLSG","FLHB vs FLCC"),
+                        pt_cols = list(c(grp.colors[1],grp.colors[2]),
+                                       c(grp.colors[2],grp.colors[3]),
+                                       c(grp.colors[6],grp.colors[5])),
+                        ncol=1,addSmooth = FALSE,pch=19,y.lim = c(0,1),
+                        pt.cex=1,axis.size = 1)
+```
+
+So this generated a plot for each pairwise comparison. We could look for shared outliers and see if we can find anything.
+
+```{r get_stacks_sig_swsw}
+tx.sig<-swsw.tx[swsw.tx$Fisher.s.P<0.01,"Locus.ID"]
+al.sig<-swsw.al[swsw.al$Fisher.s.P<0.01,"Locus.ID"]
+fl.sig<-swsw.fl[swsw.fl$Fisher.s.P<0.01,"Locus.ID"]
+all.shared<-fl.sig[fl.sig %in% al.sig & fl.sig %in% tx.sig]
+```
+
+There are `r length(unique(all.shared))` outliers (as determined by Fisher's P from stacks < 0.01).
+
+## Permutations {-}
+
+```{r permute.gwsca}
+permute.gwsca<-function(vcf,map1,nperms,z=1.96, maf.cutoff = 0.05,cov.thresh=0.2){
+  # calculate the actuals
+  actual_fsts<-gwsca(vcf,colnames(vcf)[1:9],
+                     map1[map1[,2] %in% unique(map1[,2])[1],1],
+                     map1[map1[,2] %in% unique(map1[,2])[2],1],
+                     maf.cutoff=maf.cutoff,prop.ind.thresh=cov.thresh)
+  # do the permutations
+  perm_fsts<-lapply(1:nperms,function(i,vcf,map1){
+    perm_map<-map1
+    perm_map[,2]<-perm_map[,2][permute::shuffle(perm_map[,2])]
+    perm_dat<-gwsca(vcf,colnames(vcf)[1:9],
+                     perm_map[perm_map[,2] %in% unique(perm_map[,2])[1],1],
+                     perm_map[perm_map[,2] %in% unique(perm_map[,2])[2],1],
+                     maf.cutoff,cov.thresh)
+   
+    return(perm_dat)
+  },vcf=vcf,map1=map1)
+  
+  # calculate stats
+  fsts<-t(do.call(rbind,lapply(perm_fsts,'[[',"Fst"))) #extract permuted fsts
+  perm_fst_mu<-rowMeans(fsts)
+  perm_fst_in<-NULL
+  for(i in 1:nrow(actual_fsts)){
+    pmax<-max(fsts[i,] )
+    pmin<-min(fsts[i,] )
+    if(actual_fsts[i,"Fst"] > pmax | actual_fsts[i,"Fst"] < pmin ){
+      perm_fst_in[i]<-1
+    }else{
+      perm_fst_in[i]<-0
+    }
+  }
+  
+  fst_dat<-data.frame(cbind(actual_fsts,
+                            n_perms=nperms,
+                            mean_perm=perm_fst_mu,
+                            act_in_perm=perm_fst_in))
+  return(fst_dat)
+}
+```
+```{r permuteVCF,eval=FALSE}
+vcf<-parse.vcf("converted_subset.vcf")
+popmap<-data.frame(inds=colnames(vcf)[10:ncol(vcf)],
+                   pops=gsub("sample_(\\w{4}).*","\\1",colnames(vcf)[10:ncol(vcf)]),
+                   stringsAsFactors = FALSE)
+pwise_maps<-list(popmap[popmap$pops %in% c("TXFW","TXCC"),],
+                 popmap[popmap$pops %in% c("FLLG","FLCC"),],
+                 popmap[popmap$pops %in% c("ALFW","ALST"),],
+                 popmap[popmap$pops %in% c("LAFW","ALST"),])
+
+permuted_fsts<-lapply(pwise_maps,permute.gwsca,vcf=vcf,nperms=1000, maf.cutoff=0)
+saveRDS(permuted_fsts,"permuted_fsts.RDS")
+```
+
+
+
+```{r plot_fst_hists}
+plot_fst_hists<-function(perms,plot_lab=NULL,cols=NULL,permlab="mean_perm",
+                         reallab="Fst",baseplot=TRUE,inset=NULL){
+  require(scales)
+  if(is.null(plot_lab)){
+    plot_lab<-""
+  }
+  if(is.null(cols)){
+    cols<-c("grey","black")
+  } else if(length(cols)==1){
+    cols<-c("dark grey",cols)
+  }
+  #inset<-par()$fig
+  #browser()
+  if(isTRUE(baseplot)){
+    hist(perms[,permlab],col=alpha(cols[1],0.5),border = alpha(cols[1],0.5),
+         xlim=c(0,1),breaks = seq(0,1,0.01),main = plot_lab,
+         xlab=expression(italic(F)[ST]),
+         ylab="Number of SNPs")
+    hist(perms[,reallab],col=alpha(cols[2],0.5),border = alpha(cols[2],0.5),
+         xlim=c(0,1),breaks = seq(0,1,0.01),main = "",
+         xlab=expression(italic(F)[ST]),
+         ylab="Number of SNPs",add=TRUE)
+  }
+  if(!is.null(inset)){ # add an inset
+    # adjust the fig coordinates
+    ifig<-c(inset[1]+0.25*(inset[2]-inset[1]),inset[2], 
+            inset[3]+0.25*(inset[4]-inset[3]), inset[4])
+    par(fig = ifig,new=TRUE) # start x, end x, start y, end y (percent plotting space)
+    hist(perms[,permlab][perms[,reallab]>0],col=alpha(cols[1],0.5),
+         border = alpha(cols[1],0.5),
+         xlim=c(0,1),breaks = seq(0,1,0.01),main = "",xlab="",
+         ylab="")
+    box() #give it a box
+    hist(perms[,reallab,][perms[,reallab]>0],col=alpha(cols[2],0.5),
+         border = alpha(cols[2],0.5),
+         xlim=c(0,1),breaks = seq(0,1,0.01),main = "",xlab="",
+         ylab="",add=TRUE)
+  }
+  invisible(par()$fig)
+}
+
+```
+```{r plot_permutations, eval=FALSE}
+plot_labs<-list("TXFW vs TXCC","FLFW vs FLCC","ALFW vs ALST","ALST vs LAFW")
+pt_cols<-list(TXTX=grp.colors[1],FLFL=grp.colors[6],
+              ALAL=grp.colors[3],ALLA=grp.colors[2])
+png("../figs/permuted_fsts.png",pointsize = 16,height=7,width=8,units="in",res=300)
+par(mfrow=c(2,2),new=FALSE,mar=c(4,4,3,1))
+#plot the base
+pars<-mapply(plot_fst_hists,perms=permuted_fsts,plot_lab=plot_labs,
+             cols=pt_cols,SIMPLIFY = FALSE)
+# add the insets
+ipars<-mapply(plot_fst_hists,perms=permuted_fsts,plot_lab=plot_labs,cols=pt_cols,
+              inset=pars,
+              MoreArgs = list(baseplot=FALSE))
+dev.off()
+```
+
+![Histograms of pairwise Fst values generated by the permutations. The inset in each shows the same data but with a smaller range on the y-axis to provide an imporved visualisation.](../figs/permuted_fsts.png)
+
+
+
+## PCAdapt {-}
+
+For this analysis, to maintain consistency with the other outlier analyses, I'm using the subestted dataset. So I need to run PCAdapt [@luu_pcadapt:_2017] another time.
+
+```{r readVCFpcadapt}
+vcf<-parse.vcf("converted_subset.vcf")
+```
+```{r convertVCF, eval=FALSE}
+write.table("##fileformat=VCFv","pcadapt_fw/fwsw.pruned.vcf",quote=FALSE,
+            col.names = FALSE,row.names = FALSE)
+suppressWarnings(write.table(vcf,"pcadapt_fw/fwsw.pruned.vcf",
+                             quote=FALSE,append = TRUE,
+                             row.names = FALSE,col.names = TRUE,sep='\t'))
+```
+
+
+
+```{r pcadaptOutliers, fig.cap="Screeplot for the subsetted dataset with 20 PC axes retained in the analysis."}
+library(pcadapt)
+#need to remove the first line with a # 
+filename<-read.pcadapt("pcadapt_fw/fwsw.pruned.vcf",type="vcf") 
+x<-pcadapt(filename, K=20)
+plot(x,option="screeplot")
+```
+
+$K=4$ seems like the best choice here to keep values to the left of the straight line (or could be $K=6$). 
+
+```{r organizePopInfo}
+# Organize pop info
+pops<-gsub("sample_(\\w{4}).*","\\1",colnames(vcf)[10:ncol(vcf)])	
+grp<-pops
+grp[grp=="TXFW" | grp=="LAFW" | grp=="ALFW" | grp=="FLLG"]<-"freshwater"
+grp[grp!="freshwater"]<-"saltwater"
+```
+
+
+```{r PcadaptK4-1, fig.cap="Manhattan plot for the PCAdapt outlier analysis with the subsetted dataset and 4 PC axes retained in the analysis."}
+res<-pcadapt(filename,K=4)
+plot(res, option="manhattan")
+```
+```{r PcadaptK4-2, fig.cap="Q-Q plot for the PCAdapt outlier analysis with the subsetted dataset and 4 PC axes retained in the analysis."}
+plot(res, option="qqplot")
+```
+```{r PcadaptK4-3, fig.cap="Distribution of the  for the PCAdapt outlier analysis with the subsetted dataset and 4 PC axes retained in the analysis."}
+plot(res, option="stat.distribution")
+```
+```{r PcadaptK4-4, fig.cap="Plot of the scores from the PCAdapt outlier analysis with the subsetted dataset and 4 PC axes retained in the analysis."}
+plot(res, option="scores",pop=pops)
+```
+
+The PCAdapt vignette recommends displaying the loadings and evaluate if loadings are clustered in single or several genomic regions
+
+```{r PcadaptLoadings, fig.cap="Plots of the loadings for the four PC axes according to genomic position (on the x-axis)."}
+par(mfrow = c(2, 2))
+for (i in 1:4)
+  plot(res$loadings[, i], pch = 19, cex = .3, ylab = paste0("Loadings PC", i))
+```
+
+This suggests that loadings are not clustered (assuming these are grouped by space), so we don't need to worry about LD thinning. Now let's look chromosome by chromosome:
+
+```{r PcadaptLoadingsChr,fig.height=8, fig.cap="Inspecting the loadings for the four PC axes according to genomic position (on the x-axis) for each chromosome individually."}
+par(mfrow=c(6,4),mar=c(3,3,2,1.5))
+l<-lapply(lgs, function(lg,vcf){
+  plot(res$loadings[which(vcf$`#CHROM` %in% lg), 1], pch = 19, cex = .3, 
+       xlab = paste0("Position on ", lg), ylab = "Loadings PC 1")
+  mtext(lg,3,outer=FALSE)
+},vcf=vcf)
+```
+
+None of the LGs seem to have huge clusters of outliers so we can move on, lumping them all together.
+
+We need to choose a cutoff for outlier detection. I'll use the qvalue approach, which identifies outliers with a false discovery rate of $\alpha$, which I'm setting here to 0.05.
+
+```{r PcadaptQvalue}
+library(qvalue)
+qval <- qvalue(res$pvalues)$qvalues
+alpha <- 0.05
+outliers <- which(qval < alpha)
+snp_pc<-get.pc(res,outliers) # Get the PCs associated with outliers
+```
+
+We identified `r length(outliers)` outliers with this analysis, which are associated with `r length(unique(snp_pc$PC))` of the 4 clusters. If we look at the distribution of these, though, we see that most are associated with PC 1
+
+```{r showPcadaptOutliers}
+table(snp_pc$PC)
+```
+
+
+## Bayenv {-}
+
+Investigate the environmental data
+
+```{r compareEnvVar}
+env.data<-read.csv("bayenv/env_data_raw.csv",row.names = 1)
+env.data<-rbind(env.data,pop=c(rep("SW",12),rep("FW",4)))
+env.data<-as.data.frame(t(env.data))
+wilcox.test(as.numeric(env.data$temp)~env.data$pop) #ties, but p=0.539
+wilcox.test(as.numeric(env.data$seagrass)~env.data$pop) #ties, but p=0.897
+```
+
+
+This analysis is of just the freshwater and saltwater populations. First I ran bayenv using the script `run_bayenv2_matrix_general.sh`.
+
+```{bash, eval=FALSE}
+# set up correct file formats
+../../scripts/run_bayenv2_matrix_general.sh FILEMANIP \
+bayenv/sub75.pruned.clust stacks/populations_subset75/batch_2.pruned.ped \
+stacks/populations_subset75/batch_2.pruned.map bayenv ~/Programs/bayenv 7
+# estimate matrices
+../../scripts/run_bayenv2_matrix_general.sh MATRIX bayenv ~/Programs/bayenv/ 7
+```
+
+At this point I looked at the matrices
+
+![Heatmap plots of each of the ten replicate Bayenv matrices. Colors represent xx](../fwsw_results/bayenv/fwsw75_pruned.png)
+
+They all looked fine so I chose the randomly selected a matrix to use for the remainder of the analyses.
+
+```{bash, eval=FALSE}
+# Create the SNPFILES
+../../scripts/run_bayenv2_matrix_general.sh SNPFILES SNPSFILE SNPFILES
+# Run bayenv
+nohup ../../scripts/run_bayenv2_matrix_general.sh BAYENV \
+~/Programs/bayenv/ matrix env_data_sub75.txt 7 3 SNPFILES > bayenv.log &
+```
+
+### Analyze Bayenv output
+
+Once Bayenv was finished running, I first aggregated all of the output. 
+
+```{r getBayenvResults}
+get_bayenv_results<-function(dir,env_vars){
+  # process the variable names
+  var_names<-unlist(lapply(env_vars,function(var){
+    nms<-c(paste0(var,"_BF"),paste0(var,"_rho"),paste0(var,"_rs"))
+    return(nms)
+  }))
+  # list all the files
+  bf.files<-list.files(pattern="bf",path = dir,full.names = TRUE)
+  xtx.files<-list.files(pattern="xtx",path=dir,full.names = TRUE)
+  # get the bf files
+  bf.dat<-do.call(rbind,lapply(bf.files,function(filename){
+    bf<-read.table(filename,header = FALSE)
+  }))
+  colnames(bf.dat)<-c("locus", var_names)
+  
+  # xtx files
+  xtx.files<-list.files(pattern="xtx",path=dir,full.names = TRUE)
+  xtx.dat<-do.call(rbind,lapply(xtx.files,function(filename){
+    xtx<-read.table(filename,header = FALSE,stringsAsFactors = FALSE)
+  }))
+  colnames(xtx.dat)<-c("locus","XtX")
+  
+  # combine the two
+  bayenv.dat<-merge(xtx.dat,bf.dat,by="locus")
+  return(bayenv.dat)
+}
+```
+
+The SNP names are uninformative, just the row number the SNP was in. We can make these better using the freq info
+
+```{r snpnames4bayenv, eval=FALSE}
+bayenv_dat<-get_bayenv_results(dir="bayenv/SNPFILES",
+                               env_vars=c("temp","salinity","seagrass"))
+
+freq<-read.table("bayenv/bayenv.frq.strat",header=T, stringsAsFactors=F)
+#want to get $MAC for every snp at every pop 
+#and NCHROBS-MAC for every stnp at every pop
+freq<-cbind(freq,freq$NCHROBS-freq$MAC)
+colnames(freq)[ncol(freq)]<-"NAC"
+snp.names<-split(freq$SNP,freq$CLST)[[1]]
+snp.names<-gsub("(\\d+)_\\d+","\\1",snp.names)
+
+snp_dat<-data.frame(ID=snp.names,loc=seq(1,length(snp.names)*2,2))
+bayenv_dat$locus<-as.numeric(gsub("SNPFILES\\/(\\d+)","\\1",bayenv_dat$locus))
+bayenv_dat<-bayenv_dat[order(bayenv_dat$locus),]
+bayenv_dat<-merge(snp_dat,bayenv_dat,by.x="loc",by.y="locus")
+colnames(bayenv_dat)[1:2]<-c("index","SNPID")
+
+pmap<-read.delim("stacks/populations_subset75/batch_2.pruned.map",header = FALSE) 
+# the position location is wrong in this ^ file
+pmap$locus<-gsub("(\\d+)_\\d+","\\1",pmap[,2])
+
+bayenv_dat<-merge(pmap[,c(1,4,5)],bayenv_dat,by.x="locus",by.y="SNPID")
+colnames(bayenv_dat)[2:3]<-c("Chrom","SNPID")
+write.table(bayenv_dat,"bayenv/bayenv_output.txt",sep="\t",
+            col.names = TRUE,row.names = FALSE,quote = FALSE)
+```
+
+
+Now we can investigate the outliers etc.
+
+```{r bayenv}
+#taken directly from fwsw_analysis.R
+bayenv.dat<-read.delim("bayenv/bayenv_output.txt",header=T)
+# calculate quantiles for bayes factors
+#focus on Bayes Factors, because of Lotterhos & Whitlock (2015)
+bf.co<-apply(bayenv.dat[,grep("BF",colnames(bayenv.dat))],2,quantile,0.99,na.rm=TRUE) 
+temp.bf.sig<-bayenv.dat[bayenv.dat$temp_BF>bf.co["temp_BF"],]
+sal.bf.sig<-bayenv.dat[bayenv.dat$salinity_BF>bf.co["salinity_BF"],]
+grass.bf.sig<-bayenv.dat[bayenv.dat$seagrass_BF>bf.co["seagrass_BF"],]
+#get the log transformed Bayes Factors
+bayenv.dat$logSal<-log(bayenv.dat$salinity_BF)
+bayenv.dat$logTemp<-log(bayenv.dat$temp_BF)
+bayenv.dat$logSeagrass<-log(bayenv.dat$seagrass_BF)
+
+# xtx
+xtx.sig<-bayenv.dat[bayenv.dat$XtX > quantile(bayenv.dat$XtX,0.99,na.rm=TRUE),]
+```
+
+There are `r nrow(temp.bf.sig[temp.bf.sig$locus %in% sal.bf.sig$locus & temp.bf.sig$locus %in% grass.bf.sig,])` overlapping outliers between temperature-, salinity-, and seagrass-associated loci.
+
+But if we only care about salinity ones, there are `r nrow(sal.bf.sig)` outliers. Are any of those XtX outliers too? `r nrow(xtx.sig[xtx.sig$locus %in% sal.bf.sig$locus,])` overlap.
+
+
+## Annotations {-}
+
+We used the *S. scovelli* genome to annotate the dataset and identify whether SNPs were in coding regions. 
+
+```{r annotate_snpinfo, eval=TRUE}
+fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
+outliers<-list(xtx=fw_SNPinfo$ID[fw_SNPinfo$XtX >= quantile(fw_SNPinfo$XtX,0.99,na.rm=TRUE)],
+               salBF=fw_SNPinfo$ID[fw_SNPinfo$logSalBF>=
+                                     quantile(fw_SNPinfo$logSalBF,0.99,na.rm=TRUE)],
+               permutations=fw_SNPinfo$ID[
+                 rowSums(fw_SNPinfo[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+               pcadapt=fw_SNPinfo$ID[which(fw_SNPinfo$pcadaptQ<0.01)],
+               Alabama=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05)], 
+               Louisiana=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_LA_P < 0.05)],
+               Texas=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_TX_P < 0.05)],
+               Florida=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_FL_P < 0.05)],
+               sharedStacks=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05 & 
+                                                  fw_SNPinfo$stacks_LA_P < 0.05 &
+                 fw_SNPinfo$stacks_TX_P < 0.05 & fw_SNPinfo$stacks_FL_P < 0.05)])
+```
+
+
+````{r summarizeAnnotations, eval=TRUE}
+annInfo<-fw_SNPinfo[,c("ID","SSCID")]
+annInfo$SSCID<-as.character(annInfo$SSCID)
+annInfo$SSCID[!is.na(annInfo$SSCID)]<-"coding"
+annInfo$SSCID[is.na(annInfo$SSCID)]<-"non-coding"
+annInfo$outlier<-"not-outlier"
+annInfo$outlier[annInfo$ID %in% unlist(outliers)]<-"outlier"
+kable(table(annInfo$SSCID,annInfo$outlier),booktabs=TRUE,
+      caption="The number of SNPs in the subsetted dataset that were outliers in coding and non-coding regions of the genome.")
+```
+
+If our null hypothesis is that we have randomly selected outliers with equal probability from coding and non-coding regions, we can use a Fisher's exact test to calculate the probability of our observed distribution of outliers.
+
+```{r fisherTestOutliers}
+fisher.test(table(annInfo$SSCID,annInfo$outlier))
+```
+
+Based on this, we could conclude that our table of outliers in coding regions is more extreme than expected under the null. 
+
+Now let's look at a more specific set of genes -- those from our salinity-associated gene set.
+
+```{r putativeGeneAnns}
+annInfo$salgene<-"not-putative"
+annInfo$salgene[annInfo$ID %in% fw_SNPinfo$ID[!is.na(fw_SNPinfo$Gene)]]<-"putative"
+kable(table(annInfo$outlier,annInfo$salgene),booktabs=TRUE,
+      caption="The number of SNPs in the subsetted dataset that were outliers in putative salinity genes or not.")
+```
+```{r fisherTestOutliersPutative}
+fisher.test(table(annInfo$outlier,annInfo$salgene))
+```
+
+Putative salinity genes do not appear to be enriched with outliers.
+
+# References {-}
+
+
