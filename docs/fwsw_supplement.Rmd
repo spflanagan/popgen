@@ -30,7 +30,7 @@ bibliography:
   - programs.bib
   - RADseq.bib
 output:
-  pdf_document:
+  bookdown::pdf_document2:
     toc: true
     toc_depth: 2
     fig_caption: yes
@@ -102,7 +102,7 @@ ppi<-data.frame(Pop=pop.labs,cols = col_vector,
 ppi$pch[grep("FW",ppi$Pop)]<-c(15,16,17,18)
 ```
 
-
+\newpage
 
 # Sequencing library preparation additional methods {-}
 
@@ -303,7 +303,7 @@ legend("top", legend=ppi$Pop,
 
 ## Minor allele frequencies
 
-We calculated the minor allele frequency for all 7933 SNPs in the full dataset for each population. We achieved this using the function `calc.afs.vcf` in the `gwscaR` package, which calculates the frequencies for the reference and alternative allele. We then extracted and plotted the frequency of the least-common allele in each population \@ref(fig:MAF).
+We calculated the minor allele frequency for all 7933 SNPs in the full dataset for each population. We achieved this using the function `calc.afs.vcf` in the `gwscaR` package, which calculates the frequencies for the reference and alternative allele. We then extracted and plotted the frequency of the least-common allele in each population (Figure \@ref(fig:maf)).
 
 ```{r calcAFS, eval=FALSE}
 locus.info<-colnames(ful_vcf[1:9])
@@ -351,7 +351,10 @@ mtext("Number of SNPs (x 1000)",2,outer = TRUE,cex=1.75*0.75,line=1)
 
 ```
 
-![Minor allele frequency distributions of the full dataset (7433 SNPs) for each population. Freshwater populations are plotted in blue. The histograms show the number of SNPs with various frequencies of the reference alleles. All populations are skewed towards having small minor allele frequencies, but the TXFW and FLFW have additional reductions in genetic variation.](../figs/minorAFplot-1.png) {#MAF}
+```{r maf, out.width='80%',fig.cap="Minor allele frequency distributions of the full dataset (7433 SNPs) for each population. Freshwater populations are plotted in blue. The histograms show the number of SNPs with various frequencies of the reference alleles. All populations are skewed towards having small minor allele frequencies, but the TXFW and FLFW have additional reductions in genetic variation."}
+knitr::include_graphics('../figs/minorAFplot-1.png')
+```
+
 
 ## Fst Values
 
@@ -412,7 +415,10 @@ dev.off()
 
 ```
 
-![Heatmaps depicting population structure. In all graphs, dark colors depict similarity between populations and light grey and blue depict populations with high differentiation. The left panel shows pairwise FST values calculated by the populations module in Stacks (Catchen et al. 2013). The right panel shows covariances between populations as calculated by TreeMix (Pickrell and Pritchard 2012).](../figs/fst_heatmaps.png)
+```{r fsts, out.width='95%',fig.cap="Heatmaps depicting population structure. In all graphs, dark colors depict similarity between populations and light grey and blue depict populations with high differentiation. The left panel shows pairwise FST values calculated by the populations module in Stacks (Catchen et al. 2013). The right panel shows covariances between populations as calculated by TreeMix (Pickrell and Pritchard 2012)."}
+knitr::include_graphics('../figs/fst_heatmaps.png')
+```
+
 
 
 ## PCAdapt {-}
@@ -422,16 +428,16 @@ dev.off()
 library(pcadapt)
 ```
 
-```{r pcadapt_choose,results='hide',message=FALSE}
+```{r pcadaptChoose,results='hide',message=FALSE}
 filename<-read.pcadapt("filter_rad_20191014@1654/14_filtered/radiator_data_20191014@1710.vcf",
                        type="vcf")
 x<-pcadapt(filename, K=20)
 ```
-```{r pcadapt_scree,fig.cap="Scree plot from PCAdapt, with 20 principal components axes retained."}
+```{r pcadaptScree,fig.cap="Scree plot from PCAdapt, with 20 principal components axes retained."}
 plot(x,option="screeplot") #K=7
 ```
 
-```{r pcadapt_analyze}
+```{r pcadaptAnalyze}
 pa<-pcadapt(filename,K=7)
 saveRDS(pa,"fwsw_all_pcadapt.RDS")
 pa.props<-round((pa$singular.values/sum(pa$singular.values))*100,2)
@@ -557,18 +563,18 @@ admixPlotting<-function(qfile,K,famfile="admixture/fwsw_all_filt.fam",
 }
 ```
 
-```{r admix_K2,fig.height=2,fig.width=8,fig.cap="Admixture plot for K=2. The colors represent different genetic populations."}
+```{r admixK2,fig.height=2,fig.width=8,fig.cap="Admixture plot for K=2. The colors represent different genetic populations."}
 admixK2<-admixPlotting("admixture/fwsw_all_filt.2.Q",2)
 ```
 
-```{r admix_K3,fig.height=2,fig.width=8,fig.cap="Admixture plot for K=3. The colors represent different genetic populations."}
+```{r admixK3,fig.height=2,fig.width=8,fig.cap="Admixture plot for K=3. The colors represent different genetic populations."}
 admixK3<-admixPlotting("admixture/fwsw_all_filt.3.Q",3)
 ```
-```{r admix_K4,fig.height=2,fig.width=8,fig.cap="Admixture plot for K=4. The colors represent different genetic populations."}
+```{r admixK4,fig.height=2,fig.width=8,fig.cap="Admixture plot for K=4. The colors represent different genetic populations."}
 admixK4<-admixPlotting("admixture/fwsw_all_filt.4.Q",4)
 ```
 
-```{r admix_k5,fig.height=2,fig.width=8,fig.cap="Admixture plot for K=5. The colors represent different genetic populations."}
+```{r admixk5,fig.height=2,fig.width=8,fig.cap="Admixture plot for K=5. The colors represent different genetic populations."}
 admixK5<-admixPlotting("admixture/fwsw_all_filt.5.Q",5)
 write.table(admixK5,"admixture/admixK5.txt",sep = '\t',
             quote = FALSE,col.names = TRUE,row.names = FALSE)
@@ -691,7 +697,7 @@ tip.names<-data.frame(Original=tip.names,Replacement=tip.names,
                       stringsAsFactors = FALSE)
 tip.names$Replacement[tip.names$Replacement=="FLLG"]<-"FLFW"
 ```
-```{r FWSW_treemix_m3_FLPB,fig.height=7,fig.width=7, results='hide', fig.show='true',include=FALSE}
+```{r FWSWtreemixM3FLPB,fig.height=7,fig.width=7, results='hide', fig.show='true',include=FALSE}
 png("../figs/FWSW_treemix_m3_FLPB.png",height=7,width=7,units="in",res=300)
 t3<-plot_tree("treemix/fwsw_k100bFLPBrm3","poporder",
               plus=0.05,scale=F,mbar=F,arrow=0.1,tip.order = tip.names)
@@ -726,7 +732,7 @@ plot_optM(tmOpt,plot = TRUE)
 
  
 
-```{r treemixCompare,results='hide'}
+```{r MaketreemixCompare,results='hide'}
 png("../figs/treemix_comparison.png",height = 4.5,width=8,units="in",res=300)
 par(mfrow=c(1,2),mar=c(1,1,1,2),oma=c(1,1,1,2),xpd=TRUE)
 t0<-plot_tree("treemix/fwsw_k100bFLPBr",scale=T,mbar=F,cex = 1.5,
@@ -735,7 +741,11 @@ t2<-plot_tree("treemix/fwsw_k100bFLPBrm2",scale=T,mbar=T,cex = 1.5,
               lwd=2,mig_left=FALSE,disp=0.0002,scadj=0.05)
 dev.off()
 ```
-![The plot of the tree with FLPB as root but no migration edges (left) compared to the tree with FLPB as root and two migration edges. The drift parameter is plotted on the x-axis, and migration edges are colored based on the migration weight.](../figs/treemix_comparison.png)
+
+```{r treemixCompare, out.width='80%',fig.cap="The plot of the tree with FLPB as root but no migration edges (left) compared to the tree with FLPB as root and two migration edges. The drift parameter is plotted on the x-axis, and migration edges are colored based on the migration weight."}
+knitr::include_graphics('../figs/treemix_comparison.png')
+```
+
 
 
 ### Threepop and fourpop analysis
@@ -760,7 +770,7 @@ fourpop$f4_p<-2*pnorm(-abs(as.numeric(as.character(fourpop$f4_z))))
 
 #### Migration Edge 1
 
-The first migration edge we investigated indicated potential migration from the FLSI-FLAB node to the TXFW-other Texas populations node. We first investigated all of the three-population trees with TXFW and FLSI, and found that none of these f3 statistics are zero \@ref(tab:f3Edge1), which suggests that TXFW is not admixed with FLSI. 
+The first migration edge we investigated indicated potential migration from the FLSI-FLAB node to the TXFW-other Texas populations node. We first investigated all of the three-population trees with TXFW and FLSI, and found that none of these f3 statistics are zero (Table \@ref(tab:f3Edge1)), which suggests that TXFW is not admixed with FLSI. 
 
 ```{r f3Edge1,fig.pos='H'}
 kable(threepop[grep("TXFW;.*FLSI",threepop$pops),],"latex",booktabs=TRUE,
@@ -768,7 +778,7 @@ kable(threepop[grep("TXFW;.*FLSI",threepop$pops),],"latex",booktabs=TRUE,
   kable_styling(latex_options="HOLD_position")
 ```
 
-To narrow our focus, we extracted the threepop analyses for the trees (TXFW;TXCB,FLSI) and (TXFW,FLSI,FLAB), and again found non-zero f3 statistics \@ref(tab:f3Edge1Specific).
+To narrow our focus, we extracted the threepop analyses for the trees (TXFW;TXCB,FLSI) and (TXFW,FLSI,FLAB), and again found non-zero f3 statistics (Table \@ref(tab:f3Edge1Specific)).
 
 ```{r f3Edge1Specific,fig.pos='H'}
 kable(threepop[threepop$pops=="TXFW;TXCB,FLSI" | 
@@ -777,7 +787,7 @@ kable(threepop[threepop$pops=="TXFW;TXCB,FLSI" |
   kable_styling(latex_options="HOLD_position")
 ```
 
-To investigate the results of the fourpop analysis for this migration edge, we focused on four-population trees including the TXFW,TXCB population pair and FLSI \@ref(tab:f4Edge1). The f4 statistics were very close to zero and most have standard errors overlapping zero, indicating that gene flow is not particularly likely.
+To investigate the results of the fourpop analysis for this migration edge, we focused on four-population trees including the TXFW,TXCB population pair and FLSI (Table \@ref(tab:f4Edge1)). The f4 statistics were very close to zero and most have standard errors overlapping zero, indicating that gene flow is not particularly likely.
 
 ```{r f4Edge1,fig.pos='H'}
 kable(fourpop[grep("TXFW,TXCB;.*FLSI.*",fourpop$pops),],"latex",booktabs=TRUE,
@@ -785,7 +795,7 @@ kable(fourpop[grep("TXFW,TXCB;.*FLSI.*",fourpop$pops),],"latex",booktabs=TRUE,
   kable_styling(latex_options="HOLD_position")
 ```
 
-Focusing on the most relevant fourpop analysis, with the tree (TXFW,TXCB;FLSI,FLAB), we can see that the f4 statistic is slightly negative and overlaps with zero \@ref(tab:f4Edge1Specific), suggesting that current gene flow is not likely between these branches.
+Focusing on the most relevant fourpop analysis, with the tree (TXFW,TXCB;FLSI,FLAB), we can see that the f4 statistic is slightly negative and overlaps with zero (Table \@ref(tab:f4Edge1Specific)), suggesting that current gene flow is not likely between these branches.
 
 ```{r f4Edge1Specific,fig.pos='H'}
 kable(fourpop[fourpop$pops=="TXFW,TXCB;FLSI,FLAB",] ,"latex",booktabs=TRUE,
@@ -809,10 +819,10 @@ kable(threepop[threepop$pops=="FLAB;FLPB,FLLG",],"latex",booktabs=TRUE,
   kable_styling(latex_options="HOLD_position","repeat_header")
 ```
 
-Inspecting this three-population tree \@ref(tab:f3Edge2Specific) shows that the statistic is positive does not overlap with zero, and none of the FLAB values are negative, suggesting that this migration edge is unlikely to represent admixture. 
+Inspecting this three-population tree (Table \@ref(tab:f3Edge2Specific)) shows that the statistic is positive does not overlap with zero, and none of the FLAB values are negative, suggesting that this migration edge is unlikely to represent admixture. 
 
 
-We then investigated the fourpop analysis for this migration edge, focusing on the FLAB population and any other populations in Florida. All of these f4 statistics are very close to zero  \@ref(tab:f4Edge2), which suggests that there is not much evidence for gene flow between these branches. We narrowed our focus to the FLAB,FLCC;FLPB,FLFW tree. This tree's f4 statistic is negative but overlaps zero  \@ref(tab:f4Edge2best), so is also not indicative of gene flow.
+We then investigated the fourpop analysis for this migration edge, focusing on the FLAB population and any other populations in Florida. All of these f4 statistics are very close to zero  (Table \@ref(tab:f4Edge2)), which suggests that there is not much evidence for gene flow between these branches. We narrowed our focus to the FLAB,FLCC;FLPB,FLFW tree. This tree's f4 statistic is negative but overlaps zero  (Table \@ref(tab:f4Edge2best)), so is also not indicative of gene flow.
 
 ```{r f4Edge2,fig.pos='H'}
 kable(fourpop[grep("FLAB,FL.*;.*",fourpop$pops),],format="latex",booktabs=TRUE,
