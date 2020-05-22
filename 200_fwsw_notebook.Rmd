@@ -24,6 +24,19 @@ pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 ```
 
 
+# 22 May 2020
+
+I think I've solved the referencing-figs-and-tables issue: using the bookdown package. It doesn't like chunk names with underscores though so I had to do some editing. The only downside is that figure referencing doesn't seem to work with the rmarkdown figure loading format (![]()), so I'm switching them to include_graphics() from knitr.
+
+Also to do today: revisit annotations and note whether SNPs were in coding regions or non-coding annotated regions of the genome. -- to do this I'll have to go back to the gff.
+
+Still to do: 
+- Improve writing of supplements
+- Update references in introduction (and improve flow/writing)
+- more dadi runs!
+  - starting FLFW vs LAFW on abacus except AM, IM, IM2mG, SC, and SI -- so numbers 82-89 (number 607) and 90-103 (608).
+  - similarly I'll also queue up FLFW_TXFW in the same way -- 108-114 (609) and 116-123 (610).
+  
 # 21 May 2020
 
 dadi runs are still plugging along.
