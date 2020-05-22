@@ -110,7 +110,7 @@ DNA was extracted from the frozen tissues of the pipefish using an ethanol-preci
 
 We then followed published double-digest restriction site associated DNA sequencing protocols. Specifically, we used the single indexing scheme from the single-digest RAD-seq protocols [@bairdRapidSNPDiscovery2008; @millerRapidCosteffectivePolymorphism2007], and the enzymes PstI-HF (New England Biolabs) and MboI (New England Biolabs). We digested 1 $\mu$g of each DNA sample with the two enzymes, and 250ng of each digest was used in the ligation step, when barcodes were added to individual samples. Following the ligation, 96 samples were pooled to form a single library, and we selected for 250-500bp fragments using a 1% agarose gel. Fragments containing the sequencing primers were selected and amplified in four separate PCRs per sequencing library, each with 12 cycles, and those PCRs were pooled. All purification steps were done with AMPure XP beads (Agilent), except for the gel purification following the size selection, in which we used the Zymo Gel purification kit.  For a detailed description of these methods, please see [@flanaganPopulationGenomicsReveals2016]. 
 
-As described in the main manuscript, we then analyzed the resulting RAD loci to create two sets of single nucleotide polymorphisms (SNPs):
+As described in the main manuscript, we analyzed the resulting RAD loci to create two sets of single nucleotide polymorphisms (SNPs):
 
 1. A dataset with all 16 populations, generated from all pairwise comparisons of populations, containing SNPs found in every population, in 75% of individuals, and with a minor allele frequency of at least 5%.
 
@@ -149,6 +149,8 @@ fem.pheno<-read.table("fem.pheno.txt",header=T)
 	fem.pheno<-fem.pheno[!is.na(fem.pheno$BandNum),]
 mal.pheno<-read.table("mal.pheno.txt",header=T)
 ```
+
+We photographed every fish collected during this study, and analyzed the photographs of the `r nrow(fem.pheno)` females and `r nrow(mal.pheno)` males. We measured body traits (tail length, snout-vent length, body depth, snout length, snout depth, and head length without snout length) in all individuals. We also measured band area and band number in feamles. To investigate phenotypic variation among populations, we used vegan version `r packageVersion("vegan")` [@oksanenVeganCommunityEcology2015] to conduct principal components analyses (using the function `rda`). We analsed males and females separately. We also conducted a principal components analysis on the two female band traits alone. 
 
 ```{r PCA}
 fem.pheno$PopID<-factor(fem.pheno$PopID)
@@ -299,7 +301,7 @@ legend("top", legend=ppi$Pop,
 ```
 
 
-
+The principal components analyses revealed very little population structuring in traits (Figure \@ref(fig:plotPCA)). In all three principal components analyses, the first axis explained over 90% of the variation in traits. In both males and females, the body trait with the highest loading on the first principal components axis was Tail Length (males: `r max(mal.pheno.pca$CA$v[,1])`, females: `r max(fem.pheno.pca$CA$v[,1])`), with snout-vent length as a close second (males: `r mal.pheno.pca$CA$v["SVL",1]`, females: `r fem.pheno.pca$CA$v["SVL",1]`). In both males and females, SVL had the highest loading with tail length having the second largest magnitude (but negative; Table \@ref(tab:pcaLoadings)). For the bands, band number had the largest absolute contribution to the first axis, with mean band number contributing most to the second PC axis (Table \@ref(tab:pcaLoadings)). Together, these results suggest that body size was the largest driver of variation among individuals, but the lack of clear population clusters suggests that populations did not have consistent differences in body size or band traits.
 
 ## Minor allele frequencies
 
@@ -358,6 +360,7 @@ knitr::include_graphics('../figs/minorAFplot-1.png')
 
 ## Fst Values
 
+ 
 
 ```{r readStacksFstSumm}
 full_fsts<-read.delim("stacks/populations_whitelist/batch_2.fst_summary.tsv",
@@ -370,6 +373,7 @@ colnames(full_fsts)<-rownames(full_fsts)<-pop.labs
 fst_mat<-as.matrix(full_fsts)
 ```
 
+To visualize population structuring based on genotypes, we investigated pairwise $F_{ST}$ values output by Stacks [@catchenStacksAnalysisTool2013]. The pairwise $F_{ST}$ values ranged from `r min(fst_mat,na.rm=TRUE)` to `r max(fst_mat,na.rm=TRUE)`, with a mean of `r mean(fst_mat,na.rm=TRUE)`. The patterns in the $F_{ST}$ values were also compared to the covariances calculated by Treemix, using the unrooted population tree (see \@ref(Treemix analysis) for more detail). We found that the most similar populations (i.e., with low $F_{ST}$ and high covariance) were located nearest to each other geographically (Figure \@ref(fig:fsts)), consistent with the finding of an isoaltion-by-distance pattern in [@flanaganPopulationGenomicsReveals2016]. The freshwater populations show somewhat elevated $F_{ST}$ values and decreased covariances, especially the freshwater populations in Florida and Texas.
 
 ```{r fst_heatmaps,fig.width=8,fig.height=5,eval=FALSE}
 library(lattice); library(grid); library(RColorBrewer)
@@ -514,7 +518,10 @@ legend("top", legend=ppi$Pop, pch=as.numeric(ppi$pch), pt.cex=1.5,cex=0.85,
        col=alpha(ppi$cols, 0.5),pt.bg=alpha(ppi$cols,0.25), ncol=8,bty='n')
 ```
 
-![Principal components analysis of genotypes in *S. scovelli* reveals population structure due to geographic distance and habitat type. The top set of panels show the results of the PCA with all 16 populations, color-coded by populations and point shape. The bottom set of panels show the same PCA results, but with different x- and y-axis scaling and without the saltwater populations plotted, to facilitate visualizing the differences among saltwater populations. The left panels show the first and second PC axes, whcih together account for 53.5% of the varation, the middle panels show the 3rd and 4th PC axes (another 26.8% of the variation), and the right panels the fifth and sixth axes (another % of variation).](../figs/plot6pcsPCAdapt-1.png) 
+```{r PCAdaptPlot, out.width='90%',fig.cap="Principal components analysis of genotypes in the Gulf pipefish reveals population structure due to geographic distance and habitat type. The top set of panels show the results of the PCA with all 16 populations, color-coded by populations and point shape. The bottom set of panels show the same PCA results, without the saltwater populations plotted (and zoomed in), to facilitate visualizing the differences among saltwater populations."}
+knitr::include_graphics('../figs/plot6pcsPCAdapt-1.png')
+```
+
 
 ## Admixture scree plots {-}
 
