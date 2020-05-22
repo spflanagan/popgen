@@ -212,6 +212,8 @@ convert.agp<-function(locus=NULL,old.agp,old.scf,new.agp,scf.agp,
   
   return(out)
 }
+```
+```{r convert_stacks}
 convert.stacks<-function(stacks.fst,outname,lgs,ssc.agp,sscf.agp,chr.agp,scf.agp){
   for(i in 1:nrow(stacks.fst)){
      convert<-convert.agp(old.agp=ssc.agp,old.scf=sscf.agp,
