@@ -311,7 +311,7 @@ fwsw.tx<-read.delim("stacks/converted.fst_TXCC-TXFW.txt")
 fwsw.fl<-read.delim("stacks/converted.fst_FLCC-FLLG.txt")
 ```
 
-```{r plotStacksFsts,fig.height=9,fig.width=6,fig.cap="Manhattan plot of pairwise AMOVA-corrected Fst values from Stacks for each freshwater - nearest saltwater population pair. The x-axis corresponds to genomic locations, with chromosomes labelled. To the right are loci that mapped to unanchored scaffolds."}
+```{r plotStacksFsts,fig.height=9,fig.width=7,fig.cap="Manhattan plot of pairwise AMOVA-corrected Fst values from Stacks for each freshwater - nearest saltwater population pair. The x-axis corresponds to genomic locations, with chromosomes labelled. To the right are loci that mapped to unanchored scaffolds."}
 source("../R/205_popgenPlotting.R")
 fst_dat<-list(fwsw.al,fwsw.la,fwsw.tx,fwsw.fl)
 fsts<-plot_multiple_LGs(list_fsts = fst_dat,fst_name = "Corrected.AMOVA.Fst",
