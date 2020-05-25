@@ -2236,14 +2236,14 @@ annInfo$region[annInfo$region %in% "scaffNotFound"]<-"unkown"
 
 annInfo$outlier<-"not-outlier"
 annInfo$outlier[annInfo$ID %in% unlist(outliers)]<-"outlier"
-kable(table(annInfo$SSCID,annInfo$outlier),booktabs=TRUE,
+kable(table(annInfo$region,annInfo$outlier),booktabs=TRUE,
       caption="The number of SNPs in the subsetted dataset that were outliers in coding and non-coding regions of the genome.")
 ```
 
 If our null hypothesis is that we have randomly selected outliers with equal probability from coding and non-coding regions, we can use a Fisher's exact test to calculate the probability of our observed distribution of outliers.
 
 ```{r fisherTestOutliers}
-fisher.test(table(annInfo$SSCID,annInfo$outlier))
+fisher.test(table(annInfo$region,annInfo$outlier))
 ```
 
 Based on this, we could conclude that our table of outliers in coding regions is more extreme than expected under the null. 
