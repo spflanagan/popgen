@@ -890,6 +890,22 @@ dev.off()
 ```
 ![The plot of the tree with FLPB as root but no migration edges (left) compared to the tree with FLPB as root and two migration edges. The drift parameter is plottex on the x-axis, and migration edges are colored based on the migration weight.](../figs/treemix_comparison.png)
 
+Let's plot all of the 2-edge trees from the multiple replicates
+
+```{r}
+par(mfrow=c(3,4),mar=c(1,1,1,2),oma=c(1,1,1,2),xpd=TRUE)
+t0<-plot_tree("treemix/fwsw_k100bFLPBr",scale=T,mbar=F,cex = 1.5,
+              lwd=2,mig_left=FALSE,disp=0.0002,scadj=0.05)
+t2<-plot_tree("treemix/fwsw_k100bFLPBrm2",scale=T,mbar=T,cex = 1.5,
+              lwd=2,mig_left=FALSE,disp=0.0002,scadj=0.05)
+for(i in 1:10){
+  t2<-plot_tree(paste0("treemix/fwsw_k100bFLPBrm2_",i),
+                scale=T,mbar=T,cex = 1.5,
+              lwd=2,mig_left=FALSE,disp=0.0002,scadj=0.05)
+}
+```
+
+
 
 ### Threepop and fourpop analysis
  
@@ -1745,17 +1761,11 @@ snp.names<-split(freq$SNP,freq$CLST)[[1]]
 snp.names<-gsub("(\\d+)_\\d+","\\1",snp.names)
 
 snp_dat<-data.frame(ID=snp.names,loc=seq(1,length(snp.names)*2,2))
-bayenv_dat$locus<-as.numeric(gsub("SNPFILES\\/(\\d+)","\\1",bayenv_dat$locus))
+bayenv_dat$locus<-as.factor(as.numeric(gsub("SNPFILES\\/(\\d+)","\\1",bayenv_dat$locus)))
 bayenv_dat<-bayenv_dat[order(bayenv_dat$locus),]
 bayenv_dat<-merge(snp_dat,bayenv_dat,by.x="loc",by.y="locus")
 colnames(bayenv_dat)[1:2]<-c("index","SNPID")
 
-pmap<-read.delim("stacks/populations_subset75/batch_2.pruned.map",header = FALSE) 
-# the position location is wrong in this ^ file
-pmap$locus<-gsub("(\\d+)_\\d+","\\1",pmap[,2])
-
-bayenv_dat<-merge(pmap[,c(1,4,5)],bayenv_dat,by.x="locus",by.y="SNPID")
-colnames(bayenv_dat)[2:3]<-c("Chrom","SNPID")
 write.table(bayenv_dat,"bayenv/bayenv_output.txt",sep="\t",
             col.names = TRUE,row.names = FALSE,quote = FALSE)
 ```
@@ -1768,8 +1778,8 @@ bayenv_dat$logTemBF<-log(bayenv_dat$temp_BF)
 bayenv_dat$logSegBF<-log(bayenv_dat$seagrass_BF)
 fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
 fw_SNPinfo<-merge(fw_SNPinfo,
-                  bayenv_dat[,c("locus","XtX","logSalBF","logTemBF","logSegBF")],
-                  by.x="ID",by.y="locus",all.x=TRUE)
+                  bayenv_dat[,c("index","XtX","logSalBF","logTemBF","logSegBF")],
+                  by.x="ID",by.y="index",all.x=TRUE)
 saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
 ```
 
@@ -2190,7 +2200,7 @@ genome.blast<-read.csv("../../scovelli_genome/ssc_2016_12_20_cds_nr_blast_result
 fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
 
 snp_annotate<-annotate_snps(fw_SNPinfo,gff,genome.blast,ID="ID",
-                            chrom="Chrom",bp="BP.x",pos = "Pos")
+                            chrom="Chrom",bp="BP",pos = "Pos")
 snp_annotate$Locus<-as.character(snp_annotate$Locus)
 fw_SNPinfo$ID<-as.character(fw_SNPinfo$ID)
 fw_SNPinfo<-merge(fw_SNPinfo,snp_annotate,by.x="ID",by.y="Locus",all.x=TRUE)
