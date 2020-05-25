@@ -24,6 +24,13 @@ pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 ```
 
 
+# 25 May 2020
+
+dadi updates:
+To do:
+1. annotations to determine whether SNPs were in coding regions or non-coding regions.
+2. improve treemix interpretations (and add something about bootstraps?)
+3. finish writing supplements
 # 22 May 2020
 
 I think I've solved the referencing-figs-and-tables issue: using the bookdown package. It doesn't like chunk names with underscores though so I had to do some editing. The only downside is that figure referencing doesn't seem to work with the rmarkdown figure loading format (![]()), so I'm switching them to include_graphics() from knitr.
