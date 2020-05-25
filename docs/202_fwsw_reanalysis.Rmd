@@ -892,6 +892,7 @@ dev.off()
 
 Let's plot all of the 2-edge trees from the multiple replicates
 
+
 ```{r treemixBootstrapM2s,fig.width=8,fig.height=9,fig.cap="Plot of the tree with no migration edge, the tree with 2 migration edges that has been analyzed, and all of the bootstrap replicates with two migration edges."}
 par(mfrow=c(3,4),mar=c(1,1,1,2),oma=c(1,1,1,2),xpd=TRUE)
 t0<-plot_tree("treemix/fwsw_k100bFLPBr",scale=T,mbar=F,cex = 1.5,
@@ -1761,11 +1762,17 @@ snp.names<-split(freq$SNP,freq$CLST)[[1]]
 snp.names<-gsub("(\\d+)_\\d+","\\1",snp.names)
 
 snp_dat<-data.frame(ID=snp.names,loc=seq(1,length(snp.names)*2,2))
-bayenv_dat$locus<-as.factor(as.numeric(gsub("SNPFILES\\/(\\d+)","\\1",bayenv_dat$locus)))
+bayenv_dat$locus<-as.numeric(gsub("SNPFILES\\/(\\d+)","\\1",bayenv_dat$locus))
 bayenv_dat<-bayenv_dat[order(bayenv_dat$locus),]
 bayenv_dat<-merge(snp_dat,bayenv_dat,by.x="loc",by.y="locus")
 colnames(bayenv_dat)[1:2]<-c("index","SNPID")
 
+pmap<-read.delim("stacks/populations_subset75/batch_2.pruned.map",header = FALSE) 
+# the position location is wrong in this ^ file
+pmap$locus<-gsub("(\\d+)_\\d+","\\1",pmap[,2])
+
+bayenv_dat<-merge(pmap[,c(1,4,5)],bayenv_dat,by.x="locus",by.y="SNPID")
+colnames(bayenv_dat)[2:3]<-c("Chrom","SNPID")
 write.table(bayenv_dat,"bayenv/bayenv_output.txt",sep="\t",
             col.names = TRUE,row.names = FALSE,quote = FALSE)
 ```
@@ -1778,8 +1785,8 @@ bayenv_dat$logTemBF<-log(bayenv_dat$temp_BF)
 bayenv_dat$logSegBF<-log(bayenv_dat$seagrass_BF)
 fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
 fw_SNPinfo<-merge(fw_SNPinfo,
-                  bayenv_dat[,c("index","XtX","logSalBF","logTemBF","logSegBF")],
-                  by.x="ID",by.y="index",all.x=TRUE)
+                  bayenv_dat[,c("locus","XtX","logSalBF","logTemBF","logSegBF")],
+                  by.x="ID",by.y="locus",all.x=TRUE)
 saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
 ```
 
@@ -2200,7 +2207,7 @@ genome.blast<-read.csv("../../scovelli_genome/ssc_2016_12_20_cds_nr_blast_result
 fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
 
 snp_annotate<-annotate_snps(fw_SNPinfo,gff,genome.blast,ID="ID",
-                            chrom="Chrom",bp="BP",pos = "Pos")
+                            chrom="Chrom",bp="BP.x",pos = "Pos")
 snp_annotate$Locus<-as.character(snp_annotate$Locus)
 fw_SNPinfo$ID<-as.character(fw_SNPinfo$ID)
 fw_SNPinfo<-merge(fw_SNPinfo,snp_annotate,by.x="ID",by.y="Locus",all.x=TRUE)
