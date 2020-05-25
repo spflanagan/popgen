@@ -27,10 +27,68 @@ pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 # 25 May 2020
 
 dadi updates:
+- rccuser
+  - FLCC_TXFW #1 has finished running on rccuser, so I'm moving it and tar-zipping it.'
+  - There also appears to be FLCC_LAFW that's finished #1 and not been moved and tar-zipped so I moved that as well.
+  - Now rccuser is only running #1 for FLCC_ALFW and FLCC_TXCC (both SC2NG).
+- abacus
+  - FLLG_ALFW #13 (started 23 Apr) seems to be done, so I moved those and deleted them from abacus.
+  - the model from April 6th (ALST_TXFW_SC2N2mG_12) hasn't been updated since 8 May! Perhaps it's worth cancelling that run and re-starting it.
+  - all other sets of models are still running
+- C001KR
+  - FLLG_ALFW is on nmbers 5, 6, and 7.
+
+I will also start FLFW_TXCC except AM, IM, SC, and SI (so 134-155) on abacus for run #13 (job 611)
+
+
 To do:
 1. annotations to determine whether SNPs were in coding regions or non-coding regions.
 2. improve treemix interpretations (and add something about bootstraps?)
 3. finish writing supplements
+
+\#1. annotations
+I've re-run the annotate_snps function to verify that the output is reliable, and then I can pull out any of them that have three_prime_UTR or five_prime_UTR in the region field.
+
+For some reason most of the SNPs are in 'unknown' regions -- on scaffolds not found in the gff file, which is mysterious -- there shouldn't be so many SNPs on unknown scaffolds, I wouldn't think. 
+
+> table(annInfo$region)
+
+    coding non-coding regulatory     unkown 
+      1529       1106        125       9343
+
+\#2. Treemix
+I did run treemix with bootstraps, but I don't know where the output is saved. I also ran each model 10 times but don't really do anything with those replicates, so that's an oversight that will need to be resolved. Let's check all of the different file types
+
+```{r}
+library(ape)
+stem<-"fwsw_k100bFLPBrm2_1"
+d = paste(stem, ".vertices.gz", sep = "")
+e = paste(stem, ".edges.gz", sep = "")
+se = paste(stem, ".covse.gz", sep = "")
+cv<-paste(stem, ".cov.gz", sep = "")
+m<-paste(stem, ".modelcov.gz", sep = "")
+tr<-paste(stem, ".treeout.gz", sep = "")
+ll<-paste(stem, ".llik", sep = "")
+d = read.table(gzfile(d), as.is = T, comment.char = "", quote = "")
+e = read.table(gzfile(e), as.is  = T, comment.char = "", quote = "")
+se = read.table(gzfile(se), as.is = T, comment.char = "", quote = "")
+cv<- read.table(gzfile(cv), as.is = T, comment.char = "", quote = "")
+m<- read.table(gzfile(m), as.is = T, comment.char = "", quote = "")
+tr<- read.tree(gzfile(tr))
+ll<- read.table(gzfile(ll), as.is = T, comment.char = "", quote = "")
+# get the migration edges
+# First line is Newick format ML tree, and the remaining lines contain the migration edges. 
+# The first column for these lines is the weight on the edge, 
+# followed (optionally) by the jackknife estimate of the weight,
+# the jackknife estimate of the standard error, and the p-values. 
+# Then come the subtree below the origin of the migration edge, 
+# and the subtree below the destination of the migration edge.
+tro<-scan(paste0(stem,".treeout.gz"),what='character',sep='\n',quote="") 
+
+```
+
+In the google group Joe Pickrell says: "For building consensus trees from different bootstrapped treemix runs, I used sumtrees in the dendropy package: http://pythonhosted.org/DendroPy/programs/sumtrees.html. I unfortunately don't have a way of visualizing bootstrapped graphs in a satisfying way. "So perhaps I should use python to generate sumamry trees with dentropy -- or use an equivalent function from ape or similar. 
+
 # 22 May 2020
 
 I think I've solved the referencing-figs-and-tables issue: using the bookdown package. It doesn't like chunk names with underscores though so I had to do some editing. The only downside is that figure referencing doesn't seem to work with the rmarkdown figure loading format (![]()), so I'm switching them to include_graphics() from knitr.
