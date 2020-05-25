@@ -2204,6 +2204,7 @@ snp_annotate<-annotate_snps(fw_SNPinfo,gff,genome.blast,ID="ID",
 snp_annotate$Locus<-as.character(snp_annotate$Locus)
 fw_SNPinfo$ID<-as.character(fw_SNPinfo$ID)
 fw_SNPinfo<-merge(fw_SNPinfo,snp_annotate,by.x="ID",by.y="Locus",all.x=TRUE)
+colnames(fw_SNPinfo)[4]<-"BP"
 saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
 ```
 
