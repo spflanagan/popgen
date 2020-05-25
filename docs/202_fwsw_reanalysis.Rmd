@@ -2138,8 +2138,9 @@ annotate_snps<-function(snpDF,gff,genome.blast,ID="Locus.ID",
     description<-NA
     SSCID<-NA
     if(nrow(this.gff)>0){
-      this.reg<-this.gff[this.gff$start <= as.numeric(sig[bp]) & 
-                           this.gff$end >= as.numeric(sig[bp]),]
+      
+      this.reg<-this.gff[which(this.gff$start <= as.numeric(sig[bp]) & 
+                           this.gff$end >= as.numeric(sig[bp])),]
       if(nrow(this.reg) == 0){
         if(as.numeric(sig[bp]) > max(as.numeric(this.gff$end))){
           region<-"beyond.last.contig"
