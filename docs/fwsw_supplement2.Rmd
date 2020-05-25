@@ -333,9 +333,7 @@ tx.sig<-fwsw.tx[fwsw.tx$Fisher.s.P<0.01,"Locus.ID"]
 la.sig<-fwsw.la[fwsw.la$Fisher.s.P<0.01,"Locus.ID"]
 al.sig<-fwsw.al[fwsw.al$Fisher.s.P<0.01,"Locus.ID"]
 fl.sig<-fwsw.fl[fwsw.fl$Fisher.s.P<0.01,"Locus.ID"]
-length(tx.sig[(tx.sig %in% c(la.sig,al.sig,fl.sig))])
-length(la.sig[(la.sig %in% c(tx.sig,al.sig,fl.sig))])
-length(al.sig[(al.sig %in% c(la.sig,tx.sig,fl.sig))])
+
 all.shared<-fl.sig[fl.sig %in% la.sig & fl.sig %in% al.sig & fl.sig %in% tx.sig]
 ```
 
