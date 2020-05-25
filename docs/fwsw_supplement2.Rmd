@@ -299,7 +299,10 @@ upd.sf<-convert.stacks(swsw.fl,"stacks/converted.fst_FLCC-FLHB.txt",
 ```
 
 
-## Stacks {-}
+## Stacks{-}
+
+
+We used the AMOVA-corrected $F_{ST}$ values calculated by the populations module in Stacks to investigate the patterns of fixation between each pair of freshwater and nearest saltwater populations. In each pairwise comparison, we identified SNPs that were outliers using the Fisher's $P$-value in the Stacks output, using an $\alpha=0.01$. We then identified those SNPs that were shared among all four pairwise comparisons as genomic regions with a potentially parallel response to selection from the freshwater habitats.
 
 ```{r read_stacks_fsts}
 fwsw.al<-read.delim("stacks/converted.fst_ALFW-ALST.txt")
@@ -323,7 +326,7 @@ fsts<-plot_multiple_LGs(list_fsts = fst_dat,fst_name = "Corrected.AMOVA.Fst",
                         pt.cex=1,axis.size = 1)
 ```
 
-So this generated a plot for each pairwise comparison. We could look for shared outliers and see if we can find anything.
+
 
 ```{r get_stacks_sig}
 tx.sig<-fwsw.tx[fwsw.tx$Fisher.s.P<0.01,"Locus.ID"]
@@ -336,9 +339,9 @@ length(al.sig[(al.sig %in% c(la.sig,tx.sig,fl.sig))])
 all.shared<-fl.sig[fl.sig %in% la.sig & fl.sig %in% al.sig & fl.sig %in% tx.sig]
 ```
 
-There are `r length(unique(all.shared))` outliers (as determined by Fisher's P from stacks < 0.01). 
 
-As a point of comparison, we can repeat this with the similar pairwise saltwater-saltwater $F_{ST}$ comparisons.
+
+As a point of comparison, we repeated this process with the similar pairwise saltwater-saltwater population pairs. We expect that if substantially more outlier loci were shared in the freshwater-saltwater comparisons than in the saltwater-saltwtaer comparisons that the shared outliers are likely a signature of adaptation to freshwater as opposed to random chance due to population structure.  
 
 ```{r plotStacksfstsSWSW,fig.height=9,fig.width=6,fig.cap="Manhattan plot of pairwise AMOVA-corrected Fst values from Stacks for the saltwater populations nearest to freshwater populations compared to their nearest saltwater neightbor. The x-axis corresponds to genomic locations, with chromosomes labelled. To the right are loci that mapped to unanchored scaffolds."}
 swsw.fl<-read.delim("stacks/converted.fst_TXCB-TXCC.txt")
@@ -355,7 +358,6 @@ fsts<-plot_multiple_LGs(list_fsts = fst_dat,fst_name = "Corrected.AMOVA.Fst",
                         pt.cex=1,axis.size = 1)
 ```
 
-So this generated a plot for each pairwise comparison. We could look for shared outliers and see if we can find anything.
 
 ```{r get_stacks_sig_swsw}
 tx.sig<-swsw.tx[swsw.tx$Fisher.s.P<0.01,"Locus.ID"]
@@ -364,7 +366,7 @@ fl.sig<-swsw.fl[swsw.fl$Fisher.s.P<0.01,"Locus.ID"]
 all.shared<-fl.sig[fl.sig %in% al.sig & fl.sig %in% tx.sig]
 ```
 
-There are `r length(unique(all.shared))` outliers (as determined by Fisher's P from stacks < 0.01).
+We found `r length(unique(all.shared))` outliers shared among all four freshwater-saltwater pairwise $F_{ST}$ analyses and only `r length(unique(all.shared))` outlier shared among the saltwater-saltwater pairwise comparisons.
 
 ## Permutations {-}
 
