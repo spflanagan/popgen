@@ -892,7 +892,7 @@ dev.off()
 
 Let's plot all of the 2-edge trees from the multiple replicates
 
-```{r}
+```{r treemixBootstrapM2s,fig.width=8,fig.height=9,fig.cap="Plot of the tree with no migration edge, the tree with 2 migration edges that has been analyzed, and all of the bootstrap replicates with two migration edges."}
 par(mfrow=c(3,4),mar=c(1,1,1,2),oma=c(1,1,1,2),xpd=TRUE)
 t0<-plot_tree("treemix/fwsw_k100bFLPBr",scale=T,mbar=F,cex = 1.5,
               lwd=2,mig_left=FALSE,disp=0.0002,scadj=0.05)
