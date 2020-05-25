@@ -491,10 +491,9 @@ knitr::include_graphics('../figs/permuted_fsts.png')
 
 
 
-
 ## PCAdapt {-}
 
-For this analysis, to maintain consistency with the other outlier analyses, I'm using the subestted dataset. So I need to run PCAdapt [@luu_pcadapt:_2017] another time.
+We ran PCAdapt [@luu_pcadapt:_2017] using the subsetted dataset to identify outliers while controlling for population structure. After an initial analysis with 20 principal components axes retained (Figure \@ref(fig:pcadaptOutliers)), $K=4$ was chosen as the appropriate number of axes to retain for the analysis.
 
 ```{r readVCFpcadapt}
 vcf<-parse.vcf("converted_subset.vcf")
@@ -506,9 +505,6 @@ suppressWarnings(write.table(vcf,"pcadapt_fw/fwsw.pruned.vcf",
                              quote=FALSE,append = TRUE,
                              row.names = FALSE,col.names = TRUE,sep='\t'))
 ```
-
-
-
 ```{r pcadaptOutliers, fig.cap="Screeplot for the subsetted dataset with 20 PC axes retained in the analysis."}
 library(pcadapt)
 #need to remove the first line with a # 
@@ -516,9 +512,6 @@ filename<-read.pcadapt("pcadapt_fw/fwsw.pruned.vcf",type="vcf")
 x<-pcadapt(filename, K=20)
 plot(x,option="screeplot")
 ```
-
-$K=4$ seems like the best choice here to keep values to the left of the straight line (or could be $K=6$). 
-
 ```{r organizePopInfo}
 # Organize pop info
 pops<-gsub("sample_(\\w{4}).*","\\1",colnames(vcf)[10:ncol(vcf)])	
@@ -527,6 +520,7 @@ grp[grp=="TXFW" | grp=="LAFW" | grp=="ALFW" | grp=="FLLG"]<-"freshwater"
 grp[grp!="freshwater"]<-"saltwater"
 ```
 
+Using $K=4$, we investigated certain assumptions. 
 
 ```{r PcadaptK4-1, fig.cap="Manhattan plot for the PCAdapt outlier analysis with the subsetted dataset and 4 PC axes retained in the analysis."}
 res<-pcadapt(filename,K=4)
@@ -563,7 +557,7 @@ l<-lapply(lgs, function(lg,vcf){
 
 None of the LGs seem to have huge clusters of outliers so we can move on, lumping them all together.
 
-We need to choose a cutoff for outlier detection. I'll use the qvalue approach, which identifies outliers with a false discovery rate of $\alpha$, which I'm setting here to 0.05.
+We need to choose a cutoff for outlier detection. I'll use the qvalue approach, using with a false discovery rate of $\alpha=0.05$.
 
 ```{r PcadaptQvalue}
 library(qvalue)
