@@ -498,7 +498,7 @@ knitr::include_graphics('../figs/permuted_fsts.png')
 
 ## PCAdapt {-}
 
-We ran PCAdapt [@luu_pcadapt:_2017] using the subsetted dataset to identify outliers while controlling for population structure. After an initial analysis with 20 principal components axes retained (Figure \@ref(fig:pcadaptOutliers)), $K=4$ was chosen as the appropriate number of axes to retain for the analysis.
+We ran PCAdapt [@luuPcadaptPackagePerform2017] using the subsetted dataset to identify outliers while controlling for population structure. After an initial analysis with 20 principal components axes retained (Figure \@ref(fig:pcadaptOutliers)), $K=4$ was chosen as the appropriate number of axes to retain for the analysis.
 
 ```{r readVCFpcadapt}
 vcf<-parse.vcf("converted_subset.vcf")
