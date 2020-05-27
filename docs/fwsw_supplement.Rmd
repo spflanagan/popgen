@@ -150,7 +150,7 @@ fem.pheno<-read.table("fem.pheno.txt",header=T)
 mal.pheno<-read.table("mal.pheno.txt",header=T)
 ```
 
-We photographed every fish collected during this study, and analyzed the photographs of the `r nrow(fem.pheno)` females and `r nrow(mal.pheno)` males. We measured body traits (tail length, snout-vent length, body depth, snout length, snout depth, and head length without snout length) in all individuals. We also measured band area and band number in feamles. To investigate phenotypic variation among populations, we used vegan version `r packageVersion("vegan")` [@oksanenVeganCommunityEcology2015] to conduct principal components analyses (using the function `rda`). We analsed males and females separately. We also conducted a principal components analysis on the two female band traits alone. 
+We photographed every fish collected during this study, and analyzed the photographs of the `r nrow(fem.pheno)` females and `r nrow(mal.pheno)` males. We measured body traits (tail length, snout-vent length, body depth, snout length, snout depth, and head length without snout length) in all individuals. We also measured band area and band number in feamles. To investigate phenotypic variation among populations, we used vegan version `r packageVersion("vegan")` [@oksanenVeganCommunityEcology2015] to conduct principal components analyses (using the function `rda`). We analyzed males and females separately. We also conducted a principal components analysis on the two female band traits alone. 
 
 ```{r PCA}
 fem.pheno$PopID<-factor(fem.pheno$PopID)
@@ -321,6 +321,8 @@ The principal components analyses revealed very little population structuring in
 
 We calculated the minor allele frequency for all 7933 SNPs in the full dataset for each population. We achieved this using the function `calc.afs.vcf` in the `gwscaR` package, which calculates the frequencies for the reference and alternative allele. We then extracted and plotted the frequency of the least-common allele in each population (Figure \@ref(fig:maf)).
 
+These histograms demonstrate that the two most isolated freshwater populations (FLFW and TXFW) have minor allele frequencies skewed towards zero, in particular compared to many of the saltwater populations in the Gulf of Mexico (e.g., FLSG, TXCB).
+
 ```{r calcAFS, eval=FALSE}
 locus.info<-colnames(ful_vcf[1:9])
 fw.afs<-lapply(fw.list,function(pop,vcf){
@@ -387,7 +389,7 @@ colnames(full_fsts)<-rownames(full_fsts)<-pop.labs
 fst_mat<-as.matrix(full_fsts)
 ```
 
-To visualize population structuring based on genotypes, we investigated pairwise $F_{ST}$ values output by Stacks [@catchenStacksAnalysisTool2013]. The pairwise $F_{ST}$ values ranged from `r min(fst_mat,na.rm=TRUE)` to `r max(fst_mat,na.rm=TRUE)`, with a mean of `r mean(fst_mat,na.rm=TRUE)`. The patterns in the $F_{ST}$ values were also compared to the covariances calculated by Treemix, using the unrooted population tree (see \@ref(Treemix analysis) for more detail). We found that the most similar populations (i.e., with low $F_{ST}$ and high covariance) were located nearest to each other geographically (Figure \@ref(fig:fsts)), consistent with the finding of an isoaltion-by-distance pattern in [@flanaganPopulationGenomicsReveals2016]. The freshwater populations show somewhat elevated $F_{ST}$ values and decreased covariances, especially the freshwater populations in Florida and Texas.
+To visualize population structuring based on genotypes, we investigated pairwise $F_{ST}$ values output by Stacks [@catchenStacksAnalysisTool2013]. The pairwise $F_{ST}$ values ranged from `r min(fst_mat,na.rm=TRUE)` to `r max(fst_mat,na.rm=TRUE)`, with a mean of `r mean(fst_mat,na.rm=TRUE)`. The patterns in the $F_{ST}$ values were also compared to the covariances calculated by Treemix ([@pickrellInferencePopulationSplits2012]), using the unrooted population tree (see \@ref(Treemix) for more detail). We found that the most similar populations (i.e., with low $F_{ST}$ and high covariance) were located nearest to each other geographically (Figure \@ref(fig:fsts)), consistent with the finding of an isoaltion-by-distance pattern in [@flanaganPopulationGenomicsReveals2016]. The freshwater populations show somewhat elevated $F_{ST}$ values and decreased covariances, especially the freshwater populations in Florida and Texas.
 
 ```{r fst_heatmaps,fig.width=8,fig.height=5,eval=FALSE}
 library(lattice); library(grid); library(RColorBrewer)
@@ -433,7 +435,7 @@ dev.off()
 
 ```
 
-```{r fsts, out.width='95%',fig.cap="Heatmaps depicting population structure. In all graphs, dark colors depict similarity between populations and light grey and blue depict populations with high differentiation. The left panel shows pairwise FST values calculated by the populations module in Stacks (Catchen et al. 2013). The right panel shows covariances between populations as calculated by TreeMix (Pickrell and Pritchard 2012)."}
+```{r fsts, out.width='95%',fig.cap="Heatmaps depicting population structure. In all graphs, dark colors depict similarity between populations and light grey and blue depict populations with high differentiation. The left panel shows pairwise $F_{ST}$ values calculated by the populations module in Stacks (Catchen et al. 2013). The right panel shows covariances between populations as calculated by TreeMix (Pickrell and Pritchard 2012)."}
 knitr::include_graphics('../figs/fst_heatmaps.png')
 ```
 
@@ -441,6 +443,7 @@ knitr::include_graphics('../figs/fst_heatmaps.png')
 
 ## PCAdapt {-}
 
+Principal components analysis was implemented using PCAdapt [@luuPcadaptPackagePerform2017]. We initially ran the analysis on the full dataset of 7433 SNPs, visualizing 20 principal components axes to determine the optimal number of axes to retain that explain the majority of the variation among samples and populations. By inspecting the plot of the proportion of variation explained by each axis (Figure \@ref(fig:pcadaptScree)), we determined that retaining 7 axes was appropriate for our dataset.
 
 ```{r loadPCAdapt}
 library(pcadapt)
@@ -451,7 +454,7 @@ filename<-read.pcadapt("filter_rad_20191014@1654/14_filtered/radiator_data_20191
                        type="vcf")
 x<-pcadapt(filename, K=20)
 ```
-```{r pcadaptScree,fig.cap="Scree plot from PCAdapt, with 20 principal components axes retained."}
+```{r pcadaptScree,fig.cap="Scree plot from PCAdapt with 20 principal components axes retained."}
 plot(x,option="screeplot") #K=7
 ```
 
@@ -485,7 +488,7 @@ write.table(pap,"pcadapt_colp.txt",col.names=TRUE,sep='\t',quote=F)
 
 ```
 
-These results demonstrated that the first 6 retained axes account for `r sum(pa.props[1:6])`% of the variation across populations. 
+These seven axes explained `r sum(pa.props[1:7])`% of the variation in the dataset (Table \@ref(tab:pcadaptAnalyze)), and the first six axes accounted for `r sum(pa.props[1:6])`% of the variation. We inspected the location of individual samples in the principal components space and observed clear population structuring (Figure \@ref(fig:PCAdaptPlot)) in line with the isolation-by-distance patterns in [@flanaganPopulationGenomicsReveals2016] and in the ADMIXTURE (\@ref(admixture)) and Treemix analyses (\@ref(treemix)). The freshwater populations showed clear divergence between the FLFW population and the Texas, Alabama, and Louisiana populations (Figure \@ref(fig:PCAdaptPlot), bottom left panel), and the Texas freshwater population was distinct from the Alabama and Louisiana populations (Figure \@ref(fig:PCAdaptPlot), bottom center panel). The Alabama and Louisiana freshwater populations were unable to be distinguished from each other in any of the first six principal components axes (Figure \@ref(fig:PCAdaptPlot)).
 
 ```{r plot6pcsPCAdapt,fig.height=8,fig.width=10.5,fig.pos='H',fig.path="../figs/", fig.show=FALSE, fig.cap="Principal components analysis of genotypes in S. scovelli.",eval=FALSE}
 
@@ -537,8 +540,9 @@ knitr::include_graphics('../figs/plot6pcsPCAdapt-1.png')
 ```
 
 
-## Admixture scree plots {-}
+## Admixture {#admixture}
 
+We used ADMIXTURE to estimate the ancestry of individuals assuming $K=1$ through $K=16$ independent clusters. We determined the optimal number of clusters to include by choosing the K associated with the lowest cross-validation error, which was either $K=5$ or $K=7$ (Figure \@ref(fig:admixScree)).
 
 ```{r admixScree,fig.cap="Admixture screeplot for K=1 through K=16. The cross-validation error (CV) is shown on the y-axis."}
 admixK<-read.delim("admixture/K_CVs.txt",header = FALSE)
@@ -551,7 +555,7 @@ plot(admixK$K,admixK$CV,pch=19,type = "b",lty=1,xlab = "K",ylab="CV",las=1,lwd=2
 
 ```
 
-From this scree plot, we decided that either $K=5$ or $K=7$ are the best choices, but we also visualized all of the $K=2$ through $K=7$ models.
+To visualize the effect of our choice of $K$ on the assignment of individuals to clusters, we visualized the admixture plots for $K=2$ through $K=7$ (Figures \@ref(fig:admixK2),\@ref(fig:admixK3),\@ref(fig:admixK4),\@ref(fig:admixk5),\@ref(fig:admixk6),\@ref(fig:admixk7)). 
 
 ```{r admixSetup}
 library(RColorBrewer)
@@ -584,28 +588,28 @@ admixPlotting<-function(qfile,K,famfile="admixture/fwsw_all_filt.fam",
 }
 ```
 
-```{r admixK2,fig.height=2,fig.width=8,fig.cap="Admixture plot for K=2. The colors represent different genetic populations."}
+```{r admixK2,fig.height=1,fig.width=8,fig.cap="Admixture plot for K=2. The colors represent different genetic populations."}
 admixK2<-admixPlotting("admixture/fwsw_all_filt.2.Q",2)
 ```
 
-```{r admixK3,fig.height=2,fig.width=8,fig.cap="Admixture plot for K=3. The colors represent different genetic populations."}
+```{r admixK3,fig.height=1,fig.width=8,fig.cap="Admixture plot for K=3. The colors represent different genetic populations."}
 admixK3<-admixPlotting("admixture/fwsw_all_filt.3.Q",3)
 ```
-```{r admixK4,fig.height=2,fig.width=8,fig.cap="Admixture plot for K=4. The colors represent different genetic populations."}
+```{r admixK4,fig.height=1,fig.width=8,fig.cap="Admixture plot for K=4. The colors represent different genetic populations."}
 admixK4<-admixPlotting("admixture/fwsw_all_filt.4.Q",4)
 ```
 
-```{r admixk5,fig.height=2,fig.width=8,fig.cap="Admixture plot for K=5. The colors represent different genetic populations."}
+```{r admixk5,fig.height=1,fig.width=8,fig.cap="Admixture plot for K=5. The colors represent different genetic populations."}
 admixK5<-admixPlotting("admixture/fwsw_all_filt.5.Q",5)
 write.table(admixK5,"admixture/admixK5.txt",sep = '\t',
             quote = FALSE,col.names = TRUE,row.names = FALSE)
 ```
 
-```{r admixk6,fig.height=2,fig.width=8,fig.cap="Admixture plot for K=6. The colors represent different genetic populations."}
+```{r admixk6,fig.height=1,fig.width=8,fig.cap="Admixture plot for K=6. The colors represent different genetic populations."}
 admixK6<-admixPlotting("admixture/fwsw_all_filt.6.Q",6)
 ```
 
-```{r admixk7,fig.height=2,fig.width=8,fig.cap="Admixture plot for K=7. The colors represent different genetic populations."}
+```{r admixk7,fig.height=1,fig.width=8,fig.cap="Admixture plot for K=7. The colors represent different genetic populations."}
 admixK7<-admixPlotting("admixture/fwsw_all_filt.7.Q",7)
 write.table(admixK7,"admixture/admixK7.txt",sep = '\t',quote = FALSE,col.names = TRUE,row.names = FALSE)
 ```
@@ -614,7 +618,7 @@ write.table(admixK7,"admixture/admixK7.txt",sep = '\t',quote = FALSE,col.names =
 # Analysis of demographic structure {-}
 
 
-## Treemix analysis {-}
+## Treemix analysis {##treemix}
 
 We used Treemix [@pickrellInferencePopulationSplits2012] to infer population splits and migration events among all 16 populations. Throughout the analyses we used blocks of 100 SNPs. 
 
@@ -634,7 +638,7 @@ write.table(cbind(poporder,colors),"poporder",quote=F,sep='\t')
 
 We began by plotting the tree tree without a root and lacking migration edges.
 
-```{r treemixPrep, results='hide', fig.show='true',fig.cap="The population tree from running Treemix without any migration edges (left) and the resulting residuals (right). No populations were specified as root in this analysis."}
+```{r treemixPrep, results='hide', fig.show='true',fig.cap="The population tree from running Treemix any migration edges (left) and the resulting residuals (right). No populations were specified as root in this analysis."}
 source("../R/203_treemix_plotting_funcs.R") #I've modified the functions from treemix
 library(lattice); library(grid); library(RColorBrewer)
 poporder<-read.delim("treemix/poporder")
@@ -647,35 +651,7 @@ resid<-plot_resid("treemix/fwsw_k100b","treemix/poporder",wcols="rb")
 
 ```
 
-Inspecting the un-rooted tree, we decided to continue with the Treemix analysis with the FLPB as root. We tested 0 through 5 migration edges and compared the residuals, trees, and migration edges. We plotted all of the rooted trees with the unrooted tree for comparison.  
-
-```{r treemixCovPlots,eval=FALSE,echo=FALSE,fig.cap="The Treemix covariance plots."}
-nr<-treemix.cov.plot("treemix/fwsw_k100b",poporder)
-m0<-treemix.cov.plot("treemix/fwsw_k100bFLPBr",poporder,split=c(1,1,3,2),more=TRUE)
-m1<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm1",poporder,split=c(2,1,3,2),more=TRUE)
-m2<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm2",poporder,split=c(3,1,3,2),more=TRUE)
-m3<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm3",poporder,split=c(1,2,3,2),more=TRUE)
-m4<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm4",poporder,split=c(2,2,3,2),more=TRUE)
-m5<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm5",poporder,split=c(3,2,3,2),more=FALSE)
-```
-
-
-
-```{r TreemixPlotResids, results='hide', fig.show='true',fig.height=7,fig.width=7,fig.cap="The Treemix residual plots. Shown are the tree with no root and no migration edges (top left), the tree with FLPB as root but no migration edges (top center), the tree with FLPB as root and one migration edge (top right), the tree with FLPB as root and two migration edges (middle left), the tree with FLPB as root and three migration edges (middle center), the tree with FLPB as root and four migration edges (middle right), and the tree with FLPB as root and five migration edges (bottom left)."}
-# visualize residuals
-#png("treemix/treemix-residuals_FLPB.png",height=8,width=8,units="in",res=300)
-par(mfrow=c(3,3),mar=c(2,3,1,1),oma=c(1.5,1.5,1,1))
-t0<-plot_resid("treemix/fwsw_k100b",  "treemix/poplist")
-r0<-plot_resid("treemix/fwsw_k100bFLPBr",  "treemix/poplist")
-r1<-plot_resid("treemix/fwsw_k100bFLPBrm1","treemix/poplist")
-r2<-plot_resid("treemix/fwsw_k100bFLPBrm2","treemix/poplist")
-r3<-plot_resid("treemix/fwsw_k100bFLPBrm3","treemix/poplist")
-r4<-plot_resid("treemix/fwsw_k100bFLPBrm4","treemix/poplist")
-r5<-plot_resid("treemix/fwsw_k100bFLPBrm5","treemix/poplist")
-#dev.off()
-```
-
-
+Inspecting the un-rooted tree (Figure \@ref(fig:treemixPrep)), we decided to continue with the Treemix analysis with the FLPB as root. We tested 0 through 5 migration edges and compared the residuals, trees, and migration edges. We plotted all of the rooted trees with the unrooted tree for comparison (Figure \@ref(fig:plotTreemixTrees)) and their residuals (Figure \@ref(fig:TreemixPlotResids)).  
 
 ```{r plotTreemixTrees, results='hide', fig.show='true',fig.height=8,fig.cap="The Treemix trees for each model. Shown are the tree with no root and no migration edges (top left), the tree with FLPB as root but no migration edges (top center), the tree with FLPB as root and one migration edge (top right), the tree with FLPB as root and two migration edges (middle left), the tree with FLPB as root and three migration edges (middle center), the tree with FLPB as root and four migration edges (middle right), and the tree with FLPB as root and five migration edges (bottom left). The drift parameters are shown on the x-axis, and the migration weight bar is included in the top center plot."}
 # look at the trees
@@ -690,70 +666,40 @@ t4<-plot_tree("treemix/fwsw_k100bFLPBrm4",plus=0.05,scale=F,mbar=F)
 t5<-plot_tree("treemix/fwsw_k100bFLPBrm5",plus=0.05,scale=F,mbar=F)
 #dev.off()
 ```
-```{r migrationPvalues, results='hide', fig.show='true'}
-# Evaluate migration p-values
-nort0<-read.table(gzfile("treemix/fwsw_k100b.treeout.gz"), 
-                  as.is  = T, comment.char = "", quote = "")
-tree0<-read.table(gzfile("treemix/fwsw_k100bFLPBr.treeout.gz"), 
-                  as.is  = T, comment.char = "", quote = "")
-tree1<-read.table(gzfile("treemix/fwsw_k100bFLPBrm1.treeout.gz"), 
-                  as.is  = T, comment.char = "", quote = "",skip=1)
-tree2<-read.table(gzfile("treemix/fwsw_k100bFLPBrm2.treeout.gz"), 
-                  as.is  = T, comment.char = "", quote = "",skip=1)
-tree3<-read.table(gzfile("treemix/fwsw_k100bFLPBrm3.treeout.gz"), 
-                  as.is  = T, comment.char = "", quote = "",skip=1)
-tree4<-read.table(gzfile("treemix/fwsw_k100bFLPBrm4.treeout.gz"), 
-                  as.is  = T, comment.char = "", quote = "",skip=1)
-tree5<-read.table(gzfile("treemix/fwsw_k100bFLPBrm5.treeout.gz"), 
-                  as.is  = T, comment.char = "", quote = "",skip=1)
-```
-```{r TreemixVertices, results='hide', fig.show='true'}
-d <- read.table("treemix/fwsw_k100bFLPBrm3.vertices.gz", 
-                as.is  = T, comment.char = "", quote = "")
-branch.cols<-rep("black",nrow(d))
-branch.cols[d[,2] %in% c("TXFW","ALFW","LAFW","FLLG")]<-"cornflowerblue"
 
-tip.names<-as.vector(d[d[,5] == "TIP",2])
-tip.names<-data.frame(Original=tip.names,Replacement=tip.names,
-                      stringsAsFactors = FALSE)
-tip.names$Replacement[tip.names$Replacement=="FLLG"]<-"FLFW"
-```
-```{r FWSWtreemixM3FLPB,fig.height=7,fig.width=7, results='hide', fig.show='true',include=FALSE}
-png("../figs/FWSW_treemix_m3_FLPB.png",height=7,width=7,units="in",res=300)
-t3<-plot_tree("treemix/fwsw_k100bFLPBrm3","poporder",
-              plus=0.05,scale=F,mbar=F,arrow=0.1,tip.order = tip.names)
-ybar<-0.01
-mcols = rev( heat.colors(150) )
-mcols = mcols[50:length(mcols)]
-ymi = ybar+0.15
-yma = ybar+0.35
-l = 0.2
-w = l/100
-xma = max(t3$d$x/20)
-rect( rep(0.15, 100), ymi+(0:99)*w, rep(0.15+xma, 100), ymi+(1:100)*w, 
-      col = mcols, border = mcols)
-text(0.15+xma+0.001, ymi, lab = "0", adj = 0, cex = 0.7)
-text(0.15+xma+0.001, yma, lab = "0.5", adj = 0, cex =0.7)
-text(0.15, yma+0.06, lab = "Migration", adj = 0 , cex = 0.6)
-text(0.15, yma+0.03, lab = "weight", adj = 0 , cex = 0.6)
-dev.off()
+The plots of the various models show some consistency. In most of them, a migration edge leading from the other Florida branches to the FLAB population exists (Figure \@ref(fig:plotTreemixTrees)). Most other migration edges are either between geographically nearby populations (for example FLCC->FLPB) or are indicative of gene flow between freshwater populations.   
 
+```{r TreemixPlotResids, results='hide', fig.show='true',fig.height=7,fig.width=7,fig.cap="The Treemix residual plots. Shown are the residuals for the tree with no root and no migration edges (top left), the tree with FLPB as root but no migration edges (top center), the tree with FLPB as root and one migration edge (top right), the tree with FLPB as root and two migration edges (middle left), the tree with FLPB as root and three migration edges (middle center), the tree with FLPB as root and four migration edges (middle right), and the tree with FLPB as root and five migration edges (bottom left)."}
+# visualize residuals
+#png("treemix/treemix-residuals_FLPB.png",height=8,width=8,units="in",res=300)
+par(mfrow=c(3,3),mar=c(2,3,1,1),oma=c(1.5,1.5,1,1))
+t0<-plot_resid("treemix/fwsw_k100b",  "treemix/poplist")
+r0<-plot_resid("treemix/fwsw_k100bFLPBr",  "treemix/poplist")
+r1<-plot_resid("treemix/fwsw_k100bFLPBrm1","treemix/poplist")
+r2<-plot_resid("treemix/fwsw_k100bFLPBrm2","treemix/poplist")
+r3<-plot_resid("treemix/fwsw_k100bFLPBrm3","treemix/poplist")
+r4<-plot_resid("treemix/fwsw_k100bFLPBrm4","treemix/poplist")
+r5<-plot_resid("treemix/fwsw_k100bFLPBrm5","treemix/poplist")
+#dev.off()
 ```
 
+Inspecting the scaled residuals for each tree allowed us to visualize likely admixture events relative to the best-fit tree for each analysis with different migration edges. Those population pairs with residuals above zero are more closely related to each other in the data than in the best-fit tree, so are candidates for admixture events. We observed that the models with different migration edges had rather different magnitudes of residuals, with the largest magnitudes of residuals observed in the model with two migration edges, largely driven by a large residual in the FLFW-FLFW relationship (Figure \@ref(fig:TreemixPlotResids)), which we interpreted as suggesting that this population is more isolated from the other populations than represented in the best-fit tree.  
 
 ### Choosing the optimal number of migration edges
 
-To choose the optimal number of migration edges, we used the R package optM [@fitakOptMPackageOptimize2019]. Using the scree plot and the Evanno method, we determined that the best number of migration edges was 2. 
+To choose the optimal number of migration edges, we used the R package optM [@fitakOptMPackageOptimize2019]. Using the scree plot and the Evanno method, we determined that the best number of migration edges was 2 (Figure \@ref(fig:plotOptM)). 
 
-```{r plotOptM,message=FALSE,fig.show='true',fig.cap="Scree plot showing the comparison of Treemix number of migration edges."}
+```{r optM,message=FALSE}
 library(OptM)
 tmOpt<-optM("treemix")
+```
+```{r plotOptM,fig.keep='true',fig.cap="Scree plot showing the comparison of Treemix number of migration edges."}
 plot_optM(tmOpt,plot = TRUE)
 ```
 
- 
+The model chosen with the optimal number of migration edges had a similar tree structure to the rooted tree with no migration edges, with the Atlantic coast of Florida, the Gulf coast of Florida forming another cluster, the Alabama and Louisiana populations, and the Texas populations each forming their own clusters, and FLLG (which is the Florida freshwater population) branching off between the two Florida clusters (Figure \@ref(fig:treemixCompare)). The two migration edges run from the branch leading to the Gulf coast of Florida populations to the FLAB population and from the FLSI-FLAB node to the node between the TXFW population and the other Texas populations (Figure \@ref(fig:treemixCompare)). 
 
-```{r MaketreemixCompare,results='hide'}
+```{r MaketreemixCompare,results='hide',eval=FALSE}
 png("../figs/treemix_comparison.png",height = 4.5,width=8,units="in",res=300)
 par(mfrow=c(1,2),mar=c(1,1,1,2),oma=c(1,1,1,2),xpd=TRUE)
 t0<-plot_tree("treemix/fwsw_k100bFLPBr",scale=T,mbar=F,cex = 1.5,
@@ -859,7 +805,7 @@ kable(fourpop[fourpop$pops=="FLAB,FLCC;FLPB,FLLG",],"latex",booktabs=TRUE,
 ```
 
 
-Therefore, we conclude that these migration edges are indicative of historical processes connecting these geographically distinct populations, rather than direct, contemporary gene flow. 
+Therefore, we concluded that these migration edges are indicative of historical processes connecting these geographically distinct populations, rather than direct, contemporary gene flow. 
 
 
 
