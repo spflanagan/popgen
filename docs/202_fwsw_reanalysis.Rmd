@@ -789,14 +789,21 @@ m5<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm5",poporder,split=c(3,2,3,2),more=
 ```{r TreemixPlotResids, results='hide', fig.show='true',fig.height=7,fig.width=7,fig.cap="The Treemix residual plots. Shown are the tree with no root and no migration edges (top left), the tree with FLPB as root but no migration edges (top center), the tree with FLPB as root and one migration edge (top right), the tree with FLPB as root and two migration edges (middle left), the tree with FLPB as root and three migration edges (middle center), the tree with FLPB as root and four migration edges (middle right), and the tree with FLPB as root and five migration edges (bottom left)."}
 # visualize residuals
 #png("treemix/treemix-residuals_FLPB.png",height=8,width=8,units="in",res=300)
-par(mfrow=c(3,3),mar=c(2,3,1,1),oma=c(1.5,1.5,1,1))
+par(mfrow=c(7,11),mar=c(2,3,1,1),oma=c(1.5,1.5,1,1))
 t0<-plot_resid("treemix/fwsw_k100b",  "treemix/poplist")
+for(i in 1:10){ t0<-plot_resid(paste0("treemix/fwsw_k100b_",i),  "treemix/poplist") }
 r0<-plot_resid("treemix/fwsw_k100bFLPBr",  "treemix/poplist")
+for(i in 1:10){ r0<-plot_resid(paste0("treemix/fwsw_k100bFLPBr_",i),  "treemix/poplist") }
 r1<-plot_resid("treemix/fwsw_k100bFLPBrm1","treemix/poplist")
+for(i in 1:10){ r1<-plot_resid(paste0("treemix/fwsw_k100bFLPBrm1_",i),  "treemix/poplist") }
 r2<-plot_resid("treemix/fwsw_k100bFLPBrm2","treemix/poplist")
+for(i in 1:10){ r2<-plot_resid(paste0("treemix/fwsw_k100bFLPBrm2_",i),  "treemix/poplist") }
 r3<-plot_resid("treemix/fwsw_k100bFLPBrm3","treemix/poplist")
+for(i in 1:10){ r3<-plot_resid(paste0("treemix/fwsw_k100bFLPBrm3_",i),  "treemix/poplist") }
 r4<-plot_resid("treemix/fwsw_k100bFLPBrm4","treemix/poplist")
+for(i in 1:10){ r4<-plot_resid(paste0("treemix/fwsw_k100bFLPBrm4_",i),  "treemix/poplist") }
 r5<-plot_resid("treemix/fwsw_k100bFLPBrm5","treemix/poplist")
+for(i in 1:10){ r5<-plot_resid(paste0("treemix/fwsw_k100bFLPBrm5_",i),  "treemix/poplist") }
 #dev.off()
 ```
 
@@ -805,14 +812,21 @@ r5<-plot_resid("treemix/fwsw_k100bFLPBrm5","treemix/poplist")
 ```{r plotTreemixTrees, results='hide', fig.show='true',fig.height=8,fig.cap="The Treemix trees for each model. Shown are the tree with no root and no migration edges (top left), the tree with FLPB as root but no migration edges (top center), the tree with FLPB as root and one migration edge (top right), the tree with FLPB as root and two migration edges (middle left), the tree with FLPB as root and three migration edges (middle center), the tree with FLPB as root and four migration edges (middle right), and the tree with FLPB as root and five migration edges (bottom left). The drift parameters are shown on the x-axis, and the migration weight bar is included in the top center plot."}
 # look at the trees
 #png("treemix/migration_trees_treemix_FLPB.png",height=6,width=11,units="in",res=300)
-par(mfrow=c(3,3),mar=c(1,1,1,1),oma=c(1,1,1,1))
+par(mfrow=c(7,11),mar=c(1,1,1,1),oma=c(1,1,1,1))
 r0<-plot_tree("treemix/fwsw_k100b",plus=0.05,plotmig = F,scale=T,mbar=F)
+for(i in 1:10){ r0<-plot_tree(paste0("treemix/fwsw_k100b_",i),plus=0.05,plotmig = F,scale=T,mbar=F) }
 t0<-plot_tree("treemix/fwsw_k100bFLPBr",plotmig = F,plus=0.05,scale=T,mbar=T)
-t1<-plot_tree("treemix/fwsw_k100bFLPBrm1",plus=0.05,scale=F,mbar=F)
-t2<-plot_tree("treemix/fwsw_k100bFLPBrm2",plus=0.05,scale=F,mbar=F)
-t3<-plot_tree("treemix/fwsw_k100bFLPBrm3",plus=0.05,scale=F,mbar=F)
-t4<-plot_tree("treemix/fwsw_k100bFLPBrm4",plus=0.05,scale=F,mbar=F)
-t5<-plot_tree("treemix/fwsw_k100bFLPBrm5",plus=0.05,scale=F,mbar=F)
+for(i in 1:10){ t0<-plot_tree(paste0("treemix/fwsw_k100bFLPBr_",i),plus=0.05,plotmig = F,scale=T,mbar=F) }
+t1<-plot_tree("treemix/fwsw_k100bFLPBrm1",plus=0.05,scale=T,mbar=F)
+for(i in 1:10){ t1<-plot_tree(paste0("treemix/fwsw_k100bFLPBrm1_",i),plus=0.05,plotmig = F,scale=T,mbar=F) }
+t2<-plot_tree("treemix/fwsw_k100bFLPBrm2",plus=0.05,scale=T,mbar=F)
+for(i in 1:10){ t2<-plot_tree(paste0("treemix/fwsw_k100bFLPBrm2_",i),plus=0.05,plotmig = F,scale=T,mbar=F) }
+t3<-plot_tree("treemix/fwsw_k100bFLPBrm3",plus=0.05,scale=T,mbar=F)
+for(i in 1:10){ t3<-plot_tree(paste0("treemix/fwsw_k100bFLPBrm3_",i),plus=0.05,plotmig = F,scale=T,mbar=F) }
+t4<-plot_tree("treemix/fwsw_k100bFLPBrm4",plus=0.05,scale=T,mbar=F)
+for(i in 1:10){ t4<-plot_tree(paste0("treemix/fwsw_k100bFLPBrm4_",i),plus=0.05,plotmig = F,scale=T,mbar=F) }
+t5<-plot_tree("treemix/fwsw_k100bFLPBrm5",plus=0.05,scale=T,mbar=F)
+for(i in 1:10){ t5<-plot_tree(paste0("treemix/fwsw_k100bFLPBrm5_",i),plus=0.05,plotmig = F,scale=T,mbar=F) }
 #dev.off()
 ```
 ```{r migrationPvalues, results='hide', fig.show='true'}
@@ -892,7 +906,7 @@ dev.off()
 
 Let's plot all of the 2-edge trees from the multiple replicates
 
-```{r treemixBootstrapM2s,fig.width=8,fig.height=9,fig.cap="Plot of the tree with no migration edge, the tree with 2 migration edges that has been analyzed, and all of the bootstrap replicates with two migration edges."}
+```{r treemixBootstrapM2s,message=FALSE,results='hide',fig.show='true',fig.width=8,fig.height=10,fig.cap="Plot of the tree with no migration edge, the tree with 2 migration edges that has been analyzed, and all of the bootstrap replicates with two migration edges."}
 par(mfrow=c(3,4),mar=c(1,1,1,2),oma=c(1,1,1,2),xpd=TRUE)
 t0<-plot_tree("treemix/fwsw_k100bFLPBr",scale=T,mbar=F,cex = 1.5,
               lwd=2,mig_left=FALSE,disp=0.0002,scadj=0.05)
