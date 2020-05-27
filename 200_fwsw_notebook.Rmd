@@ -24,6 +24,20 @@ pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 ```
 
 
+# 27 May 2020
+
+I've mostly finished the text of the supplement 1, but I need to sort out the treemix bootstrapped runs issue. I'm thinking that I'll show all 11 trees for each set of migration edges, and that's at least a good start. 
+
+# 26 May 2020
+
+I was able to fix the annotations issue, it arose from an odd merging issue in the bayenv results. 
+
+Now working on the treemix bootstrap/multiple runs issue -- plotting the trees from all m2 runs, I'm finding different migration edges coming up. Not sure how to handle that, and the information online is horrible. I could try using sumtrees from dendropy and see what happens, but I don't think that will fix the issue with the migration edges.
+
+The migration edge from FL pops to FLAB is consistent and consistently strong. Sometimes it's from the branch, sometimes from FLPB, and once from FLSI but it's there and consistent. 
+
+The other migration edge is less consistent but in most cases is between two freshwater populations. 
+
 # 25 May 2020
 
 dadi updates:
@@ -36,7 +50,7 @@ dadi updates:
   - the model from April 6th (ALST_TXFW_SC2N2mG_12) hasn't been updated since 8 May! Perhaps it's worth cancelling that run and re-starting it.
   - all other sets of models are still running
 - C001KR
-  - FLLG_ALFW is on nmbers 5, 6, and 7.
+  - FLLG_ALFW is on numbers 5, 6, and 7.
 
 I will also start FLFW_TXCC except AM, IM, SC, and SI (so 134-155) on abacus for run #13 (job 611)
 
