@@ -339,7 +339,7 @@ all.shared<-fl.sig[fl.sig %in% la.sig & fl.sig %in% al.sig & fl.sig %in% tx.sig]
 
 
 
-As a point of comparison, we repeated this process with the similar pairwise saltwater-saltwater population pairs. We expect that if substantially more outlier loci were shared in the freshwater-saltwater comparisons than in the saltwater-saltwtaer comparisons that the shared outliers are likely a signature of adaptation to freshwater as opposed to random chance due to population structure.  
+As a point of comparison, we repeated this analysis with the similar pairwise saltwater-saltwater population pairs. We expect that if substantially more outlier loci were shared in the freshwater-saltwater comparisons than in the saltwater-saltwtaer comparisons that the shared outliers are likely a signature of adaptation to freshwater as opposed to random chance due to population structure.  
 
 ```{r plotStacksfstsSWSW,fig.height=9,fig.width=6,fig.cap="Manhattan plot of pairwise AMOVA-corrected Fst values from Stacks for the saltwater populations nearest to freshwater populations compared to their nearest saltwater neightbor. The x-axis corresponds to genomic locations, with chromosomes labelled. To the right are loci that mapped to unanchored scaffolds."}
 swsw.fl<-read.delim("stacks/converted.fst_TXCB-TXCC.txt")
@@ -368,7 +368,7 @@ We found `r length(unique(all.shared))` outliers shared among all four freshwate
 
 ## Permutations {-}
 
-We used permutations of the population labels to calculate a null distribution of $F_{ST}$ values for each fresthwater-saltwater population pair and compared those permuted values to the 'true' $F_{ST}$ values calculated with the correctly-applied population labels. We used gwscaR to implement 1000 permutations per population pair. Outliers were identified as those SNPs whose actual $F_{ST}$ values were outside of the distribution of $F_{ST}$ values from all 1000 permutations, either larger or smaller. For our analyses, we restricted our attention to those SNPs that were outliers in the permutations of all four freshwater-saltwater population pairs.  
+We used permutations of the population labels to calculate a null distribution of $F_{ST}$ values for each fresthwater-saltwater population pair. We then compared those permuted values to the 'true' $F_{ST}$ values calculated with the correctly-applied population labels. We used gwscaR to implement 1000 permutations per population pair. Outliers were identified as those SNPs whose actual $F_{ST}$ values were outside of the distribution of $F_{ST}$ values from all 1000 permutations, either larger or smaller. For our outlier analyses, we restricted our attention to those SNPs that were outliers in the permutations of all four freshwater-saltwater population pairs.  
 
 ```{r permute.gwsca}
 permute.gwsca<-function(vcf,map1,nperms,z=1.96, maf.cutoff = 0.05,cov.thresh=0.2){
