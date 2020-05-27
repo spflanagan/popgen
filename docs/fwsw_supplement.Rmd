@@ -240,7 +240,7 @@ PCloadings<-data.frame(rbind(mal.pheno.pca$CA$v,
                              fem.pheno.pca$CA$v,
                              cbind(band.pca$CA$v,NA,NA,NA,NA)),
                        stringsAsFactors = FALSE)
-PCloadings<-apply(PCloadings[,-1],2,round,digits=3)
+PCloadings<-apply(PCloadings,2,round,digits=3)
 kable(PCloadings,"latex",booktabs=TRUE,
       caption="Principal components analysis loadings for traits in males and females") %>%
   pack_rows("Males",1,6) %>%
