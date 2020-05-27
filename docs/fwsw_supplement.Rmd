@@ -653,35 +653,18 @@ resid<-plot_resid("treemix/fwsw_k100b","treemix/poporder",wcols="rb")
 
 Inspecting the un-rooted tree (Figure \@ref(fig:treemixPrep)), we decided to continue with the Treemix analysis with the FLPB as root. We tested 0 through 5 migration edges and compared the residuals, trees, and migration edges. We plotted all of the rooted trees with the unrooted tree for comparison (Figure \@ref(fig:plotTreemixTrees)) and their residuals (Figure \@ref(fig:TreemixPlotResids)).  
 
-```{r plotTreemixTrees, results='hide', fig.show='true',fig.height=8,fig.cap="The Treemix trees for each model. Shown are the tree with no root and no migration edges (top left), the tree with FLPB as root but no migration edges (top center), the tree with FLPB as root and one migration edge (top right), the tree with FLPB as root and two migration edges (middle left), the tree with FLPB as root and three migration edges (middle center), the tree with FLPB as root and four migration edges (middle right), and the tree with FLPB as root and five migration edges (bottom left). The drift parameters are shown on the x-axis, and the migration weight bar is included in the top center plot."}
-# look at the trees
-#png("treemix/migration_trees_treemix_FLPB.png",height=6,width=11,units="in",res=300)
-par(mfrow=c(3,3),mar=c(1,1,1,1),oma=c(1,1,1,1))
-r0<-plot_tree("treemix/fwsw_k100b",plus=0.05,plotmig = F,scale=T,mbar=F)
-t0<-plot_tree("treemix/fwsw_k100bFLPBr",plotmig = F,plus=0.05,scale=T,mbar=F)
-t1<-plot_tree("treemix/fwsw_k100bFLPBrm1",plus=0.05,scale=F,mbar=T,mig_left=FALSE)
-t2<-plot_tree("treemix/fwsw_k100bFLPBrm2",plus=0.05,scale=F,mbar=F)
-t3<-plot_tree("treemix/fwsw_k100bFLPBrm3",plus=0.05,scale=F,mbar=F)
-t4<-plot_tree("treemix/fwsw_k100bFLPBrm4",plus=0.05,scale=F,mbar=F)
-t5<-plot_tree("treemix/fwsw_k100bFLPBrm5",plus=0.05,scale=F,mbar=F)
-#dev.off()
+```{r plotTreemixTrees, out.width='95%',fig.cap="The Treemix trees for each model. Each column shows a different model (no root, FLPB as root but no migration edge, and then 1 through 5 migration edges with FLPB as root) and each row is a bootstrap replicate."}
+knitr::include_graphics('../fwsw_results/treemix/migration_trees_treemix_FLPB.png')
 ```
 
 The plots of the various models show some consistency. In most of them, a migration edge leading from the other Florida branches to the FLAB population exists (Figure \@ref(fig:plotTreemixTrees)). Most other migration edges are either between geographically nearby populations (for example FLCC->FLPB) or are indicative of gene flow between freshwater populations.   
 
-```{r TreemixPlotResids, results='hide', fig.show='true',fig.height=7,fig.width=7,fig.cap="The Treemix residual plots. Shown are the residuals for the tree with no root and no migration edges (top left), the tree with FLPB as root but no migration edges (top center), the tree with FLPB as root and one migration edge (top right), the tree with FLPB as root and two migration edges (middle left), the tree with FLPB as root and three migration edges (middle center), the tree with FLPB as root and four migration edges (middle right), and the tree with FLPB as root and five migration edges (bottom left)."}
-# visualize residuals
-#png("treemix/treemix-residuals_FLPB.png",height=8,width=8,units="in",res=300)
-par(mfrow=c(3,3),mar=c(2,3,1,1),oma=c(1.5,1.5,1,1))
-t0<-plot_resid("treemix/fwsw_k100b",  "treemix/poplist")
-r0<-plot_resid("treemix/fwsw_k100bFLPBr",  "treemix/poplist")
-r1<-plot_resid("treemix/fwsw_k100bFLPBrm1","treemix/poplist")
-r2<-plot_resid("treemix/fwsw_k100bFLPBrm2","treemix/poplist")
-r3<-plot_resid("treemix/fwsw_k100bFLPBrm3","treemix/poplist")
-r4<-plot_resid("treemix/fwsw_k100bFLPBrm4","treemix/poplist")
-r5<-plot_resid("treemix/fwsw_k100bFLPBrm5","treemix/poplist")
-#dev.off()
+
+```{r TreemixPlotResids,fig.cap="The Treemix residual plots. Each column is a different model (no root, FLPB as root but no migration edge, and then 1 through 5 migration edges with FLPB as root), and each row is a different bootstrap replicate.",out.width='95%'}
+knitr::include_graphics('../fwsw_results/treemix/treemix-residuals_FLPB.png')
 ```
+
+
 
 Inspecting the scaled residuals for each tree allowed us to visualize likely admixture events relative to the best-fit tree for each analysis with different migration edges. Those population pairs with residuals above zero are more closely related to each other in the data than in the best-fit tree, so are candidates for admixture events. We observed that the models with different migration edges had rather different magnitudes of residuals, with the largest magnitudes of residuals observed in the model with two migration edges, largely driven by a large residual in the FLFW-FLFW relationship (Figure \@ref(fig:TreemixPlotResids)), which we interpreted as suggesting that this population is more isolated from the other populations than represented in the best-fit tree.  
 
