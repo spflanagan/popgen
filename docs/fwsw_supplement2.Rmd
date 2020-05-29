@@ -645,7 +645,7 @@ We ran Bayenv2.0 to identify environmental correlations for each SNP (represente
 
 ## Annotations {-}
 
-We used the *S. scovelli* genome to annotate the dataset and identify whether SNPs were in coding regions. 
+Adaptation to freshwater might involve changes in coding regions of the genome or changes in regulatory regions, so we used the *S. scovelli* genome to identify the genomic locations of the outlier loci identified by our various analyses (Stacks $F_{ST}$s, permutations, PCAdapt outliers, Bayenv population differentiation, and Bayenv salinity correlations). We were able to identify whether outlier SNPs were located in coding regions, 3' or 5' untranslated regions ('regulatory regions'), or un-annotated regions of the genome. This last category we consider to be 'non-coding' as the *S. scovelli* genome was annotated using RNA-sequencing data from embryonic head tissue and brood pouch tissue, as well as other fish species such as *Danio rerio*, so un-annotated regions are likely to be non-coding. One of the SNPs in the dataset could not be mapped to a location in the genome. 
 
 ```{r annotate_snpinfo, eval=TRUE}
 fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
@@ -676,15 +676,16 @@ kable(table(annInfo$SSCID,annInfo$outlier),booktabs=TRUE,
       caption="The number of SNPs in the subsetted dataset that were outliers in coding and non-coding regions of the genome.")
 ```
 
-If our null hypothesis is that we have randomly selected outliers with equal probability from coding and non-coding regions, we can use a Fisher's exact test to calculate the probability of our observed distribution of outliers.
+
+We did not find that the outliers in the analysis (in aggregate) were found in any one genomic region at a higher frequency than the non-outlier loci (Table \@ref(tab:summarizeAnnotations), Fisher's exact test, odds ratio $=$ `r ft$estimate`, $p=$`r ft$p.value`).
+
 
 ```{r fisherTestOutliers}
 fisher.test(table(annInfo$SSCID,annInfo$outlier))
 ```
 
-Based on this, we could conclude that our table of outliers in coding regions is more extreme than expected under the null. 
 
-Now let's look at a more specific set of genes -- those from our salinity-associated gene set.
+We also compiled a list of genes previously implicated in adaptation to freshwater in previous studies. We identified a total of `r length(unique(put_genes$Gene))` candidate genes, all of which fall into the general categories of osmoregulation, temperature acclimation, and bone or other morphological development (Table \@ref(tab:putativeGenesTable)). Other studies have identified many of the same genes as putative targets of freshwater adaptation, in particular *aquaporin-3* (*AQP3*), *Na+/K+ transporting ATPase alpha 1* (*ATP1A*), *carbonic anhydrases* (*CA*), *ectodysplasin A* (*Eda*), *insulin-like growth factor-binding* (*IGFBP*) genes, and *Wnt* family member 7B (*WNT7B*). Not every gene was matched exactly in the *S. scovelli* genome (e.g., we could match all *aquaporin* genes, but not specifically *aquaporin-3*), and some matched multiple times (e.g., the candidate gene ID *apolipoprotein*, *APOL*, is a gene family and has many members throughout the genome), so we had a total of `r nrow` gene annotations for the `r length(unique(put_genes$Gene))` candidate genes. 
 
 ```{r putativeGeneAnns}
 annInfo$salgene<-"not-putative"
@@ -694,9 +695,12 @@ kable(table(annInfo$outlier,annInfo$salgene),booktabs=TRUE,
 ```
 ```{r fisherTestOutliersPutative}
 fisher.test(table(annInfo$outlier,annInfo$salgene))
+
+We investigated whether the outlier SNPs from our above analyses were in these putative gene regions more frequently than expected (Table \@ref(tab:putativeGeneAnns)), but these putative salinity genes do not appear to be enriched with outliers in our dataset (Fisher's exact test, odds ratio $=$ `r ft$estimate`, $p=$ `r ft$p.value`).
+
+
 ```
 
-Putative salinity genes do not appear to be enriched with outliers.
 
 # References {-}
 
