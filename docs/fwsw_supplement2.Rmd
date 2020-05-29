@@ -548,6 +548,7 @@ grp[grp!="freshwater"]<-"saltwater"
 The PCAdapt analysis with $K=4$ offers broadly the same conclusions about population structure as the analysis of the full dataset -- the first PC axis differentiates between the Florida populations and the rest, while the second PC axis allows for more separation of the freshwater and saltwater populations in Texas and Florida. The Alabama saltwater, Alabama freshwater, and Louisiana freshwater populations all form one cluster (Figure \@ref(fig:PcadaptK4pcs)). These results are all consistent with those from the analysis of the dataset containing all 16 populations (see the main text and supplement 1).
 
 ```{r PcadaptK4pcs, fig.cap="Plot of the scores from the PCAdapt outlier analysis with the subsetted dataset and 4 PC axes retained in the analysis."}
+res<-pcadapt(filename,K=4)
 plot(res, option="scores",pop=pops)
 ```
 
@@ -574,7 +575,7 @@ l<-lapply(lgs, function(lg,vcf){
 PCadapt calculated test statistics based on $z$-scores from regressing SNPs with the $K=4$ principal components, using the Mahalanobis distance. We visualized the distribution of the resulting p-values using a Manhattan plot (Figure \@ref(fig:PcadaptK4-1)), which revealed a small number of loci with small p-values. The Q-Q plot (Figure \@ref(fig:PcadaptK4-2)) also reflected the fact that many loci followed the uniform distribution, but the smallest p-values are smaller than expected, confirming the presence of outlier SNPs in the dataset. The distribution of the test statistic further confirms these findings (Figure \@ref(fig:PcadaptK-3)), with most of the test statistics concentrated around zero but with some in the tail of the distribution. 
 
 ```{r PcadaptK4-1, fig.cap="Manhattan plot for the PCAdapt outlier analysis with the subsetted dataset and 4 PC axes retained in the analysis."}
-res<-pcadapt(filename,K=4)
+
 plot(res, option="manhattan")
 ```
 ```{r PcadaptK4-2, fig.cap="Q-Q plot for the PCAdapt outlier analysis with the subsetted dataset and 4 PC axes retained in the analysis."}
