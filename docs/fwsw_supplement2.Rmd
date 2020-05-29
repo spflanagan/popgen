@@ -424,7 +424,6 @@ permuted_fsts<-lapply(pwise_maps,permute.gwsca,vcf=vcf,nperms=1000, maf.cutoff=0
 saveRDS(permuted_fsts,"permuted_fsts.RDS")
 ```
 
-(Summarize the permutation analyses).
 
 
 ```{r permTable}
