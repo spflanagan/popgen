@@ -1562,6 +1562,12 @@ Now let's start to aggregate everything.
 
 ```{r create_fw_SNPinfo, eval=FALSE}
 permuted_fsts<-readRDS("permuted_fsts.RDS")
+
+perm_dat<-do.call(cbind,permuted_fsts)
+colnames(perm_dat)[colnames(perm_dat) %in% "act_in_perm"]<-c("perm_TX","perm_FL","perm_AL","perm_LA")
+perm_dat<-perm_dat[,c("Chrom","Pos","perm_TX","perm_FL","perm_AL","perm_LA")]
+perm_dat$Pos<-as.numeric(perm_dat$Pos)
+
 vcf<-parse.vcf("converted_subset.vcf")
 fw_SNPinfo<-data.frame(ID=vcf$ID,Chrom=vcf$`#CHROM`,Pos=vcf$POS,BP=vcf$POS-1,
                        REF=vcf$REF,ALT=vcf$ALT,
