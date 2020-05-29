@@ -666,16 +666,20 @@ outliers<-list(xtx=fw_SNPinfo$ID[fw_SNPinfo$XtX >= quantile(fw_SNPinfo$XtX,0.99,
 out_snps<-fw_SNPinfo[fw_SNPinfo$ID %in% unlist(outliers),]
 ```
 
-
 ````{r summarizeAnnotations, eval=TRUE}
-annInfo<-fw_SNPinfo[,c("ID","SSCID")]
-annInfo$SSCID<-as.character(annInfo$SSCID)
-annInfo$SSCID[!is.na(annInfo$SSCID)]<-"coding"
-annInfo$SSCID[is.na(annInfo$SSCID)]<-"non-coding"
+annInfo<-fw_SNPinfo[,c("ID","region")]
+annInfo$region<-as.character(annInfo$region)
+
+annInfo$region[grep("UTR",annInfo$region)]<-"regulatory"
+annInfo$region[grep("gene",annInfo$region)]<-"coding"
+annInfo$region[annInfo$region %in% "contig"]<-"non-coding"
+annInfo$region[annInfo$region %in% "scaffNotFound"]<-"unkown"
+
 annInfo$outlier<-"not-outlier"
 annInfo$outlier[annInfo$ID %in% unlist(outliers)]<-"outlier"
-kable(table(annInfo$SSCID,annInfo$outlier),booktabs=TRUE,
-      caption="The number of SNPs in the subsetted dataset that were outliers in coding and non-coding regions of the genome.")
+kable(table(annInfo$region,annInfo$outlier),booktabs=TRUE,
+      caption="The number of SNPs in the subsetted dataset that were outliers in coding and non-coding regions of the genome.") %>%
+  kable_styling(latex_options="HOLD_position")
 ```
 
 
