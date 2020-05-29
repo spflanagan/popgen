@@ -609,8 +609,9 @@ kable(table(snp_pc$PC),booktabs=TRUE,
 env.data<-read.csv("bayenv/env_data_raw.csv",row.names = 1)
 env.data<-rbind(env.data,pop=c(rep("SW",12),rep("FW",4)))
 env.data<-as.data.frame(t(env.data))
-wilcox.test(as.numeric(env.data$temp)~env.data$pop) #ties, but p=0.539
-wilcox.test(as.numeric(env.data$seagrass)~env.data$pop) #ties, but p=0.897
+sal<-wilcox.test(as.numeric(env.data$salinity)~env.data$pop)
+tmp<-wilcox.test(as.numeric(env.data$temp)~env.data$pop) #ties, but p=0.539
+sgr<-wilcox.test(as.numeric(env.data$seagrass)~env.data$pop) #ties, but p=0.897
 ```
 
 We used Bayenv2.0 [@guntherRobustIdentificationLocal2013] to use correlations between environmental variables (water temperature, salinity, and seagrass) and allele frequencies to identify loci possibly experiencing local adaptation. Before running the analysis, we compared the environmental variables between freshwater and saltwater populations using a Wilcoxon rank-sum test and found that unsurprisingly salinity differed significantly ($W=$`r sal$statistic`, $p=$`r sal$p.value`), but water temperature ($W=$`r tmp$statistic`, $p=$`r tmp$p.value`) and seagrass coverage did not ($W=$`r sgr$statistic`, $p=$`r sgr$p.value`).
