@@ -439,7 +439,7 @@ perm_summ<-do.call(rbind,lapply(permuted_fsts,function(dat){
 row.names(perm_summ)<-c("TXFW_TXCC","FLFW_FLCC","ALFW_ALST","LAFW_ALST")
 kable(perm_summ,row.names = TRUE,booktabs=TRUE,
       col.names=c("Actual mean Fst","Actual Fst SEM","Permuted mean Fst","Permuted Fst SEM", "Number of outliers"),
-      fig.cap="Summary of the permutations. Presented are the mean and standard error of the mean for the actual and permuted Fst values for each comparison. Also shown are the number of outliers identified in each analysis, where outliers were defined as those loci whose actual Fst values we either larger or smaller than the maximum or minimum permuted Fst value.")
+      caption="Summary of the permutations. Presented are the mean and standard error of the mean for the actual and permuted Fst values for each comparison. Also shown are the number of outliers identified in each analysis, where outliers were defined as those loci whose actual Fst values we either larger or smaller than the maximum or minimum permuted Fst value.")
 ```
 ```{r permOut}
 permOut<-data.frame(perm_TX=permuted_fsts[[1]]$act_in_perm,
