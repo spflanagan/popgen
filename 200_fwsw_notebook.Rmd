@@ -24,6 +24,20 @@ pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 ```
 
 
+# 29 May 2020
+
+dadi updates:
+- abacus
+  - LAFW_TXCC doesn't have any models running - moved them to C001KR and deleted from abacus.
+  - I moved all of the ALST_TXFW_12 files to C001KR but then deleted the SC2N2mG ones as that's the run that's still going. The log file was updated yesterday on abacus so maybe I should let it go?
+- rccuser
+  - ALFW_TXCC_2 is done so I moved the files and tar-zipped them on rccuser
+  - It seems like rccuser could have more threads going
+- C001KR
+  - FLLG_ALFW still running, some are on 9th round
+ 
+I rendered the dadi document so I can identify priority things to run. Also created an excel doc to track the runs that are currently going (dadi_ongoing.xlsx)
+
 # 28 May 2020
 
 I've plotted all of the bootstrap reps for Treemix, and it seems like interpreting those in the supplement is a good way forward. 
