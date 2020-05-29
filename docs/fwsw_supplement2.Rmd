@@ -426,7 +426,8 @@ saveRDS(permuted_fsts,"permuted_fsts.RDS")
 
 (Summarize the permutation analyses).
 
-```{r}
+
+```{r permTable}
 permuted_fsts<-readRDS("permuted_fsts.RDS")
 perm_summ<-do.call(rbind,lapply(permuted_fsts,function(dat){
   actMu<-mean(dat$Fst)
@@ -441,6 +442,13 @@ kable(perm_summ,row.names = TRUE,booktabs=TRUE,
       col.names=c("Actual mean Fst","Actual Fst SEM","Permuted mean Fst","Permuted Fst SEM", "Number of outliers"),
       fig.cap="Summary of the permutations. Presented are the mean and standard error of the mean for the actual and permuted Fst values for each comparison. Also shown are the number of outliers identified in each analysis, where outliers were defined as those loci whose actual Fst values we either larger or smaller than the maximum or minimum permuted Fst value.")
 ```
+```{r permOut}
+permOut<-data.frame(perm_TX=permuted_fsts[[1]]$act_in_perm,
+                     perm_FL=permuted_fsts[[2]]$act_in_perm,
+                     perm_AL=permuted_fsts[[3]]$act_in_perm,
+                     perm_LA=permuted_fsts[[4]]$act_in_perm)
+```
+
 
 
 ```{r plot_fst_hists}
