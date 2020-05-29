@@ -545,13 +545,14 @@ grp[grp=="TXFW" | grp=="LAFW" | grp=="ALFW" | grp=="FLLG"]<-"freshwater"
 grp[grp!="freshwater"]<-"saltwater"
 ```
 
-Using $K=4$, we investigated certain assumptions. 
+The PCAdapt analysis with $K=4$ offers broadly the same conclusions about population structure as the analysis of the full dataset -- the first PC axis differentiates between the Florida populations and the rest, while the second PC axis allows for more separation of the freshwater and saltwater populations in Texas and Florida. The Alabama saltwater, Alabama freshwater, and Louisiana freshwater populations all form one cluster (Figure \@ref(fig:PcadaptK4pcs)). These results are all consistent with those from the analysis of the dataset containing all 16 populations (see the main text and supplement 1).
 
 ```{r PcadaptK4pcs, fig.cap="Plot of the scores from the PCAdapt outlier analysis with the subsetted dataset and 4 PC axes retained in the analysis."}
 plot(res, option="scores",pop=pops)
 ```
 
-The PCAdapt vignette recommends displaying the loadings and evaluate if loadings are clustered in single or several genomic regions
+
+Although our dataset contains loci that should be unlinked (only one SNP per RAD locus), we visualized the loadings for all of the SNPs to evaluate whether any of the loadings were clustered by region. FOr all four principal components axes, the the loadings for the SNPs were randomly distributed throughout the genome with no obvious clustering (Figure \@ref(fig:PcadaptLoadings)), even when visualized across each chromosome (Figure \@ref(fig:PcadaptLoadingsChr)).
 
 ```{r PcadaptLoadings, fig.cap="Plots of the loadings for the four PC axes according to genomic position (on the x-axis)."}
 par(mfrow = c(2, 2))
@@ -559,7 +560,6 @@ for (i in 1:4)
   plot(res$loadings[, i], pch = 19, cex = .3, ylab = paste0("Loadings PC", i))
 ```
 
-This suggests that loadings are not clustered (assuming these are grouped by space), so we don't need to worry about LD thinning. Now let's look chromosome by chromosome:
 
 ```{r PcadaptLoadingsChr,fig.height=8, fig.cap="Inspecting the loadings for the four PC axes according to genomic position (on the x-axis) for each chromosome individually."}
 par(mfrow=c(6,4),mar=c(3,3,2,1.5))
@@ -570,9 +570,9 @@ l<-lapply(lgs, function(lg,vcf){
 },vcf=vcf)
 ```
 
-None of the LGs seem to have huge clusters of outliers so we can move on, lumping them all together.
 
-We need to choose a cutoff for outlier detection. I'll use the qvalue approach, using with a false discovery rate of $\alpha=0.05$.
+PCadapt calculated test statistics based on $z$-scores from regressing SNPs with the $K=4$ principal components, using the Mahalanobis distance. We visualized the distribution of the resulting p-values using a Manhattan plot (Figure \@ref(fig:PcadaptK4-1)), which revealed a small number of loci with small p-values. The Q-Q plot (Figure \@ref(fig:PcadaptK4-2)) also reflected the fact that many loci followed the uniform distribution, but the smallest p-values are smaller than expected, confirming the presence of outlier SNPs in the dataset. The distribution of the test statistic further confirms these findings (Figure \@ref(fig:PcadaptK-3)), with most of the test statistics concentrated around zero but with some in the tail of the distribution. 
+
 ```{r PcadaptK4-1, fig.cap="Manhattan plot for the PCAdapt outlier analysis with the subsetted dataset and 4 PC axes retained in the analysis."}
 res<-pcadapt(filename,K=4)
 plot(res, option="manhattan")
@@ -593,7 +593,7 @@ outliers <- which(qval < alpha)
 snp_pc<-get.pc(res,outliers) # Get the PCs associated with outliers
 ```
 
-We identified `r length(outliers)` outliers with this analysis, which are associated with `r length(unique(snp_pc$PC))` of the 4 clusters. If we look at the distribution of these, though, we see that most are associated with PC 1
+To identify outliers, we used the `qvalue` package [@storeyQvalueQvalueEstimation2019] to transform p-values into q-values. We chose a false discovery rate of $\alpha=0.05$. Using this approach we identified `r length(outliers)` outliers associated with `r length(unique(snp_pc$PC))` of the 4 PC axes, although most of them were associated with PC1 (Table \@ref(tab:showPcadaptOutliers)).
 
 ```{r showPcadaptOutliers}
 table(snp_pc$PC)
