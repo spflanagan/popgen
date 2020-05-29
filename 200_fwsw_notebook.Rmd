@@ -24,6 +24,35 @@ pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 ```
 
 
+# 28 May 2020
+
+I've plotted all of the bootstrap reps for Treemix, and it seems like interpreting those in the supplement is a good way forward. 
+I also found some python code to combine bootstraps using sumtrees: https://github.com/mgharvey/misc_python/blob/master/bin/TreeMix/treemix_tree_with_bootstraps.py
+
+
+For whatever reason the new fw_SNPinfo seems to have fewer outliers...
+
+```{r}
+fw_SNPinfo<-read.RDS("fw_SNPinfo.RDS")
+permuted_fsts<-readRDS("permuted_fsts.RDS")
+vcf<-parse.vcf("converted_subset.vcf")
+dat<-data.frame(ID=vcf$ID,Chrom=vcf$`#CHROM`,Pos=vcf$POS,BP=vcf$POS-1,
+                 REF=vcf$REF,ALT=vcf$ALT,
+                 perm_TX=permuted_fsts[[1]]$act_in_perm,
+                 perm_FL=permuted_fsts[[2]]$act_in_perm,
+                 perm_AL=permuted_fsts[[3]]$act_in_perm,
+                 perm_LA=permuted_fsts[[4]]$act_in_perm,
+                 stringsAsFactors = FALSE)
+dat<-dat[order(dat$ID),]
+fw_SNPinfo<-fw_SNPinfo[order(fw_SNPinfo$ID),]
+
+
+perm_out<-dat$ID[which(rowSums(dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4)]
+nrow(fw_SNPinfo[fw_SNPinfo$ID %in% perm_out,])
+```
+
+Ah, this seems to be due to a mis-match in IDs. It would seem that perhaps I had used a different vcf? Or something. Perhaps it would be prudent to re-run the permutations. 
+
 # 27 May 2020
 
 I've mostly finished the text of the supplement 1, but I need to sort out the treemix bootstrapped runs issue. I'm thinking that I'll show all 11 trees for each set of migration edges, and that's at least a good start. 
