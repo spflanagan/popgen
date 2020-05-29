@@ -136,8 +136,11 @@ dim(fw_SNPinfo[!is.na(fw_SNPinfo$ID),])
 ...the NAs are back! Ugh. Last time this was due to Bayenv...what if I re-do everything without the bayenv results, and see if that fixes it? IT DOES! I had been using the wrong index thing to combine the fw_SNPinfo and bayenv information. Ah, but adding the putative genes is also a problem.
 
 
-
 I'm also re-running the permutations in the background on C001KR. 
+
+Ok, now that that's all solved, **the only major thing remaining (other than dadi) is to figure out what to do with the treemix bootstraps. **
+Look into sumtrees (https://dendropy.org/programs/sumtrees.html#non-parametric-bootstrap-support-of-a-model-tree)
+
 
 # 28 May 2020
 
