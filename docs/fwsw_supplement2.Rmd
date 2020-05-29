@@ -604,7 +604,6 @@ kable(table(snp_pc$PC),booktabs=TRUE,
 
 ## Bayenv {-}
 
-Investigate the environmental data
 
 ```{r compareEnvVar}
 env.data<-read.csv("bayenv/env_data_raw.csv",row.names = 1)
@@ -614,6 +613,7 @@ wilcox.test(as.numeric(env.data$temp)~env.data$pop) #ties, but p=0.539
 wilcox.test(as.numeric(env.data$seagrass)~env.data$pop) #ties, but p=0.897
 ```
 
+We used Bayenv2.0 [@guntherRobustIdentificationLocal2013] to use correlations between environmental variables (water temperature, salinity, and seagrass) and allele frequencies to identify loci possibly experiencing local adaptation. Before running the analysis, we compared the environmental variables between freshwater and saltwater populations using a Wilcoxon rank-sum test and found that unsurprisingly salinity differed significantly ($W=$`r sal$statistic`, $p=$`r sal$p.value`), but water temperature ($W=$`r tmp$statistic`, $p=$`r tmp$p.value`) and seagrass coverage did not ($W=$`r sgr$statistic`, $p=$`r sgr$p.value`).
 
 This analysis is of just the freshwater and saltwater populations. First I ran bayenv using the script `run_bayenv2_matrix_general.sh`.
 
@@ -625,6 +625,7 @@ stacks/populations_subset75/batch_2.pruned.map bayenv ~/Programs/bayenv 7
 # estimate matrices
 ../../scripts/run_bayenv2_matrix_general.sh MATRIX bayenv ~/Programs/bayenv/ 7
 ```
+We began by estimating the covariance matrices in ten independent runs. The matrices from each run were compared visually (Figure \@ref(fig:BayenvMatrices)) and determined to follow similar patterns, suggesting that the matrix is well estimated. Given that all matrices were similar in pattern, we randomly selected one of the 10 matrices to use in the subsequent analyses.
 
 At this point I looked at the matrices
 
@@ -727,9 +728,7 @@ bayenv.dat$logSeagrass<-log(bayenv.dat$seagrass_BF)
 xtx.sig<-bayenv.dat[bayenv.dat$XtX > quantile(bayenv.dat$XtX,0.99,na.rm=TRUE),]
 ```
 
-There are `r nrow(temp.bf.sig[temp.bf.sig$locus %in% sal.bf.sig$locus & temp.bf.sig$locus %in% grass.bf.sig,])` overlapping outliers between temperature-, salinity-, and seagrass-associated loci.
-
-But if we only care about salinity ones, there are `r nrow(sal.bf.sig)` outliers. Are any of those XtX outliers too? `r nrow(xtx.sig[xtx.sig$locus %in% sal.bf.sig$locus,])` overlap.
+We ran Bayenv2.0 to identify environmental correlations for each SNP (represented by the resulting Bayes Factors) and to estimate population differentiation statistics (represented by the $X^TX$ value for each SNP). To analyze the output of the Bayenv2.0 environmental correlation runs, we identified loci that had extreme Bayes Factors and extreme $X^TX$ statistics as those in the 99th quantile. We found `r nrow(temp.bf.sig[temp.bf.sig$locus %in% sal.bf.sig$locus & temp.bf.sig$locus %in% grass.bf.sig,])` overlapping outliers between temperature-, salinity-, and seagrass-associated loci. However, because we are interested in shared signatures of adaptation to freshwater, we focused our attention to the salinity-associated loci, of which we found `r nrow(sal.bf.sig)`. Of those, `r nrow(xtx.sig[xtx.sig$locus %in% sal.bf.sig$locus,])` were also outliers in the distribuion of the population differentiation statistics, $X^TX$. Neither the set of outliers associated with associated or population differentiation showed spatial clustering genome-wide (see figure 4 in the main text).
 
 
 ## Annotations {-}
