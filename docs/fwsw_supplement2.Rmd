@@ -547,17 +547,7 @@ grp[grp!="freshwater"]<-"saltwater"
 
 Using $K=4$, we investigated certain assumptions. 
 
-```{r PcadaptK4-1, fig.cap="Manhattan plot for the PCAdapt outlier analysis with the subsetted dataset and 4 PC axes retained in the analysis."}
-res<-pcadapt(filename,K=4)
-plot(res, option="manhattan")
-```
-```{r PcadaptK4-2, fig.cap="Q-Q plot for the PCAdapt outlier analysis with the subsetted dataset and 4 PC axes retained in the analysis."}
-plot(res, option="qqplot")
-```
-```{r PcadaptK4-3, fig.cap="Distribution of the  for the PCAdapt outlier analysis with the subsetted dataset and 4 PC axes retained in the analysis."}
-plot(res, option="stat.distribution")
-```
-```{r PcadaptK4-4, fig.cap="Plot of the scores from the PCAdapt outlier analysis with the subsetted dataset and 4 PC axes retained in the analysis."}
+```{r PcadaptK4pcs, fig.cap="Plot of the scores from the PCAdapt outlier analysis with the subsetted dataset and 4 PC axes retained in the analysis."}
 plot(res, option="scores",pop=pops)
 ```
 
@@ -583,6 +573,17 @@ l<-lapply(lgs, function(lg,vcf){
 None of the LGs seem to have huge clusters of outliers so we can move on, lumping them all together.
 
 We need to choose a cutoff for outlier detection. I'll use the qvalue approach, using with a false discovery rate of $\alpha=0.05$.
+```{r PcadaptK4-1, fig.cap="Manhattan plot for the PCAdapt outlier analysis with the subsetted dataset and 4 PC axes retained in the analysis."}
+res<-pcadapt(filename,K=4)
+plot(res, option="manhattan")
+```
+```{r PcadaptK4-2, fig.cap="Q-Q plot for the PCAdapt outlier analysis with the subsetted dataset and 4 PC axes retained in the analysis."}
+plot(res, option="qqplot")
+```
+```{r PcadaptK4-3, fig.cap="Distribution of the  for the PCAdapt outlier analysis with the subsetted dataset and 4 PC axes retained in the analysis."}
+plot(res, option="stat.distribution")
+```
+
 
 ```{r PcadaptQvalue}
 library(qvalue)
