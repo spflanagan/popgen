@@ -615,19 +615,7 @@ wilcox.test(as.numeric(env.data$seagrass)~env.data$pop) #ties, but p=0.897
 
 We used Bayenv2.0 [@guntherRobustIdentificationLocal2013] to use correlations between environmental variables (water temperature, salinity, and seagrass) and allele frequencies to identify loci possibly experiencing local adaptation. Before running the analysis, we compared the environmental variables between freshwater and saltwater populations using a Wilcoxon rank-sum test and found that unsurprisingly salinity differed significantly ($W=$`r sal$statistic`, $p=$`r sal$p.value`), but water temperature ($W=$`r tmp$statistic`, $p=$`r tmp$p.value`) and seagrass coverage did not ($W=$`r sgr$statistic`, $p=$`r sgr$p.value`).
 
-This analysis is of just the freshwater and saltwater populations. First I ran bayenv using the script `run_bayenv2_matrix_general.sh`.
-
-```{bash, eval=FALSE}
-# set up correct file formats
-../../scripts/run_bayenv2_matrix_general.sh FILEMANIP \
-bayenv/sub75.pruned.clust stacks/populations_subset75/batch_2.pruned.ped \
-stacks/populations_subset75/batch_2.pruned.map bayenv ~/Programs/bayenv 7
-# estimate matrices
-../../scripts/run_bayenv2_matrix_general.sh MATRIX bayenv ~/Programs/bayenv/ 7
-```
 We began by estimating the covariance matrices in ten independent runs. The matrices from each run were compared visually (Figure \@ref(fig:BayenvMatrices)) and determined to follow similar patterns, suggesting that the matrix is well estimated. Given that all matrices were similar in pattern, we randomly selected one of the 10 matrices to use in the subsequent analyses.
-
-At this point I looked at the matrices
 
 ```{r BayenvMatrices,out.width='90%',fig.cap="Heatmap plots of each of the ten replicate Bayenv matrices."}
 knitr::include_graphics('../fwsw_results/bayenv/fwsw75_pruned.png')
