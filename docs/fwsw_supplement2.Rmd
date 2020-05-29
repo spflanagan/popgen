@@ -682,12 +682,14 @@ kable(table(annInfo$region,annInfo$outlier),booktabs=TRUE,
   kable_styling(latex_options="HOLD_position")
 ```
 
+```{r fisherTestOutliers, message=FALSE,warning=FALSE}
+ft<-fisher.test(table(annInfo$region,annInfo$outlier))
+```
 
 We did not find that the outliers in the analysis (in aggregate) were found in any one genomic region at a higher frequency than the non-outlier loci (Table \@ref(tab:summarizeAnnotations), Fisher's exact test, odds ratio $=$ `r ft$estimate`, $p=$`r ft$p.value`).
 
 
-```{r fisherTestOutliers}
-fisher.test(table(annInfo$SSCID,annInfo$outlier))
+
 ```
 
 
