@@ -596,7 +596,9 @@ snp_pc<-get.pc(res,outliers) # Get the PCs associated with outliers
 To identify outliers, we used the `qvalue` package [@storeyQvalueQvalueEstimation2019] to transform p-values into q-values. We chose a false discovery rate of $\alpha=0.05$. Using this approach we identified `r length(outliers)` outliers associated with `r length(unique(snp_pc$PC))` of the 4 PC axes, although most of them were associated with PC1 (Table \@ref(tab:showPcadaptOutliers)).
 
 ```{r showPcadaptOutliers}
-table(snp_pc$PC)
+kable(table(snp_pc$PC),booktabs=TRUE,
+      col.names=c("PC1","PC2","PC3","PC4"),
+      row.names=c("Number of outliers"))
 ```
 
 
