@@ -716,7 +716,9 @@ We also compiled a list of genes previously implicated in adaptation to freshwat
 annInfo$salgene<-"not-putative"
 annInfo$salgene[annInfo$ID %in% fw_SNPinfo$ID[!is.na(fw_SNPinfo$Gene)]]<-"putative"
 kable(table(annInfo$outlier,annInfo$salgene),booktabs=TRUE,
-      caption="The number of SNPs in the subsetted dataset that were outliers in putative salinity genes or not.")
+      caption="The number of SNPs in the subsetted dataset that were outliers in putative salinity genes or not.") %>%
+  kable_styling(latex_options="HOLD_position")
+```
 ```
 ```{r fisherTestOutliersPutative}
 fisher.test(table(annInfo$outlier,annInfo$salgene))
