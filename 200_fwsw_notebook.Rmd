@@ -75,6 +75,15 @@ write.table(rundf,"dadi_mods_2020-05-18.txt",col.names = FALSE,
 
 Ok that's good for now, I think...I've got lots running and am getting closer and closer to having 5 reps of each model. I can start more this afternoon so that additional ones will run over the weekend.
 
+Still to do:
+- figure out how to handle treemix stuff using either:
+    - the python code from https://github.com/mgharvey/misc_python/blob/master/bin/TreeMix/treemix_tree_with_bootstraps.py 
+    - the R code from BITE https://github.com/marcomilanesi/BITE)
+      -this takes some sort of PHYLIP newick tree and just plots the bootstrap estimates on the tree
+- figure out what's going on with the permutation outliers.
+- finish adding proper writing to the supplements [Basically done!]
+- fix the look of the dadi supplement
+
 
 Permutation outliers
 
