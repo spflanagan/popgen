@@ -690,6 +690,23 @@ We did not find that the outliers in the analysis (in aggregate) were found in a
 
 
 
+```{r rearrangePutatives,eval=FALSE}
+put_genes<-read.delim("putative_genes.txt",stringsAsFactors = FALSE)
+s<-strsplit(put_genes$Scovelli_geneID,",")
+genes<-data.frame(Gene=rep(put_genes$Gene,sapply(s,length)),
+                  SSCID=unlist(s),stringsAsFactors = FALSE)
+dat<-do.call(rbind,apply(genes,1,function(gene,snpinfo){
+  if(length(grep(gene["SSCID"],snpinfo$SSCID))>0){
+    ID<-cbind(snpinfo$ID[grep(gene["SSCID"],snpinfo$SSCID)])
+    out<-data.frame(ID,rbind(gene),row.names = NULL)
+    return(out)
+  }
+},snpinfo=fw_SNPinfo))
+
+info<-merge(fw_SNPinfo,dat,by="ID",all.x=TRUE)
+fw_SNPinfo<-info[unique(info$ID),]
+colnames(fw_SNPinfo)[colnames(fw_SNPinfo)=="SSCID.x"]<-"SSCID"
+saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
 ```
 
 
