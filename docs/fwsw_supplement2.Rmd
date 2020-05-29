@@ -617,7 +617,7 @@ We used Bayenv2.0 [@guntherRobustIdentificationLocal2013] to use correlations be
 
 We began by estimating the covariance matrices in ten independent runs. The matrices from each run were compared visually (Figure \@ref(fig:BayenvMatrices)) and determined to follow similar patterns, suggesting that the matrix is well estimated. Given that all matrices were similar in pattern, we randomly selected one of the 10 matrices to use in the subsequent analyses.
 
-```{r BayenvMatrices,out.width='90%',fig.cap="Heatmap plots of each of the ten replicate Bayenv matrices."}
+```{r BayenvMatrices,out.width='90%',out.height='50%',fig.cap="Heatmap plots of each of the ten replicate Bayenv covariance matrices. Darker colors represent higher covariances. Populations are in the order: "}
 knitr::include_graphics('../fwsw_results/bayenv/fwsw75_pruned.png')
 ```
 
