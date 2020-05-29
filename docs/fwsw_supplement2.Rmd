@@ -605,7 +605,8 @@ kable(table(snp_pc$PC),booktabs=TRUE,
 ## Bayenv {-}
 
 
-```{r compareEnvVar}
+
+```{r compareEnvVar,warning=FALSE,message=FALSE}
 env.data<-read.csv("bayenv/env_data_raw.csv",row.names = 1)
 env.data<-rbind(env.data,pop=c(rep("SW",12),rep("FW",4)))
 env.data<-as.data.frame(t(env.data))
