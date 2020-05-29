@@ -1815,8 +1815,8 @@ bayenv_dat$logTemBF<-log(bayenv_dat$temp_BF)
 bayenv_dat$logSegBF<-log(bayenv_dat$seagrass_BF)
 fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
 fw_SNPinfo<-merge(fw_SNPinfo,
-                  bayenv_dat[,c("locus","XtX","logSalBF","logTemBF","logSegBF")],
-                  by.x="ID",by.y="locus",all.x=TRUE)
+                  bayenv_dat[,c("index","XtX","logSalBF","logTemBF","logSegBF")],
+                  by.x="ID",by.y="index",all.x=TRUE)
 saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
 ```
 
