@@ -2246,8 +2246,9 @@ snp_annotate<-annotate_snps(fw_SNPinfo,gff,genome.blast,ID="ID",
                             chrom="Chrom",bp="BP",pos = "Pos")
 snp_annotate$Locus<-as.character(snp_annotate$Locus)
 fw_SNPinfo$ID<-as.character(fw_SNPinfo$ID)
-fw_SNPinfo<-merge(fw_SNPinfo,snp_annotate,by.x="ID",by.y="Locus",all.x=TRUE)
-colnames(fw_SNPinfo)[4]<-"BP"
+fw_SNPinfo<-merge(fw_SNPinfo,snp_annotate[,-c(2,3)],
+                  by.x="ID",by.y="Locus",all.x=TRUE)
+
 saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
 ```
 
@@ -2306,9 +2307,20 @@ dat<-do.call(rbind,apply(genes,1,function(gene,snpinfo){
     return(out)
   }
 },snpinfo=fw_SNPinfo))
+dat<-unique(dat)
 
-info<-merge(fw_SNPinfo,dat,by="ID",all.x=TRUE)
-fw_SNPinfo<-info[unique(info$ID),]
+# combine any duplicate annotations
+dati<-do.call(rbind,lapply(unique(dat$ID),function(id,dat){
+  td<-dat[dat$ID %in% id,]
+  return(data.frame(ID=id,
+                    Gene=paste(td$Gene,collapse = ";"),
+                    SSCID=paste(td$SSCID,collapse = ";"),
+                    stringsAsFactors = FALSE))
+},dat=dat))
+
+dati$ID<-as.character(dati$ID)
+fw_SNPinfo<-merge(fw_SNPinfo,dati,by="ID",all.x=TRUE)
+
 colnames(fw_SNPinfo)[colnames(fw_SNPinfo)=="SSCID.x"]<-"SSCID"
 saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
 ```
