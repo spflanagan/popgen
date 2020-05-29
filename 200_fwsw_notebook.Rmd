@@ -38,6 +38,43 @@ dadi updates:
  
 I rendered the dadi document so I can identify priority things to run. Also created an excel doc to track the runs that are currently going (dadi_ongoing.xlsx)
 
+New runs:
+  - FLCC_ALFW rep 13 (models 160-181) on abacus (job ID 618)
+  - FLCC_TXCC rep 13 (models 264-285) on abacus (job ID 619)
+  - ALST_TXFW rep 13 (models 416-441) on abacus (job ID 620)
+  - ALST_LAFW rep 13 (models 390-415) on abacus (job ID 621)
+  - ALST_TXCC rep 13 (models 442-467) on abacus (job ID 622)
+  - FLCC_ALST rep 20 on rccuser (using code below)
+
+I seem to be the only person using abacus!
+
+```{r}
+pops=c('FLCC', 'ALST')   #
+models=c(#'SI', 'IM', 'AM', 'SC', 
+         'SI2N', 'SIG', 'SI2NG', 'IMG', 
+         'IM2N', 'IM2m', 'IM2NG', 'IM2mG', 'AM2N', 'AMG', 'AM2m', 
+         'AM2NG', 'AM2N2m', 'AM2mG', 'AM2N2mG', 'SCG' ,'SC2N', 
+         'SC2m', 'SC2NG', 'SC2N2m' ,'SC2mG' ,'SC2N2mG')
+
+rundf<-data.frame(pops=NULL,model=NULL)
+count=1
+for(i in 1:(length(pops)-1)){
+  for(j in (i+1):length(pops)){
+    for(mod in 1:length(models)){
+      rundf[count,1]<-paste(pops[i],pops[j],sep="_")
+      rundf[count,2]<-models[mod]
+      count=(count+1)
+    }
+  }
+}
+
+write.table(rundf,"dadi_mods_2020-05-18.txt",col.names = FALSE,
+            row.names = FALSE,quote=FALSE,eol = '\n')
+```
+
+
+Ok that's good for now, I think...I've got lots running and am getting closer and closer to having 5 reps of each model. I can start more this afternoon so that additional ones will run over the weekend.
+
 # 28 May 2020
 
 I've plotted all of the bootstrap reps for Treemix, and it seems like interpreting those in the supplement is a good way forward. 
