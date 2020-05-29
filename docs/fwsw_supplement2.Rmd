@@ -530,7 +530,7 @@ suppressWarnings(write.table(vcf,"pcadapt_fw/fwsw.pruned.vcf",
                              quote=FALSE,append = TRUE,
                              row.names = FALSE,col.names = TRUE,sep='\t'))
 ```
-```{r pcadaptOutliers, fig.cap="Screeplot for the subsetted dataset with 20 PC axes retained in the analysis."}
+```{r pcadaptOutliers,message=FALSE, fig.cap="Screeplot for the subsetted dataset with 20 PC axes retained in the analysis."}
 library(pcadapt)
 #need to remove the first line with a # 
 filename<-read.pcadapt("pcadapt_fw/fwsw.pruned.vcf",type="vcf") 
