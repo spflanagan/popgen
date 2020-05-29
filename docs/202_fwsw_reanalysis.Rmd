@@ -1560,7 +1560,7 @@ dev.off()
 
 Now let's start to aggregate everything.
 
-```{r create_fw_SNPinfo, eval=FALSE}
+```{r create_fw_SNPinfo, eval=TRUE}
 permuted_fsts<-readRDS("permuted_fsts.RDS")
 
 perm_dat<-do.call(cbind,permuted_fsts)
@@ -1580,7 +1580,7 @@ fw_SNPinfo<-data.frame(ID=vcf$ID,Chrom=vcf$`#CHROM`,Pos=vcf$POS,BP=vcf$POS-1,
 
 
 
-```{r add2SnpInfo, eval=FALSE}
+```{r add2SnpInfo, eval=TRUE}
 # add Fsts
 fw_SNPinfo<-merge(fw_SNPinfo,fwsw.al,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),
                   all.x=TRUE,all.y = FALSE)[,c(colnames(fw_SNPinfo),
@@ -1703,7 +1703,7 @@ table(snp_pc$PC)
 
 Now we can add the qvalues to the fw_SNPinfo dataframe
 
-```{r Pcadapt2Snpinfo, eval=FALSE}
+```{r Pcadapt2Snpinfo, eval=TRUE}
 fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
 fw_SNPinfo$pcadaptQ<-qval
 fw_SNPinfo$pcadaptPC<-get.pc(res,1:length(qval))$PC
@@ -1814,7 +1814,7 @@ write.table(bayenv_dat,"bayenv/bayenv_output.txt",sep="\t",
 ```
 
 Merge it with other snp info
-```{r bayenv2snpinfo, eval=FALSE}
+```{r bayenv2snpinfo, eval=TRUE}
 bayenv_dat<-read.delim("bayenv/bayenv_output.txt",header = TRUE)
 bayenv_dat$logSalBF<-log(bayenv_dat$salinity_BF)
 bayenv_dat$logTemBF<-log(bayenv_dat$temp_BF)
@@ -2227,7 +2227,7 @@ annotate_snps<-function(snpDF,gff,genome.blast,ID="Locus.ID",
 }
 ```
 
-```{r getGFF, eval=FALSE}
+```{r getGFF, eval=TRUE}
 gff.name<-"ssc_2016_12_20_chromlevel.gff.gz"
 if(length(grep("gz",gff.name))>0){
   gff<-read.delim(gzfile(paste("../../scovelli_genome/",gff.name,sep="")),header=F)
@@ -2239,7 +2239,7 @@ colnames(gff)<-c("seqname","source","feature","start","end","score",
 genome.blast<-read.csv("../../scovelli_genome/ssc_2016_12_20_cds_nr_blast_results.csv",
                        skip=1,header=T)#I saved it as a csv
 ```
-```{r annotate_snpinfo, eval=FALSE}
+```{r annotate_snpinfo, eval=TRUE}
 fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
 
 snp_annotate<-annotate_snps(fw_SNPinfo,gff,genome.blast,ID="ID",
@@ -2294,7 +2294,7 @@ Based on this, we could conclude that our table of outliers in coding regions is
 
 Now let's look at a more specific set of genes -- those from our salinity-associated gene set.
 
-```{r rearrangePutatives,eval=FALSE}
+```{r rearrangePutatives,eval=TRUE}
 put_genes<-read.delim("putative_genes.txt",stringsAsFactors = FALSE)
 s<-strsplit(put_genes$Scovelli_geneID,",")
 genes<-data.frame(Gene=rep(put_genes$Gene,sapply(s,length)),
