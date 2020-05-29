@@ -450,6 +450,7 @@ permOut<-data.frame(perm_TX=permuted_fsts[[1]]$act_in_perm,
 ```
 
 
+The permutations resulted in substantially lower $F_{ST}$ values than the actual $F_{ST}$ values (Table \@ref(tab:permTable)), and the permuted $F_{ST}$s were very close to zero (Table \@ref(tab:permTable); Figure (\@ref(fig:plotPermutations))) whereas the actual $F_{ST}$ values had a larger tail. The increase in the overall number of outliers in the ALFW vs ALST and LAFW vs ALST comparisons likely reflects the fact that those permuted $F_{ST}$ values were much closer to zero with smaller permuted standard errors of the mean than the other two comparisons, likely due to the admixture in those populations. A total of `r nrow(permOut[which(rowSums(permOut)==4),])` SNPs were identified as outliers in all four permutation analyses.   
 
 ```{r plot_fst_hists}
 plot_fst_hists<-function(perms,plot_lab=NULL,cols=NULL,permlab="mean_perm",
