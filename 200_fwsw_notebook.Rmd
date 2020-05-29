@@ -75,6 +75,52 @@ write.table(rundf,"dadi_mods_2020-05-18.txt",col.names = FALSE,
 
 Ok that's good for now, I think...I've got lots running and am getting closer and closer to having 5 reps of each model. I can start more this afternoon so that additional ones will run over the weekend.
 
+
+Permutation outliers
+
+```{r}
+fw_SNPinfo<-read.RDS("fw_SNPinfo.RDS")
+permuted_fsts<-readRDS("permuted_fsts.RDS")
+vcf<-parse.vcf("converted_subset.vcf")
+dat<-data.frame(Locus=paste(permuted_fsts[[1]]$Chrom,as.numeric(permuted_fsts[[1]]$Pos),sep="_"),
+                Chrom=permuted_fsts[[1]]$Chrom,
+                Pos=permuted_fsts[[1]]$Pos,
+                 perm_TX=permuted_fsts[[1]]$act_in_perm,
+                 perm_FL=permuted_fsts[[2]]$act_in_perm,
+                 perm_AL=permuted_fsts[[3]]$act_in_perm,
+                 perm_LA=permuted_fsts[[4]]$act_in_perm,
+                 stringsAsFactors = FALSE)
+vcf$Locus<-paste(vcf$`#CHROM`,as.numeric(vcf$POS),sep="_")
+
+nrow(vcf[which(vcf$Locus %in% dat$Locus),])
+head(dat[which(!dat$Locus %in% vcf$Locus),])
+```
+
+Why isn't this all of them? It looks like they've got different position distributions at least for LG1:
+
+```{r}
+summary(vcf$POS[vcf$`#CHROM` %in% "LG1"])
+summary(as.numeric(dat$Pos[dat$Chrom %in% "LG1"]))
+```
+
+
+```{r}
+newdat<-data.frame(ID=vcf$ID,Chrom=vcf$`#CHROM`,Pos=vcf$POS,BP=vcf$POS-1,
+                       REF=vcf$REF,ALT=vcf$ALT,
+                       perm_TX=permuted_fsts[[1]]$act_in_perm,
+                       perm_FL=permuted_fsts[[2]]$act_in_perm,
+                       perm_AL=permuted_fsts[[3]]$act_in_perm,
+                       perm_LA=permuted_fsts[[4]]$act_in_perm,
+                       stringsAsFactors = FALSE)
+perm_out<-newdat$ID[which(rowSums(dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4)]
+nrow(fw_SNPinfo[fw_SNPinfo$ID %in% perm_out,])
+
+dim(fw_SNPinfo[as.numeric(fw_SNPinfo$ID) %in% vcf$ID,])
+```
+..so what's weird is that this code ^^ is exactly how fw_SNPinfo was started. So...what is going on?? Perhaps it is time to re-create fw_SNPinfo again, as these should be identical but apparently are not.
+
+I'm also re-running the permutations in the background on C001KR. 
+
 # 28 May 2020
 
 I've plotted all of the bootstrap reps for Treemix, and it seems like interpreting those in the supplement is a good way forward. 
