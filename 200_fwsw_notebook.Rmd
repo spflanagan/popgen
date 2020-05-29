@@ -126,7 +126,16 @@ nrow(fw_SNPinfo[fw_SNPinfo$ID %in% perm_out,])
 
 dim(fw_SNPinfo[as.numeric(fw_SNPinfo$ID) %in% vcf$ID,])
 ```
-..so what's weird is that this code ^^ is exactly how fw_SNPinfo was started. So...what is going on?? Perhaps it is time to re-create fw_SNPinfo again, as these should be identical but apparently are not.
+..so what's weird is that this code ^^ is exactly how fw_SNPinfo was started. So...what is going on?? Perhaps it is time to re-create fw_SNPinfo again, as these should be identical but apparently are not. Ok, so I've done this, but now...
+
+```{r}
+dim(fw_SNPinfo[is.na(fw_SNPinfo$ID),])
+dim(fw_SNPinfo[!is.na(fw_SNPinfo$ID),])
+```
+
+...the NAs are back! Ugh. Last time this was due to Bayenv...what if I re-do everything without the bayenv results, and see if that fixes it? IT DOES! I had been using the wrong index thing to combine the fw_SNPinfo and bayenv information. Ah, but adding the putative genes is also a problem.
+
+
 
 I'm also re-running the permutations in the background on C001KR. 
 
