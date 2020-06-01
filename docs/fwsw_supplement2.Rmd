@@ -691,9 +691,11 @@ ft<-fisher.test(table(annInfo$region,annInfo$outlier))
 We did not find that the outliers in the analysis (in aggregate) were found in any one genomic region at a higher frequency than the non-outlier loci (Table \@ref(tab:summarizeAnnotations), Fisher's exact test, odds ratio $=$ `r ft$estimate`, $p=$`r ft$p.value`).
 
 
+```{r putGenes}
+put_genes<-read.delim("putative_genes.txt",stringsAsFactors = FALSE)
+```
 
 ```{r rearrangePutatives,eval=FALSE}
-put_genes<-read.delim("putative_genes.txt",stringsAsFactors = FALSE)
 s<-strsplit(put_genes$Scovelli_geneID,",")
 genes<-data.frame(Gene=rep(put_genes$Gene,sapply(s,length)),
                   SSCID=unlist(s),stringsAsFactors = FALSE)
