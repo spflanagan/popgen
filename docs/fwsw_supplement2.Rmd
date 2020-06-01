@@ -732,7 +732,7 @@ We investigated whether the outlier SNPs from our above analyses were in these p
 
 ```{r putativeGenesTable}
 kable(put_genes[,c(1,2,4,5,6)],booktabs=TRUE,longtable=TRUE,
-      fig.cap="Table of putative freshwater adaptation genes and their gene ID name in the Gulf pipefish genome.") %>%
+      caption = "Table of putative freshwater adaptation genes and their gene ID name in the Gulf pipefish genome.") %>%
   kable_styling(latex_options="HOLD_position","repeat_header")
 ```
 
