@@ -34,6 +34,110 @@ Goals for today:
   - fixed up issues with supp 2's knitting
   - improved the formatting/output of the dadi supplement by not showing code and tweaking kable parameters
   - still need to improve dadi supplement by choosing the highest median log likelihood model.
+- merge treemix bootstraps
+
+To merge treemix bootstraps I'm looking at this code:
+https://github.com/mgharvey/misc_python/blob/master/bin/TreeMix/treemix_tree_with_bootstraps.py
+
+Which has the following steps:
+1. The combine_bootreps() function in there just re-writes all of the lines in each of the bootstrapped treeout files into a 'cat_trees.tre' file.
+2. In a comment, it then says you may need to copy and paste them to get them in the correct format
+3. commented out are two lines both running the same line of code but in different ways I think
+  # os.system("sumtrees.py --rooted -t {0}out_stem.treeout.tre -o {1}boottree.txt {2}cat_trees.tre".format(args.out_dir, args.out_dir, args.out_dir))
+	# sumtrees.py --rooted -t ./out_stem.treeout.tre -o ./boottree.txt ./cat_trees.tre
+
+So I'll install sumtrees (following instructions here https://dendropy.org/programs/sumtrees.html) - done.
+
+The bootstrap replicates are all in treemix/ and have the form fwsw_k100bFLPBrm{m}_{i}.treeout.gz, where {m} is the number of migration edges and {i} is the bootstrap replicate. I also have the maximum likelihood trees that are not from the bootstrapped replicates. 
+
+What the sumtrees code is doing is using the maximum likelihood tree as the target tree filepath (-t ./out_stem.treeout.tre), summarizing the concatenated bootstrap trees with the function (./cat_trees.tre), and saving the output to a file called boottree.txt (-o ./boottree.txt).
+
+This R code does save the trees to file, but I'm going to try with python first, using the code from the github page as inspiration -- this would allow  me to run sumtrees on each of them as I go.
+
+```{r}
+library(ape)
+combine_boots_treemix<-function(stem,out,boots=10){
+  require(ape)
+  tr<- read.tree(gzfile(paste0(stem, ".treeout.gz")))    
+  write.tree(tr,paste0(stem, ".treeout.tre"))
+  for(i in 1:boots){
+    tr<-paste0(stem,"_",i, ".treeout.gz")
+    tr<- read.tree(gzfile(tr))    
+    write.tree(tr,out,append=TRUE)
+  }
+  invisible(out)
+}
+
+stem<-"treemix/fwsw_k100bFLPBrm1"
+
+combine_boots_treemix(stem,out="treemix/m1test.tre")
+```
+
+The ones with migration edges are causing problems for the poor code in python, so I'm using a version of the R code above -- I turned it into an R script which I call from a bash script along with sumtrees and it all works out nicely. Now I've got the summary trees in SumTrees format, and they have bootstrap estimates for each node. I'm not sure how this is supposed to help with the migration edges (as far as I can tell it doesn't) but I can at least plot the bootstrap values on the tree. -- to do this I need to alter my treemix plotting code again, and probably borrow some of the tricks from BITE. 
+
+Ok, here's an idea: what if I use the bootstraps over the no-migration edge trees to judge confidence in a tree topology, THEN add migration events and choose the optimal edges *giving treemix the consensus tree as input*....could do this with the -tf flag with treemix. This is what BITE does, when looking at their scripts in depth.
+
+So here's the new outline for treemix:
+1. Run 100 bootstraps of the unrooted tree and make a consensus with SumTrees.
+2. Plot consensus to choose the best root.
+3. Run 100 bootstraps of the rooted tree and make a consensus with SumTrees.
+4. Run treemix with 1 to 5 migration edges giving it the consensus tree.
+5. Run threepop and fourpop giving it the consensus tree. 
+
+
+Given this, I will delete all the old stuff (it's still in the ~/Research/popgen/treemix/ dir anyway) and create new sub directories. I also will need to re-write the code.
+
+I've run the unrooted version and used the following R code to make a figure:
+
+```{r}
+library(ape)
+tre<-read.tree("treemix/unrooted/fwsw_boottree.txt")
+png("../figs/treemix_unrooted_consensus.png",height=8,width=8,units="in",res=300)
+plot(tre)
+dev.off()
+```
+
+That indicated that FLAB was the best outgroup root, so I then ran treemix with that (with 100 reps). Now I can make a figure in the same way (just to see what it looks like)
+
+```{r}
+library(ape)
+tre<-read.tree("treemix/rooted/fwsw_FLAB_boottree.txt")
+png("../figs/treemix_FLAB_consensus.png",height=8,width=8,units="in",res=300)
+plot(tre)
+dev.off()
+```
+
+It's pretty similar, and similar to previous trees. Now let's try using that tree to run treemix with migration edges. That caused segmentation faults...I think it's due to the stupid format of the output boottree.
+
+Let's see what happens if I convert it.
+
+```{r}
+library(ape)
+tre<-read.tree("treemix/rooted/fwsw_FLAB_boottree.txt")
+write.tree(tre, "treemix/rooted/fwsw_FLAB_consensus.tre")
+```
+
+There is still a segmentation fault, and to my best guess it happens when the program converts the newick string to a graph and then tries to set the graph and allocates stuff
+
+```{cpp, eval=FALSE}
+void GraphState2::set_graph(string newick){
+        tree->set_graph(newick);
+        current_npops = allpopnames.size();
+        gsl_matrix_free(sigma);
+        sigma = gsl_matrix_alloc(current_npops, current_npops);
+        gsl_matrix_set_zero(sigma);
+        gsl_matrix_free(sigma_cor);
+        sigma_cor = gsl_matrix_alloc(current_npops, current_npops);
+        gsl_matrix_set_zero(sigma_cor);
+
+    set_branches_ls_wmig();
+
+    current_llik = llik();
+}
+
+```
+
+I'm going to have to revisit this tomorrow, my mind feels a bit like mush.
 
 # 29 May 2020
 
