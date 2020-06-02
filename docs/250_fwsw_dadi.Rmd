@@ -18,7 +18,7 @@ affiliation:
   - affilnum: 3
     affil: Department of Biological Sciences, University of Idaho, Moscow, ID 83844 USA
 abstract: >
-  This document includes supplementary material for the paper. 
+  This document includes supplementary material for the paper, showing expanded methods and results from the diffusion approximations.
 header-includes: >
   \usepackage{lipsum}
   \usepackage{float}
