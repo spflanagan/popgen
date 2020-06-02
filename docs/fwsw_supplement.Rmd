@@ -618,7 +618,7 @@ write.table(admixK7,"admixture/admixK7.txt",sep = '\t',quote = FALSE,col.names =
 # Analysis of demographic structure {-}
 
 
-## Treemix analysis {##treemix}
+## Treemix analysis {#treemix}
 
 We used Treemix [@pickrellInferencePopulationSplits2012] to infer population splits and migration events among all 16 populations. Throughout the analyses we used blocks of 100 SNPs. 
 
