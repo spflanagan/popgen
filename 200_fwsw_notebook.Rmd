@@ -28,8 +28,7 @@ pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 
 Goals for today:
 - start more dadi runs (FLCC_TXCC_1 and ALFW_LAFW_2 have finished on rccuser & I moved them.)
-  - started FLCC_LAFW # 13 on abacus (212-233), job ID 623
-  - started FLLG_ALST # 14 on abacus (56-77), job ID 624
+- merge treemix bootstraps
 - finish supplements
   - fixed up issues with supp 2's knitting
   - improved the formatting/output of the dadi supplement by not showing code and tweaking kable parameters
