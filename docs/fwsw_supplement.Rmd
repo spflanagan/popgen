@@ -636,7 +636,7 @@ colors[colors %in% c("TXSP","TXCC","TXFW","TXCB")]<-grp.colors[1]
 write.table(cbind(poporder,colors),"poporder",quote=F,sep='\t')
 ```
 
-We began by plotting the tree without a root and lacking migration edges.
+We began by plotting the tree tree without a root and lacking migration edges.
 
 ```{r treemixPrep, results='hide', fig.show='true',fig.cap="The population tree from running Treemix any migration edges (left) and the resulting residuals (right). No populations were specified as root in this analysis."}
 source("../R/203_treemix_plotting_funcs.R") #I've modified the functions from treemix
