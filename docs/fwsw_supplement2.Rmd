@@ -111,7 +111,7 @@ ppi$pch[grep("FW",ppi$Pop)]<-c(15,16,17,18)
 
 # Outliers: Fsts from Stacks, permutations, PCadapt  {-}
 
-The alignments were done with a preliminary genome assembly from March 2016 that had a different linkage map than the genome that was published in [@Small2016]. The only differences were the final orientation and position of the scaffolds in the linkage groups, so we corrected the position information in the Stacks output (including vcf files) using the agp files for the preliminary genome and the published genome. This correction was important for considering the genomic positions of the SNPs but not for the global parameter estimates such as those in Supplement 1.
+The alignments were done with a preliminary genome assembly from March 2016 that had a different linkage map than the genome that was published in [@smallGenomeGulfPipefish2016]. The only differences were the final orientation and position of the scaffolds in the linkage groups, so we corrected the position information in the Stacks output (including vcf files) using the agp files for the preliminary genome and the published genome. This correction was important for considering the genomic positions of the SNPs but not for the global parameter estimates such as those in Supplement 1.
 
 
 ```{r convert_agp}
@@ -437,9 +437,9 @@ perm_summ<-do.call(rbind,lapply(permuted_fsts,function(dat){
   return(data.frame(actMu,actSEM,perMu,perSEM,nOut))
 }))
 row.names(perm_summ)<-c("TXFW_TXCC","FLFW_FLCC","ALFW_ALST","LAFW_ALST")
-kable(perm_summ,row.names = TRUE,booktabs=TRUE,
+landscape(kable(perm_summ,row.names = TRUE,booktabs=TRUE,
       col.names=c("Actual mean Fst","Actual Fst SEM","Permuted mean Fst","Permuted Fst SEM", "Number of outliers"),
-      caption="Summary of the permutations. Presented are the mean and standard error of the mean for the actual and permuted Fst values for each comparison. Also shown are the number of outliers identified in each analysis, where outliers were defined as those loci whose actual Fst values we either larger or smaller than the maximum or minimum permuted Fst value.")
+      caption="Summary of the permutations. Presented are the mean and standard error of the mean for the actual and permuted Fst values for each comparison. Also shown are the number of outliers identified in each analysis, where outliers were defined as those loci whose actual Fst values we either larger or smaller than the maximum or minimum permuted Fst value."))
 ```
 ```{r permOut}
 permOut<-data.frame(perm_TX=permuted_fsts[[1]]$act_in_perm,
@@ -530,7 +530,7 @@ suppressWarnings(write.table(vcf,"pcadapt_fw/fwsw.pruned.vcf",
                              quote=FALSE,append = TRUE,
                              row.names = FALSE,col.names = TRUE,sep='\t'))
 ```
-```{r pcadaptOutliers,message=FALSE, fig.cap="Screeplot for the subsetted dataset with 20 PC axes retained in the analysis."}
+```{r pcadaptOutliers,message=FALSE,warning=FALSE, fig.cap="Screeplot for the subsetted dataset with 20 PC axes retained in the analysis."}
 library(pcadapt)
 #need to remove the first line with a # 
 filename<-read.pcadapt("pcadapt_fw/fwsw.pruned.vcf",type="vcf") 
@@ -572,7 +572,7 @@ l<-lapply(lgs, function(lg,vcf){
 ```
 
 
-PCadapt calculated test statistics based on $z$-scores from regressing SNPs with the $K=4$ principal components, using the Mahalanobis distance. We visualized the distribution of the resulting p-values using a Manhattan plot (Figure \@ref(fig:PcadaptK4-1)), which revealed a small number of loci with small p-values. The Q-Q plot (Figure \@ref(fig:PcadaptK4-2)) also reflected the fact that many loci followed the uniform distribution, but the smallest p-values are smaller than expected, confirming the presence of outlier SNPs in the dataset. The distribution of the test statistic further confirms these findings (Figure \@ref(fig:PcadaptK-3)), with most of the test statistics concentrated around zero but with some in the tail of the distribution. 
+PCadapt calculated test statistics based on $z$-scores from regressing SNPs with the $K=4$ principal components, using the Mahalanobis distance. We visualized the distribution of the resulting p-values using a Manhattan plot (Figure \@ref(fig:PcadaptK4-1)), which revealed a small number of loci with small p-values. The Q-Q plot (Figure \@ref(fig:PcadaptK4-2)) also reflected the fact that many loci followed the uniform distribution, but the smallest p-values are smaller than expected, confirming the presence of outlier SNPs in the dataset. The distribution of the test statistic further confirms these findings (Figure \@ref(fig:PcadaptK4-3)), with most of the test statistics concentrated around zero but with some in the tail of the distribution. 
 
 ```{r PcadaptK4-1, fig.cap="Manhattan plot for the PCAdapt outlier analysis with the subsetted dataset and 4 PC axes retained in the analysis."}
 
@@ -599,7 +599,8 @@ To identify outliers, we used the `qvalue` package [@storeyQvalueQvalueEstimatio
 ```{r showPcadaptOutliers}
 pcs<-table(snp_pc$PC)
 names(pcs)<-c("PC1","PC2","PC3","PC4")
-kable(t(pcs),booktabs=TRUE)
+kable(t(pcs),booktabs=TRUE,
+      caption="Number of outliers associated with each of the four retained principal components axes")
 ```
 
 
@@ -616,7 +617,7 @@ tmp<-wilcox.test(as.numeric(env.data$temp)~env.data$pop) #ties, but p=0.539
 sgr<-wilcox.test(as.numeric(env.data$seagrass)~env.data$pop) #ties, but p=0.897
 ```
 
-We used Bayenv2.0 [@guntherRobustIdentificationLocal2013] to use correlations between environmental variables (water temperature, salinity, and seagrass) and allele frequencies to identify loci possibly experiencing local adaptation. Before running the analysis, we compared the environmental variables between freshwater and saltwater populations using a Wilcoxon rank-sum test and found that unsurprisingly salinity differed significantly ($W=$`r sal$statistic`, $p=$`r sal$p.value`), but water temperature ($W=$`r tmp$statistic`, $p=$`r tmp$p.value`) and seagrass coverage did not ($W=$`r sgr$statistic`, $p=$`r sgr$p.value`).
+We used Bayenv2.0 [@guntherRobustIdentificationLocal2013] to use correlations between environmental variables (water temperature, salinity, and seagrass) and allele frequencies to identify loci possibly experiencing local adaptation. Before running the analysis, we compared the environmental variables between freshwater and saltwater populations using a Wilcoxon rank-sum test and found that unsurprisingly salinity differed significantly ($W=$ `r sal$statistic`, $p=$ `r sal$p.value`), but water temperature ($W=$ `r tmp$statistic`, $p=$ `r tmp$p.value`) and seagrass coverage did not ($W=$ `r sgr$statistic`, $p=$ `r sgr$p.value`).
 
 We began by estimating the covariance matrices in ten independent runs. The matrices from each run were compared visually (Figure \@ref(fig:BayenvMatrices)) and determined to follow similar patterns, suggesting that the matrix is well estimated. Given that all matrices were similar in pattern, we randomly selected one of the 10 matrices to use in the subsequent analyses.
 
@@ -688,7 +689,7 @@ kable(table(annInfo$region,annInfo$outlier),booktabs=TRUE,
 ft<-fisher.test(table(annInfo$region,annInfo$outlier))
 ```
 
-We did not find that the outliers in the analysis (in aggregate) were found in any one genomic region at a higher frequency than the non-outlier loci (Table \@ref(tab:summarizeAnnotations), Fisher's exact test, odds ratio $=$ `r ft$estimate`, $p=$`r ft$p.value`).
+We did not find that the outliers in the analysis (in aggregate) were found in any one genomic region at a higher frequency than the non-outlier loci (Table \@ref(tab:summarizeAnnotations), Fisher's exact test, odds ratio $=$ `r ft$statistic`, $p=$ `r ft$p.value`).
 
 
 ```{r putGenes}
@@ -731,9 +732,14 @@ We investigated whether the outlier SNPs from our above analyses were in these p
 
 
 ```{r putativeGenesTable}
-kable(put_genes[,c(1,2,4,5,6)],booktabs=TRUE,longtable=TRUE,
-      caption = "Table of putative freshwater adaptation genes and their gene ID name in the Gulf pipefish genome.") %>%
-  kable_styling(latex_options="HOLD_position","repeat_header")
+landscape(kable(put_genes[,c(1,2,4,5,6)],"latex",booktabs=TRUE,longtable=TRUE,
+      caption = "Table of putative freshwater adaptation genes and their gene ID name in the Gulf pipefish genome.")) %>%
+  kable_styling(latex_options="HOLD_position","repeat_header") %>%
+  column_spec(1,width="10em") %>%
+  column_spec(2,width="10em") %>%
+  column_spec(3,width="10em") %>%
+  column_spec(4,width="10em") %>%
+  column_spec(5,width="10em")
 ```
 
 

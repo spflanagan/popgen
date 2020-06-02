@@ -42,7 +42,7 @@ spacing: singlespacing
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE,out.extra='',fig.pos="H",
+knitr::opts_chunk$set(echo = FALSE,out.extra='',fig.pos="H",
                       warning=FALSE,message=FALSE)
 knitr::opts_knit$set(root.dir='../fwsw_results/')
 ```
@@ -255,10 +255,11 @@ sumTab$parms<-apply(sumTab,1,function(dat){
 })
 sumTab<-sumTab[,-c(10,11)]  
 
-landscape(kable(sumTab,booktabs=TRUE,
+landscape(kable(sumTab,"latex",booktabs=TRUE,
       caption = "Table showing the results of the run with the median log likelihood for each model",
       row.names = FALSE)) %>%
-  kable_styling(latex_options="scale_down")
+  kable_styling(latex_options=c("scale_down","repeat_header","HOLD_position"))  %>%
+  column_spec(10,width = "10em")
 ```
 
 
@@ -725,26 +726,29 @@ for(i in 1:length(pop.list)){
       col<-colors[names(colors) %in% gsub("(\\w\\w).*","\\1",model)]
       plot(c(0,1),c(0,1),type='n',axes=FALSE,xlab="",ylab="",bty='n')
       rect(0,0,1,1,col=alpha(col,0.75),border=col)
-      legend("center",model,cex=2,bg='transparent',bty='n',
+      legend("center",model,cex=1.5,bg='transparent',bty='n',
              adj=0.1,xjust=0,text.font = 2)
     } else{
       plot(c(0,1),c(0,1),type='n',axes=FALSE,xlab="",ylab="",bty='n')
     }
     if(i==1){
-      mtext(pop.list[j],3,font = 2,outer = FALSE,cex=1.5,col=lbcols[j])
+      mtext(pop.list[j],3,font = 2,outer = FALSE,cex=1.25,col=lbcols[j])
     }
     if(j==1){
       mtext(pop.list[i],2,font = 2,outer = FALSE,line=-1.6,
-            cex=1.5,xpd=TRUE,col=lbcols[i])
+            cex=1.25,xpd=TRUE,col=lbcols[i])
     }
   }
 }
 
 ```
 
+The summary table will tell show all of the parameters for the best models. 
+
 ```{r showBestTable}
-landscape(kable(outTable,booktabs=TRUE))  %>%
-  kable_styling(latex_options="scale_down")
+landscape(kable(outTable,"latex",booktabs=TRUE,
+                caption="Table of all of the parameters for the best models for each population pair."))  %>%
+  kable_styling(latex_options=c("scale_down","repeat_header","HOLD_position"))
 ```
 
 
