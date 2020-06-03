@@ -11,6 +11,7 @@ bootreps=100
 
 cd "${0%/*}" # move to location of script
 cd ../fwsw_results/treemix
+
 # convert vcf to input format
 if [ "$METHOD" == "convert" ]; then
 	Rscript ../../R/vcf2treemix.R ${VCF} "poplist" "fwsw_treemix" "../../../gwscaR"
@@ -29,7 +30,6 @@ if [ "$METHOD" == "unrooted" ]; then
 	Rscript ../../R/202_combine_treemix.R unrooted/${PREFIX} unrooted/${PREFIX}_cat.tre 100
 	sumtrees.py --unrooted -o unrooted/${PREFIX}_boottree.txt -F 'newick' unrooted/${PREFIX}_cat.tre
 fi
-
 
 # run treemix with a specified root and generate a consensus tree
 
@@ -54,7 +54,7 @@ if [ "$METHOD" == "migrations" ]; then
 	treemix -i ${PREFIX}_treemix.gz -k 100 -tf rooted/${PREFIX}_${ROOT}_consensus.tre -root ${ROOT} -se -m 3 -o ${PREFIX}_${ROOT}_m3
 	treemix -i ${PREFIX}_treemix.gz -k 100 -tf rooted/${PREFIX}_${ROOT}_consensus.tre -root ${ROOT} -se -m 4 -o ${PREFIX}_${ROOT}_m4
 	treemix -i ${PREFIX}_treemix.gz -k 100 -tf rooted/${PREFIX}_${ROOT}_consensus.tre -root ${ROOT} -se -m 5 -o ${PREFIX}_${ROOT}_m5
-	# tests for treeness
+	
 	threepop -i ${PREFIX}_treemix.gz -k 100  >> ${PREFIX}_threepop.txt
 	fourpop -i ${PREFIX}_treemix.gz -k 100 >> ${PREFIX}_fourpop.txt
 
