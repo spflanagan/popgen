@@ -50,13 +50,13 @@ fi
 if [ "$METHOD" == "migrations" ]; then
 	echo "Running treemix with migration edges"
 	treemix -i ${PREFIX}_treemix.gz -k 100 -tf rooted/${PREFIX}_${ROOT}_consensus.tre -root ${ROOT} -se -m 1 -o ${PREFIX}_${ROOT}_m1
-	treemix -i ${PREFIX}_treemix.gz -k 100 -tf rooted/${PREFIX}_${ROOT}_consensus.tre -root ${ROOT} -se -m 2 -o ${PREFIX}_${ROOT}_m2
-	treemix -i ${PREFIX}_treemix.gz -k 100 -tf rooted/${PREFIX}_${ROOT}_consensus.tre -root ${ROOT} -se -m 3 -o ${PREFIX}_${ROOT}_m3
-	treemix -i ${PREFIX}_treemix.gz -k 100 -tf rooted/${PREFIX}_${ROOT}_consensus.tre -root ${ROOT} -se -m 4 -o ${PREFIX}_${ROOT}_m4
-	treemix -i ${PREFIX}_treemix.gz -k 100 -tf rooted/${PREFIX}_${ROOT}_consensus.tre -root ${ROOT} -se -m 5 -o ${PREFIX}_${ROOT}_m5
+	# treemix -i ${PREFIX}_treemix.gz -k 100 -tf rooted/${PREFIX}_${ROOT}_consensus.tre -root ${ROOT} -se -m 2 -o ${PREFIX}_${ROOT}_m2
+	# treemix -i ${PREFIX}_treemix.gz -k 100 -tf rooted/${PREFIX}_${ROOT}_consensus.tre -root ${ROOT} -se -m 3 -o ${PREFIX}_${ROOT}_m3
+	# treemix -i ${PREFIX}_treemix.gz -k 100 -tf rooted/${PREFIX}_${ROOT}_consensus.tre -root ${ROOT} -se -m 4 -o ${PREFIX}_${ROOT}_m4
+	# treemix -i ${PREFIX}_treemix.gz -k 100 -tf rooted/${PREFIX}_${ROOT}_consensus.tre -root ${ROOT} -se -m 5 -o ${PREFIX}_${ROOT}_m5
 	
-	threepop -i ${PREFIX}_treemix.gz -k 100  >> ${PREFIX}_threepop.txt
-	fourpop -i ${PREFIX}_treemix.gz -k 100 >> ${PREFIX}_fourpop.txt
+	# threepop -i ${PREFIX}_treemix.gz -k 100  >> ${PREFIX}_threepop.txt
+	# fourpop -i ${PREFIX}_treemix.gz -k 100 >> ${PREFIX}_fourpop.txt
 
 fi
 
