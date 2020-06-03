@@ -44,6 +44,8 @@ if [ "$METHOD" == "rooted" ]; then
 	# create consensus
 	Rscript ../../R/202_combine_treemix.R rooted/${PREFIX}_${ROOT} rooted/${PREFIX}_${ROOT}_cat.tre 100 
 	sumtrees.py --rooted -o rooted/${PREFIX}_${ROOT}_boottree.txt -F 'newick' rooted/${PREFIX}_${ROOT}_cat.tre
+	# convert it in R
+	R -e "ape::write.tree(ape::read.tree("rooted/${PREFIX}_${ROOT}_boottree.txt"),"rooted/${PREFIX}_${ROOT}_consensus.tre")"
 fi
 
 # run treemix with migration edges
