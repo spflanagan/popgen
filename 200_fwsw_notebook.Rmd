@@ -24,6 +24,36 @@ pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 ```
 
 
+# 3 June 2020
+
+To sort out the treemix issue, I need to figure out what format it's looking for when with the -ft flag. Alternatively, I need to get the sumtrees output into treemix vertices + edges format, and use the -g flag.
+
+Sumtrees possilbe outputs: nexus, newick, phylip, nexml. newick is the obvious answer (given the cpp code in treemix), so that should be it. 
+
+The sumtrees output has some weird formatting, but I converted it in R (see code below from yesterday) and now it's a single-line newick-formatted file but it's still not running. According to BITE, that's what it requires. Maybe it shouldn't have the branch lengths?
+
+```{r}
+library(ape)
+tre<-read.tree("treemix/rooted/fwsw_FLAB_boottree.txt")
+tre$edge.length<-NULL
+tre$node.label<-NULL
+write.tree(tre, "treemix/rooted/fwsw_FLAB_consensus.tre")
+```
+
+Ah, this doesn't get rid of node labels! That's probably the trouble.
+
+Nope -- getting rid of the numbers doesn't help at all. 
+
+Maybe there needs to be a newline at the end of the file? Nope. Maybe there's something off in the way I'm calling it from the script? - doesn't seem like it, running treemix from the command line hasn't fixed it. 
+
+It runs without the consensus tree so it must be something to do with that. 
+
+I've tried adding some checks to the code but either it's not working or I don't understand how the code is structured. Maybe it's not recognizing it as a newick tree? try labeling it .newick.
+
+I'm looking at the BITE example and it has some numbers but is shorter and all one line. Treemix definitely runs on that one, I tried it.
+
+I don't understand why it's not working! arghhh 
+
 # 2 June 2020
 
 Goals for today:
