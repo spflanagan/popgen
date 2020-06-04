@@ -758,22 +758,23 @@ write.table(cbind(poporder,colors),"poporder",quote=F,sep='\t')
 
 It's informative to plot the treemix tree that does not have any migration edges added for comparison later.
 
-```{r treemixPrep, results='hide', fig.show='true',fig.cap="The population tree from running Treemix without any migration edges (left) and the resulting residuals (right). No populations were specified as root in this analysis."}
-source("../R/203_treemix_plotting_funcs.R") #I've modified the functions from treemix
-library(lattice); library(grid); library(RColorBrewer)
-poporder<-read.delim("treemix/poporder")
-colors<-poporder$colors
-poporder<-poporder$poporder
-par(mfrow=c(1,2),oma=c(2,2,2,2),mar=c(2,2,2,2))
-tree<-plot_tree("treemix/fwsw_k100b",plotmig=F,scale=F,mbar=F,plus=0.05)
-mtext("Drift parameter",1,line=2)
-resid<-plot_resid("treemix/fwsw_k100b","treemix/poporder",wcols="rb")
-
+```{r treemixPrep, eval=FALSE}
+# unrooted tree
+library(ape)
+tre<-read.tree("treemix/unrooted_consensus.newick")
+png("../figs/treemix_unrooted_consense.png",height=8,width=8,units="in",res=300)
+plot(tre)
+dev.off()
 ```
 
-### Tree with FLPB as root
+```{r treemixUnrooted, fig.cap="The consensus tree from running Treemix without any migration edges  and no root."}
+knitr::include_graphics('../figs/treemix_unrooted_consense.png')
+```
 
-We ran Treemix assuming the FLPB was the root with 0 through 5 migration edges. We can compare the residuals, trees, and migration edges, with the root-free, no-migration tree included for comparison. 
+
+### Tree with FLAB as root
+
+We ran Treemix assuming the FLAB was the root with 100 bootstrap replicates. We can compare the residuals, trees, and migration edges, with the root-free, no-migration tree included for comparison. 
 
 ```{r treemixCovPlots,eval=FALSE,echo=FALSE,fig.cap="The Treemix covariance plots."}
 nr<-treemix.cov.plot("treemix/fwsw_k100b",poporder)
