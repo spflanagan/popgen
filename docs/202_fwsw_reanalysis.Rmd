@@ -774,127 +774,20 @@ knitr::include_graphics('../figs/treemix_unrooted_consense.png')
 
 ### Tree with FLAB as root
 
-We ran Treemix assuming the FLAB was the root with 100 bootstrap replicates. We can compare the residuals, trees, and migration edges, with the root-free, no-migration tree included for comparison. 
+We ran Treemix assuming the FLAB was the root with 100 bootstrap replicates. We then used PHYLIP's consense program to build a consensus tree, assuming that it was a rooted tree. We also re-saved it to file so it would be in one line and thus compatible with treemix. 
 
-```{r treemixCovPlots,eval=FALSE,echo=FALSE,fig.cap="The Treemix covariance plots."}
-nr<-treemix.cov.plot("treemix/fwsw_k100b",poporder)
-m0<-treemix.cov.plot("treemix/fwsw_k100bFLPBr",poporder,split=c(1,1,3,2),more=TRUE)
-m1<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm1",poporder,split=c(2,1,3,2),more=TRUE)
-m2<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm2",poporder,split=c(3,1,3,2),more=TRUE)
-m3<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm3",poporder,split=c(1,2,3,2),more=TRUE)
-m4<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm4",poporder,split=c(2,2,3,2),more=TRUE)
-m5<-treemix.cov.plot("treemix/fwsw_k100bFLPBrm5",poporder,split=c(3,2,3,2),more=FALSE)
-```
-
-
-
-```{r TreemixPlotResids, results='hide', eval=FALSE}
-# visualize residuals
-png("treemix/treemix-residuals_FLPB.png",height=12,width=8,units="in",res=300)
-par(mfrow=c(11,7),mar=c(2,3,1,1),oma=c(1.5,1.5,1,1))
-t0<-plot_resid("treemix/fwsw_k100b",  "treemix/poplist",cex = 0.75)
-r0<-plot_resid("treemix/fwsw_k100bFLPBr",  "treemix/poplist")
-r1<-plot_resid("treemix/fwsw_k100bFLPBrm1","treemix/poplist")
-r2<-plot_resid("treemix/fwsw_k100bFLPBrm2","treemix/poplist")
-r3<-plot_resid("treemix/fwsw_k100bFLPBrm3","treemix/poplist")
-r4<-plot_resid("treemix/fwsw_k100bFLPBrm4","treemix/poplist")
-r5<-plot_resid("treemix/fwsw_k100bFLPBrm5","treemix/poplist")
-for(i in 1:10){ 
-  t0<-plot_resid(paste0("treemix/fwsw_k100b_",i),  "treemix/poplist") 
-  r0<-plot_resid(paste0("treemix/fwsw_k100bFLPBr_",i),  "treemix/poplist") 
-  r1<-plot_resid(paste0("treemix/fwsw_k100bFLPBrm1_",i),  "treemix/poplist") 
-  r2<-plot_resid(paste0("treemix/fwsw_k100bFLPBrm2_",i),  "treemix/poplist") 
-  r3<-plot_resid(paste0("treemix/fwsw_k100bFLPBrm3_",i),  "treemix/poplist") 
-  r4<-plot_resid(paste0("treemix/fwsw_k100bFLPBrm4_",i),  "treemix/poplist") 
-  r5<-plot_resid(paste0("treemix/fwsw_k100bFLPBrm5_",i),  "treemix/poplist") 
-}
+```{r rootedConsensus, eval=FALSE}
+# rooted tree
+tre<-read.tree("rooted_consensus.newick")
+png("../../figs/treemix_rooted_consense.png",height=8,width=8,units="in",res=300)
+plot(tre)
 dev.off()
+write.tree(tre,'rooted_consensus.newick')
+
 ```
 
-
-```{r residPlots,fig.cap="The Treemix residual plots. Each column is a different model (no root, FLPB as root but no migration edge, and then 1 through 5 migration edges with FLPB as root), and each row is a different bootstrap replicate.",out.width='95%'}
-knitr::include_graphics('../fwsw_results/treemix/treemix-residuals_FLPB.png')
-```
-
-
-```{r plotTreemixTrees, results='hide', eval=FALSE}
-# look at the trees
-png("treemix/migration_trees_treemix_FLPB.png",height=12,width=8,units="in",res=300)
-par(mfrow=c(11,7),mar=c(1,1,1,1),oma=c(1,1,1,1))
-r0<-plot_tree("treemix/fwsw_k100b",plus=0.05,plotmig = F,scale=T,mbar=F,cex = 0.75)
-t0<-plot_tree("treemix/fwsw_k100bFLPBr",plotmig = F,plus=0.05,scale=T,mbar=F,cex = 0.75)
-t1<-plot_tree("treemix/fwsw_k100bFLPBrm1",plus=0.05,scale=T,mbar=T,cex = 0.75)
-t2<-plot_tree("treemix/fwsw_k100bFLPBrm2",plus=0.05,scale=T,mbar=F,cex = 0.75)
-t3<-plot_tree("treemix/fwsw_k100bFLPBrm3",plus=0.05,scale=T,mbar=F,cex = 0.75)
-t4<-plot_tree("treemix/fwsw_k100bFLPBrm4",plus=0.05,scale=T,mbar=F,cex = 0.75)
-t5<-plot_tree("treemix/fwsw_k100bFLPBrm5",plus=0.05,scale=T,mbar=F,cex = 0.75)
-
-for(i in 1:10){ 
-  r0<-plot_tree(paste0("treemix/fwsw_k100b_",i),plus=0.05,plotmig = F,scale=T,mbar=F,cex = 0.75) 
-  t0<-plot_tree(paste0("treemix/fwsw_k100bFLPBr_",i),scale=T,mbar=F,cex = 0.75,lwd=2,disp=0.0002,scadj=0.05) 
-  t1<-plot_tree(paste0("treemix/fwsw_k100bFLPBrm1_",i),scale=T,mbar=F,cex = 0.75,lwd=2,disp=0.0002,scadj=0.05) 
-  t2<-plot_tree(paste0("treemix/fwsw_k100bFLPBrm2_",i),scale=T,mbar=F,cex = 0.75,lwd=2,disp=0.0002,scadj=0.05) 
-  t3<-plot_tree(paste0("treemix/fwsw_k100bFLPBrm3_",i),scale=T,mbar=F,cex = 0.75,lwd=2,disp=0.0002,scadj=0.05) 
-  t4<-plot_tree(paste0("treemix/fwsw_k100bFLPBrm4_",i),scale=T,mbar=F,cex = 0.75,lwd=2,disp=0.0002,scadj=0.05) 
-  t5<-plot_tree(paste0("treemix/fwsw_k100bFLPBrm5_",i),scale=T,mbar=F,cex = 0.75,lwd=2,disp=0.0002,scadj=0.05) 
-}
-dev.off()
-```
-
-
-```{r TreemixTrees, out.width='95%',fig.cap="The Treemix trees for each model. Each column shows a different model (no root, FLPB as root but no migration edge, and then 1 through 5 migration edges with FLPB as root) and each row is a bootstrap replicate."}
-knitr::include_graphics('../fwsw_results/treemix/migration_trees_treemix_FLPB.png')
-```
-
-
-```{r migrationPvalues, results='hide', fig.show='true'}
-# Evaluate migration p-values
-nort0<-read.table(gzfile("treemix/fwsw_k100b.treeout.gz"), 
-                  as.is  = T, comment.char = "", quote = "")
-tree0<-read.table(gzfile("treemix/fwsw_k100bFLPBr.treeout.gz"), 
-                  as.is  = T, comment.char = "", quote = "")
-tree1<-read.table(gzfile("treemix/fwsw_k100bFLPBrm1.treeout.gz"), 
-                  as.is  = T, comment.char = "", quote = "",skip=1)
-tree2<-read.table(gzfile("treemix/fwsw_k100bFLPBrm2.treeout.gz"), 
-                  as.is  = T, comment.char = "", quote = "",skip=1)
-tree3<-read.table(gzfile("treemix/fwsw_k100bFLPBrm3.treeout.gz"), 
-                  as.is  = T, comment.char = "", quote = "",skip=1)
-tree4<-read.table(gzfile("treemix/fwsw_k100bFLPBrm4.treeout.gz"), 
-                  as.is  = T, comment.char = "", quote = "",skip=1)
-tree5<-read.table(gzfile("treemix/fwsw_k100bFLPBrm5.treeout.gz"), 
-                  as.is  = T, comment.char = "", quote = "",skip=1)
-```
-```{r TreemixVertices, results='hide', fig.show='true'}
-d <- read.table("treemix/fwsw_k100bFLPBrm3.vertices.gz", 
-                as.is  = T, comment.char = "", quote = "")
-branch.cols<-rep("black",nrow(d))
-branch.cols[d[,2] %in% c("TXFW","ALFW","LAFW","FLLG")]<-"cornflowerblue"
-
-tip.names<-as.vector(d[d[,5] == "TIP",2])
-tip.names<-data.frame(Original=tip.names,Replacement=tip.names,
-                      stringsAsFactors = FALSE)
-tip.names$Replacement[tip.names$Replacement=="FLLG"]<-"FLFW"
-```
-```{r FWSW_treemix_m3_FLPB,fig.height=7,fig.width=7, results='hide', fig.show='true',include=FALSE}
-png("../figs/FWSW_treemix_m3_FLPB.png",height=7,width=7,units="in",res=300)
-t3<-plot_tree("treemix/fwsw_k100bFLPBrm3","poporder",
-              plus=0.05,scale=F,mbar=F,arrow=0.1,tip.order = tip.names)
-ybar<-0.01
-mcols = rev( heat.colors(150) )
-mcols = mcols[50:length(mcols)]
-ymi = ybar+0.15
-yma = ybar+0.35
-l = 0.2
-w = l/100
-xma = max(t3$d$x/20)
-rect( rep(0.15, 100), ymi+(0:99)*w, rep(0.15+xma, 100), ymi+(1:100)*w, 
-      col = mcols, border = mcols)
-text(0.15+xma+0.001, ymi, lab = "0", adj = 0, cex = 0.7)
-text(0.15+xma+0.001, yma, lab = "0.5", adj = 0, cex =0.7)
-text(0.15, yma+0.06, lab = "Migration", adj = 0 , cex = 0.6)
-text(0.15, yma+0.03, lab = "weight", adj = 0 , cex = 0.6)
-dev.off()
-
+```{r treemixRooted, fig.cap="The consensus tree from running Treemix without any migration edges and FLAB as root."}
+knitr::include_graphics('../figs/treemix_unrooted_consense.png')
 ```
 
 
@@ -905,7 +798,7 @@ To choose the optimal number of migration edges, we used the R package optM [@fi
 
 ```{r plotOptM,message=FALSE,fig.show='true',fig.cap="Scree plot showing the comparison of Treemix number of migration edges."}
 library(OptM)
-tmOpt<-optM("treemix")
+tmOpt<-optM("migrations/treemix")
 plot_optM(tmOpt,plot = TRUE)
 ```
 
