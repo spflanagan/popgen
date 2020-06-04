@@ -37,6 +37,9 @@ if [ "$METHOD" == "unrooted" ]; then
 	#sumtrees.py --unrooted -o unrooted/${PREFIX}_boottree.txt -F 'newick' unrooted/${PREFIX}_cat.tre -s 'consensus'
 	# create plot
 	#R -e "png("../../figs/treemix_unrooted_consensus.png",height=8,width=8,units="in",res=300); plot(ape::read.tree("unrooted/fwsw_boottree.txt"));dev.off()"
+	
+	threepop -i ${PREFIX}_treemix.gz -k 100  >> ${PREFIX}_threepop.txt
+	fourpop -i ${PREFIX}_treemix.gz -k 100 >> ${PREFIX}_fourpop.txt
 fi
 
 # run treemix with a specified root and generate a consensus tree
@@ -67,8 +70,6 @@ if [ "$METHOD" == "migrations" ]; then
 	# treemix -i ${PREFIX}_treemix.gz -k 100 -tf rooted/${PREFIX}_${ROOT}_consensus.tre -root ${ROOT} -se -m 4 -o ${PREFIX}_${ROOT}_m4
 	# treemix -i ${PREFIX}_treemix.gz -k 100 -tf rooted/${PREFIX}_${ROOT}_consensus.tre -root ${ROOT} -se -m 5 -o ${PREFIX}_${ROOT}_m5
 	
-	# threepop -i ${PREFIX}_treemix.gz -k 100  >> ${PREFIX}_threepop.txt
-	# fourpop -i ${PREFIX}_treemix.gz -k 100 >> ${PREFIX}_fourpop.txt
 
 fi
 
