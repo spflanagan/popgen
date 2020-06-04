@@ -121,6 +121,10 @@ write.tree(tre,'rooted_consensus.newick')
 
 Now onto updating the supplements etc.
 
+Ah, I've run into a small snag -- the optM package assumes you've run migrations multiple times. Ok, I can run multiples. Of course, then I'll need to compare the migration edges & see how consistent they are. So now I'm running it 100 times (because I was going to do 10 but then was silly and didn't change it)...it runs quickly so this should be fine.
+
+TO DO: 
+- choose treemix migration edges
 # 3 June 2020
 
 To sort out the treemix issue, I need to figure out what format it's looking for when with the -ft flag. Alternatively, I need to get the sumtrees output into treemix vertices + edges format, and use the -g flag.
