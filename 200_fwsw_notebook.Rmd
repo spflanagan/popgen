@@ -24,6 +24,80 @@ pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 ```
 
 
+# 4 June 2020
+
+This is the treemix code from BITE:
+
+```{bash, eval=FALSE}
+#########################################################################
+#### Run Phylip on the bootstrapped trees to obtain a consensus tree ####
+#########################################################################
+echo "   ***** Phylip - consensus tree construction: START *****"
+### Clean the environment
+rm -rf outfile outtree screanout
+
+# Create parameters file
+if [ $outgroup = "NoOutgroup" ]; then
+        echo $outname"_boottree.tre" > $outname"_PhylipInputFile"
+        echo "Y" >> $outname"_PhylipInputFile"
+else
+        # Find the position of Outgroup population
+        posOutgroup=`head -1 $outname"_boottree.tre" | tr "," "\n" | grep $outgroup -n | cut -d":" -f1`
+        # echo $posOutgroup
+        echo $outname"_boottree.tre" > $outname"_PhylipInputFile"
+        echo "O" >> $outname"_PhylipInputFile"
+        echo $posOutgroup >> $outname"_PhylipInputFile"
+        echo "Y" >> $outname"_PhylipInputFile"
+fi
+
+# Run Phylip
+$pathP < $outname"_PhylipInputFile" > screanout
+
+### The output from Phylip will be modified because:
+### 1) Treemix accept only one line tree
+### 2) Treemix accept newick format file
+#sed ':a;N;$!ba;s/\n//g' outtree > $outname"_outtree.newick"
+cat outtree | tr -d "\n" > $outname"_outtree.newick"
+echo >> $outname"_outtree.newick"
+echo "   ***** Phylip - consensus tree construction: DONE *****"
+
+
+######################################################################################
+### Run TreeMix with the chosen number of migrations by loading the consensus tree ###
+######################################################################################
+
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+### N.B. If you need to modify the treemix parameters please do it here ###
+### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ###
+
+echo "**** RUNNING TREEMIX with Consensus tree ****"
+if [ $outgroup = "NoOutgroup" ]; then
+        treemix -i $infile -m $numk -k $blockk -se -tf $outname"_outtree.newick" -o $outname > $outname"_logfile_treemix_boot.log"
+else
+        treemix -i $infile -m $numk -k $blockk -root $outgroup -se -tf $outname"_outtree.newick" -o $outname > $outname"_logfile_treemix_boot.log"
+fi
+echo "**** RUNNING TREEMIX: DONE ****"
+
+echo "TreeMix - Bootstrap Analysis --> DONE"
+
+```
+
+Writing to phylip format from sumtrees doesn't seem to work right, and it certainly doesn't fix the problem.
+
+I'm able to run the BITE example and my output modifications to Treemix show up, so that helps me narrow down what might be going on with mine -- it printed "Reading the tree worked, huzzah!" AFTER it prints a log likelihood. Ok, the results I'm getting indicate that p.readtree is being properly used, so now where am I going wrong? The appropriate code is in GraphState2::set_graph_from_file. I've narrowed it down to the line `map<string, Graph::vertex_descriptor> tips=tree->get_tips(tree->root)`. This is helpful! It means it's either the tips or the root that are causing problems. 
+
+
+Pondering format of the tree:
+
+((FLSI:0.0003,FLFD:8e-06)0.84000000:0.0007,(FLAB:0.002,(FLLG:0.02,FLPB:0,(FLHB:6e-05,FLCC:0.0001)0.82000000:0.0008)0.67000000:0.01)0.67000000:0.001,((FLKB:0.0002,FLSG:8e-05)0.85000000:0.0004,(ALST:0.0001,((TXFW:0.005,(TXCB:0.0006,(TXSP:9e-05,TXCC:1e-05)0.96000000:0.0004)0.88000000:0.0004)0.84000000:0.002,(ALFW:0.0005,LAFW:0.0005)0.50000000:0.0003)0.68000000:0.0005)0.68000000:0.003)0.52000000:0.0003)1.00000000:0;
+
+I wonder if it's caused by scientific notation? changing the numbers doesn't help. I really can't figure out what's going on! The hapmap example has integers instead of decimals, could that be part of it?
+
+---
+Given the fact that I've changed the format a bunch and it hasn't really helped, I'm thinking that it's probably something to do with the overall topography of the tree, maybe the fact that FLAB isn't really in the proper position as root? What's weird is that the ape package *should* be outputting a 'correct' format. I really don't get what the problem is. 
+
+I'm thinking the issue may have to do with the number of nodes -- it seems as though the consensus trees are loosing a few expected nodes, as I think there should be 15 (number of tips - 1). This could be part of the problem.
+
 # 3 June 2020
 
 To sort out the treemix issue, I need to figure out what format it's looking for when with the -ft flag. Alternatively, I need to get the sumtrees output into treemix vertices + edges format, and use the -g flag.
