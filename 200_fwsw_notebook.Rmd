@@ -98,6 +98,29 @@ Given the fact that I've changed the format a bunch and it hasn't really helped,
 
 I'm thinking the issue may have to do with the number of nodes -- it seems as though the consensus trees are loosing a few expected nodes, as I think there should be 15 (number of tips - 1). This could be part of the problem.
 
+
+Ok, I used phylip and now it's working! fml but thank goodness
+Specifically, I used phylip's consense function with the default consensus tree settings and copied the output back to my working directory, then used R to make sure it was in the correct format.
+
+```{r}
+# unrooted tree
+library(ape)
+tre<-read.tree("unrooted_consensus.newick")
+png("../../figs/treemix_unrooted_consense.png",height=8,width=8,units="in",res=300)
+plot(tre)
+dev.off()
+
+# rooted tree
+tre<-read.tree("rooted_consensus.newick")
+png("../../figs/treemix_rooted_consense.png",height=8,width=8,units="in",res=300)
+plot(tre)
+dev.off()
+write.tree(tre,'rooted_consensus.newick')
+
+```
+
+Now onto updating the supplements etc.
+
 # 3 June 2020
 
 To sort out the treemix issue, I need to figure out what format it's looking for when with the -ft flag. Alternatively, I need to get the sumtrees output into treemix vertices + edges format, and use the -g flag.
