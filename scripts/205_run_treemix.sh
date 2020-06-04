@@ -61,14 +61,20 @@ if [ "$METHOD" == "rooted" ]; then
 	#R -e "ape::write.tree(ape::read.tree('rooted/${PREFIX}_${ROOT}_boottree.newick'),'rooted/${PREFIX}_${ROOT}_consensus.tre',digits=1)"
 fi
 
+
 # run treemix with migration edges
 if [ "$METHOD" == "migrations" ]; then
 	echo "Running treemix with migration edges"
-	treemix -i ${PREFIX}_treemix.gz -k 100 -tf rooted/${PREFIX}_${ROOT}_consensus.tre -root ${ROOT} -se -m 1 -o ${PREFIX}_${ROOT}_m1
-	# treemix -i ${PREFIX}_treemix.gz -k 100 -tf rooted/${PREFIX}_${ROOT}_consensus.tre -root ${ROOT} -se -m 2 -o ${PREFIX}_${ROOT}_m2
-	# treemix -i ${PREFIX}_treemix.gz -k 100 -tf rooted/${PREFIX}_${ROOT}_consensus.tre -root ${ROOT} -se -m 3 -o ${PREFIX}_${ROOT}_m3
-	# treemix -i ${PREFIX}_treemix.gz -k 100 -tf rooted/${PREFIX}_${ROOT}_consensus.tre -root ${ROOT} -se -m 4 -o ${PREFIX}_${ROOT}_m4
-	# treemix -i ${PREFIX}_treemix.gz -k 100 -tf rooted/${PREFIX}_${ROOT}_consensus.tre -root ${ROOT} -se -m 5 -o ${PREFIX}_${ROOT}_m5
+	[ ! -d "migrations" ] && mkdir -p migrations
+	for (( i=1; i<=$bootreps; i++ ))
+	do
+		treemix -i ${PREFIX}_treemix.gz -k 100 -tf rooted_consensus.newick -root ${ROOT} -se -m 0 -o migrations/${PREFIX}_${ROOT}_m0_${i}
+		treemix -i ${PREFIX}_treemix.gz -k 100 -tf rooted_consensus.newick -root ${ROOT} -se -m 1 -o migrations/${PREFIX}_${ROOT}_m1_${i}
+		treemix -i ${PREFIX}_treemix.gz -k 100 -tf rooted_consensus.newick -root ${ROOT} -se -m 2 -o migrations/${PREFIX}_${ROOT}_m2_${i}
+		treemix -i ${PREFIX}_treemix.gz -k 100 -tf rooted_consensus.newick -root ${ROOT} -se -m 3 -o migrations/${PREFIX}_${ROOT}_m3_${i}
+		treemix -i ${PREFIX}_treemix.gz -k 100 -tf rooted_consensus.newick -root ${ROOT} -se -m 4 -o migrations/${PREFIX}_${ROOT}_m4_${i}
+		treemix -i ${PREFIX}_treemix.gz -k 100 -tf rooted_consensus.newick -root ${ROOT} -se -m 5 -o migrations/${PREFIX}_${ROOT}_m5_${i}
+	done
 	
 
 fi
