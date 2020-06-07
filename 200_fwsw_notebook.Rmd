@@ -30,6 +30,23 @@ Goals for today:
 1. Evaluate treemix migration edges with consensus tree and FLAB as root
 2. update docs
 3. run more dadi models
+  - Run 611 on abacus (FLLG_TXCC) was finished so I moved the files and deleted them from abacus.
+  - started FLLG_LAFW # 14 on abacus (82-103) with job ID 625.
+  - started FLLG_TXFW # 14 on abacus (108-129) with job ID 626.
+  - started FLLG_TXCC # 14 on abacus (134-155) with job ID 627.
+  - started ALFW_ALST # 14 on abacus (287-311) with job ID 628.
+  - started ALST_TXFW # 14 on abacus (416-441) with job ID 629.
+  - started ALST_TXCC # 14 on abacus (442-468) with job ID 630.
+  - started LAFW_TXCC # 14 on abacus (494-519) with job ID 631.
+  - started TXFW_TXCC # 14 on abacus (520-545) with job ID 632.
+
+Working on (1):
+The Evanno method is causing an error -- saying they all have the same standard deviation. I'm trying the SiZer method instead...this produces a plot that I don't know how to read, so now trying linear method to see if that makes any more sense. That one plots log likelihoods and seems to show that 1 migration edge is the best choice. Cool. 
+
+I wonder if there's a way to check all of the migration edges (non-graphically) to compare them across bootstraps, see how consistent it is.
+
+Ok so it's interesting, these are all identical, meaning migration replicates were unnecessary. Unless I need to have the -bootstrap flag added...to check I'll re-run them with that flag enabled. Running it in the background this time though.
+  
 # 4 June 2020
 
 This is the treemix code from BITE:
