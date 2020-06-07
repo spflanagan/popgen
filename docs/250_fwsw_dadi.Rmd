@@ -299,6 +299,7 @@ outTable<-data.frame(matrix(nrow = 1,ncol=length(outNames),
                             dimnames = list("",outNames)))
 ```
 
+The best model appears to be `r best_mod`.
 
 ```{r saveBest1}
 best<-flcc_fllg_im2mg[which.max(flcc_fllg_im2mg$log.likelihood),]
@@ -323,6 +324,8 @@ fllg_alfw_best<-do.call(rbind,
                          extract_dadi_params(fllg_alfw[[1]][fllg_alfw[[1]]$Model==best_mod,]))
 ```
 
+The best model appears to be `r best_mod`.
+
 ```{r saveBest2}
 best<-fllg_alfw_best[which.max(fllg_alfw_best$log.likelihood),]
 
@@ -345,6 +348,8 @@ fllg_alst_best<-do.call(rbind,
                                                               best_mod,]))
 ```
 
+The best model appears to be `r best_mod`.
+
 ```{r saveBest3}
 best<-fllg_alst_best[which.max(fllg_alst_best$log.likelihood),]
 
@@ -365,6 +370,9 @@ best_mod<-names(which.max(tapply(as.numeric(fllg_lafw[[1]]$log.likelihood),fllg_
 fllg_lafw_best<-do.call(rbind,
                          extract_dadi_params(fllg_lafw[[1]][fllg_lafw[[1]]$Model==best_mod,]))
 ```
+
+The best model appears to be `r best_mod`.
+
 ```{r saveBest4}
 best<-fllg_lafw_best[which.max(fllg_lafw_best$log.likelihood),]
 
@@ -385,6 +393,9 @@ best_mod<-names(which.max(tapply(as.numeric(fllg_txfw[[1]]$log.likelihood),fllg_
 fllg_txfw_best<-do.call(rbind,
                          extract_dadi_params(fllg_txfw[[1]][fllg_txfw[[1]]$Model==best_mod,]))
 ```
+
+The best model appears to be `r best_mod`.
+
 ```{r saveBest5}
 best<-fllg_txfw_best[which.max(fllg_txfw_best$log.likelihood),]
 
@@ -404,6 +415,9 @@ best_mod<-names(which.max(tapply(as.numeric(fllg_txcc[[1]]$log.likelihood),fllg_
 fllg_txcc_best<-do.call(rbind,
                          extract_dadi_params(fllg_txcc[[1]][fllg_txcc[[1]]$Model==best_mod,]))
 ```
+
+The best model appears to be `r best_mod`.
+
 ```{r saveBest6}
 best<-fllg_txcc_best[which.max(fllg_txcc_best$log.likelihood),]
 
@@ -423,6 +437,9 @@ best_mod<-names(which.max(tapply(as.numeric(flcc_alfw[[1]]$log.likelihood),flcc_
 flcc_alfw_best<-do.call(rbind,
                          extract_dadi_params(flcc_alfw[[1]][flcc_alfw[[1]]$Model==best_mod,]))
 ```
+
+The best model appears to be `r best_mod`.
+
 ```{r saveBest7}
 best<-flcc_alfw_best[which.max(flcc_alfw_best$log.likelihood),]
 
@@ -443,6 +460,7 @@ flcc_alst_best<-do.call(rbind,
                       extract_dadi_params(
                         flcc_alst[[1]][flcc_alst[[1]]$Model==best_mod,]))
 ```
+The best model appears to be `r best_mod`.
 ```{r saveBest8}
 best<-flcc_alst_best[which.max(flcc_alst_best$log.likelihood),]
 
@@ -464,13 +482,14 @@ flcc_lafw_best<-do.call(rbind,
                       extract_dadi_params(
                         flcc_lafw[[1]][flcc_lafw[[1]]$Model==best_mod,]))
 ```
+The best model appears to be `r best_mod`.
 ```{r saveBest9}
 best<-flcc_lafw_best[which.max(flcc_lafw_best$log.likelihood),]
 
 outTable[9,1]<-c("FLCC_LAFW")
 outTable[9,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
 
-bestModels[9,]<-c("FLCC","LAFW",Model=best_model)
+bestModels[9,]<-c("FLCC","LAFW",Model=best_mod)
 ```
 
 ### FLCC vs TXFW
@@ -484,6 +503,7 @@ flcc_txfw_best<-do.call(rbind,
                       extract_dadi_params(
                         flcc_txfw[[1]][flcc_txfw[[1]]$Model==best_mod,]))
 ```
+The best model appears to be `r best_mod`.
 ```{r saveBest10}
 best<-flcc_txfw_best[which.max(flcc_txfw_best$log.likelihood),]
 
@@ -504,6 +524,7 @@ flcc_txcc_best<-do.call(rbind,
                       extract_dadi_params(
                         flcc_txcc[[1]][flcc_txcc[[1]]$Model==best_mod,]))
 ```
+The best model appears to be `r best_mod`.
 ```{r saveBest11}
 best<-flcc_txcc_best[which.max(flcc_txcc_best$log.likelihood),]
 
@@ -524,6 +545,7 @@ alfw_alst_best<-do.call(rbind,
                       extract_dadi_params(
                         alfw_alst[[1]][alfw_alst[[1]]$Model==best_mod,]))
 ```
+The best model appears to be `r best_mod`.
 ```{r saveBest12}
 best<-alfw_alst_best[which.max(alfw_alst_best$log.likelihood),]
 
@@ -544,6 +566,7 @@ alfw_lafw_best<-do.call(rbind,
                       extract_dadi_params(
                         alfw_lafw[[1]][alfw_lafw[[1]]$Model==best_mod,]))
 ```
+The best model appears to be `r best_mod`.
 ```{r saveBest13}
 best<-alfw_lafw_best[which.max(alfw_lafw_best$log.likelihood),]
 
@@ -564,6 +587,7 @@ alfw_txfw_best<-do.call(rbind,
                       extract_dadi_params(
                         alfw_txfw[[1]][alfw_txfw[[1]]$Model==best_mod,]))
 ```
+The best model appears to be `r best_mod`.
 ```{r saveBest14}
 best<-alfw_txfw_best[which.max(alfw_txfw_best$log.likelihood),]
 
@@ -585,6 +609,7 @@ alfw_txcc_best<-do.call(rbind,
                       extract_dadi_params(
                         alfw_txcc[[1]][alfw_txcc[[1]]$Model==best_mod,]))
 ```
+The best model appears to be `r best_mod`.
 ```{r saveBest15}
 best<-alfw_txcc_best[which.max(alfw_txcc_best$log.likelihood),]
 
@@ -606,6 +631,7 @@ alst_lafw_best<-do.call(rbind,
                       extract_dadi_params(
                         alst_lafw[[1]][alst_lafw[[1]]$Model==best_mod,]))
 ```
+The best model appears to be `r best_mod`.
 ```{r saveBest16}
 best<-alst_lafw_best[which.max(alst_lafw_best$log.likelihood),]
 
@@ -627,6 +653,7 @@ alst_txfw_best<-do.call(rbind,
                       extract_dadi_params(
                         alst_txfw[[1]][alst_txfw[[1]]$Model==best_mod,]))
 ```
+The best model appears to be `r best_mod`.
 ```{r saveBest17}
 best<-alst_txfw_best[which.max(alst_txfw_best$log.likelihood),]
 
@@ -648,6 +675,7 @@ alst_txcc_best<-do.call(rbind,
                       extract_dadi_params(
                         alst_txcc[[1]][alst_txcc[[1]]$Model==best_mod,]))
 ```
+The best model appears to be `r best_mod`.
 ```{r saveBest18}
 best<-alst_txcc_best[which.max(alst_txcc_best$log.likelihood),]
 
@@ -669,6 +697,7 @@ lafw_txfw_best<-do.call(rbind,
                       extract_dadi_params(
                         lafw_txfw[[1]][lafw_txfw[[1]]$Model==best_mod,]))
 ```
+The best model appears to be `r best_mod`.
 ```{r saveBest19}
 best<-lafw_txfw_best[which.max(lafw_txfw_best$log.likelihood),]
 
@@ -690,6 +719,7 @@ lafw_txcc_best<-do.call(rbind,
                       extract_dadi_params(
                         lafw_txcc[[1]][lafw_txcc[[1]]$Model==best_mod,]))
 ```
+The best model appears to be `r best_mod`.
 ```{r saveBest20}
 best<-lafw_txcc_best[which.max(lafw_txcc_best$log.likelihood),]
 
@@ -711,6 +741,7 @@ txfw_txcc_best<-do.call(rbind,
                       extract_dadi_params(
                         txfw_txcc[[1]][txfw_txcc[[1]]$Model==best_mod,]))
 ```
+The best model appears to be `r best_mod`.
 ```{r saveBest21}
 best<-txfw_txcc_best[which.max(txfw_txcc_best$log.likelihood),]
 
