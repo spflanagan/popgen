@@ -253,13 +253,13 @@ sumTab$parms<-apply(sumTab,1,function(dat){
   return(paste0(unlist(strsplit(dat["params"],",")),"=",
          unlist(strsplit(dat["optimized_params"],","))))
 })
-sumTab<-sumTab[,-c(10,11)]  
+sumTab<-sumTab[,-c(9,10,11)]  
 
 landscape(kable(sumTab,"latex",booktabs=TRUE,longtable=TRUE,
       caption = "Table showing the results of the run with the median log likelihood for each model",
       row.names = FALSE)) %>%
   kable_styling(latex_options=c("scale_down","repeat_header","HOLD_position"))  %>%
-  column_spec(10,width = "10em")
+  column_spec(9,width = "20em")
 ```
 
 
