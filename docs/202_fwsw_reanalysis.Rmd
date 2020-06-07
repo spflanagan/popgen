@@ -798,8 +798,8 @@ To choose the optimal number of migration edges, we used the R package optM [@fi
 
 ```{r plotOptM,message=FALSE,fig.show='true',fig.cap="Scree plot showing the comparison of Treemix number of migration edges."}
 library(OptM)
-tmOpt<-optM("migrations/treemix")
-plot_optM(tmOpt,plot = TRUE)
+tmOpt<-optM("treemix/migrations/",method="linear")
+plot_optM(tmOpt,plot = TRUE,method="linear")
 ```
 
 Let's plot the no-migration-edge tree with the two-migration-edge tree, which optM chose as the best fit using the Evanno method.
