@@ -24,6 +24,12 @@ pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 ```
 
 
+# 5 June 2020
+
+Goals for today: 
+1. Evaluate treemix migration edges with consensus tree and FLAB as root
+2. update docs
+3. run more dadi models
 # 4 June 2020
 
 This is the treemix code from BITE:
