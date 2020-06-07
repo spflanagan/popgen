@@ -685,10 +685,10 @@ To choose the optimal number of migration edges, we used the R package optM [@fi
 
 ```{r optM,message=FALSE}
 library(OptM)
-tmOpt<-optM("treemix/migrations")
+tmOpt<-optM("treemix/migrations/",method = 'linear')
 ```
 ```{r plotOptM,fig.keep='true',fig.cap="Scree plot showing the comparison of Treemix number of migration edges."}
-plot_optM(tmOpt,plot = TRUE)
+plot_optM(tmOpt,plot = TRUE,method = 'linear')
 ```
 
 The model chosen with the optimal number of migration edges had a similar tree structure to the rooted tree with no migration edges, with the Atlantic coast of Florida, the Gulf coast of Florida forming another cluster, the Alabama and Louisiana populations, and the Texas populations each forming their own clusters, and FLLG (which is the Florida freshwater population) branching off between the two Florida clusters (Figure \@ref(fig:treemixCompare)). The two migration edges run from the branch leading to the Gulf coast of Florida populations to the FLAB population and from the FLSI-FLAB node to the node between the TXFW population and the other Texas populations (Figure \@ref(fig:treemixCompare)). 
