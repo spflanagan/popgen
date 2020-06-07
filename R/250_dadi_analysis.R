@@ -11,8 +11,11 @@ parse_dadi_opt<-function(opt.file){
 }
 dadi.optimal<-function(opt.file){
   model.opt<-parse_dadi_opt(opt.file)
-  opt<-model.opt[which.max(as.numeric(as.character(model.opt$log.likelihood))),]
-  return(opt)
+  # only keep the ones with the funn set of replicates
+  if(model.opt$Replicate[nrow(model.opt)]=="Round_4_Replicate_40"){
+    opt<-model.opt[which.max(as.numeric(as.character(model.opt$log.likelihood))),]
+    return(opt)
+  }
 }
 
 dadi.modelcomp<-function(path,pattern,id){
