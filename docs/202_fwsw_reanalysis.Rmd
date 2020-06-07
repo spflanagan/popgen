@@ -802,6 +802,19 @@ tmOpt<-optM("treemix/migrations/",method="linear")
 plot_optM(tmOpt,plot = TRUE,method="linear")
 ```
 
+```{r treemixMigrationEdges}
+m1s<-list.files(pattern="m1.*treeout",path="treemix/migrations/",full.names = TRUE)
+edges<-do.call(rbind,lapply(m1s,function(file){
+  treeout<-scan(file,what="character",sep='\n')
+  edge<-do.call(rbind,strsplit(treeout[2],' '))
+  return(edge)
+}))
+
+
+```
+
+
+
 Let's plot the no-migration-edge tree with the two-migration-edge tree, which optM chose as the best fit using the Evanno method.
 
 ```{r treemixCompare,results='hide'}
