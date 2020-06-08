@@ -660,23 +660,23 @@ We ran treemix, specifying the consensus tree with FLAB as root as the tree to u
 ```{r treemixMigrations, message=FALSE,results='hide',fig.height=10,fig.width=5,fig.cap="Residuals (left) and trees of the treemix runs with migration edges. All models used the consensus tree with FLAB as root."}
 
 par(mfrow=c(6,2),mar=c(2,2,2,2),oma=c(2,2,2,2))
-r0<-plot_resid("treemix/migrations/fwsw_FLAB_m0","treemix/poplist")
-t0<-plot_tree("treemix/migrations/fwsw_FLAB_m0",plotmig = F,plus=0.05,scale=T,mbar=F,cex = 0.75)
+r0<-plot_resid("treemix/migrations/fwsw_FLAB_m0","treemix/poplist",cex = 0.75)
+t0<-plot_tree("treemix/migrations/fwsw_FLAB_m0",plotmig = F,scale=T,mbar=F,cex = 0.75)
 
-r1<-plot_resid("treemix/migrations/fwsw_FLAB_m1","treemix/poplist")
-t1<-plot_tree("treemix/migrations/fwsw_FLAB_m1",plus=0.05,scale=T,mbar=T,cex = 0.75,mig_left=FALSE)
+r1<-plot_resid("treemix/migrations/fwsw_FLAB_m1","treemix/poplist",cex = 0.75)
+t1<-plot_tree("treemix/migrations/fwsw_FLAB_m1",scale=T,mbar=T,cex = 0.75,mig_left=FALSE)
 
-r2<-plot_resid("treemix/migrations/fwsw_FLAB_m2","treemix/poplist")
-t2<-plot_tree("treemix/migrations/fwsw_FLAB_m2",plus=0.05,scale=T,mbar=F,cex = 0.75)
+r2<-plot_resid("treemix/migrations/fwsw_FLAB_m2","treemix/poplist",cex = 0.75)
+t2<-plot_tree("treemix/migrations/fwsw_FLAB_m2",scale=T,mbar=F,cex = 0.75)
 
-r3<-plot_resid("treemix/migrations/fwsw_FLAB_m3","treemix/poplist")
-t3<-plot_tree("treemix/migrations/fwsw_FLAB_m3",plus=0.05,scale=T,mbar=F,cex = 0.75)
+r3<-plot_resid("treemix/migrations/fwsw_FLAB_m3","treemix/poplist",cex = 0.75)
+t3<-plot_tree("treemix/migrations/fwsw_FLAB_m3",scale=T,mbar=F,cex = 0.75)
 
-r4<-plot_resid("treemix/migrations/fwsw_FLAB_m4","treemix/poplist")
-t4<-plot_tree("treemix/migrations/fwsw_FLAB_m4",plus=0.05,scale=T,mbar=F,cex = 0.75)
+r4<-plot_resid("treemix/migrations/fwsw_FLAB_m4","treemix/poplist",cex = 0.75)
+t4<-plot_tree("treemix/migrations/fwsw_FLAB_m4",scale=T,mbar=F,cex = 0.75)
 
-r5<-plot_resid("treemix/migrations/fwsw_FLAB_m5","treemix/poplist")
-t5<-plot_tree("treemix/migrations/fwsw_FLAB_m5",plus=0.05,scale=T,mbar=F,cex = 0.75)
+r5<-plot_resid("treemix/migrations/fwsw_FLAB_m5","treemix/poplist",cex = 0.75)
+t5<-plot_tree("treemix/migrations/fwsw_FLAB_m5",scale=T,mbar=F,cex = 0.75)
 
 ```
 
