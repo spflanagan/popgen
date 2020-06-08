@@ -36,6 +36,43 @@ To do:
 2. Re-make the figure with treemix results. 
 3. Update text. 
 
+For (1):
+The original runs do have log likelihood files so I can potentially do something with that -- yes, this is the same as the optM idea...
+
+Intriguingly, the bootstraps give different log likelihoods. So what I can do is either use the OptM linear option or write a function to just take all of the log likelihoods and estimate the number of migration edges that is best. But regardless the good news is that they all have the same migration edges even if they have different log likelihoods -- this makes life a bit easier. 
+
+```{r}
+lliks<-list.files(path="treemix/migrations/",pattern=".llik",full.names = TRUE)
+likes<-data.frame(do.call(rbind,lapply(lliks,function(file){
+  likdat<-read.delim(file,header=FALSE,row.names=1,sep=':')
+  migs<-as.numeric(gsub(".*m(\\d).*","\\1",file))
+  return(cbind(migs=migs,loglikelihood=likdat[2,]))
+})))
+
+llikMean<-tapply(likes$loglikelihood,likes$migs,mean)
+llikSEM<-tapply(likes$loglikelihood,likes$migs,function(x){
+  return(sqrt(var(x)/length(x)))
+})
+
+```
+
+```{r}
+llikMean<-c(-7377.4708,993.6642,1006.3980,1012.8251,1018.3562,1019.5558)
+llikSEM<-c(106.1838924,0.7062885,1.0044586,1.1442901,0.9830052,1.0794252)
+
+
+plot(0:5,llikMean,pch=19,cex=2,
+     xlab="Number of migration edges",
+     ylab="Log likelihood",ylim=c(-8000,1200))
+arrows(x0 = 0:5,y0=llikMean-llikSEM,
+       x1=0:5,y1=llikMean+llikSEM,code=3,angle=90)
+
+```
+
+Ok, so one migration edge is the best. This means that I need to check to make sure that the same migration edge is found in all of the bootstrap and report which one it is. I also need to update the main figure in the paper. 
+
+The evanno method works but is not providing any figure I think because of a warning that says the line at 99.8% variation is out of bounds...so I'm not sure what to do with that.
+
 
 # 5 June 2020
 
