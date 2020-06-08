@@ -734,9 +734,10 @@ starts<-gsub(",",", ",starts)
 starTab<-data.frame(tree=names(summary(as.factor(starts))),
                     counts=summary(as.factor(starts)))
 rownames(starTab)<-NULL
-kable(starTab,"latex",booktabs=TRUE,
+kable(starTab,"latex",booktabs=TRUE,row.names=FALSE,longtable=TRUE,
       col.names = c("tree location","number of bootstraps"),
-      caption="Number of bootstraps with the one migration edge beginning at each of these points on the population trees.") %>% 
+      caption="Number of bootstraps with the one migration edge beginning at each of these points on the population trees.") %>%
+  kable_styling(latex_options=c("scale_down","HOLD_position","repeat_header"))  %>%
   column_spec(1,width = "30em")
 ```
 
@@ -747,7 +748,8 @@ stops<-gsub("\\.","",stops)
 stops<-gsub("e-","",stops)
 kable(summary(as.factor(stops)),"latex",booktabs=TRUE,
       col.names = c("number of bootstraps"),
-      caption="Number of bootstraps with the one migration edge ending at each of these points on the population trees.")
+      caption="Number of bootstraps with the one migration edge ending at each of these points on the population trees.")%>%
+  kable_styling(latex_options=c("HOLD_position"))
 ```
 
 The overwhelming majority of bootstrapped trees with one migration edge have that edge leading from the main branch of the tree to FLPB (see Tables \@ref(tab:M1Starts) and \@ref(tab:M1Stops) for the common start and end points). 
