@@ -809,8 +809,22 @@ edges<-do.call(rbind,lapply(m1s,function(file){
   edge<-do.call(rbind,strsplit(treeout[2],' '))
   return(edge)
 }))
+```
 
+```{r M1Starts}
+starts<-gsub("[[:digit:]]","\\1",edges[,5])
+starts<-gsub(":","",starts)
+starts<-gsub("\\.","",starts)
+starts<-gsub("e-","",starts)
+kable(summary(as.factor(starts)))
+```
 
+```{r M1Stops}
+stops<-gsub("[[:digit:]]","\\1",edges[,6])
+stops<-gsub(":","",stops)
+stops<-gsub("\\.","",stops)
+stops<-gsub("e-","",stops)
+kable(summary(as.factor(stops)))
 ```
 
 
