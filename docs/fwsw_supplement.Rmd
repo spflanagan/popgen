@@ -730,6 +730,7 @@ starts<-gsub("[[:digit:]]","\\1",edges[,5])
 starts<-gsub(":","",starts)
 starts<-gsub("\\.","",starts)
 starts<-gsub("e-","",starts)
+starts<-gsub(",",", ",starts)
 starTab<-data.frame(tree=names(summary(as.factor(starts))),
                     counts=summary(as.factor(starts)))
 rownames(starTab)<-NULL
