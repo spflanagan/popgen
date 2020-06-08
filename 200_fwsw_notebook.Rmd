@@ -31,6 +31,8 @@ dadi updates:
 - rccuser all the ones are still running.
 - abacus: 608 (FLLG_LAFW # 13) and 622 (ALST_TXCC # 13) are done, so I moved them. 
 - I copied the FLCC_ALFW runs from abacus and rccuser even though the full sets aren't complete, because I also updated the code in 250_dadi_analysis to not include any results that didn't finish the full 4 rounds and 40 reps. This way I can start to get a sense for which models are the best.
+- abacus: 609 (FLFW_TXFW # 13) finished during the day, so I moved those.
+
 To do:
 1. Evaluate treemix migration edges
 2. Re-make the figure with treemix results. 
