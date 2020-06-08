@@ -690,6 +690,39 @@ tmOpt<-optM("treemix/migrations/",method = 'linear')
 ```{r plotOptM,fig.keep='true',results='hide',message=FALSE,warning=FALSE,fig.cap="Scree plot showing the comparison of Treemix number of migration edges."}
 ```
 
+
+```{r treemixLlik,fig.height=8,fig.width=6,dpi=300,fig.cap="Average log likelihoods of treemix bootstrap replicates with 0 through 5 migration edges. Shown are the means (of 100 bootstraps) and the standard error of the mean."}
+lliks<-list.files(path="treemix/migrations/",pattern=".llik",full.names = TRUE)
+likes<-data.frame(do.call(rbind,lapply(lliks,function(file){
+  likdat<-read.delim(file,header=FALSE,row.names=1,sep=':')
+  migs<-as.numeric(gsub(".*m(\\d).*","\\1",file))
+  return(cbind(migs=migs,loglikelihood=likdat[2,]))
+})))
+rownames(likes)<-lliks
+
+llikMean<-tapply(likes$loglikelihood,likes$migs,mean)
+llikSEM<-tapply(likes$loglikelihood,likes$migs,function(x){
+  return(sqrt(var(x)/length(x)))
+})
+
+plot(0:5,as.numeric(llikMean),pch=19,cex=2,
+     xlab="Number of migration edges",
+     ylab="Log likelihood",ylim=c(-8000,1200))
+points(0:5,llikMean,lwd=2,type='l')
+arrows(x0 = 0:5,y0=c(llikMean-llikSEM),
+       x1=0:5,y1=c(llikMean+llikSEM),code=3,angle=0,lwd=2)
+```
+
+
+```{r treemixMigrationEdges,message=FALSE}
+m1s<-list.files(pattern="m1.*treeout",path="treemix/migrations/",full.names = TRUE)
+edges<-do.call(rbind,lapply(m1s,function(file){
+  treeout<-scan(file,what="character",sep='\n')
+  edge<-do.call(rbind,strsplit(treeout[2],' '))
+  return(edge)
+}))
+rownames(edges)<-m1s
+```
 The model chosen with the optimal number of migration edges had a similar tree structure to the rooted tree with no migration edges, with the Atlantic coast of Florida, the Gulf coast of Florida forming another cluster, the Alabama and Louisiana populations, and the Texas populations each forming their own clusters, and FLLG (which is the Florida freshwater population) branching off between the two Florida clusters (Figure \@ref(fig:treemixCompare)). The two migration edges run from the branch leading to the Gulf coast of Florida populations to the FLAB population and from the FLSI-FLAB node to the node between the TXFW population and the other Texas populations (Figure \@ref(fig:treemixCompare)). 
 
 ```{r MaketreemixCompare,results='hide',eval=FALSE}
