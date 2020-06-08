@@ -75,6 +75,12 @@ Ok, so one migration edge is the best. This means that I need to check to make s
 
 The evanno method works but is not providing any figure I think because of a warning that says the line at 99.8% variation is out of bounds...so I'm not sure what to do with that.
 
+For tomorrow:
+1. Fix optM stuff and update text around choosing number of migration edges in supplement.
+2. Include the maximum likelihood tree with 1 migration edge in the main text figure instead of the old 2 edge one.
+3. Update fourpop and threepop analyses.
+4. If I have time, add text about dadi to results.
+5. check up on dadi results & move any that have finished.
 
 # 5 June 2020
 
