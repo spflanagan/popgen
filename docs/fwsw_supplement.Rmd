@@ -748,6 +748,8 @@ kable(summary(as.factor(stops)),"latex",booktabs=TRUE,
       caption="Number of bootstraps with the one migration edge ending at each of these points on the population trees.")
 ```
 
+The overwhelming majority of bootstrapped trees with one migration edge have that edge leading from the main branch of the tree to FLPB (see Tables \@ref(tab:M1Starts) and \@ref(tab:M1Stops) for the common start and end points). 
+
 The model chosen with the optimal number of migration edges had a similar tree structure to the rooted tree with no migration edges, with the Atlantic coast of Florida, the Gulf coast of Florida forming another cluster, the Alabama and Louisiana populations, and the Texas populations each forming their own clusters, and FLLG (which is the Florida freshwater population) branching off between the two Florida clusters (Figure \@ref(fig:treemixCompare)). The two migration edges run from the branch leading to the Gulf coast of Florida populations to the FLAB population and from the FLSI-FLAB node to the node between the TXFW population and the other Texas populations (Figure \@ref(fig:treemixCompare)). 
 
 ```{r MaketreemixCompare,results='hide',eval=FALSE}
