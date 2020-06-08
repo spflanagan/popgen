@@ -97,7 +97,7 @@ The Evanno method is causing an error -- saying they all have the same standard 
 
 I wonder if there's a way to check all of the migration edges (non-graphically) to compare them across bootstraps, see how consistent it is.
 
-Ok so it's interesting, these are all identical, meaning migration replicates were unnecessary. Unless I need to have the -bootstrap flag added...to check I'll re-run them with that flag enabled. Running it in the background this time though.
+Ok so it's interesting, these are all identical, meaning migration replicates were unnecessary. Unless I need to have the -bootstrap flag added...to check I'll re-run them with that flag enabled. Running it in the background this time though. 
   
 # 4 June 2020
 
