@@ -681,7 +681,7 @@ t5<-plot_tree("treemix/migrations/fwsw_FLAB_m5",scale=T,mbar=F,cex = 0.75)
 ```
 
 
-To choose the optimal number of migration edges, we used the R package optM [@fitakOptMPackageOptimize2019]. Using the scree plot and the Evanno method, we determined that the best number of migration edges was 2 (Figure \@ref(fig:plotOptM)). 
+To choose the optimal number of migration edges, we used the R package optM [@fitakOptMPackageOptimize2019]. Using the linear analytical method from the package, we determined that the best number of migration edges was 1 (Figure \@ref(fig:plotOptM)). This finding was consistent with inspecting the log likelihoods of the bootstraps with various migration edges (\@ref(fig:treemixLlik)).
 
 ```{r optM,message=FALSE}
 library(OptM)
