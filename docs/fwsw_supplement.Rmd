@@ -723,6 +723,30 @@ edges<-do.call(rbind,lapply(m1s,function(file){
 }))
 rownames(edges)<-m1s
 ```
+
+```{r M1Starts}
+starts<-gsub("[[:digit:]]","\\1",edges[,5])
+starts<-gsub(":","",starts)
+starts<-gsub("\\.","",starts)
+starts<-gsub("e-","",starts)
+starTab<-data.frame(tree=names(summary(as.factor(starts))),
+                    counts=summary(as.factor(starts)))
+kable(starTab,"latex",booktabs=TRUE,
+      col.names = c("tree location","number of bootstraps"),
+      caption="Number of bootstraps with the one migration edge beginning at each of these points on the population trees.") %>% 
+  column_spec(1,width = "30em")
+```
+
+```{r M1Stops}
+stops<-gsub("[[:digit:]]","\\1",edges[,6])
+stops<-gsub(":","",stops)
+stops<-gsub("\\.","",stops)
+stops<-gsub("e-","",stops)
+kable(summary(as.factor(stops)),"latex",booktabs=TRUE,
+      col.names = c("number of bootstraps"),
+      caption="Number of bootstraps with the one migration edge ending at each of these points on the population trees.")
+```
+
 The model chosen with the optimal number of migration edges had a similar tree structure to the rooted tree with no migration edges, with the Atlantic coast of Florida, the Gulf coast of Florida forming another cluster, the Alabama and Louisiana populations, and the Texas populations each forming their own clusters, and FLLG (which is the Florida freshwater population) branching off between the two Florida clusters (Figure \@ref(fig:treemixCompare)). The two migration edges run from the branch leading to the Gulf coast of Florida populations to the FLAB population and from the FLSI-FLAB node to the node between the TXFW population and the other Texas populations (Figure \@ref(fig:treemixCompare)). 
 
 ```{r MaketreemixCompare,results='hide',eval=FALSE}
