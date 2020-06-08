@@ -731,6 +731,7 @@ starts<-gsub("\\.","",starts)
 starts<-gsub("e-","",starts)
 starTab<-data.frame(tree=names(summary(as.factor(starts))),
                     counts=summary(as.factor(starts)))
+rownames(starTab)<-NULL
 kable(starTab,"latex",booktabs=TRUE,
       col.names = c("tree location","number of bootstraps"),
       caption="Number of bootstraps with the one migration edge beginning at each of these points on the population trees.") %>% 
