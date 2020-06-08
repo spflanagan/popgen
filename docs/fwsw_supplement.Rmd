@@ -683,11 +683,11 @@ t5<-plot_tree("treemix/migrations/fwsw_FLAB_m5",scale=T,mbar=F,cex = 0.75)
 
 To choose the optimal number of migration edges, we used the R package optM [@fitakOptMPackageOptimize2019]. Using the linear analytical method from the package, we determined that the best number of migration edges was 1 (Figure \@ref(fig:plotOptM)). This finding was consistent with inspecting the log likelihoods of the bootstraps with various migration edges (\@ref(fig:treemixLlik)).
 
-```{r optM,message=FALSE,results='hide',warning=FALSE}
+```{r optM,message=FALSE}
 library(OptM)
 tmOpt<-optM("treemix/migrations/")
 ```
-```{r plotOptM,fig.keep='true',message=FALSE,warning=FALSE,fig.cap="Scree plot showing the comparison of Treemix number of migration edges."}
+```{r plotOptM,fig.keep='true',message=FALSE,fig.cap="Scree plot showing the comparison of Treemix number of migration edges."}
 plot_optM(tmOpt,plot = TRUE)
 ```
 
@@ -737,7 +737,7 @@ rownames(starTab)<-NULL
 kable(starTab,"latex",booktabs=TRUE,row.names=FALSE,longtable=TRUE,
       col.names = c("tree location","number of bootstraps"),
       caption="Number of bootstraps with the one migration edge beginning at each of these points on the population trees.") %>%
-  kable_styling(latex_options=c("scale_down","HOLD_position","repeat_header"))  %>%
+  kable_styling(latex_options=c("HOLD_position","repeat_header"))  %>%
   column_spec(1,width = "30em")
 ```
 
