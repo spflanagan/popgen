@@ -778,11 +778,37 @@ fourpop$f4_p<-2*pnorm(-abs(as.numeric(as.character(fourpop$f4_z))))
 #### Migration Edge 1
 
 The first migration edge we investigated indicated potential migration from the FLSI-FLAB node to the TXFW-other Texas populations node. We first investigated all of the three-population trees with TXFW and FLSI, and found that none of these f3 statistics are zero (Table \@ref(tab:f3Edge1)), which suggests that TXFW is not admixed with FLSI. 
+```{r f3Edge1,fig.pos='H',fig.width=8,fig.height=6,fig.cap="Plots of the f3 statistic (with error bars showing the standard errors) and the z-scores for each tree pointing to FLPB from a branch containing FLAB. "}
+FLPB_edge<-threepop[grep("FLPB;.*FLAB.*",threepop$pops),]
+FLPB_edge$f3_stat<-as.numeric(FLPB_edge$f3_stat)
+FLPB_edge$f3_se<-as.numeric(FLPB_edge$f3_se)
+FLPB_edge$lowSE<-FLPB_edge$f3_stat-FLPB_edge$f3_se
+FLPB_edge$uppSE<-FLPB_edge$f3_stat+FLPB_edge$f3_se
+FLPB_edge$f3_z<-as.numeric(FLPB_edge$f3_z)
 
-```{r f3Edge1,fig.pos='H'}
-kable(threepop[grep("TXFW;.*FLSI",threepop$pops),],"latex",booktabs=TRUE,
-      caption = "Three-population trees with TXFW and FLSI and their f3 statistic, standard error, z-score, and p-value.") %>%
-  kable_styling(latex_options="HOLD_position")
+ymax<-max(abs(c(FLPB_edge$lowSE,FLPB_edge$uppSE)))+0.001
+
+par(mfrow=c(2,1),oma=c(5.5,4,1,0))
+# all the relevant trees
+plot(1:nrow(FLPB_edge),as.numeric(FLPB_edge$f3_stat),
+     ylim=c(ymax*-1,ymax),axes=FALSE,
+     xlab="",ylab="f3 statistic +/- SE")
+abline(h=0,lty=2)
+arrows(1:nrow(FLPB_edge),FLPB_edge$lowSE,
+       1:nrow(FLPB_edge),FLPB_edge$uppSE,code=3,angle=0)
+axis(2,at=seq(-0.05,0.05,0.01),las=1)
+axis(1,pos=-0.01,at=1:nrow(FLPB_edge),
+     labels = FLPB_edge$pops,las=2,cex.axis=0.75)
+
+# plot the z-scores
+ptfill<-rep(1,nrow(FLPB_edge))
+ptfill[which(FLPB_edge$f3_p<=0.05)]<-19
+plot(1:nrow(FLPB_edge),as.numeric(FLPB_edge$f3_z),axes=FALSE,
+     xlab="",ylab="f3 z-score",pch=ptfill,cex=2)
+axis(2,las=1)
+axis(1,pos=-10,at=1:nrow(FLPB_edge),
+     labels = FLPB_edge$pops,las=2,cex.axis=0.75)
+
 ```
 
 To narrow our focus, we extracted the threepop analyses for the trees (TXFW;TXCB,FLSI) and (TXFW,FLSI,FLAB), and again found non-zero f3 statistics (Table \@ref(tab:f3Edge1Specific)).
