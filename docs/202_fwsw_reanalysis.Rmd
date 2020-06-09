@@ -996,7 +996,7 @@ poporder<-poporder$poporder
 ```
 
 
-```{r NewPopStructure_v1,eval=TRUE,results='hide'}
+```{r NewPopStructure_v2,eval=TRUE,results='hide'}
 npop<-length(pop.list)
 pseq<-1:npop
 m<-matrix(c(rep(1,16),rep(2,6),
@@ -1072,7 +1072,7 @@ fst_mat<-as.matrix(full_fsts)
 ```
 
 ```{r covPlot,results='hide',fig.show='true'}
-cov<-read.table(gzfile("treemix/fwsw_k100b.cov.gz"), as.is = T, head = T, quote = "", 
+cov<-read.table(gzfile("treemix/unrooted/fwsw_1.cov.gz"), as.is = T, head = T, quote = "", 
                 comment.char = "")
 #reorder
 covplot <- data.frame(matrix(nrow = nrow(cov), ncol = ncol(cov)))
