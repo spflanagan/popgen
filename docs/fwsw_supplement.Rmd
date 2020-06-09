@@ -813,14 +813,6 @@ axis(1,pos=-10,at=1:nrow(FLPB_edge),
 
 ```
 
-To narrow our focus, we extracted the threepop analyses for the trees (TXFW;TXCB,FLSI) and (TXFW,FLSI,FLAB), and again found non-zero f3 statistics (Table \@ref(tab:f3Edge1Specific)).
-
-```{r f3Edge1Specific,fig.pos='H'}
-kable(threepop[grep("FLPB;.*FLAB.*",threepop$pops),] ,"latex",booktabs=TRUE,
-      caption = "The two most relevant three-population trees with TXFW and FLSI and their f3 statistic, standard error, z-score, and p-value.")%>%
-  kable_styling(latex_options="HOLD_position")
-```
-
 To investigate the results of the fourpop analysis for this migration edge, we focused on four-population trees including the TXFW,TXCB population pair and FLSI (Table \@ref(tab:f4Edge1)). The f4 statistics were very close to zero and most have standard errors overlapping zero, indicating that gene flow is not particularly likely.
 
 ```{r f4Edge1,fig.pos='H'}
