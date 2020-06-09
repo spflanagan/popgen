@@ -32,6 +32,314 @@ Today's goals:
 4. If I have time, add text about dadi to results.
 5. check up on dadi results & move any that have finished.
 
+So the Evanno method plot was throwing a fit because of an odd if statement and lack of dev.off() issue. I can modify the function... 
+
+```{r}
+my_plot_optm<-function (input, method = "Evanno", plot = TRUE, pdf = NULL) 
+{
+    if (missing(method)) {
+        method = "Evanno"
+    }
+    else method = method
+    if (!is.character(method) | length(method) > 1) 
+        stop("The 'method' argument was not set correctly\n")
+    methods = c("SiZer", "linear", "Evanno")
+    if (!(method %in% methods)) 
+        stop("Could not find the selected 'method'.  Please check.\n")
+    if (is.null(pdf)) {
+        message("No output file will be saved. To save an output file, run with 'pdf = \"file.pdf\"'\n")
+    }
+    else {
+        if (length(pdf) != 1 | !is.character(pdf)) 
+            stop("Output pdf file is incorrectly specified.\n")
+        pdf = pdf
+    }
+    if (!is.logical(plot)) 
+        stop("Please set 'plot' as either TRUE or FALSE.\n")
+    if (!plot & is.null(pdf)) 
+        stop(" You want neither a plot opened or an input file saved.  No reason to continue. Exiting.\n")
+    if (method == "Evanno") {
+        message(paste0("Plotting the treemix results using the ", 
+            method, " method.\n"))
+        if (is.null(input) | !is.data.frame(input)) 
+            stop("Proper input data frame was not detected.\n")
+        c = ncol(input)
+        if (c != 17) 
+            warning(paste0("Warning: This function expects 17 columns in the table but detected ", 
+                c, " columns.  Proceeding anyways even if this is incorrect!\n"))
+        m = max(input$m, na.rm = T)
+        low = min(input$m, na.rm = T)
+        runs = mean(input$runs[2:length(input$runs)])
+        if (ceiling(runs) != runs) {
+            warning(paste0("The mean number of runs detected is ", 
+                runs, ", but this must be a whole number.  Rounding up and continuing anyway.\n"))
+            runs = round(runs)
+        }
+        if (!plot) {
+            pdf(pdf, width = 7, height = 7)
+            graphics::par(mfrow = c(2, 1), mar = c(4.1, 4.1, 
+                1.1, 5.1), mgp = c(3, 1, 0))
+            plot(input$m, input$"mean(Lm)", pch = 1, axes = F, 
+                ann = F)
+            graphics::axis(2, las = 1)
+            graphics::axis(1)
+            graphics::box()
+            graphics::segments(input$m, input$"mean(Lm)" - 
+                input$"sd(Lm)", input$m, input$"mean(Lm)" + 
+                input$"sd(Lm)")
+            epsilon = 0.1
+            graphics::segments(input$m - epsilon, input$"mean(Lm)" - 
+                input$"sd(Lm)", input$m + epsilon, input$"mean(Lm)" - 
+                input$"sd(Lm)")
+            graphics::segments(input$m - epsilon, input$"mean(Lm)" + 
+                input$"sd(Lm)", input$m + epsilon, input$"mean(Lm)" + 
+                input$"sd(Lm)")
+            graphics::title(ylab = "Mean L(m) +/- SD")
+            f.means = input$"mean(f)"
+            f.sd = input$"sd(f)"
+            graphics::par(new = T)
+            plot(input$m, f.means, pch = 19, col = grDevices::rgb(255/255, 
+                0, 0, 89.25/255), axes = F, ann = F,ylim=c(0,1))
+            graphics::axis(4, las = 1)
+            graphics::mtext("Variance Explained", side = 4, 
+                line = 3.5)
+            y.limits = graphics::par("usr")[3:4]
+            print(y.limits)
+            if ((y.limits[1]) < 0.998 && (y.limits[2] > 0.998)) {
+                graphics::abline(h = 0.998, col = "black", 
+                  lty = "dotted")
+            }
+            else {
+                warning("Horizontal line at 99.8% variation cutoff is out of bounds. This is not a big deal and the program is continuing anyway without plotting the line.\n", 
+                  immediate. = T)
+            }
+            graphics::segments(input$m, f.means - f.sd, input$m, 
+                f.means + f.sd, col = "red")
+            epsilon = 0.1
+            graphics::segments(input$m - epsilon, f.means - f.sd, 
+                input$m + epsilon, f.means - f.sd, col = "red")
+            graphics::segments(input$m - epsilon, f.means + f.sd, 
+                input$m + epsilon, f.means + f.sd, col = "red")
+            graphics::legend("bottomright", legend = c("likelihoods +/- SD", 
+                "% variance", "99.8% threshold"), 
+                col = c("black", grDevices::rgb(255/255, 
+                  0, 0, 89.25/255), "black"), bty = "n", 
+                pch = c(1, 19, NA), lty = c(NA, NA, "dotted"))
+            plot(input$m, input$Deltam, col = "blue", pch = 19, 
+                xlab = "m", ylab = expression(italic(paste(symbol(Delta), 
+                  "m"))))
+            graphics::points(input$m, input$Deltam, col = "blue", 
+                type = "l")
+            grDevices::dev.off()
+        }
+        else {
+            grDevices::dev.new(width = 7, height = 7)
+            graphics::par(mfrow = c(2, 1), mar = c(4.1, 4.1, 
+                1.1, 5.1), mgp = c(3, 1, 0))
+            plot(input$m, input$"mean(Lm)", pch = 1, axes = F, 
+                ann = F)
+            graphics::axis(2, las = 1)
+            graphics::axis(1)
+            graphics::box()
+            graphics::segments(input$m, input$"mean(Lm)" - 
+                input$"sd(Lm)", input$m, input$"mean(Lm)" + 
+                input$"sd(Lm)")
+            epsilon = 0.1
+            graphics::segments(input$m - epsilon, input$"mean(Lm)" - 
+                input$"sd(Lm)", input$m + epsilon, input$"mean(Lm)" - 
+                input$"sd(Lm)")
+            graphics::segments(input$m - epsilon, input$"mean(Lm)" + 
+                input$"sd(Lm)", input$m + epsilon, input$"mean(Lm)" + 
+                input$"sd(Lm)")
+            graphics::title(ylab = "Mean L(m) +/- SD")
+            f.means = input$"mean(f)"
+            f.sd = input$"sd(f)"
+            graphics::par(new = T)
+            plot(input$m, f.means, pch = 19, col = grDevices::rgb(255/255, 
+                0, 0, 89.25/255), axes = F, ann = F,ylim=c(0,1))
+            graphics::axis(4, las = 1)
+            graphics::mtext("Variance Explained", side = 4, 
+                line = 3.5)
+            y.limits = graphics::par("usr")[3:4]
+            print(y.limits)
+            if ((y.limits[1]) < 0.998 && (y.limits[2] > 0.998)) {
+                graphics::abline(h = 0.998, col = "black", 
+                  lty = "dotted")
+            }
+            else {
+                warning("Horizontal line at 99.8% variation cutoff is out of bounds. This is not a big deal and the program is continuing anyway without plotting the line.\n", 
+                  immediate. = T)
+            }
+            graphics::segments(input$m, f.means - f.sd, input$m, 
+                f.means + f.sd, col = "red")
+            epsilon = 0.1
+            graphics::segments(input$m - epsilon, f.means - f.sd, 
+                input$m + epsilon, f.means - f.sd, col = "red")
+            graphics::segments(input$m - epsilon, f.means + f.sd, 
+                input$m + epsilon, f.means + f.sd, col = "red")
+            graphics::legend("bottomright", legend = c("likelihoods +/- SD", 
+                "% variance", "99.8% threshold"), 
+                col = c("black", grDevices::rgb(255/255, 
+                  0, 0, 89.25/255), "black"), bty = "n", 
+                pch = c(1, 19, NA), lty = c(NA, NA, "dotted"))
+            plot(input$m, input$Deltam, col = "blue", pch = 19, 
+                xlab = "m (migration edges)", ylab = expression(italic(paste(symbol(Delta), 
+                  "m"))))
+            graphics::points(input$m, input$Deltam, col = "blue", 
+                type = "l")
+            if (!is.null(pdf)) {
+                grDevices::dev.copy(grDevices::pdf, file = pdf)
+                grDevices::dev.off()
+                message(paste0("Plot saved to file ", pdf, 
+                  ".\n"))
+            }
+            else if (is.null(pdf)) 
+                message("No plot file has been saved.\n")
+        }
+    }
+    else if (method == "linear") {
+        message("Plotting the treemix results using various linear models.\n")
+        if (is.null(input) | !is.list(input) | length(input) != 
+            5) 
+            stop("Proper input list was not detected.\n")
+        if (plot) {
+            x = input$PiecewiseLinear$model$model[, 2]
+            y = input$PiecewiseLinear$model$model[, 1]
+            pl = input$PiecewiseLinear
+            bc = input$BentCable
+            sim.exp = input$SimpleExponential
+            nl_ls = input$NonLinearLeastSquares
+            plot(x, y, ylab = "Log Likelihood", xlab = "m (migration edges)", 
+                axes = F)
+            graphics::box()
+            graphics::axis(1)
+            graphics::axis(2, las = 1)
+            x.grid <- seq(min(x), max(x), length = 200)
+            graphics::lines(x.grid, stats::predict(pl, x.grid), 
+                col = "darkgreen", lwd = 2)
+            graphics::lines(x.grid, stats::predict(bc, x.grid), 
+                col = "orange", lwd = 2)
+            z = max(y) + 1
+            y2 = log(-y + z)
+            graphics::lines(x.grid, z - exp(stats::predict(sim.exp, 
+                newdata = data.frame(x = x.grid))), col = "red", 
+                lwd = 2)
+            graphics::lines(x.grid, z - exp(stats::predict(nl_ls, 
+                newdata = data.frame(x = x.grid))), col = "blue", 
+                lwd = 2)
+            graphics::legend("bottomright", legend = c("Observed data", 
+                "Piecewise Linear", "Bent Cable", 
+                "Simple Exponential", "Non-linear Least Squares", 
+                "change points"), col = c("black", 
+                "darkgreen", "orange", "red", 
+                "blue", "black"), bty = "y", 
+                pch = c(1, NA, NA, NA, NA, 8), lty = c(NA, 1, 
+                  1, 1, 1, NA))
+            cp.pl = input$out[which(rownames(input$out) == "PiecewiseLinear"), 
+                4]
+            lnPD.pl = stats::predict(pl, cp.pl)
+            cp.bc = input$out[which(rownames(input$out) == "BentCable"), 
+                4]
+            lnPD.bc = stats::predict(bc, cp.bc)
+            cp.simexp = input$out[which(rownames(input$out) == 
+                "SimpleExponential"), 4]
+            lnPD.simexp = z - exp(stats::predict(sim.exp, newdata = data.frame(x = cp.simexp)))
+            cp.nlls = input$out[which(rownames(input$out) == 
+                "NonLinearLeastSquares"), 4]
+            lnPD.nlls = z - exp(stats::predict(nl_ls, newdata = data.frame(x = cp.nlls)))
+            graphics::points(x = c(cp.pl, cp.bc, cp.simexp, cp.nlls), 
+                y = c(lnPD.pl, lnPD.bc, lnPD.simexp, lnPD.nlls), 
+                pch = 8, col = c("darkgreen", "orange", 
+                  "red", "blue"), cex = 1.5)
+            if (!is.null(pdf)) {
+                grDevices::dev.copy(grDevices::pdf, file = pdf)
+                grDevices::dev.off()
+                message(paste0("Plot saved to file ", pdf, 
+                  ".\n"))
+            }
+            else if (is.null(pdf)) 
+                message("No plot file has been saved.\n")
+        }
+        else if (!plot) {
+            x = input$PiecewiseLinear$model$model[, 2]
+            y = input$PiecewiseLinear$model$model[, 1]
+            pl = input$PiecewiseLinear
+            bc = input$BentCable
+            sim.exp = input$SimpleExponential
+            nl_ls = input$NonLinearLeastSquares
+            pdf(pdf, width = 7, height = 7)
+            plot(x, y, ylab = "Log Likelihood", xlab = "m (migration edges)", 
+                axes = F)
+            graphics::box()
+            graphics::axis(1)
+            graphics::axis(2, las = 1)
+            x.grid <- seq(min(x), max(x), length = 200)
+            graphics::lines(x.grid, stats::predict(pl, x.grid), 
+                col = "darkgreen", lwd = 2)
+            graphics::lines(x.grid, stats::predict(bc, x.grid), 
+                col = "orange", lwd = 2)
+            z = max(y) + 1
+            y2 = log(-y + z)
+            graphics::lines(x.grid, z - exp(stats::predict(sim.exp, 
+                newdata = data.frame(x = x.grid))), col = "red", 
+                lwd = 2)
+            graphics::lines(x.grid, z - exp(stats::predict(nl_ls, 
+                newdata = data.frame(x = x.grid))), col = "blue", 
+                lwd = 2)
+            graphics::legend("bottomright", legend = c("Observed data", 
+                "Piecewise Linear", "Bent Cable", 
+                "Simple Exponential", "Non-linear Least Squares", 
+                "change points"), col = c("black", 
+                "darkgreen", "orange", "red", 
+                "blue", "black"), bty = "y", 
+                pch = c(1, NA, NA, NA, NA, "X"), lty = c(NA, 
+                  1, 1, 1, 1, NA))
+            cp.pl = input$out[which(rownames(input$out) == "PiecewiseLinear"), 
+                4]
+            lnPD.pl = stats::predict(pl, cp.pl)
+            cp.bc = input$out[which(rownames(input$out) == "BentCable"), 
+                4]
+            lnPD.bc = stats::predict(bc, cp.bc)
+            cp.simexp = input$out[which(rownames(input$out) == 
+                "SimpleExponential"), 4]
+            lnPD.simexp = z - exp(stats::predict(sim.exp, newdata = data.frame(x = cp.simexp)))
+            cp.nlls = input$out[which(rownames(input$out) == 
+                "NonLinearLeastSquares"), 4]
+            lnPD.nlls = z - exp(stats::predict(nl_ls, newdata = data.frame(x = cp.nlls)))
+            graphics::points(x = c(cp.pl, cp.bc, cp.simexp, cp.nlls), 
+                y = c(lnPD.pl, lnPD.bc, lnPD.simexp, lnPD.nlls), 
+                pch = 8, col = c("darkgreen", "orange", 
+                  "red", "blue"), cex = 1.5)
+            grDevices::dev.off()
+        }
+    }
+    else if (method == "SiZer") {
+        message("Plotting the treemix results using SiZer.\n")
+        if (class(input) != "SiZer") 
+            stop("Input object is not of class SiZer.\n")
+        if (plot) {
+            plot(input, xlab = "m (migration edges)")
+            if (!is.null(pdf)) {
+                grDevices::dev.copy(grDevices::pdf, file = pdf)
+                grDevices::dev.off()
+                message(paste0("Plot saved to file ", pdf, 
+                  ".\n"))
+            }
+            else if (is.null(pdf)) 
+                message("No plot file has been saved.\n")
+        }
+        else if (!plot) {
+            pdf(pdf, width = 7, height = 7)
+            plot(input, xlab = "m (migration edges)")
+            grDevices::dev.off()
+        }
+    }
+    message("Finished plotting.  All results are saved to the current directory as requested.\n")
+}
+```
+
+I created treemix_evanno in 203_treemix_plotting_funcs.R to create those plots outright, and to adjust the x-limits based on the data.
+
 # 8 June 2020
 
 dadi updates:
