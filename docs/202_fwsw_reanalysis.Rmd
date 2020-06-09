@@ -29,7 +29,7 @@ header-includes: >
   \floatplacement{figure}{H}
 bibliography: programs.bib
 output:
-  pdf_document:
+  bookdown::pdf_document2:
     toc: true
     toc_depth: 2
     fig_caption: yes
