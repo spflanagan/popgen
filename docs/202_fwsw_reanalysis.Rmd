@@ -892,7 +892,7 @@ threepop$f3_p<-pnorm(-abs(as.numeric(as.character(threepop$f3_z)))) # one sided
 
 fourpop<-data.frame(do.call(rbind,
                             strsplit(grep(";",
-                                          readLines("treemix/fwsw_fourpop_1.txt"),
+                                          readLines("treemix/fwsw_fourpop.txt"),
                                           value = TRUE),' ')))
 colnames(fourpop)<-c("pops","f4_stat","f4_se","f4_z")
 fourpop$f4_p<-2*pnorm(-abs(as.numeric(as.character(fourpop$f4_z))))
@@ -1012,7 +1012,7 @@ text(x = 0.5,y=1.2,"C",cex = 2,font =2)
 
 #Treemix
 par(mar=c(0,0,0,1))
-t2<-plot_tree("treemix/fwsw_k100bFLPBrm2",scale=T,mbar=T,cex = 1.5,
+t2<-plot_tree("treemix/migrations/fwsw_FLAB_m1",scale=T,mbar=T,cex = 1.5,
               lwd=2,mig_left=FALSE,disp=0.0002,scadj=0.05)
 text(x = 0.035,y=0.9,"B",cex = 2,font =2)
 #STRUCTURE
