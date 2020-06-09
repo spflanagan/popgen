@@ -824,6 +824,15 @@ arrows(x0 = 0:5,y0=c(llikMean-llikSEM),
        x1=0:5,y1=c(llikMean+llikSEM),code=3,angle=0,lwd=2)
 ```
 
+```{r treemixMigrationEdges,message=FALSE}
+m1s<-list.files(pattern="m1.*treeout",path="treemix/migrations/",full.names = TRUE)
+edges<-do.call(rbind,lapply(m1s,function(file){
+  treeout<-scan(file,what="character",sep='\n')
+  edge<-do.call(rbind,strsplit(treeout[2],' '))
+  return(edge)
+}))
+rownames(edges)<-m1s
+```
 
 ```{r M1Starts}
 starts<-gsub("[[:digit:]]","\\1",edges[,5])
@@ -920,8 +929,17 @@ None of these f3 statistics are zero, so that suggests that TXFW is not admixed 
 kable(threepop[threepop$pops=="TXFW;TXCB,FLSI" | 
            threepop$pops=="TXFW;FLSI,FLAB",] )
 ```
+The migration edge we investigated indicated potential migration from the ancestral Florida branch to the FLPB branch. We first investigated all of the three-population trees with FLPB and FLAB and found that the majority of these trees are positive (Figure \@ref(fig:f3Edge1)), which suggests that FLPB is not admixed with the other Florida populations. Several trees are negative, but their standard errors overlap with zero (Figure \@ref(fig:f3Edge1)), which suggests that FLPB may experience some admixtre with those populations. Unsurprisingly, given the \@ref(admixture) and \@ref(pcadapt) results, these trees are those with other Atlantic Florida populations (FLHB, FLCC, and FLLG/FLFW). 
 
+```{r f3Edge1,fig.pos='H',fig.width=8,fig.height=6,fig.cap="Plot of the f3 statistic for three-population trees including both FLPB and FLAB. Error bars show the standard errors generated from block jackknifes. Trees indicative of admixture in FLPB are those with significantly negative f3 statistics."}
+FLPB_edge<-threepop[grep("FLPB;.*FLAB.*",threepop$pops),]
+FLPB_edge$f3_stat<-as.numeric(FLPB_edge$f3_stat)
+FLPB_edge$f3_se<-as.numeric(FLPB_edge$f3_se)
+FLPB_edge$lowSE<-FLPB_edge$f3_stat-FLPB_edge$f3_se
+FLPB_edge$uppSE<-FLPB_edge$f3_stat+FLPB_edge$f3_se
+FLPB_edge$f3_z<-as.numeric(FLPB_edge$f3_z)
 
+ymax<-max(abs(c(FLPB_edge$lowSE,FLPB_edge$uppSE)))+0.001
 
 ```{r f4Edge1}
 kable(fourpop[grep("TXFW,TXCB;.*FLSI.*",fourpop$pops),] )
@@ -929,6 +947,16 @@ kable(fourpop[fourpop$pops=="TXFW,TXCB;FLSI,FLAB",] )
 as.numeric(as.character(fourpop$f4_stat[fourpop$pops=="TXFW,TXCB;FLSI,FLAB"]))+
   as.numeric(as.character(fourpop$f4_se[fourpop$pops=="TXFW,TXCB;FLSI,FLAB"]))
 ```
+# all the relevant trees
+plot(1:nrow(FLPB_edge),as.numeric(FLPB_edge$f3_stat),
+     ylim=c(ymax*-1,ymax),axes=FALSE,
+     xlab="",ylab="f3 statistic +/- SE")
+abline(h=0,lty=2)
+arrows(1:nrow(FLPB_edge),FLPB_edge$lowSE,
+       1:nrow(FLPB_edge),FLPB_edge$uppSE,code=3,angle=0)
+axis(2,at=seq(-0.05,0.05,0.01),las=1)
+axis(1,pos=-0.01,at=1:nrow(FLPB_edge),
+     labels = FLPB_edge$pops,las=2,cex.axis=0.75)
 
 The statistic is negative but overlaps with zero, so not indicative of gene flow. 
 
@@ -941,15 +969,39 @@ kable(threepop[threepop$pops=="FLAB;FLPB,FLLG",])
 ```
 
 Inspecting this three-population tree (FLAB;FLPB,FLLG) shows that the statistic is positive does not overlap with zero, and none of the FLAB values are negative, suggesting that this migration edge is unlikely to represent admixture. 
+To investigate the results of the fourpop analysis for this migration edge, we focused on four-population trees including both FLAB and FLPB and other Florida populations (Table \@ref(tab:f4Edge1)). All of these four population trees show evidence of admixture (Figure \@ref(fig:f4Edge1Fig)), which is unsurprising given that these trees include populations that are in the same population clusters in the \@ref(admixture) and \@ref(pcadapt) results.
 
 ```{r f4Edge2}
 kable(fourpop[grep("FLAB,FL.*;.*",fourpop$pops),] )
 kable(fourpop[fourpop$pops=="FLAB,FLCC;FLPB,FLLG",] )
 as.numeric(as.character(fourpop$f4_stat[fourpop$pops=="FLAB,FLCC;FLPB,FLLG"]))+
   as.numeric(as.character(fourpop$f4_se[fourpop$pops=="FLAB,FLCC;FLPB,FLLG"]))
+```{r f4Edge1,fig.pos='H'}
+f4s<-fourpop[c(grep("FLPB,FL.*;FLAB,FL.*",fourpop$pops),
+               grep("FL.*,FLPB;FLAB,FL.*",fourpop$pops),
+               grep("FLPB,FL.*;FL.*,FLAB",fourpop$pops),
+               grep("FL.*,FLPB;FL.*,FLAB",fourpop$pops)),]
+kable(f4s,"latex",booktabs=TRUE,longtable=TRUE,
+      caption = "Four-population trees with FLPB and FLAB and their f4 statistic, standard error, z-score, and p-value." )%>%
+  kable_styling(latex_options=c("HOLD_position","repeat_header"))
 ```
 
 This is negative but overlaps zero, so is also not indicative of gene flow. 
+```{r f4Edge1Fig,fig.pos='H',fig.width=8,fig.height=6,fig.cap="Plot of the f4 statistic for four-population trees including both FLPB and FLAB and other Florida populations. Error bars show the standard errors generated from block jackknifes. Trees indicative of admixture in the tree are those with significantly non-zero f4 statistics."}
+f4s$lowSE<-as.numeric(f4s$f4_stat)-as.numeric(f4s$f4_se)
+f4s$uppSE<-as.numeric(f4s$f4_stat)+as.numeric(f4s$f4_se)
+ymax<-max(abs(c(f4s$lowSE,FLPB_edge$uppSE)))+0.001
+
+# all the relevant trees
+plot(1:nrow(f4s),as.numeric(f4s$f4_stat),
+     ylim=c(ymax*-1,ymax),axes=FALSE,
+     xlab="",ylab="f4 statistic +/- SE")
+abline(h=0,lty=2)
+arrows(1:nrow(f4s),f4s$lowSE,
+       1:nrow(f4s),f4s$uppSE,code=3,angle=0)
+axis(2,at=seq(-0.05,0.05,0.01),las=1)
+axis(1,pos=-0.01,at=1:nrow(f4s),
+     labels = f4s$pops,las=2,cex.axis=0.75)
 
 ```{r f4Edge2Contd}
 fourpop$f4_stat<-as.numeric(as.character(fourpop$f4_stat))
