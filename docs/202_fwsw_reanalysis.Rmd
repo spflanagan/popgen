@@ -802,13 +802,6 @@ tmOpt<-optM("treemix/migrations/")
 evanno_treemix(tmOpt)
 ```
 
-```{r treemixMigrationEdges}
-m1s<-list.files(pattern="m1.*treeout",path="treemix/migrations/",full.names = TRUE)
-edges<-do.call(rbind,lapply(m1s,function(file){
-  treeout<-scan(file,what="character",sep='\n')
-  edge<-do.call(rbind,strsplit(treeout[2],' '))
-  return(edge)
-}))
 ```{r treemixLlik,fig.height=8,fig.width=6,dpi=300,fig.cap="Average log likelihoods of treemix bootstrap replicates with 0 through 5 migration edges. Shown are the means (of 100 bootstraps) and the standard error of the mean."}
 lliks<-list.files(path="treemix/migrations/",pattern=".llik",full.names = TRUE)
 likes<-data.frame(do.call(rbind,lapply(lliks,function(file){
@@ -837,7 +830,15 @@ starts<-gsub("[[:digit:]]","\\1",edges[,5])
 starts<-gsub(":","",starts)
 starts<-gsub("\\.","",starts)
 starts<-gsub("e-","",starts)
-kable(summary(as.factor(starts)))
+starts<-gsub(",",", ",starts)
+starTab<-data.frame(tree=names(summary(as.factor(starts))),
+                    counts=summary(as.factor(starts)))
+rownames(starTab)<-NULL
+kable(starTab,"latex",booktabs=TRUE,row.names=FALSE,longtable=TRUE,
+      col.names = c("tree location","number of bootstraps"),
+      caption="Number of bootstraps with the one migration edge beginning at each of these points on the population trees.") %>%
+  kable_styling(latex_options=c("HOLD_position","repeat_header"))  %>%
+  column_spec(1,width = "30em")
 ```
 
 ```{r M1Stops}
@@ -845,38 +846,35 @@ stops<-gsub("[[:digit:]]","\\1",edges[,6])
 stops<-gsub(":","",stops)
 stops<-gsub("\\.","",stops)
 stops<-gsub("e-","",stops)
-kable(summary(as.factor(stops)))
+kable(summary(as.factor(stops)),"latex",booktabs=TRUE,
+      col.names = c("number of bootstraps"),
+      caption="Number of bootstraps with the one migration edge ending at each of these points on the population trees.")%>%
+  kable_styling(latex_options=c("HOLD_position"))
 ```
 
+The overwhelming majority of bootstrapped trees with one migration edge have that edge leading from the main branch of the tree to FLPB (see Tables \@ref(tab:M1Starts) and \@ref(tab:M1Stops) for the common start and end points).
 
+The model chosen with the optimal number of migration edges had a similar tree structure to the rooted tree with no migration edges, with the Atlantic coast of Florida, the Gulf coast of Florida forming another cluster, the Alabama and Louisiana populations, and the Texas populations each forming their own clusters, and FLLG (which is the Florida freshwater population) branching off between the two Florida clusters (Figure \@ref(fig:treemixCompare)). The two migration edges run from the branch leading to the Gulf coast of Florida populations to the FLAB population and from the FLSI-FLAB node to the node between the TXFW population and the other Texas populations (Figure \@ref(fig:treemixCompare)). 
 
-Let's plot the no-migration-edge tree with the two-migration-edge tree, which optM chose as the best fit using the Evanno method.
-
-```{r treemixCompare,results='hide'}
-png("../figs/treemix_comparison.png",height = 4.5,width=8,units="in",res=300)
-par(mfrow=c(1,2),mar=c(1,1,1,2),oma=c(1,1,1,2),xpd=TRUE)
-t0<-plot_tree("treemix/fwsw_k100bFLPBr",scale=T,mbar=F,cex = 1.5,
+```{r MaketreemixCompare,results='hide',eval=TRUE}
+bestM1<-gsub("\\.llik","",
+             rownames(likes[likes$migs==1,])[
+               which.max(likes$loglikelihood[likes$migs==1])])
+png("../figs/treemix_comparison.png",height = 4,width=8,units="in",res=300)
+par(mfrow=c(1,3),mar=c(1,2,1,2),oma=c(1,6,1,2),xpd=TRUE)
+t0<-plot_tree("treemix/migrations/fwsw_FLAB_m0",scale=T,mbar=F,cex = 1.5,
+              lwd=2,disp=0.002,scadj=0.05)
+t1<-plot_tree("treemix/migrations/fwsw_FLAB_m1",scale=T,mbar=T,cex = 1.5,
               lwd=2,mig_left=FALSE,disp=0.0002,scadj=0.05)
-t2<-plot_tree("treemix/fwsw_k100bFLPBrm2",scale=T,mbar=T,cex = 1.5,
+t2<-plot_tree(bestM1,scale=T,mbar=T,cex = 1.5,
               lwd=2,mig_left=FALSE,disp=0.0002,scadj=0.05)
 dev.off()
 ```
-![The plot of the tree with FLPB as root but no migration edges (left) compared to the tree with FLPB as root and two migration edges. The drift parameter is plottex on the x-axis, and migration edges are colored based on the migration weight.](../figs/treemix_comparison.png)
 
-Let's plot all of the 2-edge trees from the multiple replicates
-
-```{r treemixBootstrapM2s,message=FALSE,results='hide',fig.show='true',fig.width=8,fig.height=10,fig.cap="Plot of the tree with no migration edge, the tree with 2 migration edges that has been analyzed, and all of the bootstrap replicates with two migration edges."}
-par(mfrow=c(3,4),mar=c(1,1,1,2),oma=c(1,1,1,2),xpd=TRUE)
-t0<-plot_tree("treemix/fwsw_k100bFLPBr",scale=T,mbar=F,cex = 1.5,
-              lwd=2,mig_left=FALSE,disp=0.0002,scadj=0.05)
-t2<-plot_tree("treemix/fwsw_k100bFLPBrm2",scale=T,mbar=T,cex = 1.5,
-              lwd=2,mig_left=FALSE,disp=0.0002,scadj=0.05)
-for(i in 1:10){
-  t2<-plot_tree(paste0("treemix/fwsw_k100bFLPBrm2_",i),
-                scale=T,mbar=T,cex = 1.5,
-              lwd=2,mig_left=FALSE,disp=0.0002,scadj=0.05)
-}
+```{r treemixCompare, out.width='90%',fig.cap="The plot of the tree with FLAB as root but no migration edges (left) compared to the tree with FLAB as root and two migration edges. The drift parameter is plotted on the x-axis, and migration edges are colored based on the migration weight."}
+knitr::include_graphics('../figs/treemix_comparison.png')
 ```
+
 
 
 
