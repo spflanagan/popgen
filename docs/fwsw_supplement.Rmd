@@ -813,20 +813,13 @@ axis(1,pos=-10,at=1:nrow(FLPB_edge),
 
 ```
 
-To investigate the results of the fourpop analysis for this migration edge, we focused on four-population trees including the TXFW,TXCB population pair and FLSI (Table \@ref(tab:f4Edge1)). The f4 statistics were very close to zero and most have standard errors overlapping zero, indicating that gene flow is not particularly likely.
+To investigate the results of the fourpop analysis for this migration edge, we focused on four-population trees including both FLAB and FLPB and only other Florida populations (Table \@ref(tab:f4Edge1)). The f4 statistics were very close to zero and most have standard errors overlapping zero, indicating that gene flow is not particularly likely.
 
 ```{r f4Edge1,fig.pos='H'}
 kable(fourpop[grep("TXFW,TXCB;.*FLSI.*",fourpop$pops),],"latex",booktabs=TRUE,
       caption = "Four-population trees with TXFW, TXCB, and FLSI and their f4 statistic, standard error, z-score, and p-value." )%>%
   kable_styling(latex_options="HOLD_position")
 ```
-
-Focusing on the most relevant fourpop analysis, with the tree (TXFW,TXCB;FLSI,FLAB), we can see that the f4 statistic is slightly negative and overlaps with zero (Table \@ref(tab:f4Edge1Specific)), suggesting that current gene flow is not likely between these branches.
-
-```{r f4Edge1Specific,fig.pos='H'}
-kable(fourpop[fourpop$pops=="TXFW,TXCB;FLSI,FLAB",] ,"latex",booktabs=TRUE,
-      caption = "The most relevant four-population tree with TXFW, TXCB, and FLSI and its f4 statistic, standard error, z-score, and p-value.")%>%
-  kable_styling(latex_options="HOLD_position")
 ```
 
 
