@@ -564,3 +564,61 @@ plot_resid_internal = function(d, o = NA, max = 0.009, min = -0.009, cex =0.5, w
 }
 
 
+evanno_treemix<-function(input){
+  graphics::par(mfrow = c(2, 1), mar = c(4.1, 4.1, 
+                                         1.1, 5.1), mgp = c(3, 1, 0))
+  ylims<-c(min(input$"mean(Lm)" -input$"sd(Lm)")-100,
+           max(input$"mean(Lm)" +input$"sd(Lm)")+100)
+  plot(input$m, input$"mean(Lm)", pch = 1, axes = F, 
+       ann = F,ylim=ylims)
+  graphics::axis(2, las = 1)
+  graphics::axis(1)
+  graphics::box()
+  graphics::segments(input$m, input$"mean(Lm)" - 
+                       input$"sd(Lm)", input$m, input$"mean(Lm)" + 
+                       input$"sd(Lm)")
+  epsilon = 0.1
+  graphics::segments(input$m - epsilon, input$"mean(Lm)" - 
+                       input$"sd(Lm)", input$m + epsilon, input$"mean(Lm)" - 
+                       input$"sd(Lm)")
+  graphics::segments(input$m - epsilon, input$"mean(Lm)" + 
+                       input$"sd(Lm)", input$m + epsilon, input$"mean(Lm)" + 
+                       input$"sd(Lm)")
+  graphics::title(ylab = "Mean L(m) +/- SD")
+  f.means = input$"mean(f)"
+  f.sd = input$"sd(f)"
+  
+  # add variance plot
+  graphics::par(new = T)
+  ylims<-c(min(f.means - f.sd,na.rm = TRUE)-0.1,
+           max(f.means + f.sd,na.rm = TRUE)+0.1)
+  if(ylims[2]>1) ylims[2]<-1
+  plot(input$m, f.means, pch = 19, col = grDevices::rgb(255/255,0, 0, 89.25/255),
+       axes = F, ann = F,ylim = ylims)
+  graphics::axis(4, las = 1)
+  graphics::mtext("Variance Explained", side = 4, 
+                  line = 3.5)
+  
+    graphics::abline(h = 0.998, col = "black", 
+                     lty = "dotted")
+  graphics::segments(input$m, f.means - f.sd, input$m, 
+                     f.means + f.sd, col = "red")
+  epsilon = 0.1
+  graphics::segments(input$m - epsilon, f.means - f.sd, 
+                     input$m + epsilon, f.means - f.sd, col = "red")
+  graphics::segments(input$m - epsilon, f.means + f.sd, 
+                     input$m + epsilon, f.means + f.sd, col = "red")
+  graphics::legend("bottomright", legend = c("likelihoods +/- SD", 
+                                             "% variance", "99.8% threshold"), 
+                   col = c("black", grDevices::rgb(255/255, 
+                                                   0, 0, 89.25/255), "black"), bty = "n", 
+                   pch = c(1, 19, NA), lty = c(NA, NA, "dotted"))
+  plot(input$m, input$Deltam, col = "blue", pch = 19, 
+       xlab = "m", ylab = expression(italic(paste(symbol(Delta), 
+                                                  "m"))))
+  graphics::points(input$m, input$Deltam, col = "blue", 
+                   type = "l")
+
+}
+
+
