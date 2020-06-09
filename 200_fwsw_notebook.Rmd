@@ -23,6 +23,14 @@ library(knitr)
 pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 ```
 
+# 9 June 2020
+
+Today's goals:
+1. Fix optM stuff and update text around choosing number of migration edges in supplement.
+2. Include the maximum likelihood tree with 1 migration edge in the main text figure instead of the old 2 edge one.
+3. Update fourpop and threepop analyses.
+4. If I have time, add text about dadi to results.
+5. check up on dadi results & move any that have finished.
 
 # 8 June 2020
 
