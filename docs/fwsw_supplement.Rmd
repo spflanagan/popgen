@@ -688,7 +688,7 @@ library(OptM)
 tmOpt<-optM("treemix/migrations/")
 ```
 ```{r plotOptM,fig.keep='true',message=FALSE,fig.cap="Scree plot showing the comparison of Treemix number of migration edges."}
-plot_optM(tmOpt,plot = TRUE)
+evanno_treemix(tmOpt)
 ```
 
 
