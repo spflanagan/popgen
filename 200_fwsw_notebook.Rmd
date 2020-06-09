@@ -340,6 +340,12 @@ my_plot_optm<-function (input, method = "Evanno", plot = TRUE, pdf = NULL)
 
 I created treemix_evanno in 203_treemix_plotting_funcs.R to create those plots outright, and to adjust the x-limits based on the data.
 
+I revisited the Treemix and Reich et al 2009 papers to figure out what I'm supposed to be looking at with the f3 and f4 analyses and it only sort of helps... 
+
+The f3 statistics, if negative, are indicative of gene flow. The f4 statistics, if different from zero, are indicative of gene flow within the tree. The Z-statistics reported by treemix are testing if the f3 is less than zero and if the f4 is different from zero. In Reich et al it says "When the null hypothesis indicates that an f-statistic has mean zero as in the 4 Population Test, the jackknife standard error can be converted to a Z-score, which has mean 0 and variance 1 under the null hypothesis. We warn that the normality assumption becomes imperfect for |Z|>2 (not shown). Thus, large Z-scores should be viewed as statistically significant but not simply convertible to P-values". I'm presuming this is true for the f3 test as well, as they're related...but this will not re-create the p-values reported in the Treemix paper. So what if the Z value has the mean fo the f3 statistics?
+
+I've decided to just ignore the Z-scores and focus on the f3 and f4 statistics and whether they overlap or don't overlap 0.
+
 # 8 June 2020
 
 dadi updates:
