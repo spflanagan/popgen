@@ -739,7 +739,7 @@ bestM1<-gsub("\\.llik","",
 png("../figs/treemix_comparison.png",height = 4,width=8,units="in",res=300)
 par(mfrow=c(1,3),mar=c(1,2,1,2),oma=c(1,6,1,2),xpd=TRUE)
 t0<-plot_tree("treemix/migrations/fwsw_FLAB_m0",scale=T,mbar=F,cex = 1.5,
-              lwd=2,disp=0.0002,scadj=0.05)
+              lwd=2,disp=0.002,scadj=0.05)
 t1<-plot_tree("treemix/migrations/fwsw_FLAB_m1",scale=T,mbar=T,cex = 1.5,
               lwd=2,mig_left=FALSE,disp=0.0002,scadj=0.05)
 t2<-plot_tree(bestM1,scale=T,mbar=T,cex = 1.5,
@@ -747,7 +747,7 @@ t2<-plot_tree(bestM1,scale=T,mbar=T,cex = 1.5,
 dev.off()
 ```
 
-```{r treemixCompare, out.width='90%',fig.cap="The plot of the tree with FLAB as root but no migration edges (left) compared to the tree with FLAB as root and two migration edges. The drift parameter is plotted on the x-axis, and migration edges are colored based on the migration weight."}
+```{r treemixCompare, out.width='95%',fig.cap="The plot of the tree with FLAB as root but no migration edges (left) compared to the tree with FLAB as root and two migration edges. The drift parameter is plotted on the x-axis, and migration edges are colored based on the migration weight."}
 knitr::include_graphics('../figs/treemix_comparison.png')
 ```
 
