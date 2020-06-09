@@ -241,7 +241,7 @@ dadi_initialCompare<-function(comparison,modSel="max"){
               as.factor(opts$Model),las=3,
        ylim=c(min(as.numeric(opts$log.likelihood)-50),
               max(as.numeric(opts$log.likelihood)+50)),
-        pch=19,xlab="",ylab="Maximum log likelihood")
+        pch=19,xlab="",ylab="log likelihood")
   text(x=1:length(Ns),
        y=rep(min(as.numeric(opts$log.likelihood)-50),length(Ns)),
        Ns,cex=0.75)
@@ -287,7 +287,7 @@ flcc_fllg_im2mg<-do.call(rbind,
                                                               "IM2mG",]))
 ```
 
-```{r fllgCompareMods, fig.cap="Boxplot showing the parameter estimates from the replicates of the SC2mG model (left) and the IM2mG model (right) for the FLFW vs FLCC pairwise comparison. The red stars represent the model parameters from the run with the highest log likelihood."}
+```{r fllgCompareMods,fig.width=8, fig.cap="Boxplot showing the parameter estimates from the replicates of the SC2mG model (left) and the IM2mG model (right) for the FLFW vs FLCC pairwise comparison. The red stars represent the model parameters from the run with the highest log likelihood."}
 par(mfrow=c(1,2))
 boxplot(flcc_fllg_sc2mg[,11:22],main="SC2mG")
 points(1:12,
