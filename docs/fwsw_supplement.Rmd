@@ -681,13 +681,13 @@ t5<-plot_tree("treemix/migrations/fwsw_FLAB_m5",scale=T,mbar=F,cex = 0.75)
 ```
 
 
-To choose the optimal number of migration edges, we used the R package optM [@fitakOptMPackageOptimize2019]. Using the linear analytical method from the package, we determined that the best number of migration edges was 1 (Figure \@ref(fig:plotOptM)). This finding was consistent with inspecting the log likelihoods of the bootstraps with various migration edges (\@ref(fig:treemixLlik)).
+To choose the optimal number of migration edges, we used the R package optM [@fitakOptMPackageOptimize2019]. Using the linear analytical method from the package, we determined that the best number of migration edges was 1 (Figure \@ref(fig:plotOptM)). This finding was consistent with inspecting the log likelihoods of the bootstraps with various migration edges (\@ref(fig:plotOptM)).
 
 ```{r optM,message=FALSE}
 library(OptM)
 tmOpt<-optM("treemix/migrations/")
 ```
-```{r plotOptM,fig.keep='true',message=FALSE,fig.cap="Scree plot showing the comparison of Treemix number of migration edges."}
+```{r plotOptM,fig.keep='true',fig.height=7,message=FALSE,fig.cap="Scree plot showing the comparison of Treemix number of migration edges."}
 evanno_treemix(tmOpt)
 ```
 
@@ -728,9 +728,7 @@ kable(summary(as.factor(stops)),"latex",booktabs=TRUE,
   kable_styling(latex_options=c("HOLD_position"))
 ```
 
-The overwhelming majority of bootstrapped trees with one migration edge have that edge leading from the main branch of the tree to FLPB (see Tables \@ref(tab:M1Starts) and \@ref(tab:M1Stops) for the common start and end points). 
-
-The model chosen with the optimal number of migration edges had a similar tree structure to the rooted tree with no migration edges, with the Atlantic coast of Florida, the Gulf coast of Florida forming another cluster, the Alabama and Louisiana populations, and the Texas populations each forming their own clusters, and FLLG (which is the Florida freshwater population) branching off between the two Florida clusters (Figure \@ref(fig:treemixCompare)). The two migration edges run from the branch leading to the Gulf coast of Florida populations to the FLAB population and from the FLSI-FLAB node to the node between the TXFW population and the other Texas populations (Figure \@ref(fig:treemixCompare)). 
+The overwhelming majority of bootstrapped trees with one migration edge have that edge leading from the main branch of the tree to FLPB (see Tables \@ref(tab:M1Starts) and \@ref(tab:M1Stops) for the common start and end points). The maximum likelihood tree with one migration edge -- and also the highest likelihood bootstrapped tree with one migration edge -- had a similar tree structure to the rooted tree with no migration edges, with the Atlantic coast of Florida, the Gulf coast of Florida forming another cluster, the Alabama and Louisiana populations, and the Texas populations each forming their own clusters, and FLLG (which is the Florida freshwater population) branching off between the two Florida clusters (Figure \@ref(fig:treemixCompare)). 
 
 ```{r MaketreemixCompare,results='hide',eval=TRUE}
 lliks<-list.files(path="treemix/migrations/",pattern=".llik",full.names = TRUE)
@@ -747,7 +745,7 @@ bestM1<-gsub("\\.llik","",
 png("../figs/treemix_comparison.png",height = 4,width=8,units="in",res=300)
 par(mfrow=c(1,3),mar=c(1,2,1,2),oma=c(1,6,1,2),xpd=TRUE)
 t0<-plot_tree("treemix/migrations/fwsw_FLAB_m0",scale=T,mbar=F,cex = 1.5,
-              lwd=2,disp=0.002,scadj=0.05)
+              lwd=2,disp=0.02,scadj=0.1)
 t1<-plot_tree("treemix/migrations/fwsw_FLAB_m1",scale=T,mbar=T,cex = 1.5,
               lwd=2,mig_left=FALSE,disp=0.0002,scadj=0.05)
 t2<-plot_tree(bestM1,scale=T,mbar=T,cex = 1.5,
@@ -764,7 +762,7 @@ knitr::include_graphics('../figs/treemix_comparison.png')
 ### Threepop and fourpop analysis
 
 
-We investigated the two migration edges that are in the best Treemix model using threepop and fourpop analyses. In the threepop analysis, significantly negative f3 statistics mean that the first pop in the list (A in A;B,C) is admixed [@pickrellInferencePopulationSplits2012; @reichReconstructingIndianPopulation2009]. Therefore, with the threepop analysis we want to look for the tree (A;B,C) where A corresponds to the end of an arrow and (B,C) corresponds to where an arrow begins. In the fourpop analysis, a significantly non-zero value indicates gene flow in the tree [@pickrellInferencePopulationSplits2012; @reichReconstructingIndianPopulation2009]. 
+We investigated the one migration edge in the best Treemix model using threepop and fourpop analyses. In the threepop analysis, significantly negative f3 statistics mean that the first pop in the list (A in A;B,C) is admixed [@pickrellInferencePopulationSplits2012; @reichReconstructingIndianPopulation2009]. Therefore, with the threepop analysis we want to look for the tree (A;B,C) where A corresponds to the end of an arrow and (B,C) corresponds to where an arrow begins. In the fourpop analysis, a significantly non-zero value indicates gene flow in the tree [@pickrellInferencePopulationSplits2012; @reichReconstructingIndianPopulation2009]. 
 
 ```{r readf3f4}
 threepop<-data.frame(do.call(rbind,
@@ -786,7 +784,7 @@ colnames(fourpop)<-c("pops","f4_stat","f4_se","f4_z")
 
 The migration edge we investigated indicated potential migration from the ancestral Florida branch to the FLPB branch. We first investigated all of the three-population trees with FLPB and FLAB and found that the majority of these trees are positive (Figure \@ref(fig:f3Edge1)), which suggests that FLPB is not admixed with the other Florida populations. Several trees are negative, but their standard errors overlap with zero (Figure \@ref(fig:f3Edge1)), which suggests that FLPB may experience some admixtre with those populations. Unsurprisingly, given the \@ref(admixture) and \@ref(pcadapt) results, these trees are those with other Atlantic Florida populations (FLHB, FLCC, and FLLG/FLFW). 
 
-```{r f3Edge1,fig.pos='H',fig.width=8,fig.height=6,fig.cap="Plot of the f3 statistic for three-population trees including both FLPB and FLAB. Error bars show the standard errors generated from block jackknifes. Trees indicative of admixture in FLPB are those with significantly negative f3 statistics."}
+```{r f3Edge1,fig.pos='H',fig.width=9,fig.height=6,fig.cap="Plot of the f3 statistic for three-population trees including both FLPB and FLAB. Error bars show the standard errors generated from block jackknifes. Trees indicative of admixture in FLPB are those with significantly negative f3 statistics."}
 FLPB_edge<-threepop[grep("FLPB;.*FLAB.*",threepop$pops),]
 FLPB_edge$f3_stat<-as.numeric(FLPB_edge$f3_stat)
 FLPB_edge$f3_se<-as.numeric(FLPB_edge$f3_se)
