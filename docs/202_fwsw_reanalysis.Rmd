@@ -796,10 +796,10 @@ knitr::include_graphics('../figs/treemix_unrooted_consense.png')
 To choose the optimal number of migration edges, we used the R package optM [@fitak_optm:_2019].
 
 
-```{r plotOptM,message=FALSE,fig.show='true',fig.cap="Scree plot showing the comparison of Treemix number of migration edges."}
+```{r plotOptM,message=FALSE,fig.show='true',fig.cap="Plot showing the comparison of Treemix number of migration edges using the Evanno method."}
 library(OptM)
-tmOpt<-optM("treemix/migrations/",method="linear")
-plot_optM(tmOpt,plot = TRUE,method="linear")
+tmOpt<-optM("treemix/migrations/")
+evanno_treemix(tmOpt)
 ```
 
 ```{r treemixMigrationEdges}
