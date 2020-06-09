@@ -763,9 +763,8 @@ knitr::include_graphics('../figs/treemix_comparison.png')
 
 ### Threepop and fourpop analysis
 
-Generally, if population A is a result of an admixture between two other populations B and C, the calculated z‐score for each tested combination of three populations would have a significant negative value. A positive z‐score may indicate either absence of admixture or substantial post‐admixture drift resulting from the alleles in the population. [copied from Onzima]
 
-We investigated the two migration edges that are in the best Treemix model using threepop and fourpop analyses. In the threepop analysis, significantly negative f3 statistics mean that the first pop in the list (A in A;B,C) is admixed. Therefore, with the threepop analysis we want to look for the tree (A;B,C) where A corresponds to the end of an arrow and (B,C) corresponds to where an arrow begins. In the fourpop analysis, a significantly non-zero value indicates gene flow in the tree.
+We investigated the two migration edges that are in the best Treemix model using threepop and fourpop analyses. In the threepop analysis, significantly negative f3 statistics mean that the first pop in the list (A in A;B,C) is admixed [@pickrellInferencePopulationSplits2012; @reichReconstructingIndianPopulation2009]. Therefore, with the threepop analysis we want to look for the tree (A;B,C) where A corresponds to the end of an arrow and (B,C) corresponds to where an arrow begins. In the fourpop analysis, a significantly non-zero value indicates gene flow in the tree [@pickrellInferencePopulationSplits2012; @reichReconstructingIndianPopulation2009]. 
 
 ```{r readf3f4}
 threepop<-data.frame(do.call(rbind,
