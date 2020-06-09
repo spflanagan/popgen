@@ -25,7 +25,7 @@ header-includes: >
   \floatplacement{figure}{H}
 bibliography: programs.bib
 output:
-  pdf_document:
+  bookdown::pdf_document2:
     fig_caption: yes
     keep_tex: yes
     number_sections: no
