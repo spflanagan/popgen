@@ -823,6 +823,23 @@ kable(f4s,"latex",booktabs=TRUE,longtable=TRUE,
   kable_styling(latex_options=c("HOLD_position","repeat_header"))
 ```
 
+```{r f4Edge1Fig,fig.pos='H',fig.width=8,fig.height=6,fig.cap="Plot of the f4 statistic for four-population trees including both FLPB and FLAB and other Florida populations. Error bars show the standard errors generated from block jackknifes. Trees indicative of admixture in the tree are those with significantly non-zero f4 statistics."}
+f4s$lowSE<-as.numeric(f4s$f4_stat)-as.numeric(f4s$f4_se)
+f4s$uppSE<-as.numeric(f4s$f4_stat)+as.numeric(f4s$f4_se)
+ymax<-max(abs(c(f4s$lowSE,FLPB_edge$uppSE)))+0.001
+
+# all the relevant trees
+plot(1:nrow(f4s),as.numeric(f4s$f4_stat),
+     ylim=c(ymax*-1,ymax),axes=FALSE,
+     xlab="",ylab="f4 statistic +/- SE")
+abline(h=0,lty=2)
+arrows(1:nrow(f4s),f4s$lowSE,
+       1:nrow(f4s),f4s$uppSE,code=3,angle=0)
+axis(2,at=seq(-0.05,0.05,0.01),las=1)
+axis(1,pos=-0.01,at=1:nrow(f4s),
+     labels = f4s$pops,las=2,cex.axis=0.75)
+
+```
 
 
 # References {-}
