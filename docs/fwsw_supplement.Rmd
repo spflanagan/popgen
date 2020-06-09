@@ -797,7 +797,6 @@ FLPB_edge$f3_z<-as.numeric(FLPB_edge$f3_z)
 
 ymax<-max(abs(c(FLPB_edge$lowSE,FLPB_edge$uppSE)))+0.001
 
-par(mfrow=c(2,1),oma=c(5.5,4,1,0))
 # all the relevant trees
 plot(1:nrow(FLPB_edge),as.numeric(FLPB_edge$f3_stat),
      ylim=c(ymax*-1,ymax),axes=FALSE,
@@ -809,14 +808,6 @@ axis(2,at=seq(-0.05,0.05,0.01),las=1)
 axis(1,pos=-0.01,at=1:nrow(FLPB_edge),
      labels = FLPB_edge$pops,las=2,cex.axis=0.75)
 
-# plot the z-scores
-ptfill<-rep(1,nrow(FLPB_edge))
-ptfill[which(FLPB_edge$f3_p<=0.05)]<-19
-plot(1:nrow(FLPB_edge),as.numeric(FLPB_edge$f3_z),axes=FALSE,
-     xlab="",ylab="f3 z-score",pch=ptfill,cex=2)
-axis(2,las=1)
-axis(1,pos=-10,at=1:nrow(FLPB_edge),
-     labels = FLPB_edge$pops,las=2,cex.axis=0.75)
 
 ```
 
