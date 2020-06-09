@@ -258,6 +258,7 @@ To compare the $\delta_A\delta_I$ results for each population pair, we used cust
 fllg_flcc<-dadi_initialCompare("FLLG_FLCC",modSel="median")
 ```
 ```{r fffwTable}
+best_mod<-names(which.max(tapply(as.numeric(fllg_flcc[[1]]$log.likelihood),fllg_flcc[[1]]$Model,median)))
 sumTab<-fllg_flcc[[2]]
 sumTab<-sumTab[,-2]
 sumTab<-sumTab[,c(9,1:5,10:12,6,7)]
@@ -299,7 +300,7 @@ points(1:11,
        pch=8,col="red",lwd=2)
 ```
 ```{r setupOutTable}
-best_mod<-names(which.max(tapply(as.numeric(fllg_flcc[[1]]$log.likelihood),fllg_flcc[[1]]$Model,median)))
+
 outNames<-colnames(do.call(rbind,
                            extract_dadi_params(
                              fllg_flcc[[1]][fllg_flcc[[1]]$Model==best_mod,])))
