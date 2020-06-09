@@ -761,14 +761,16 @@ We investigated the two migration edges that are in the best Treemix model using
 threepop<-data.frame(do.call(rbind,
                              strsplit(grep(
                                ";",readLines("treemix/fwsw_threepop.txt"),
-                               value = TRUE),' ')))
+                               value = TRUE),' ')),
+                     stringsAsFactors = FALSE)
 colnames(threepop)<-c("pops","f3_stat","f3_se","f3_z")
-threepop$f3_p<-pnorm(-abs(as.numeric(as.character(threepop$f3_z)))) # one sided
+threepop$f3_p<-pnorm(as.numeric(as.character(threepop$f3_z))) # one sided
 
 fourpop<-data.frame(do.call(rbind,
                             strsplit(grep(";",
                                           readLines("treemix/fwsw_fourpop.txt"),
-                                          value = TRUE),' ')))
+                                          value = TRUE),' ')),
+                     stringsAsFactors = FALSE)
 colnames(fourpop)<-c("pops","f4_stat","f4_se","f4_z")
 fourpop$f4_p<-2*pnorm(-abs(as.numeric(as.character(fourpop$f4_z))))
 ```
