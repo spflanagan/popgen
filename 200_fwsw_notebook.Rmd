@@ -23,6 +23,10 @@ library(knitr)
 pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 ```
 
+# 10 June 2020
+
+Yesterday I finished up the treemix analyses, including the threepop and fourpop ones and re-making the main text figure. So the goals for today are to update the main text and to finish up/make progress on the dadi results.
+
 # 9 June 2020
 
 Today's goals:
