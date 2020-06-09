@@ -441,7 +441,7 @@ knitr::include_graphics('../figs/fst_heatmaps.png')
 
 
 
-## PCAdapt {-}
+## PCAdapt {#pcadapt}
 
 Principal components analysis was implemented using PCAdapt [@luuPcadaptPackagePerform2017]. We initially ran the analysis on the full dataset of 7433 SNPs, visualizing 20 principal components axes to determine the optimal number of axes to retain that explain the majority of the variation among samples and populations. By inspecting the plot of the proportion of variation explained by each axis (Figure \@ref(fig:pcadaptScree)), we determined that retaining 7 axes was appropriate for our dataset.
 
