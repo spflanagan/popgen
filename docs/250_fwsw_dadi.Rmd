@@ -248,6 +248,23 @@ dadi_initialCompare<-function(comparison,modSel="max"){
   return(list(opts,comp))
 }
 ```
+```{r}
+dadi_pairSummary<-function(compareList){
+  sumDat<-extract_dadi_params(compareList[[2]])
+  keepnames<-unique(unlist(lapply(sumDat,colnames)))
+  keepnames<-keepnames[!keepnames %in% c("Replicate","params","optimized_params","rank","id")]
+  keepnames<-c("PopPair",keepnames)
+  sumTab<-data.frame(matrix(nrow = length(sumDat),ncol=length(keepnames),
+                              dimnames = list(NULL,keepnames)))
+  for(i in 1:length(sumDat)){
+    sumTab[i,1]<-sumDat[[i]]$id
+    sumTab[i,colnames(sumTab) %in% colnames(sumDat[[i]])]<-sumDat[[i]][,colnames(sumDat[[i]]) %in% keepnames]
+  }
+  return(sumTab)
+}
+
+```
+
 
 To compare the $\delta_A\delta_I$ results for each population pair, we used custom functions (in the `250_dadi_analysis.R` script) to choose the run of each model with the highest median log likelihood. We opted to use the run with the median log likelihood because we observed some of our models with large log likelihoods explored paramter space not representative of all of the runs of that particular model and population pair (for example, see Figure \@ref(fig:fllgCompareMods)). We then compared log likelihoods, AIC scores, and model scores to select the best model to desribe the demographic history of each population pair. 
 
