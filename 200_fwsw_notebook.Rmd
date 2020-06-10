@@ -27,6 +27,8 @@ pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 
 Yesterday I finished up the treemix analyses, including the threepop and fourpop ones and re-making the main text figure. So the goals for today are to update the main text and to finish up/make progress on the dadi results.
 
+I'm going to try to fix table output for dadi so that it's like the summary table but for each population. Done! wrote a function to do this, which I think should work well. Hmm for some reason my function to extract dadi information does not return all fo the models to put into the table...this has to do with the switch to the median. This is because when there are even numbers the median is in between two so neither is chosen. How should I deal with this? I fixed it by choosing the model with the minimum difference between its log likelihood and the median. This is simply to choose which model is used for model comparisons. 
+
 # 9 June 2020
 
 Today's goals:
