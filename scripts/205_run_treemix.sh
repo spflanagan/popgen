@@ -66,14 +66,22 @@ fi
 if [ "$METHOD" == "migrations" ]; then
 	echo "Running treemix with migration edges"
 	[ ! -d "migrations" ] && mkdir -p migrations
+	# maximum likelihood trees
+	treemix -i ${PREFIX}_treemix.gz -k 100 -tf rooted_consensus.newick -root ${ROOT} -se -m 0 -o migrations/${PREFIX}_${ROOT}_m0
+	treemix -i ${PREFIX}_treemix.gz -k 100 -tf rooted_consensus.newick -root ${ROOT} -se -m 1 -o migrations/${PREFIX}_${ROOT}_m1
+	treemix -i ${PREFIX}_treemix.gz -k 100 -tf rooted_consensus.newick -root ${ROOT} -se -m 2 -o migrations/${PREFIX}_${ROOT}_m2
+	treemix -i ${PREFIX}_treemix.gz -k 100 -tf rooted_consensus.newick -root ${ROOT} -se -m 3 -o migrations/${PREFIX}_${ROOT}_m3
+	treemix -i ${PREFIX}_treemix.gz -k 100 -tf rooted_consensus.newick -root ${ROOT} -se -m 4 -o migrations/${PREFIX}_${ROOT}_m4
+	treemix -i ${PREFIX}_treemix.gz -k 100 -tf rooted_consensus.newick -root ${ROOT} -se -m 5 -o migrations/${PREFIX}_${ROOT}_m5
+	# bootstraps
 	for (( i=1; i<=$bootreps; i++ ))
 	do
-		treemix -i ${PREFIX}_treemix.gz -k 100 -tf rooted_consensus.newick -root ${ROOT} -se -m 0 -o migrations/${PREFIX}_${ROOT}_m0_${i}
-		treemix -i ${PREFIX}_treemix.gz -k 100 -tf rooted_consensus.newick -root ${ROOT} -se -m 1 -o migrations/${PREFIX}_${ROOT}_m1_${i}
-		treemix -i ${PREFIX}_treemix.gz -k 100 -tf rooted_consensus.newick -root ${ROOT} -se -m 2 -o migrations/${PREFIX}_${ROOT}_m2_${i}
-		treemix -i ${PREFIX}_treemix.gz -k 100 -tf rooted_consensus.newick -root ${ROOT} -se -m 3 -o migrations/${PREFIX}_${ROOT}_m3_${i}
-		treemix -i ${PREFIX}_treemix.gz -k 100 -tf rooted_consensus.newick -root ${ROOT} -se -m 4 -o migrations/${PREFIX}_${ROOT}_m4_${i}
-		treemix -i ${PREFIX}_treemix.gz -k 100 -tf rooted_consensus.newick -root ${ROOT} -se -m 5 -o migrations/${PREFIX}_${ROOT}_m5_${i}
+		treemix -i ${PREFIX}_treemix.gz -k 100 -bootstrap -tf rooted_consensus.newick -root ${ROOT} -se -m 0 -o migrations/${PREFIX}_${ROOT}_m0_${i}
+		treemix -i ${PREFIX}_treemix.gz -k 100 -bootstrap -tf rooted_consensus.newick -root ${ROOT} -se -m 1 -o migrations/${PREFIX}_${ROOT}_m1_${i}
+		treemix -i ${PREFIX}_treemix.gz -k 100 -bootstrap -tf rooted_consensus.newick -root ${ROOT} -se -m 2 -o migrations/${PREFIX}_${ROOT}_m2_${i}
+		treemix -i ${PREFIX}_treemix.gz -k 100 -bootstrap -tf rooted_consensus.newick -root ${ROOT} -se -m 3 -o migrations/${PREFIX}_${ROOT}_m3_${i}
+		treemix -i ${PREFIX}_treemix.gz -k 100 -bootstrap -tf rooted_consensus.newick -root ${ROOT} -se -m 4 -o migrations/${PREFIX}_${ROOT}_m4_${i}
+		treemix -i ${PREFIX}_treemix.gz -k 100 -bootstrap -tf rooted_consensus.newick -root ${ROOT} -se -m 5 -o migrations/${PREFIX}_${ROOT}_m5_${i}
 	done
 	
 
