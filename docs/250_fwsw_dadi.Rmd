@@ -274,6 +274,8 @@ To compare the $\delta_A\delta_I$ results for each population pair, we used cust
 ```{r fllgOpts, fig.cap="Comparison of log likelihoods for FLFW-FLCC models"}
 fllg_flcc<-dadi_initialCompare("FLLG_FLCC",modSel="median")
 ```
+
+
 ```{r fffwTable}
 sumTab<-dadi_pairSummary(fllg_flcc)
 
@@ -281,6 +283,8 @@ landscape(kable(sumTab,"latex",booktabs=TRUE,
       caption = "Table showing the results of the run with the median log likelihood for each model",
       row.names = FALSE)) %>%
   kable_styling(latex_options=c("scale_down","HOLD_position"))
+
+best_mod<-sumTab$Model[which.max(sumTab$model_score)]
 
 ```
 
@@ -342,7 +346,6 @@ Based on these results, we conclude that the FLFW and FLCC populations -- which 
 fllg_alfw<-dadi_initialCompare("FLLG_ALFW")
 ```
 ```{r BestMods2}
-best_mod<-names(which.max(tapply(as.numeric(fllg_alfw[[1]]$log.likelihood),fllg_alfw[[1]]$Model,median)))
 
 
 sumTab<-dadi_pairSummary(fllg_alfw)
@@ -352,8 +355,10 @@ landscape(kable(sumTab,"latex",booktabs=TRUE,
       row.names = FALSE)) %>%
   kable_styling(latex_options=c("scale_down","HOLD_position"))
 
+best_mod<-sumTab$Model[which.max(sumTab$model_score)]
 fllg_alfw_best<-do.call(rbind,
                          extract_dadi_params(fllg_alfw[[1]][fllg_alfw[[1]]$Model==best_mod,]))
+
 ```
 
 The model with the highest median log likelihoods was `r best_mod`, which is a model including recent migration, linked selection, and changes in population sizes. These results suggest recent immigration between these two geographically isolated freshwater populations. 
@@ -374,7 +379,6 @@ bestModels[2,]<-c("FLFW","ALFW",Model=best_mod)
 fllg_alst<-dadi_initialCompare("FLLG_ALST")
 ```
 ```{r BestMods3}
-best_mod<-names(which.max(tapply(as.numeric(fllg_alst[[1]]$log.likelihood),fllg_alst[[1]]$Model,median)))
 
 sumTab<-dadi_pairSummary(fllg_alst)
 
@@ -383,9 +387,11 @@ landscape(kable(sumTab,"latex",booktabs=TRUE,
       row.names = FALSE)) %>%
   kable_styling(latex_options=c("scale_down","HOLD_position"))
 
+best_mod<-sumTab$Model[which.max(sumTab$model_score)]
 fllg_alst_best<-do.call(rbind,
                          extract_dadi_params(fllg_alst[[1]][fllg_alst[[1]]$Model==
                                                               best_mod,]))
+
 ```
 
 The model with the highest median log likelihoods was `r best_mod`.
@@ -405,6 +411,8 @@ bestModels[3,]<-c("FLFW","ALST",Model=best_mod)
 ```{r fflfOpts, fig.cap="Comparison of log likelihoods for FLFW-LAFW models"}
 fllg_lafw<-dadi_initialCompare("FLLG_LAFW")
 ```
+
+```{r sumTab4}
 sumTab<-dadi_pairSummary(fllg_lafw)
 
 landscape(kable(sumTab,"latex",booktabs=TRUE,
@@ -413,12 +421,14 @@ landscape(kable(sumTab,"latex",booktabs=TRUE,
   kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
 ```{r BestMods4}
-best_mod<-names(which.max(tapply(as.numeric(fllg_lafw[[1]]$log.likelihood),fllg_lafw[[1]]$Model,median)))
+best_mod<-sumTab$Model[which.max(sumTab$model_score)]
 fllg_lafw_best<-do.call(rbind,
                          extract_dadi_params(fllg_lafw[[1]][fllg_lafw[[1]]$Model==best_mod,]))
+
 ```
 
 The model with the highest median log likelihoods was `r best_mod`.
+
 
 ```{r saveBest4}
 best<-fllg_lafw_best[which.max(fllg_lafw_best$log.likelihood),]
@@ -445,11 +455,10 @@ landscape(kable(sumTab,"latex",booktabs=TRUE,
   kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
 ```{r BestMods5}
-best_mod<-names(which.max(tapply(as.numeric(fllg_txfw[[1]]$log.likelihood),fllg_txfw[[1]]$Model,median)))
+best_mod<-sumTab$Model[which.max(sumTab$model_score)]
 fllg_txfw_best<-do.call(rbind,
                          extract_dadi_params(fllg_txfw[[1]][fllg_txfw[[1]]$Model==best_mod,]))
 ```
-
 The model with the highest median log likelihoods was `r best_mod`.
 
 ```{r saveBest5}
@@ -476,11 +485,10 @@ landscape(kable(sumTab,"latex",booktabs=TRUE,
   kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
 ```{r BestMods6}
-best_mod<-names(which.max(tapply(as.numeric(fllg_txcc[[1]]$log.likelihood),fllg_txcc[[1]]$Model,median)))
+best_mod<-sumTab$Model[which.max(sumTab$model_score)]
 fllg_txcc_best<-do.call(rbind,
                          extract_dadi_params(fllg_txcc[[1]][fllg_txcc[[1]]$Model==best_mod,]))
 ```
-
 The model with the highest median log likelihoods was `r best_mod`.
 
 ```{r saveBest6}
@@ -507,11 +515,10 @@ landscape(kable(sumTab,"latex",booktabs=TRUE,
   kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
 ```{r BestMods7}
-best_mod<-names(which.max(tapply(as.numeric(flcc_alfw[[1]]$log.likelihood),flcc_alfw[[1]]$Model,median)))
+best_mod<-sumTab$Model[which.max(sumTab$model_score)]
 flcc_alfw_best<-do.call(rbind,
                          extract_dadi_params(flcc_alfw[[1]][flcc_alfw[[1]]$Model==best_mod,]))
 ```
-
 The model with the highest median log likelihoods was `r best_mod`.
 
 ```{r saveBest7}
@@ -538,7 +545,7 @@ landscape(kable(sumTab,"latex",booktabs=TRUE,
   kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
 ```{r BestMods8}
-best_mod<-names(which.max(tapply(as.numeric(flcc_alst[[1]]$log.likelihood),flcc_alst[[1]]$Model,median)))
+best_mod<-sumTab$Model[which.max(sumTab$model_score)]
 flcc_alst_best<-do.call(rbind,
                       extract_dadi_params(
                         flcc_alst[[1]][flcc_alst[[1]]$Model==best_mod,]))
@@ -569,7 +576,7 @@ landscape(kable(sumTab,"latex",booktabs=TRUE,
   kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
 ```{r BestMods9}
-best_mod<-names(which.max(tapply(as.numeric(flcc_lafw[[1]]$log.likelihood),flcc_lafw[[1]]$Model,median)))
+best_mod<-sumTab$Model[which.max(sumTab$model_score)]
 flcc_lafw_best<-do.call(rbind,
                       extract_dadi_params(
                         flcc_lafw[[1]][flcc_lafw[[1]]$Model==best_mod,]))
@@ -599,7 +606,7 @@ landscape(kable(sumTab,"latex",booktabs=TRUE,
   kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
 ```{r BestMods10}
-best_mod<-names(which.max(tapply(as.numeric(flcc_txfw[[1]]$log.likelihood),flcc_txfw[[1]]$Model,median)))
+best_mod<-sumTab$Model[which.max(sumTab$model_score)]
 flcc_txfw_best<-do.call(rbind,
                       extract_dadi_params(
                         flcc_txfw[[1]][flcc_txfw[[1]]$Model==best_mod,]))
@@ -629,7 +636,7 @@ landscape(kable(sumTab,"latex",booktabs=TRUE,
   kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
 ```{r BestMods11}
-best_mod<-names(which.max(tapply(as.numeric(flcc_txcc[[1]]$log.likelihood),flcc_txcc[[1]]$Model,median)))
+best_mod<-sumTab$Model[which.max(sumTab$model_score)]
 flcc_txcc_best<-do.call(rbind,
                       extract_dadi_params(
                         flcc_txcc[[1]][flcc_txcc[[1]]$Model==best_mod,]))
@@ -659,7 +666,7 @@ landscape(kable(sumTab,"latex",booktabs=TRUE,
   kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
 ```{r BestMods12}
-best_mod<-names(which.max(tapply(as.numeric(alfw_alst[[1]]$log.likelihood),alfw_alst[[1]]$Model,median)))
+best_mod<-sumTab$Model[which.max(sumTab$model_score)]
 alfw_alst_best<-do.call(rbind,
                       extract_dadi_params(
                         alfw_alst[[1]][alfw_alst[[1]]$Model==best_mod,]))
@@ -689,7 +696,7 @@ landscape(kable(sumTab,"latex",booktabs=TRUE,
   kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
 ```{r BestMods13}
-best_mod<-names(which.max(tapply(as.numeric(alfw_lafw[[1]]$log.likelihood),alfw_lafw[[1]]$Model,median)))
+best_mod<-sumTab$Model[which.max(sumTab$model_score)]
 alfw_lafw_best<-do.call(rbind,
                       extract_dadi_params(
                         alfw_lafw[[1]][alfw_lafw[[1]]$Model==best_mod,]))
@@ -719,7 +726,7 @@ landscape(kable(sumTab,"latex",booktabs=TRUE,
   kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
 ```{r BestMods14}
-best_mod<-names(which.max(tapply(as.numeric(alfw_txfw[[1]]$log.likelihood),alfw_txfw[[1]]$Model,median)))
+best_mod<-sumTab$Model[which.max(sumTab$model_score)]
 alfw_txfw_best<-do.call(rbind,
                       extract_dadi_params(
                         alfw_txfw[[1]][alfw_txfw[[1]]$Model==best_mod,]))
@@ -750,7 +757,7 @@ landscape(kable(sumTab,"latex",booktabs=TRUE,
   kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
 ```{r BestMods15}
-best_mod<-names(which.max(tapply(as.numeric(alfw_txcc[[1]]$log.likelihood),alfw_txcc[[1]]$Model,median)))
+best_mod<-sumTab$Model[which.max(sumTab$model_score)]
 alfw_txcc_best<-do.call(rbind,
                       extract_dadi_params(
                         alfw_txcc[[1]][alfw_txcc[[1]]$Model==best_mod,]))
@@ -781,7 +788,7 @@ landscape(kable(sumTab,"latex",booktabs=TRUE,
   kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
 ```{r BestMods16}
-best_mod<-names(which.max(tapply(as.numeric(alst_lafw[[1]]$log.likelihood),alst_lafw[[1]]$Model,median)))
+best_mod<-sumTab$Model[which.max(sumTab$model_score)]
 alst_lafw_best<-do.call(rbind,
                       extract_dadi_params(
                         alst_lafw[[1]][alst_lafw[[1]]$Model==best_mod,]))
@@ -812,7 +819,7 @@ landscape(kable(sumTab,"latex",booktabs=TRUE,
   kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
 ```{r BestMods17}
-best_mod<-names(which.max(tapply(as.numeric(alst_txfw[[1]]$log.likelihood),alst_txfw[[1]]$Model,median)))
+best_mod<-sumTab$Model[which.max(sumTab$model_score)]
 alst_txfw_best<-do.call(rbind,
                       extract_dadi_params(
                         alst_txfw[[1]][alst_txfw[[1]]$Model==best_mod,]))
@@ -843,7 +850,7 @@ landscape(kable(sumTab,"latex",booktabs=TRUE,
   kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
 ```{r BestMods18}
-best_mod<-names(which.max(tapply(as.numeric(alst_txcc[[1]]$log.likelihood),alst_txcc[[1]]$Model,median)))
+best_mod<-sumTab$Model[which.max(sumTab$model_score)]
 alst_txcc_best<-do.call(rbind,
                       extract_dadi_params(
                         alst_txcc[[1]][alst_txcc[[1]]$Model==best_mod,]))
@@ -874,7 +881,7 @@ landscape(kable(sumTab,"latex",booktabs=TRUE,
   kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
 ```{r BestMods19}
-best_mod<-names(which.max(tapply(as.numeric(lafw_txfw[[1]]$log.likelihood),lafw_txfw[[1]]$Model,median)))
+best_mod<-sumTab$Model[which.max(sumTab$model_score)]
 lafw_txfw_best<-do.call(rbind,
                       extract_dadi_params(
                         lafw_txfw[[1]][lafw_txfw[[1]]$Model==best_mod,]))
@@ -905,7 +912,7 @@ landscape(kable(sumTab,"latex",booktabs=TRUE,
   kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
 ```{r BestMods20}
-best_mod<-names(which.max(tapply(as.numeric(lafw_txcc[[1]]$log.likelihood),lafw_txcc[[1]]$Model,median)))
+best_mod<-sumTab$Model[which.max(sumTab$model_score)]
 lafw_txcc_best<-do.call(rbind,
                       extract_dadi_params(
                         lafw_txcc[[1]][lafw_txcc[[1]]$Model==best_mod,]))
@@ -936,7 +943,7 @@ landscape(kable(sumTab,"latex",booktabs=TRUE,
   kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
 ```{r BestMods21}
-best_mod<-names(which.max(tapply(as.numeric(txfw_txcc[[1]]$log.likelihood),txfw_txcc[[1]]$Model,median)))
+best_mod<-sumTab$Model[which.max(sumTab$model_score)]
 txfw_txcc_best<-do.call(rbind,
                       extract_dadi_params(
                         txfw_txcc[[1]][txfw_txcc[[1]]$Model==best_mod,]))
