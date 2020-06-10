@@ -275,21 +275,13 @@ To compare the $\delta_A\delta_I$ results for each population pair, we used cust
 fllg_flcc<-dadi_initialCompare("FLLG_FLCC",modSel="median")
 ```
 ```{r fffwTable}
-best_mod<-names(which.max(tapply(as.numeric(fllg_flcc[[1]]$log.likelihood),fllg_flcc[[1]]$Model,median)))
-sumTab<-fllg_flcc[[2]]
-sumTab<-sumTab[,-2]
-sumTab<-sumTab[,c(9,1:5,10:12,6,7)]
-sumTab$parms<-apply(sumTab,1,function(dat){
-  return(paste0(unlist(strsplit(dat["params"],",")),"=",
-         unlist(strsplit(dat["optimized_params"],","))))
-})
-sumTab<-sumTab[,-c(9,10,11)]  
+sumTab<-dadi_pairSummary(fllg_flcc)
 
-landscape(kable(sumTab,"latex",booktabs=TRUE,longtable=TRUE,
+landscape(kable(sumTab,"latex",booktabs=TRUE,
       caption = "Table showing the results of the run with the median log likelihood for each model",
       row.names = FALSE)) %>%
-  kable_styling(latex_options=c("scale_down","repeat_header","HOLD_position"))  %>%
-  column_spec(9,width = "20em")
+  kable_styling(latex_options=c("scale_down","HOLD_position"))
+
 ```
 
 
@@ -320,7 +312,7 @@ points(1:11,
 
 outNames<-colnames(do.call(rbind,
                            extract_dadi_params(
-                             fllg_flcc[[1]][fllg_flcc[[1]]$Model==best_mod,])))
+                             fllg_flcc[[1]][fllg_flcc[[1]]$Model=="SC2N2mG",])))
 outNames<-outNames[!outNames %in% c("Replicate","params","optimized_params","rank","id")]
 outNames<-c("PopPair",outNames,"Tam")
 
@@ -351,6 +343,15 @@ fllg_alfw<-dadi_initialCompare("FLLG_ALFW")
 ```
 ```{r BestMods2}
 best_mod<-names(which.max(tapply(as.numeric(fllg_alfw[[1]]$log.likelihood),fllg_alfw[[1]]$Model,median)))
+
+
+sumTab<-dadi_pairSummary(fllg_alfw)
+
+landscape(kable(sumTab,"latex",booktabs=TRUE,
+      caption = "Table showing the results of the run with the median log likelihood for each model",
+      row.names = FALSE)) %>%
+  kable_styling(latex_options=c("scale_down","HOLD_position"))
+
 fllg_alfw_best<-do.call(rbind,
                          extract_dadi_params(fllg_alfw[[1]][fllg_alfw[[1]]$Model==best_mod,]))
 ```
@@ -374,6 +375,14 @@ fllg_alst<-dadi_initialCompare("FLLG_ALST")
 ```
 ```{r BestMods3}
 best_mod<-names(which.max(tapply(as.numeric(fllg_alst[[1]]$log.likelihood),fllg_alst[[1]]$Model,median)))
+
+sumTab<-dadi_pairSummary(fllg_alst)
+
+landscape(kable(sumTab,"latex",booktabs=TRUE,
+      caption = "Table showing the results of the run with the median log likelihood for each model",
+      row.names = FALSE)) %>%
+  kable_styling(latex_options=c("scale_down","HOLD_position"))
+
 fllg_alst_best<-do.call(rbind,
                          extract_dadi_params(fllg_alst[[1]][fllg_alst[[1]]$Model==
                                                               best_mod,]))
@@ -395,6 +404,13 @@ bestModels[3,]<-c("FLFW","ALST",Model=best_mod)
 
 ```{r fflfOpts, fig.cap="Comparison of log likelihoods for FLFW-LAFW models"}
 fllg_lafw<-dadi_initialCompare("FLLG_LAFW")
+```
+sumTab<-dadi_pairSummary(fllg_lafw)
+
+landscape(kable(sumTab,"latex",booktabs=TRUE,
+      caption = "Table showing the results of the run with the median log likelihood for each model",
+      row.names = FALSE)) %>%
+  kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
 ```{r BestMods4}
 best_mod<-names(which.max(tapply(as.numeric(fllg_lafw[[1]]$log.likelihood),fllg_lafw[[1]]$Model,median)))
@@ -419,6 +435,15 @@ bestModels[4,]<-c("FLFW","LAFW",Model=best_mod)
 ```{r fftfOpts, fig.cap="Comparison of log likelihoods for FLFW-TXFW models"}
 fllg_txfw<-dadi_initialCompare("FLLG_TXFW")
 ```
+
+```{r sumTab5}
+sumTab<-dadi_pairSummary(fllg_txfw)
+
+landscape(kable(sumTab,"latex",booktabs=TRUE,
+      caption = "Table showing the results of the run with the median log likelihood for each model",
+      row.names = FALSE)) %>%
+  kable_styling(latex_options=c("scale_down","HOLD_position"))
+```
 ```{r BestMods5}
 best_mod<-names(which.max(tapply(as.numeric(fllg_txfw[[1]]$log.likelihood),fllg_txfw[[1]]$Model,median)))
 fllg_txfw_best<-do.call(rbind,
@@ -440,6 +465,15 @@ bestModels[5,]<-c("FLFW","TXFW",Model=best_mod)
 
 ```{r fftsOpts, fig.cap="Comparison of log likelihoods for FLFW-TXCC models"}
 fllg_txcc<-dadi_initialCompare("FLLG_TXCC")
+```
+
+```{r sumTab6}
+sumTab<-dadi_pairSummary(fllg_txcc)
+
+landscape(kable(sumTab,"latex",booktabs=TRUE,
+      caption = "Table showing the results of the run with the median log likelihood for each model",
+      row.names = FALSE)) %>%
+  kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
 ```{r BestMods6}
 best_mod<-names(which.max(tapply(as.numeric(fllg_txcc[[1]]$log.likelihood),fllg_txcc[[1]]$Model,median)))
@@ -463,6 +497,15 @@ bestModels[6,]<-c("FLFW","TXCC",Model=best_mod)
 ```{r fsafOpts, fig.cap="Comparison of log likelihoods for FLCC-ALFW models"}
 flcc_alfw<-dadi_initialCompare("FLCC_ALFW")
 ```
+
+```{r sumTab7}
+sumTab<-dadi_pairSummary(fllg_alfw)
+
+landscape(kable(sumTab,"latex",booktabs=TRUE,
+      caption = "Table showing the results of the run with the median log likelihood for each model",
+      row.names = FALSE)) %>%
+  kable_styling(latex_options=c("scale_down","HOLD_position"))
+```
 ```{r BestMods7}
 best_mod<-names(which.max(tapply(as.numeric(flcc_alfw[[1]]$log.likelihood),flcc_alfw[[1]]$Model,median)))
 flcc_alfw_best<-do.call(rbind,
@@ -484,6 +527,15 @@ bestModels[7,]<-c("FLCC","ALFW",Model=best_mod)
 
 ```{r fsasOpts, fig.cap="Comparison of log likelihoods for FLCC-ALST models"}
 flcc_alst<-dadi_initialCompare("FLCC_ALST")
+```
+
+```{r sumTab8}
+sumTab<-dadi_pairSummary(fllg_alst)
+
+landscape(kable(sumTab,"latex",booktabs=TRUE,
+      caption = "Table showing the results of the run with the median log likelihood for each model",
+      row.names = FALSE)) %>%
+  kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
 ```{r BestMods8}
 best_mod<-names(which.max(tapply(as.numeric(flcc_alst[[1]]$log.likelihood),flcc_alst[[1]]$Model,median)))
@@ -507,6 +559,15 @@ bestModels[8,]<-c("FLCC","ALST",Model=best_mod)
 ```{r fslfOpts, fig.cap="Comparison of log likelihoods for FLCC-LAFW models"}
 flcc_lafw<-dadi_initialCompare("FLCC_LAFW")
 ```
+
+```{r sumTab9}
+sumTab<-dadi_pairSummary(flcc_lafw)
+
+landscape(kable(sumTab,"latex",booktabs=TRUE,
+      caption = "Table showing the results of the run with the median log likelihood for each model",
+      row.names = FALSE)) %>%
+  kable_styling(latex_options=c("scale_down","HOLD_position"))
+```
 ```{r BestMods9}
 best_mod<-names(which.max(tapply(as.numeric(flcc_lafw[[1]]$log.likelihood),flcc_lafw[[1]]$Model,median)))
 flcc_lafw_best<-do.call(rbind,
@@ -527,6 +588,15 @@ bestModels[9,]<-c("FLCC","LAFW",Model=best_mod)
 
 ```{r fstfOpts, fig.cap="Comparison of log likelihoods for FLCC-TXFW models"}
 flcc_txfw<-dadi_initialCompare("FLCC_TXFW")
+```
+
+```{r sumTab10}
+sumTab<-dadi_pairSummary(flcc_txfw)
+
+landscape(kable(sumTab,"latex",booktabs=TRUE,
+      caption = "Table showing the results of the run with the median log likelihood for each model",
+      row.names = FALSE)) %>%
+  kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
 ```{r BestMods10}
 best_mod<-names(which.max(tapply(as.numeric(flcc_txfw[[1]]$log.likelihood),flcc_txfw[[1]]$Model,median)))
@@ -549,6 +619,15 @@ bestModels[10,]<-c("FLCC","TXFW",Model=best_mod)
 ```{r fstsOpts, fig.cap="Comparison of log likelihoods for FLCC-TXCC models"}
 flcc_txcc<-dadi_initialCompare("FLCC_TXCC")
 ```
+
+```{r sumTab11}
+sumTab<-dadi_pairSummary(flcc_txcc)
+
+landscape(kable(sumTab,"latex",booktabs=TRUE,
+      caption = "Table showing the results of the run with the median log likelihood for each model",
+      row.names = FALSE)) %>%
+  kable_styling(latex_options=c("scale_down","HOLD_position"))
+```
 ```{r BestMods11}
 best_mod<-names(which.max(tapply(as.numeric(flcc_txcc[[1]]$log.likelihood),flcc_txcc[[1]]$Model,median)))
 flcc_txcc_best<-do.call(rbind,
@@ -569,6 +648,15 @@ bestModels[11,]<-c("FLCC","TXCC",Model=best_mod)
 
 ```{r afasOpts, fig.cap="Comparison of log likelihoods for ALFW-ALST models"}
 alfw_alst<-dadi_initialCompare("ALFW_ALST")
+```
+
+```{r sumTab12}
+sumTab<-dadi_pairSummary(alfw_alst)
+
+landscape(kable(sumTab,"latex",booktabs=TRUE,
+      caption = "Table showing the results of the run with the median log likelihood for each model",
+      row.names = FALSE)) %>%
+  kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
 ```{r BestMods12}
 best_mod<-names(which.max(tapply(as.numeric(alfw_alst[[1]]$log.likelihood),alfw_alst[[1]]$Model,median)))
@@ -591,6 +679,15 @@ bestModels[12,]<-c("ALFW","ALST",Model=best_mod)
 ```{r aflfOpts, fig.cap="Comparison of log likelihoods for ALFW-LAFW models"}
 alfw_lafw<-dadi_initialCompare("ALFW_LAFW")
 ```
+
+```{r sumTab13}
+sumTab<-dadi_pairSummary(alfw_lafw)
+
+landscape(kable(sumTab,"latex",booktabs=TRUE,
+      caption = "Table showing the results of the run with the median log likelihood for each model",
+      row.names = FALSE)) %>%
+  kable_styling(latex_options=c("scale_down","HOLD_position"))
+```
 ```{r BestMods13}
 best_mod<-names(which.max(tapply(as.numeric(alfw_lafw[[1]]$log.likelihood),alfw_lafw[[1]]$Model,median)))
 alfw_lafw_best<-do.call(rbind,
@@ -611,6 +708,15 @@ bestModels[13,]<-c("ALFW","LAFW",Model=best_mod)
 
 ```{r aftfOpts, fig.cap="Comparison of log likelihoods for ALFW-TXFW models"}
 alfw_txfw<-dadi_initialCompare("ALFW_TXFW")
+```
+
+```{r sumTab14}
+sumTab<-dadi_pairSummary(alfw_txfw)
+
+landscape(kable(sumTab,"latex",booktabs=TRUE,
+      caption = "Table showing the results of the run with the median log likelihood for each model",
+      row.names = FALSE)) %>%
+  kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
 ```{r BestMods14}
 best_mod<-names(which.max(tapply(as.numeric(alfw_txfw[[1]]$log.likelihood),alfw_txfw[[1]]$Model,median)))
@@ -634,6 +740,15 @@ bestModels[14,]<-c("ALFW","TXFW",Model=best_mod)
 ```{r aftsOpts, fig.cap="Comparison of log likelihoods for ALFW-TXCC models"}
 alfw_txcc<-dadi_initialCompare("ALFW_TXCC")
 ```
+
+```{r sumTab15}
+sumTab<-dadi_pairSummary(alfw_txcc)
+
+landscape(kable(sumTab,"latex",booktabs=TRUE,
+      caption = "Table showing the results of the run with the median log likelihood for each model",
+      row.names = FALSE)) %>%
+  kable_styling(latex_options=c("scale_down","HOLD_position"))
+```
 ```{r BestMods15}
 best_mod<-names(which.max(tapply(as.numeric(alfw_txcc[[1]]$log.likelihood),alfw_txcc[[1]]$Model,median)))
 alfw_txcc_best<-do.call(rbind,
@@ -655,6 +770,15 @@ bestModels[15,]<-c("ALFW","TXCC",Model=best_mod)
 
 ```{r aslfOpts, fig.cap="Comparison of log likelihoods for ALST-LAFW models"}
 alst_lafw<-dadi_initialCompare("ALST_LAFW")
+```
+
+```{r sumTab16}
+sumTab<-dadi_pairSummary(alst_lafw)
+
+landscape(kable(sumTab,"latex",booktabs=TRUE,
+      caption = "Table showing the results of the run with the median log likelihood for each model",
+      row.names = FALSE)) %>%
+  kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
 ```{r BestMods16}
 best_mod<-names(which.max(tapply(as.numeric(alst_lafw[[1]]$log.likelihood),alst_lafw[[1]]$Model,median)))
@@ -678,6 +802,15 @@ bestModels[16,]<-c("ALST","LAFW",Model=best_mod)
 ```{r astfOpts, fig.cap="Comparison of log likelihoods for ALST-TXFW models"}
 alst_txfw<-dadi_initialCompare("ALST_TXFW")
 ```
+
+```{r sumTab17}
+sumTab<-dadi_pairSummary(alst_txfw)
+
+landscape(kable(sumTab,"latex",booktabs=TRUE,
+      caption = "Table showing the results of the run with the median log likelihood for each model",
+      row.names = FALSE)) %>%
+  kable_styling(latex_options=c("scale_down","HOLD_position"))
+```
 ```{r BestMods17}
 best_mod<-names(which.max(tapply(as.numeric(alst_txfw[[1]]$log.likelihood),alst_txfw[[1]]$Model,median)))
 alst_txfw_best<-do.call(rbind,
@@ -699,6 +832,15 @@ bestModels[17,]<-c("ALST","TXFW",Model=best_mod)
 
 ```{r astsOpts, fig.cap="Comparison of log likelihoods for ALST-TXCC models"}
 alst_txcc<-dadi_initialCompare("ALST_TXCC")
+```
+
+```{r sumTab18}
+sumTab<-dadi_pairSummary(alst_txcc)
+
+landscape(kable(sumTab,"latex",booktabs=TRUE,
+      caption = "Table showing the results of the run with the median log likelihood for each model",
+      row.names = FALSE)) %>%
+  kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
 ```{r BestMods18}
 best_mod<-names(which.max(tapply(as.numeric(alst_txcc[[1]]$log.likelihood),alst_txcc[[1]]$Model,median)))
@@ -722,6 +864,15 @@ bestModels[18,]<-c("ALST","TXCC",Model=best_mod)
 ```{r lftfOpts, fig.cap="Comparison of log likelihoods for LAFW-TXFW models"}
 lafw_txfw<-dadi_initialCompare("LAFW_TXFW")
 ```
+
+```{r sumTab19}
+sumTab<-dadi_pairSummary(lafw_txfw)
+
+landscape(kable(sumTab,"latex",booktabs=TRUE,
+      caption = "Table showing the results of the run with the median log likelihood for each model",
+      row.names = FALSE)) %>%
+  kable_styling(latex_options=c("scale_down","HOLD_position"))
+```
 ```{r BestMods19}
 best_mod<-names(which.max(tapply(as.numeric(lafw_txfw[[1]]$log.likelihood),lafw_txfw[[1]]$Model,median)))
 lafw_txfw_best<-do.call(rbind,
@@ -744,6 +895,15 @@ bestModels[19,]<-c("LAFW","TXFW",Model=best_mod)
 ```{r lftsOpts, fig.cap="Comparison of log likelihoods for LAFW-TXCC models"}
 lafw_txcc<-dadi_initialCompare("LAFW_TXCC")
 ```
+
+```{r sumTab20}
+sumTab<-dadi_pairSummary(lafw_txcc)
+
+landscape(kable(sumTab,"latex",booktabs=TRUE,
+      caption = "Table showing the results of the run with the median log likelihood for each model",
+      row.names = FALSE)) %>%
+  kable_styling(latex_options=c("scale_down","HOLD_position"))
+```
 ```{r BestMods20}
 best_mod<-names(which.max(tapply(as.numeric(lafw_txcc[[1]]$log.likelihood),lafw_txcc[[1]]$Model,median)))
 lafw_txcc_best<-do.call(rbind,
@@ -765,6 +925,15 @@ bestModels[20,]<-c("LAFW","TXCC",Model=best_mod)
 
 ```{r tftsOpts, fig.cap="Comparison of log likelihoods for TXFW-TXCC models"}
 txfw_txcc<-dadi_initialCompare("TXFW_TXCC")
+```
+
+```{r sumTab21}
+sumTab<-dadi_pairSummary(txfw_txcc)
+
+landscape(kable(sumTab,"latex",booktabs=TRUE,
+      caption = "Table showing the results of the run with the median log likelihood for each model",
+      row.names = FALSE)) %>%
+  kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
 ```{r BestMods21}
 best_mod<-names(which.max(tapply(as.numeric(txfw_txcc[[1]]$log.likelihood),txfw_txcc[[1]]$Model,median)))
