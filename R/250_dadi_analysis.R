@@ -128,8 +128,8 @@ modelComparison<-function(opts,modSel="max"){
     if(tolower(modSel)=="max"){
       return(modDat[which.max(modDat$log.likelihood),])  
     } else if(tolower(modSel)=="median"){
-      return(modDat[which(modDat$log.likelihood==
-                            median(modDat$log.likelihood)),])  
+      med<-median(modDat$log.likelihood)
+      return(modDat[which.min(abs(modDat$log.likelihood-med)),])  
     }else{
       print("Unknown modSel selection (options are max or median). 
             Max log likelihood returned.")
