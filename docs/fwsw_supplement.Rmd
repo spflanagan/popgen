@@ -440,6 +440,81 @@ knitr::include_graphics('../figs/fst_heatmaps.png')
 ```
 
 
+## Admixture {#admixture}
+
+We used ADMIXTURE to estimate the ancestry of individuals assuming $K=1$ through $K=16$ independent clusters. We determined the optimal number of clusters to include by choosing the K associated with the lowest cross-validation error, which was either $K=5$ or $K=7$ (Figure \@ref(fig:admixScree)).
+
+```{r admixScree,fig.cap="Admixture screeplot for K=1 through K=16. The cross-validation error (CV) is shown on the y-axis."}
+admixK<-read.delim("admixture/K_CVs.txt",header = FALSE)
+admixK$K<-as.numeric(gsub(".*\\(K=(\\d+)\\).*","\\1",admixK$V1))
+admixK$CV<-as.numeric(gsub("^.*\\: (\\d+\\.\\d+)$","\\1",admixK$V1))
+
+admixK<-admixK[order(admixK$K),]
+
+plot(admixK$K,admixK$CV,pch=19,type = "b",lty=1,xlab = "K",ylab="CV",las=1,lwd=2)
+
+```
+
+To visualize the effect of our choice of $K$ on the assignment of individuals to clusters, we visualized the admixture plots for $K=2$ through $K=7$ (Figures \@ref(fig:admixK2),\@ref(fig:admixK3),\@ref(fig:admixK4),\@ref(fig:admixk5),\@ref(fig:admixk6),\@ref(fig:admixk7)). 
+
+```{r admixSetup}
+library(RColorBrewer)
+famfile<-"admixture/fwsw_all_filt.fam"
+
+poporderFile<-"treemix/poplist"
+poporderDF<-read.table(poporderFile,col.names = c("Pop"),stringsAsFactors = F)
+poporderDF$orderNum<-1:nrow(poporderDF)
+```
+
+```{r plotAdmixFxn}
+admixPlotting<-function(qfile,K,famfile="admixture/fwsw_all_filt.fam",
+                        poporder=poporderDF){
+  # read files in 
+  famTable<- read.table(famfile, col.names = 
+                        c("Pop","Ind","Father","Mother","Sex","phenotype"),
+                      stringsAsFactors = F)[1:2]
+
+  qtbl<-read.table(qfile,stringsAsFactors = F)
+  
+  # create useful tables
+  mergedAdmixtureTable <- cbind(qtbl, famTable)
+  mergedAdmixTabOrderNs <- merge(mergedAdmixtureTable,poporder,by="Pop")
+  ordered <- mergedAdmixTabOrderNs[order(mergedAdmixTabOrderNs$orderNum),]
+  
+  plotting.structure(ordered[,1:(ncol(ordered)-2)],k = K,
+                     pop.order = poporder$Pop,make.file = FALSE)
+  admix<-ordered[,1:(ncol(ordered)-2)]
+  return(admix)
+}
+```
+
+```{r admixK2,fig.height=1,fig.width=8,fig.cap="Admixture plot for K=2. The colors represent different genetic populations."}
+admixK2<-admixPlotting("admixture/fwsw_all_filt.2.Q",2)
+```
+
+```{r admixK3,fig.height=1,fig.width=8,fig.cap="Admixture plot for K=3. The colors represent different genetic populations."}
+admixK3<-admixPlotting("admixture/fwsw_all_filt.3.Q",3)
+```
+```{r admixK4,fig.height=1,fig.width=8,fig.cap="Admixture plot for K=4. The colors represent different genetic populations."}
+admixK4<-admixPlotting("admixture/fwsw_all_filt.4.Q",4)
+```
+
+```{r admixk5,fig.height=1,fig.width=8,fig.cap="Admixture plot for K=5. The colors represent different genetic populations."}
+admixK5<-admixPlotting("admixture/fwsw_all_filt.5.Q",5)
+write.table(admixK5,"admixture/admixK5.txt",sep = '\t',
+            quote = FALSE,col.names = TRUE,row.names = FALSE)
+```
+
+```{r admixk6,fig.height=1,fig.width=8,fig.cap="Admixture plot for K=6. The colors represent different genetic populations."}
+admixK6<-admixPlotting("admixture/fwsw_all_filt.6.Q",6)
+```
+
+```{r admixk7,fig.height=1,fig.width=8,fig.cap="Admixture plot for K=7. The colors represent different genetic populations."}
+admixK7<-admixPlotting("admixture/fwsw_all_filt.7.Q",7)
+write.table(admixK7,"admixture/admixK7.txt",sep = '\t',quote = FALSE,col.names = TRUE,row.names = FALSE)
+```
+
+
 
 ## PCAdapt {#pcadapt}
 
@@ -537,81 +612,6 @@ legend("top", legend=ppi$Pop, pch=as.numeric(ppi$pch), pt.cex=1.5,cex=0.85,
 
 ```{r PCAdaptPlot, out.width='90%',fig.cap="Principal components analysis of genotypes in the Gulf pipefish reveals population structure due to geographic distance and habitat type. The top set of panels show the results of the PCA with all 16 populations, color-coded by populations and point shape. The bottom set of panels show the same PCA results, without the saltwater populations plotted (and zoomed in), to facilitate visualizing the differences among saltwater populations."}
 knitr::include_graphics('../figs/plot6pcsPCAdapt-1.png')
-```
-
-
-## Admixture {#admixture}
-
-We used ADMIXTURE to estimate the ancestry of individuals assuming $K=1$ through $K=16$ independent clusters. We determined the optimal number of clusters to include by choosing the K associated with the lowest cross-validation error, which was either $K=5$ or $K=7$ (Figure \@ref(fig:admixScree)).
-
-```{r admixScree,fig.cap="Admixture screeplot for K=1 through K=16. The cross-validation error (CV) is shown on the y-axis."}
-admixK<-read.delim("admixture/K_CVs.txt",header = FALSE)
-admixK$K<-as.numeric(gsub(".*\\(K=(\\d+)\\).*","\\1",admixK$V1))
-admixK$CV<-as.numeric(gsub("^.*\\: (\\d+\\.\\d+)$","\\1",admixK$V1))
-
-admixK<-admixK[order(admixK$K),]
-
-plot(admixK$K,admixK$CV,pch=19,type = "b",lty=1,xlab = "K",ylab="CV",las=1,lwd=2)
-
-```
-
-To visualize the effect of our choice of $K$ on the assignment of individuals to clusters, we visualized the admixture plots for $K=2$ through $K=7$ (Figures \@ref(fig:admixK2),\@ref(fig:admixK3),\@ref(fig:admixK4),\@ref(fig:admixk5),\@ref(fig:admixk6),\@ref(fig:admixk7)). 
-
-```{r admixSetup}
-library(RColorBrewer)
-famfile<-"admixture/fwsw_all_filt.fam"
-
-poporderFile<-"treemix/poplist"
-poporderDF<-read.table(poporderFile,col.names = c("Pop"),stringsAsFactors = F)
-poporderDF$orderNum<-1:nrow(poporderDF)
-```
-
-```{r plotAdmixFxn}
-admixPlotting<-function(qfile,K,famfile="admixture/fwsw_all_filt.fam",
-                        poporder=poporderDF){
-  # read files in 
-  famTable<- read.table(famfile, col.names = 
-                        c("Pop","Ind","Father","Mother","Sex","phenotype"),
-                      stringsAsFactors = F)[1:2]
-
-  qtbl<-read.table(qfile,stringsAsFactors = F)
-  
-  # create useful tables
-  mergedAdmixtureTable <- cbind(qtbl, famTable)
-  mergedAdmixTabOrderNs <- merge(mergedAdmixtureTable,poporder,by="Pop")
-  ordered <- mergedAdmixTabOrderNs[order(mergedAdmixTabOrderNs$orderNum),]
-  
-  plotting.structure(ordered[,1:(ncol(ordered)-2)],k = K,
-                     pop.order = poporder$Pop,make.file = FALSE)
-  admix<-ordered[,1:(ncol(ordered)-2)]
-  return(admix)
-}
-```
-
-```{r admixK2,fig.height=1,fig.width=8,fig.cap="Admixture plot for K=2. The colors represent different genetic populations."}
-admixK2<-admixPlotting("admixture/fwsw_all_filt.2.Q",2)
-```
-
-```{r admixK3,fig.height=1,fig.width=8,fig.cap="Admixture plot for K=3. The colors represent different genetic populations."}
-admixK3<-admixPlotting("admixture/fwsw_all_filt.3.Q",3)
-```
-```{r admixK4,fig.height=1,fig.width=8,fig.cap="Admixture plot for K=4. The colors represent different genetic populations."}
-admixK4<-admixPlotting("admixture/fwsw_all_filt.4.Q",4)
-```
-
-```{r admixk5,fig.height=1,fig.width=8,fig.cap="Admixture plot for K=5. The colors represent different genetic populations."}
-admixK5<-admixPlotting("admixture/fwsw_all_filt.5.Q",5)
-write.table(admixK5,"admixture/admixK5.txt",sep = '\t',
-            quote = FALSE,col.names = TRUE,row.names = FALSE)
-```
-
-```{r admixk6,fig.height=1,fig.width=8,fig.cap="Admixture plot for K=6. The colors represent different genetic populations."}
-admixK6<-admixPlotting("admixture/fwsw_all_filt.6.Q",6)
-```
-
-```{r admixk7,fig.height=1,fig.width=8,fig.cap="Admixture plot for K=7. The colors represent different genetic populations."}
-admixK7<-admixPlotting("admixture/fwsw_all_filt.7.Q",7)
-write.table(admixK7,"admixture/admixK7.txt",sep = '\t',quote = FALSE,col.names = TRUE,row.names = FALSE)
 ```
 
 
