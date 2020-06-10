@@ -640,7 +640,7 @@ write.table(cbind(poporder,colors),"poporder",quote=F,sep='\t')
 
 We began by running 100 bootstrap replicates without a root and without migration edges. We then built a consensus tree using PHYLIP v. 3.697 [@felsensteinPHYLIPPhylogenyInference2005] and used that tree (Figure \@ref(fig:treemixConsensus)) to choose the best population to set as a root. We then ran another 100 bootstrap replicates with the chosen population (which was FLAB) as root but with no migration edges. Again, we built a consensus tree with PHYLIP v. 3.697 [@felsensteinPHYLIPPhylogenyInference2005], which we used in the analyses with migration edges. 
 
-```{r treemixConsensus, results='hide', fig.show='true',fig.cap="The consensus tree from running Treemix any migration edges and without a root."}
+```{r treemixConsensus, results='hide', fig.show='true',fig.cap="The consensus tree from running Treemix any migration edges and without a root (left) and without migration edges but FLAB set as root (right)."}
 source("../R/203_treemix_plotting_funcs.R") #I've modified the functions from treemix
 library(lattice); library(grid); library(RColorBrewer);library(ape)
 poporder<-read.delim("treemix/poporder")
@@ -649,8 +649,8 @@ poporder<-poporder$poporder
 ur<-ape::read.tree("treemix/unrooted_consensus.newick")
 rt<-ape::read.tree("treemix/rooted_consensus.newick")
 par(mfrow=c(1,2),oma=c(2,2,2,2),mar=c(2,2,2,2))
-plot(ur)
-plot(rt)
+plot(ur, main="unrooted consensus")
+plot(rt, main="consensus with FLAB set as root")
 ```
 
 
