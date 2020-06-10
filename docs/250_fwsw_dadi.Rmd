@@ -954,7 +954,7 @@ bestModels[21,]<-c("TXFW","TXCC",Model=best_mod)
 
 ## Summarizing output for best models
 
-```{r dadiSummaryPlot,fig.width=6,fig.height=6}
+```{r dadiSummaryPlot,fig.width=8,fig.height=8, fig.cap="The best models for each population pair, color-coded by baseline demographic scenario (grey = strict isolation; green = ancestral migration; light blue = secondary contact; dark blue = isolation with migration). The abbreviation 2N refers to linked selection and 2m refers to heterogeneous migration/introgression, both of which are indicative of covariance among some genomic regions. The letter G indicates that the best model supports changes in population size since the population split." }
 pop.list<-c(unique(bestModels[,1]),"TXCC")
 colors<-c(SI="gray66",IM="#1f78b4",AM="#b2df8a",SC="#a6cee3")
 lbcols<-c("#2166ac",'#1b7837',
