@@ -317,62 +317,6 @@ legend("top", legend=ppi$Pop,
 
 The principal components analyses revealed very little population structuring in traits (Figure \@ref(fig:plotPCA)). In all three principal components analyses, the first axis explained over 90% of the variation in traits. In both males and females, the body trait with the highest loading on the first principal components axis was Tail Length (males: `r max(mal.pheno.pca$CA$v[,1])`, females: `r max(fem.pheno.pca$CA$v[,1])`), with snout-vent length as a close second (males: `r mal.pheno.pca$CA$v["SVL",1]`, females: `r fem.pheno.pca$CA$v["SVL",1]`). In both males and females, SVL had the highest loading with tail length having the second largest magnitude (but negative; Table \@ref(tab:pcaLoadings)). For the bands, band number had the largest absolute contribution to the first axis, with mean band number contributing most to the second PC axis (Table \@ref(tab:pcaLoadings)). Together, these results suggest that body size was the largest driver of variation among individuals, but the lack of clear population clusters suggests that populations did not have consistent differences in body size or band traits.
 
-## Minor allele frequencies
-
-We calculated the minor allele frequency for all 7933 SNPs in the full dataset for each population. We achieved this using the function `calc.afs.vcf` in the `gwscaR` package, which calculates the frequencies for the reference and alternative allele. We then extracted and plotted the frequency of the least-common allele in each population (Figure \@ref(fig:maf)).
-
-These histograms demonstrate that the two most isolated freshwater populations (FLFW and TXFW) have minor allele frequencies skewed towards zero, in particular compared to many of the saltwater populations in the Gulf of Mexico (e.g., FLSG, TXCB).
-
-```{r calcAFS, eval=FALSE}
-locus.info<-colnames(ful_vcf[1:9])
-fw.afs<-lapply(fw.list,function(pop,vcf){
-  this.vcf<-cbind(vcf[,locus.info],vcf[,grep(pop,colnames(vcf))])
-  this.afs<-do.call(rbind,apply(this.vcf,1,calc.afs.vcf))
-}, vcf=ful_vcf)
-names(fw.afs)<-c("TXFW","LAFW","ALFW","FLFW")
-sw.afs<-lapply(sw.list,function(pop,vcf){
-  this.vcf<-cbind(vcf[,locus.info],vcf[,grep(pop,colnames(vcf))])
-  this.afs<-do.call(rbind,apply(this.vcf,1,calc.afs.vcf))
-},vcf=ful_vcf)
-names(sw.afs)<-sw.list
-all.afs<-c(fw.afs,sw.afs)
-minAF<-lapply(all.afs,function(x){
-  mins<-apply(x,1,function(row){ return(min(row[4],row[6])) } )
-  return(as.numeric(mins))
-})
-names(minAF)<-names(all.afs)
-
-```
-
-```{r minorAFplot,fig.height=10,fig.width=8,dpi=300,fig.keep='last', fig.path="../figs/",eval=FALSE}
-
-par(mfrow=c(4,4),mar=c(2,2,1,0),oma=c(2,3,0.5,0.5))
-for(i in 1:length(pop.labs)){
-  if(pop.labs[i] %in% names(fw.afs)){
-    color<-"cornflowerblue"
-  }else{
-    color<-"black"
-  }
-  hist(minAF[[pop.labs[i]]],ylab="",xlab="",main="",
-       xlim=c(0,0.5),ylim=c(0,10000),axes=F,col=color,
-       breaks=seq(0,0.5,0.05))
-  axis(1,pos=0,cex.axis=2)
-  if(i %in% c(1,5,9,13)){
-    axis(2,pos=0,las=1,cex.axis=2,labels = seq(0,10,2),at=seq(0,10000,2000))
-  }else{
-    axis(2,pos=0,las=1,labels = FALSE,cex.axis=2)
-    }
-  mtext(pop.labs[i],3,col=color,cex=2*0.75,line=-1)
-}
-mtext("Minor Allele Frequency",1,outer=TRUE,cex=1.75*0.75)
-mtext("Number of SNPs (x 1000)",2,outer = TRUE,cex=1.75*0.75,line=1)
-
-```
-
-```{r maf, out.width='80%',fig.cap="Minor allele frequency distributions of the full dataset (7433 SNPs) for each population. Freshwater populations are plotted in blue. The histograms show the number of SNPs with various frequencies of the reference alleles. All populations are skewed towards having small minor allele frequencies, but the TXFW and FLFW have additional reductions in genetic variation."}
-knitr::include_graphics('../figs/minorAFplot-1.png')
-```
-
 
 ## Fst Values
 
@@ -438,6 +382,64 @@ dev.off()
 ```{r fsts, out.width='95%',fig.cap="Heatmaps depicting population structure. In all graphs, dark colors depict similarity between populations and light grey and blue depict populations with high differentiation. The left panel shows pairwise $F_{ST}$ values calculated by the populations module in Stacks (Catchen et al. 2013). The right panel shows covariances between populations as calculated by TreeMix (Pickrell and Pritchard 2012)."}
 knitr::include_graphics('../figs/fst_heatmaps.png')
 ```
+
+
+## Minor allele frequencies
+
+We calculated the minor allele frequency for all 7933 SNPs in the full dataset for each population. We achieved this using the function `calc.afs.vcf` in the `gwscaR` package, which calculates the frequencies for the reference and alternative allele. We then extracted and plotted the frequency of the least-common allele in each population (Figure \@ref(fig:maf)).
+
+These histograms demonstrate that the two most isolated freshwater populations (FLFW and TXFW) have minor allele frequencies skewed towards zero, in particular compared to many of the saltwater populations in the Gulf of Mexico (e.g., FLSG, TXCB).
+
+```{r calcAFS, eval=FALSE}
+locus.info<-colnames(ful_vcf[1:9])
+fw.afs<-lapply(fw.list,function(pop,vcf){
+  this.vcf<-cbind(vcf[,locus.info],vcf[,grep(pop,colnames(vcf))])
+  this.afs<-do.call(rbind,apply(this.vcf,1,calc.afs.vcf))
+}, vcf=ful_vcf)
+names(fw.afs)<-c("TXFW","LAFW","ALFW","FLFW")
+sw.afs<-lapply(sw.list,function(pop,vcf){
+  this.vcf<-cbind(vcf[,locus.info],vcf[,grep(pop,colnames(vcf))])
+  this.afs<-do.call(rbind,apply(this.vcf,1,calc.afs.vcf))
+},vcf=ful_vcf)
+names(sw.afs)<-sw.list
+all.afs<-c(fw.afs,sw.afs)
+minAF<-lapply(all.afs,function(x){
+  mins<-apply(x,1,function(row){ return(min(row[4],row[6])) } )
+  return(as.numeric(mins))
+})
+names(minAF)<-names(all.afs)
+
+```
+
+```{r minorAFplot,fig.height=10,fig.width=8,dpi=300,fig.keep='last', fig.path="../figs/",eval=FALSE}
+
+par(mfrow=c(4,4),mar=c(2,2,1,0),oma=c(2,3,0.5,0.5))
+for(i in 1:length(pop.labs)){
+  if(pop.labs[i] %in% names(fw.afs)){
+    color<-"cornflowerblue"
+  }else{
+    color<-"black"
+  }
+  hist(minAF[[pop.labs[i]]],ylab="",xlab="",main="",
+       xlim=c(0,0.5),ylim=c(0,10000),axes=F,col=color,
+       breaks=seq(0,0.5,0.05))
+  axis(1,pos=0,cex.axis=2)
+  if(i %in% c(1,5,9,13)){
+    axis(2,pos=0,las=1,cex.axis=2,labels = seq(0,10,2),at=seq(0,10000,2000))
+  }else{
+    axis(2,pos=0,las=1,labels = FALSE,cex.axis=2)
+    }
+  mtext(pop.labs[i],3,col=color,cex=2*0.75,line=-1)
+}
+mtext("Minor Allele Frequency",1,outer=TRUE,cex=1.75*0.75)
+mtext("Number of SNPs (x 1000)",2,outer = TRUE,cex=1.75*0.75,line=1)
+
+```
+
+```{r maf, out.width='80%',fig.cap="Minor allele frequency distributions of the full dataset (7433 SNPs) for each population. Freshwater populations are plotted in blue. The histograms show the number of SNPs with various frequencies of the reference alleles. All populations are skewed towards having small minor allele frequencies, but the TXFW and FLFW have additional reductions in genetic variation."}
+knitr::include_graphics('../figs/minorAFplot-1.png')
+```
+
 
 
 ## Admixture {#admixture}
