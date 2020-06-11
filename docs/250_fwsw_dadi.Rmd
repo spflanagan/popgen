@@ -1049,7 +1049,7 @@ pyt_tab<-apply(outTable,1,function(dat,params_order){
   pop1<-gsub("(\\w+)_(\\w+)","\\1",dat["PopPair"])
   pop2<-gsub("(\\w+)_(\\w+)","\\2",dat["PopPair"])
   parms<-gsub(" ","",dat[pord])
-  write.table(c("python ../../scripts/253_plot_best_dadi.py ",
+  write.table(cbind("python ../../scripts/253_plot_best_dadi.py",
                 pop1,pop2,dat["Model"],parms),"../scripts/make_best_plots_dadi.py",
               append=TRUE,sep=" ",quote=FALSE,row.names = FALSE,col.names = FALSE)
 },params_order=params_order)
