@@ -1006,6 +1006,57 @@ landscape(kable(outTable,"latex",booktabs=TRUE,
 ```
 
 
+```{r paramsOrder}
+params_order<-list(SI=c("nu1", "nu2", "Ts", "O"),
+                    SI2N=c("nu1", "nu2", "Ts", "nr", "bf", "O"),
+                    SIG=c("nu1", "nu2", "b1", "b2", "Ts", "O" ),
+                    SI2NG=c("nu1", "nu2", "b1", "b2", "hrf", "Ts", "Q", "O"),
+                    IM=c("nu1", "nu2", "m12", "m21", "Ts", "O" ),
+                    IMG=c("nu1", "nu2", "b1", "b2", "m12", "m21", "Ts", "O"),
+                    IM2N=c("nu1", "nu2", "hrf", "m12", "m21", "Ts", "Q", "O"),
+                    IM2NG=c("nu1", "nu2", "b1", "b2", "hrf", "m12", "m21", "Ts", "Q", "O"),
+                    IM2m=c("nu1", "nu2", "m12", "m21", "me12", "me21", "Ts", "P", "O"),
+                    IM2mG=c("nu1", "nu2", "b1", "b2", "m12", "m21", "me12", "me21", "Ts", "P", "O"),
+                    AM=c("nu1", "nu2", "m12", "m21", "Ts", "Tam", "O"),
+                    AMG=c("nu1", "nu2", "b1", "b2", "m12", "m21", "Tam", "Ts", "O"),
+                    AM2N=c( "nu1", "nu2", "hrf", "m12", "m21", "Tam", "Ts", "Q", "O"),
+                    AM2N2m=c("nu1", "nu2", "hrf", "m12", "m21", "me12", "me21", "Tam", "Ts", "P", "Q", "O"),
+                   AM2NG=c("nu1", "nu2", "b1", "b2", "hrf", "m12", "m21", "Tam", "Ts", "Q", "O"),
+                   AM2m=c("nu1", "nu2", "m12", "m21", "me12", "me21", "Ts", "Tam", "P", "O"),
+                   AM2mG=c( "nu1", "nu2", "b1", "b2", "m12", "m21", "me12", "me21", "Tam", "Ts", "P", "O"),
+                   AM2N2mG=c("nu1", "nu2", "b1", "b2", "hrf", "m12", "m21", "me12", "me21", "Tam", "Ts", "P", "Q", "O"),
+                   SC=c("nu1", "nu2", "m12", "m21", "Ts", "Tsc", "O"),
+                   SC2N=c("nu1", "nu2", "hrf", "m12", "m21", "Ts", "Tsc", "Q", "O"),
+                   SCG=c("nu1", "nu2", "b1", "b2", "m12", "m21", "Ts", "Tsc", "O"),
+                   SC2N2m=c("nu1", "nu2", "hrf", "m12", "m21", "me12", "me21", "Ts", "Tsc", "P", "Q", "O" ),
+                   SC2NG=c("nu1", "nu2", "b1", "b2", "hrf", "m12", "m21", "Ts", "Tsc", "Q", "O"),
+                   SC2m=c("nu1", "nu2", "m12", "m21", "me12", "me21", "Ts", "Tsc", "P", "O"),
+                   SC2mG=c("nu1", "nu2", "b1", "b2", "m12", "m21", "me12", "me21", "Ts", "Tsc", "P", "O"),
+                   SC2N2mG=c("nu1", "nu2", "b1", "b2", "hrf", "m12", "m21", "me12", "me21", "Ts", "Tsc", "P", "Q", "O")
+                   
+)
+```
+
+```{r writePythonScript}
+write.table("#!/bin/bash","../scripts/make_best_plots_dadi.py",
+            quote=FALSE,row.names = FALSE,col.names = FALSE)
+write.table("cd \"${0%/*}\"","../scripts/make_best_plots_dadi.py",
+            append=TRUE, quote=FALSE,row.names = FALSE,col.names = FALSE)
+write.table("cd ../fwsw_results/dadi_results/","../scripts/make_best_plots_dadi.py",
+            append=TRUE, quote=FALSE,row.names = FALSE,col.names = FALSE)
+pyt_tab<-apply(outTable,1,function(dat,params_order){
+  pord<-params_order[[dat["Model"]]]
+  pop1<-gsub("(\\w+)_(\\w+)","\\1",dat["PopPair"])
+  pop2<-gsub("(\\w+)_(\\w+)","\\2",dat["PopPair"])
+  parms<-gsub(" ","",dat[pord])
+  write.table(c("python ../../scripts/253_plot_best_dadi.py ",
+                pop1,pop2,dat["Model"],parms),"../scripts/make_best_plots_dadi.py",
+              append=TRUE,sep=" ",quote=FALSE,row.names = FALSE,col.names = FALSE)
+},params_order=params_order)
+```
+
+
+
 ## References
 
 
