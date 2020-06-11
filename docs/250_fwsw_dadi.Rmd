@@ -314,11 +314,7 @@ points(1:11,
 ```
 ```{r setupOutTable}
 
-outNames<-colnames(do.call(rbind,
-                           extract_dadi_params(
-                             fllg_flcc[[1]][fllg_flcc[[1]]$Model=="SC2N2mG",])))
-outNames<-outNames[!outNames %in% c("Replicate","params","optimized_params","rank","id")]
-outNames<-c("PopPair",outNames,"Tam")
+outNames<-colnames(sumTab)
 
 outTable<-data.frame(matrix(nrow = 1,ncol=length(outNames),
                             dimnames = list("",outNames)))
