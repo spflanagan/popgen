@@ -1132,6 +1132,18 @@ landscape(kable(outTable,"latex",booktabs=TRUE,
                 caption="Table of all of the parameters for the best models for each population pair."))  %>%
   kable_styling(latex_options=c("scale_down","repeat_header","HOLD_position"))
 ```
+```{r saveBestTable}
+poporder<-c('TXFW_TXCC','ALST_LAFW','ALFW_ALST','FLFW_FLCC', 
+            'LAFW_TXFW','ALFW_TXFW','FLFW_TXFW','ALFW_LAFW','FLFW_LAFW','FLFW_ALFW',
+            'ALST_TXCC','FLCC_ALST','FLCC_TXCC',
+            'ALST_TXFW','TXFW_FLCC',
+            'LAFW_TXCC','FLCC_LAFW',
+            'ALFW_TXCC','FLCC_ALFW',
+            'FLFW_ALST','FLFW_TXCC')   
+savTab<-outTable[match(poporder,outTable$PopPair),1:6]
+write.csv(savTab,"dadi_summary.csv",col.names = TRUE,row.names = FALSE,quote=FALSE)
+
+```
 
 
 ```{r paramsOrder}
