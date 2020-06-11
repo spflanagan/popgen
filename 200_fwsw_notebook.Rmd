@@ -28,6 +28,8 @@ pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 My goals for today are:
 1. create a generic script that I can launch easily/automatically to create joint SFS images from dadi best models.
 2. decide on best way to present the dadi results in the main document.
+  - I find my current summary somewhat difficult to interpret
+  - I feel like I should be showing the model and data joint SFS figures. 
 3. outline/draft discussion.
 4. check text about outliers results -- is it accurate/up-to-date?
 
