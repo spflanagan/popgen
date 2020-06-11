@@ -334,7 +334,15 @@ bestModels<-data.frame(Pop1="FLFW",
                        stringsAsFactors = FALSE)
 ```
 
-Based on these results, we conclude that the FLFW and FLCC populations -- which represent a freshwater population and its nearest saltwater neighbor -- have likely experienced recent migration (which is supported by both the IM2mG and the SC2mG models), with heterogeneous migration (i.e., differential introgression) across the genome, and changes in populations sizes. 
+Based on these results, we conclude that the FLFW and FLCC populations -- which represent a freshwater population and its nearest saltwater neighbor -- have likely experienced recent migration (which is supported by both the IM2mG and the SC2mG models), with heterogeneous migration (i.e., differential introgression) across the genome, and changes in populations sizes.
+
+```{r dadiPlots1,out.width="90%",fig.cap="Summary plot of the best model's joint site frequency spectra and its residuals as compared to those from the data."}
+multiname<-paste0("../figs/dadi/FLLG_FLCC_",best_mod,"multinom.png")
+if(file.exists(multiname)){
+  knitr::include_graphics(multiname)
+}
+```
+
 
 ### FLFW vs ALFW
 
@@ -369,6 +377,15 @@ outTable[2,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% co
 bestModels[2,]<-c("FLFW","ALFW",Model=best_mod)
 ```
 
+```{r dadiPlots2,out.width="90%",fig.cap="Summary plot of the best model's joint site frequency spectra and its residuals as compared to those from the data."}
+multiname<-paste0("../figs/dadi/FLLG_ALFW_",best_mod,"multinom.png")
+if(file.exists(multiname)){
+  knitr::include_graphics(multiname)
+}
+```
+
+
+
 ### FLFW vs ALST
 
 ```{r ffasOpts, fig.cap="Comparison of log likelihoods for FLFW-ALST models"}
@@ -401,6 +418,15 @@ outTable[3,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% co
 
 bestModels[3,]<-c("FLFW","ALST",Model=best_mod)
 ```
+
+```{r dadiPlots3,out.width="90%",fig.cap="Summary plot of the best model's joint site frequency spectra and its residuals as compared to those from the data."}
+multiname<-paste0("../figs/dadi/FLLG_ALST_",best_mod,"multinom.png")
+if(file.exists(multiname)){
+  knitr::include_graphics(multiname)
+}
+```
+
+
 
 ### FLFW vs LAFW
 
@@ -436,6 +462,14 @@ outTable[4,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% co
 bestModels[4,]<-c("FLFW","LAFW",Model=best_mod)
 ```
 
+```{r dadiPlots4,out.width="90%",fig.cap="Summary plot of the best model's joint site frequency spectra and its residuals as compared to those from the data."}
+multiname<-paste0("../figs/dadi/FLLG_LAFW_",best_mod,"multinom.png")
+if(file.exists(multiname)){
+  knitr::include_graphics(multiname)
+}
+```
+
+
 ### FLFW vs TXFW
 
 ```{r fftfOpts, fig.cap="Comparison of log likelihoods for FLFW-TXFW models"}
@@ -464,6 +498,12 @@ outTable[5,1]<-c("FLFW_TXFW")
 outTable[5,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
 
 bestModels[5,]<-c("FLFW","TXFW",Model=best_mod)
+```
+```{r dadiPlots5,out.width="90%",fig.cap="Summary plot of the best model's joint site frequency spectra and its residuals as compared to those from the data."}
+multiname<-paste0("../figs/dadi/FLLG_TXFW_",best_mod,"multinom.png")
+if(file.exists(multiname)){
+  knitr::include_graphics(multiname)
+}
 ```
 
 ### FLFW vs TXCC
@@ -495,6 +535,13 @@ outTable[6,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% co
 
 bestModels[6,]<-c("FLFW","TXCC",Model=best_mod)
 ```
+```{r dadiPlots6,out.width="90%",fig.cap="Summary plot of the best model's joint site frequency spectra and its residuals as compared to those from the data."}
+multiname<-paste0("../figs/dadi/FLLG_TXCC_",best_mod,"multinom.png")
+if(file.exists(multiname)){
+  knitr::include_graphics(multiname)
+}
+```
+
 
 ### FLCC vs ALFW
 
@@ -524,6 +571,12 @@ outTable[7,1]<-c("FLCC_ALFW")
 outTable[7,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
 
 bestModels[7,]<-c("FLCC","ALFW",Model=best_mod)
+```
+```{r dadiPlots7,out.width="90%",fig.cap="Summary plot of the best model's joint site frequency spectra and its residuals as compared to those from the data."}
+multiname<-paste0("../figs/dadi/FLLG_ALFW_",best_mod,"multinom.png")
+if(file.exists(multiname)){
+  knitr::include_graphics(multiname)
+}
 ```
 
 ### FLCC vs ALST
@@ -556,6 +609,12 @@ outTable[8,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% co
 
 bestModels[8,]<-c("FLCC","ALST",Model=best_mod)
 ```
+```{r dadiPlots8,out.width="90%",fig.cap="Summary plot of the best model's joint site frequency spectra and its residuals as compared to those from the data."}
+multiname<-paste0("../figs/dadi/FLCC_ALST_",best_mod,"multinom.png")
+if(file.exists(multiname)){
+  knitr::include_graphics(multiname)
+}
+```
 
 ### FLCC vs LAFW
 
@@ -585,6 +644,12 @@ outTable[9,1]<-c("FLCC_LAFW")
 outTable[9,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
 
 bestModels[9,]<-c("FLCC","LAFW",Model=best_mod)
+```
+```{r dadiPlots9,out.width="90%",fig.cap="Summary plot of the best model's joint site frequency spectra and its residuals as compared to those from the data."}
+multiname<-paste0("../figs/dadi/FLCC_LAFW_",best_mod,"multinom.png")
+if(file.exists(multiname)){
+  knitr::include_graphics(multiname)
+}
 ```
 
 ### FLCC vs TXFW
@@ -616,6 +681,12 @@ outTable[10,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% c
 
 bestModels[10,]<-c("FLCC","TXFW",Model=best_mod)
 ```
+```{r dadiPlots10,out.width="90%",fig.cap="Summary plot of the best model's joint site frequency spectra and its residuals as compared to those from the data."}
+multiname<-paste0("../figs/dadi/FLCC_TXFW_",best_mod,"multinom.png")
+if(file.exists(multiname)){
+  knitr::include_graphics(multiname)
+}
+```
 
 ### FLCC vs TXCC
 
@@ -645,6 +716,12 @@ outTable[11,1]<-c("FLCC_TXCC")
 outTable[11,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
 
 bestModels[11,]<-c("FLCC","TXCC",Model=best_mod)
+```
+```{r dadiPlots11,out.width="90%",fig.cap="Summary plot of the best model's joint site frequency spectra and its residuals as compared to those from the data."}
+multiname<-paste0("../figs/dadi/FCC_TXCC_",best_mod,"multinom.png")
+if(file.exists(multiname)){
+  knitr::include_graphics(multiname)
+}
 ```
 
 ### ALFW vs ALST
@@ -676,6 +753,12 @@ outTable[12,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% c
 
 bestModels[12,]<-c("ALFW","ALST",Model=best_mod)
 ```
+```{r dadiPlots12,out.width="90%",fig.cap="Summary plot of the best model's joint site frequency spectra and its residuals as compared to those from the data."}
+multiname<-paste0("../figs/dadi/ALFW_ALST_",best_mod,"multinom.png")
+if(file.exists(multiname)){
+  knitr::include_graphics(multiname)
+}
+```
 
 ### ALFW vs LAFW
 
@@ -706,6 +789,12 @@ outTable[13,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% c
 
 bestModels[13,]<-c("ALFW","LAFW",Model=best_mod)
 ```
+```{r dadiPlots13,out.width="90%",fig.cap="Summary plot of the best model's joint site frequency spectra and its residuals as compared to those from the data."}
+multiname<-paste0("../figs/dadi/ALFW_LAFW_",best_mod,"multinom.png")
+if(file.exists(multiname)){
+  knitr::include_graphics(multiname)
+}
+```
 
 ### ALFW vs TXFW
 
@@ -735,6 +824,12 @@ outTable[14,1]<-c("ALFW_TXFW")
 outTable[14,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
 
 bestModels[14,]<-c("ALFW","TXFW",Model=best_mod)
+```
+```{r dadiPlots14,out.width="90%",fig.cap="Summary plot of the best model's joint site frequency spectra and its residuals as compared to those from the data."}
+multiname<-paste0("../figs/dadi/ALFW_TXFW_",best_mod,"multinom.png")
+if(file.exists(multiname)){
+  knitr::include_graphics(multiname)
+}
 ```
 
 
@@ -767,6 +862,12 @@ outTable[15,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% c
 
 bestModels[15,]<-c("ALFW","TXCC",Model=best_mod)
 ```
+```{r dadiPlots15,out.width="90%",fig.cap="Summary plot of the best model's joint site frequency spectra and its residuals as compared to those from the data."}
+multiname<-paste0("../figs/dadi/ALFW_TXCC_",best_mod,"multinom.png")
+if(file.exists(multiname)){
+  knitr::include_graphics(multiname)
+}
+```
 
 
 ### ALST vs LAFW
@@ -797,6 +898,12 @@ outTable[16,1]<-c("ALST_LAFW")
 outTable[16,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
 
 bestModels[16,]<-c("ALST","LAFW",Model=best_mod)
+```
+```{r dadiPlots16,out.width="90%",fig.cap="Summary plot of the best model's joint site frequency spectra and its residuals as compared to those from the data."}
+multiname<-paste0("../figs/dadi/ALST_LAFW_",best_mod,"multinom.png")
+if(file.exists(multiname)){
+  knitr::include_graphics(multiname)
+}
 ```
 
 
@@ -829,7 +936,12 @@ outTable[17,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% c
 
 bestModels[17,]<-c("ALST","TXFW",Model=best_mod)
 ```
-
+```{r dadiPlots17,out.width="90%",fig.cap="Summary plot of the best model's joint site frequency spectra and its residuals as compared to those from the data."}
+multiname<-paste0("../figs/dadi/ALST_TXFW_",best_mod,"multinom.png")
+if(file.exists(multiname)){
+  knitr::include_graphics(multiname)
+}
+```
 
 ### ALST vs TXCC
 
@@ -860,7 +972,12 @@ outTable[18,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% c
 
 bestModels[18,]<-c("ALST","TXCC",Model=best_mod)
 ```
-
+```{r dadiPlots18,out.width="90%",fig.cap="Summary plot of the best model's joint site frequency spectra and its residuals as compared to those from the data."}
+multiname<-paste0("../figs/dadi/ALST_TXCC_",best_mod,"multinom.png")
+if(file.exists(multiname)){
+  knitr::include_graphics(multiname)
+}
+```
 
 ### LAFW vs TXFW
 
@@ -891,7 +1008,12 @@ outTable[19,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% c
 
 bestModels[19,]<-c("LAFW","TXFW",Model=best_mod)
 ```
-
+```{r dadiPlots19,out.width="90%",fig.cap="Summary plot of the best model's joint site frequency spectra and its residuals as compared to those from the data."}
+multiname<-paste0("../figs/dadi/LAFW_TXFW_",best_mod,"multinom.png")
+if(file.exists(multiname)){
+  knitr::include_graphics(multiname)
+}
+```
 
 ### LAFW vs TXCC
 
@@ -922,7 +1044,12 @@ outTable[20,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% c
 
 bestModels[20,]<-c("LAFW","TXCC",Model=best_mod)
 ```
-
+```{r dadiPlots20,out.width="90%",fig.cap="Summary plot of the best model's joint site frequency spectra and its residuals as compared to those from the data."}
+multiname<-paste0("../figs/dadi/LAFW_TXCC_",best_mod,"multinom.png")
+if(file.exists(multiname)){
+  knitr::include_graphics(multiname)
+}
+```
 
 ### TXFW vs TXCC
 
@@ -953,7 +1080,12 @@ outTable[21,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% c
 
 bestModels[21,]<-c("TXFW","TXCC",Model=best_mod)
 ```
-
+```{r dadiPlots21,out.width="90%",fig.cap="Summary plot of the best model's joint site frequency spectra and its residuals as compared to those from the data."}
+multiname<-paste0("../figs/dadi/TXFW_TXCC_",best_mod,"multinom.png")
+if(file.exists(multiname)){
+  knitr::include_graphics(multiname)
+}
+```
 
 ## Summarizing output for best models
 
