@@ -31,6 +31,8 @@ My goals for today are:
 3. outline/draft discussion.
 4. check text about outliers results -- is it accurate/up-to-date?
 
+I adjusted the python script to accept arguments, and I added R code to create the script at the end of the dadi Rmd. I didn't see an easy way of *just* plotting the model summary bit with the dadi code, but I might be able to use the Plotting_Functions.Plot_2D(fs, model_fit, prefix, "sym_mig") from the dadi_pipeline. The only possible issue is that it creates two figures, and I'm not sure how to capture this via command line.
+
 # 10 June 2020
 
 Yesterday I finished up the treemix analyses, including the threepop and fourpop ones and re-making the main text figure. So the goals for today are to update the main text and to finish up/make progress on the dadi results.
