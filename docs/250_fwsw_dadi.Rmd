@@ -323,10 +323,7 @@ outTable<-data.frame(matrix(nrow = 1,ncol=length(outNames),
 
 
 ```{r saveBest1}
-best<-flcc_fllg_im2mg[which.max(flcc_fllg_im2mg$log.likelihood),]
-
-outTable[1,1]<-c("FLFW_FLCC")
-outTable[1,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
+outTable[1,colnames(outTable)%in% colnames(sumTab)]<-sumTab[sumTab$Model==best_mod,colnames(sumTab) %in% colnames(outTable)]
 
 bestModels<-data.frame(Pop1="FLFW",
                        Pop2="FLCC",
@@ -370,8 +367,7 @@ The model with the highest median log likelihoods was `r best_mod`, which is a m
 ```{r saveBest2}
 best<-fllg_alfw_best[which.max(fllg_alfw_best$log.likelihood),]
 
-outTable[2,1]<-c("FLFW_ALFW")
-outTable[2,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
+outTable[2,]<-sumTab[sumTab$Model==best_mod,colnames(sumTab) %in% colnames(outTable)]
 
 
 bestModels[2,]<-c("FLFW","ALFW",Model=best_mod)
@@ -410,11 +406,7 @@ fllg_alst_best<-do.call(rbind,
 The model with the highest median log likelihoods was `r best_mod`.
 
 ```{r saveBest3}
-best<-fllg_alst_best[which.max(fllg_alst_best$log.likelihood),]
-
-outTable[3,1]<-c("FLFW_ALST")
-outTable[3,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
-
+outTable[3,colnames(outTable)%in% colnames(sumTab)]<-sumTab[sumTab$Model==best_mod,colnames(sumTab) %in% colnames(outTable)]
 
 bestModels[3,]<-c("FLFW","ALST",Model=best_mod)
 ```
@@ -453,10 +445,8 @@ The model with the highest median log likelihoods was `r best_mod`.
 
 
 ```{r saveBest4}
-best<-fllg_lafw_best[which.max(fllg_lafw_best$log.likelihood),]
 
-outTable[4,1]<-c("FLFW_LAFW")
-outTable[4,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
+outTable[4,colnames(outTable) %in% colnames(sumTab)]<-sumTab[sumTab$Model==best_mod,colnames(sumTab) %in% colnames(outTable)]
 
 
 bestModels[4,]<-c("FLFW","LAFW",Model=best_mod)
@@ -492,10 +482,8 @@ fllg_txfw_best<-do.call(rbind,
 The model with the highest median log likelihoods was `r best_mod`.
 
 ```{r saveBest5}
-best<-fllg_txfw_best[which.max(fllg_txfw_best$log.likelihood),]
 
-outTable[5,1]<-c("FLFW_TXFW")
-outTable[5,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
+outTable[5,colnames(outTable) %in% colnames(sumTab)]<-sumTab[sumTab$Model==best_mod,colnames(sumTab) %in% colnames(outTable)]
 
 bestModels[5,]<-c("FLFW","TXFW",Model=best_mod)
 ```
@@ -528,10 +516,8 @@ fllg_txcc_best<-do.call(rbind,
 The model with the highest median log likelihoods was `r best_mod`.
 
 ```{r saveBest6}
-best<-fllg_txcc_best[which.max(fllg_txcc_best$log.likelihood),]
 
-outTable[6,1]<-c("FLFW_TXCC")
-outTable[6,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
+outTable[6,colnames(outTable) %in% colnames(sumTab)]<-sumTab[sumTab$Model==best_mod,colnames(sumTab) %in% colnames(outTable)]
 
 bestModels[6,]<-c("FLFW","TXCC",Model=best_mod)
 ```
@@ -565,10 +551,8 @@ flcc_alfw_best<-do.call(rbind,
 The model with the highest median log likelihoods was `r best_mod`.
 
 ```{r saveBest7}
-best<-flcc_alfw_best[which.max(flcc_alfw_best$log.likelihood),]
 
-outTable[7,1]<-c("FLCC_ALFW")
-outTable[7,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
+outTable[7,colnames(outTable) %in% colnames(sumTab)]<-sumTab[sumTab$Model==best_mod,colnames(sumTab) %in% colnames(outTable)]
 
 bestModels[7,]<-c("FLCC","ALFW",Model=best_mod)
 ```
@@ -601,10 +585,8 @@ flcc_alst_best<-do.call(rbind,
 ```
 The model with the highest median log likelihoods was `r best_mod`.
 ```{r saveBest8}
-best<-flcc_alst_best[which.max(flcc_alst_best$log.likelihood),]
 
-outTable[8,1]<-c("FLCC_ALST")
-outTable[8,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
+outTable[8,colnames(outTable) %in% colnames(sumTab)]<-sumTab[sumTab$Model==best_mod,colnames(sumTab) %in% colnames(outTable)]
 
 
 bestModels[8,]<-c("FLCC","ALST",Model=best_mod)
@@ -638,10 +620,8 @@ flcc_lafw_best<-do.call(rbind,
 ```
 The model with the highest median log likelihoods was `r best_mod`.
 ```{r saveBest9}
-best<-flcc_lafw_best[which.max(flcc_lafw_best$log.likelihood),]
 
-outTable[9,1]<-c("FLCC_LAFW")
-outTable[9,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
+outTable[9,colnames(outTable) %in% colnames(sumTab)]<-sumTab[sumTab$Model==best_mod,colnames(sumTab) %in% colnames(outTable)]
 
 bestModels[9,]<-c("FLCC","LAFW",Model=best_mod)
 ```
@@ -674,10 +654,8 @@ flcc_txfw_best<-do.call(rbind,
 ```
 The model with the highest median log likelihoods was `r best_mod`.
 ```{r saveBest10}
-best<-flcc_txfw_best[which.max(flcc_txfw_best$log.likelihood),]
 
-outTable[10,1]<-c("FLCC_TXFW")
-outTable[10,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
+outTable[10,colnames(outTable) %in% colnames(sumTab)]<-sumTab[sumTab$Model==best_mod,colnames(sumTab) %in% colnames(outTable)]
 
 bestModels[10,]<-c("FLCC","TXFW",Model=best_mod)
 ```
@@ -710,10 +688,8 @@ flcc_txcc_best<-do.call(rbind,
 ```
 The model with the highest median log likelihoods was `r best_mod`.
 ```{r saveBest11}
-best<-flcc_txcc_best[which.max(flcc_txcc_best$log.likelihood),]
 
-outTable[11,1]<-c("FLCC_TXCC")
-outTable[11,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
+outTable[11,colnames(outTable) %in% colnames(sumTab)]<-sumTab[sumTab$Model==best_mod,colnames(sumTab) %in% colnames(outTable)]
 
 bestModels[11,]<-c("FLCC","TXCC",Model=best_mod)
 ```
@@ -746,10 +722,8 @@ alfw_alst_best<-do.call(rbind,
 ```
 The model with the highest median log likelihoods was `r best_mod`.
 ```{r saveBest12}
-best<-alfw_alst_best[which.max(alfw_alst_best$log.likelihood),]
 
-outTable[12,1]<-c("ALFW_ALST")
-outTable[12,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
+outTable[12,colnames(outTable) %in% colnames(sumTab)]<-sumTab[sumTab$Model==best_mod,colnames(sumTab) %in% colnames(outTable)]
 
 bestModels[12,]<-c("ALFW","ALST",Model=best_mod)
 ```
@@ -782,10 +756,8 @@ alfw_lafw_best<-do.call(rbind,
 ```
 The model with the highest median log likelihoods was `r best_mod`.
 ```{r saveBest13}
-best<-alfw_lafw_best[which.max(alfw_lafw_best$log.likelihood),]
 
-outTable[13,1]<-c("ALFW_LAFW")
-outTable[13,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
+outTable[13,colnames(outTable) %in% colnames(sumTab)]<-sumTab[sumTab$Model==best_mod,colnames(sumTab) %in% colnames(outTable)]
 
 bestModels[13,]<-c("ALFW","LAFW",Model=best_mod)
 ```
@@ -818,10 +790,8 @@ alfw_txfw_best<-do.call(rbind,
 ```
 The model with the highest median log likelihoods was `r best_mod`.
 ```{r saveBest14}
-best<-alfw_txfw_best[which.max(alfw_txfw_best$log.likelihood),]
 
-outTable[14,1]<-c("ALFW_TXFW")
-outTable[14,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
+outTable[14,colnames(outTable) %in% colnames(sumTab)]<-sumTab[sumTab$Model==best_mod,colnames(sumTab) %in% colnames(outTable)]
 
 bestModels[14,]<-c("ALFW","TXFW",Model=best_mod)
 ```
@@ -855,10 +825,8 @@ alfw_txcc_best<-do.call(rbind,
 ```
 The model with the highest median log likelihoods was `r best_mod`.
 ```{r saveBest15}
-best<-alfw_txcc_best[which.max(alfw_txcc_best$log.likelihood),]
 
-outTable[15,1]<-c("ALFW_TXCC")
-outTable[15,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
+outTable[15,colnames(outTable) %in% colnames(sumTab)]<-sumTab[sumTab$Model==best_mod,colnames(sumTab) %in% colnames(outTable)]
 
 bestModels[15,]<-c("ALFW","TXCC",Model=best_mod)
 ```
@@ -892,10 +860,8 @@ alst_lafw_best<-do.call(rbind,
 ```
 The model with the highest median log likelihoods was `r best_mod`.
 ```{r saveBest16}
-best<-alst_lafw_best[which.max(alst_lafw_best$log.likelihood),]
 
-outTable[16,1]<-c("ALST_LAFW")
-outTable[16,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
+outTable[16,colnames(outTable) %in% colnames(sumTab)]<-sumTab[sumTab$Model==best_mod,colnames(sumTab) %in% colnames(outTable)]
 
 bestModels[16,]<-c("ALST","LAFW",Model=best_mod)
 ```
@@ -929,10 +895,8 @@ alst_txfw_best<-do.call(rbind,
 ```
 The model with the highest median log likelihoods was `r best_mod`.
 ```{r saveBest17}
-best<-alst_txfw_best[which.max(alst_txfw_best$log.likelihood),]
 
-outTable[17,1]<-c("ALST_TXFW")
-outTable[17,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
+outTable[17,colnames(outTable) %in% colnames(sumTab)]<-sumTab[sumTab$Model==best_mod,colnames(sumTab) %in% colnames(outTable)]
 
 bestModels[17,]<-c("ALST","TXFW",Model=best_mod)
 ```
@@ -965,10 +929,8 @@ alst_txcc_best<-do.call(rbind,
 ```
 The model with the highest median log likelihoods was `r best_mod`.
 ```{r saveBest18}
-best<-alst_txcc_best[which.max(alst_txcc_best$log.likelihood),]
 
-outTable[18,1]<-c("ALST_TXCC")
-outTable[18,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
+outTable[18,colnames(outTable) %in% colnames(sumTab)]<-sumTab[sumTab$Model==best_mod,colnames(sumTab) %in% colnames(outTable)]
 
 bestModels[18,]<-c("ALST","TXCC",Model=best_mod)
 ```
@@ -1001,10 +963,8 @@ lafw_txfw_best<-do.call(rbind,
 ```
 The model with the highest median log likelihoods was `r best_mod`.
 ```{r saveBest19}
-best<-lafw_txfw_best[which.max(lafw_txfw_best$log.likelihood),]
 
-outTable[19,1]<-c("LAFW_TXFW")
-outTable[19,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
+outTable[19,colnames(outTable) %in% colnames(sumTab)]<-sumTab[sumTab$Model==best_mod,colnames(sumTab) %in% colnames(outTable)]
 
 bestModels[19,]<-c("LAFW","TXFW",Model=best_mod)
 ```
@@ -1037,10 +997,8 @@ lafw_txcc_best<-do.call(rbind,
 ```
 The model with the highest median log likelihoods was `r best_mod`.
 ```{r saveBest20}
-best<-lafw_txcc_best[which.max(lafw_txcc_best$log.likelihood),]
 
-outTable[20,1]<-c("LAFW_TXCC")
-outTable[20,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
+outTable[20,colnames(outTable) %in% colnames(sumTab)]<-sumTab[sumTab$Model==best_mod,colnames(sumTab) %in% colnames(outTable)]
 
 bestModels[20,]<-c("LAFW","TXCC",Model=best_mod)
 ```
@@ -1073,10 +1031,8 @@ txfw_txcc_best<-do.call(rbind,
 ```
 The model with the highest median log likelihoods was `r best_mod`.
 ```{r saveBest21}
-best<-txfw_txcc_best[which.max(txfw_txcc_best$log.likelihood),]
 
-outTable[21,1]<-c("TXFW_TXCC")
-outTable[21,colnames(outTable) %in% colnames(best)]<-best[,colnames(best) %in% colnames(outTable)]
+outTable[21,colnames(outTable) %in% colnames(sumTab)]<-sumTab[sumTab$Model==best_mod,colnames(sumTab) %in% colnames(outTable)]
 
 bestModels[21,]<-c("TXFW","TXCC",Model=best_mod)
 ```
