@@ -227,6 +227,48 @@ for(i in 1:(length(pops)-1)){
 write.csv(tasks,"model_list_dadi.csv",row.names = TRUE,quote=FALSE)
 ```
 
+```{r dadiParamsTable}
+paramsMeanings<-data.frame(parameter=c("theta","b1","b2","m12","m21","me12","me21",
+                                       "nu1","nu2","O","P","Ts","Tsc","hrf",
+                                       "Q","bf","nr","Tam"),
+                           description=c("ancestral population size",
+                                         "population growth coefficient for population 1",
+                                         "population growth coefficient for population 2", 
+                                         "migration rate from population 2 to population 1",
+                                         "migration from population 1 to population 2", 
+                                         "effective migration from population 2 to population 1 in genomic islands",
+                                         "effective migration from population 1 to population 2 in genomic islands",
+                                         "Size of population 1 after the split",
+                                         "Size of population 2 after the split",
+                                         "The proportion of the genome in an accurate orientation",
+                                         "The proportion of the genome evolving neutrally",
+                                         "The scaled time between the split and the present/secondary contact",
+                                         "The scaled time between secondary contact and the present",
+                                         "The degree to which Ne is locally reduced due to background selection and selective sweeps",
+                                         "The proportion of the genome with reduced Ne due to selection at linked sites",
+                                         "The extent of reduced Ne in non-recombining regions",
+                                         "Proportion of non- or low-recombining regions",
+                                         "The scaled time between ancient migration and the present"),
+                           models=c("All","All models with growth (G)","All models with growth (G)",
+                                    "Models with migration (SC, AM, and IM)",
+                                    "Models with migration (SC, AM, and IM)",
+                                    "Models with heterogeneous migration (with 2m)",
+                                    "Models with heterogeneous migration (with 2m)",
+                                    "All","All","All","Models with heterogeneous migration (with 2m)",
+                                    "All","Models with secondary contact (SC)",
+                                    "Models with background selection (with 2N)",
+                                    "Models with background selection (with 2N)",
+                                    "Strict isolation and background selection (SI2N)",
+                                    "Strict isolation and background selection (SI2N)",
+                                    "Models with ancestral migratino (AM)"))
+
+kable(paramsMeanings,"latex",booktabs=TRUE,
+      caption="Table describing all of the parameters from the dadi models and which models they appear in.") %>%
+  kable_styling(latex_options="HOLD_position") %>%
+  column_spec(3,width="30em") %>%
+  column_spec(2,width="30em") %>%
+```
+
 
 
 ## Analyzing dadi output {-}
