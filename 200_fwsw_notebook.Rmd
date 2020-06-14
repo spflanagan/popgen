@@ -23,6 +23,16 @@ library(knitr)
 pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 ```
 
+# 15 June 2020
+
+Sweet, some runs on abacus are done:
+- ALST_TXFW # 13
+- ALST_LAFW # 13
+- ALST_TXCC # 14
+
+I finally quit job 439 ALST_TXFW_12 & made sure all the data had been moved to C001KR.
+
+
 # 12 June 2020
 
 I think I've decided that a summary table is better than trying to come up with a figure for the dadi results, at least at the moment. So I've added code to save that table to the Rmarkdown doc. I've also plotted 2D data vs model figures made by dadi for the best models and their optimized parameters, but some of them look really strange. Others look really nice. So that means, I think, that I haven't found very good runs of some of these models. Comparisons with bad plots:
