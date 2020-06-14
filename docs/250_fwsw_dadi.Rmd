@@ -1121,7 +1121,7 @@ for(i in 1:length(pop.list)){
     }
   }
 }
-
+write.csv(outTable,"dadi_outTable.csv",col.names = TRUE,row.names = FALSE,quote=FALSE)
 ```
 
 The summary table will tell show all of the parameters for the best models. 
