@@ -23,6 +23,35 @@ library(knitr)
 pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 ```
 
+# 12 June 2020
+
+I think I've decided that a summary table is better than trying to come up with a figure for the dadi results, at least at the moment. So I've added code to save that table to the Rmarkdown doc. I've also plotted 2D data vs model figures made by dadi for the best models and their optimized parameters, but some of them look really strange. Others look really nice. So that means, I think, that I haven't found very good runs of some of these models. Comparisons with bad plots:
+
+FLLG_ALFW
+FLLG_ALST
+FLLG_LAFW
+FLLG_TXFW
+FLLG_TXCC
+FLLG_ALFW
+FLCC_ALST
+FLCC_LAFW
+ALFW_LAFW
+ALFW_TXCC
+
+But the regular 2D plots of them look fine, so it's probably something to do with my plotting function, and of course I didn't save a log. So I'll try running it again and this time save the output to a log file.
+
+Looking at the log, it looks like I've passed some strange parameters including NAs, and I'm guessing that's the source of my issues. This arose from the simplification I made of using sumTabs to fill the outTable, but the columns were in different orders. So I think I've fixed that and I'm working on making the new figures.
+
+
+To have more confidence in my current results, it would be really nice if I could easily know which runs were complete and move those from abacus and rccuser. 
+
+This would be done using some fun unix code
+
+```{bash}
+find . -type f -iname "$remote_file" -mtime +3
+```
+
+
 # 11 June 2020
 
 My goals for today are:
