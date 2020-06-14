@@ -523,7 +523,7 @@ fst_mat<-as.matrix(full_fsts)
 ```
 
 
-```{r fst_heatmaps,fig.width=8,fig.height=5,eval=FALSE}
+```{r fstHeatmaps,fig.width=8,fig.height=5,eval=FALSE}
 library(lattice); library(grid); library(RColorBrewer)
 poporder<-read.delim("treemix/poporder")
 colors<-poporder$colors
@@ -577,14 +577,14 @@ dev.off()
 library(pcadapt)
 ```
 
-````{r pcadapt_choose,fig.cap="Scree plot from PCAdapt, specifying keeping 20 PC axes."}
+```{r pcadaptChoose,fig.cap="Scree plot from PCAdapt, specifying keeping 20 PC axes."}
 filename<-read.pcadapt("filter_rad_20191014@1654/14_filtered/radiator_data_20191014@1710.vcf",
                        type="vcf")
 x<-pcadapt(filename, K=20)
 plot(x,option="screeplot") #K=7
 ```
 
-```{r pcadapt_analyze}
+```{r pcadaptAnalyze}
 pa<-pcadapt(filename,K=7)
 saveRDS(pa,"fwsw_all_pcadapt.RDS")
 pa.props<-round((pa$singular.values/sum(pa$singular.values))*100,2)
@@ -613,7 +613,7 @@ write.table(pap,"pcadapt_colp.txt",col.names=TRUE,sep='\t',quote=F)
 ```
 
 
-```{r plot_pcadapt_initial, fig.height=8,fig.width=10.5,dev='png',fig.dim="in",fig.cap="Principal components analysis of genotypes in S. scovelli reveals population structure due to geographic distance and habitat type. The top set of panels show the results of the PCA with all 16 populations, color-coded by populations and point shape. The bottom set of panels show the same PCA results, but with different x- and y-axis scaling and without the saltwater populations plotted, to facilitate visualizing the differences among saltwater populations. The left panels show the first and second PC axes, whcih together account for 53.5% of the varation, the middle panels show the 3rd and 4th PC axes (another 26.8% of the variation), and the right panels the fifth and sixth axes (another % of variation)."}
+```{r plotPcadaptInitial, fig.height=8,fig.width=10.5,dev='png',fig.dim="in",fig.cap="Principal components analysis of genotypes in S. scovelli reveals population structure due to geographic distance and habitat type. The top set of panels show the results of the PCA with all 16 populations, color-coded by populations and point shape. The bottom set of panels show the same PCA results, but with different x- and y-axis scaling and without the saltwater populations plotted, to facilitate visualizing the differences among saltwater populations. The left panels show the first and second PC axes, whcih together account for 53.5% of the varation, the middle panels show the 3rd and 4th PC axes (another 26.8% of the variation), and the right panels the fifth and sixth axes (another % of variation)."}
 
 #plot
 par(mfrow=c(2,3),oma=c(2,2,2,2),mar=c(2,2,2,2))
@@ -710,18 +710,18 @@ admixPlotting<-function(qfile,K,famfile="admixture/fwsw_all_filt.fam",
 }
 ```
 
-```{r admix_K2,fig.height=2,fig.width=8,fig.cap="Admixture plot for K=2. The colors represent different genetic populations."}
+```{r admixK2,fig.height=2,fig.width=8,fig.cap="Admixture plot for K=2. The colors represent different genetic populations."}
 admixK2<-admixPlotting("admixture/fwsw_all_filt.2.Q",2)
 ```
 
-```{r admix_K3,fig.height=2,fig.width=8,fig.cap="Admixture plot for K=3. The colors represent different genetic populations."}
+```{r admixK3,fig.height=2,fig.width=8,fig.cap="Admixture plot for K=3. The colors represent different genetic populations."}
 admixK3<-admixPlotting("admixture/fwsw_all_filt.3.Q",3)
 ```
-```{r admix_K4,fig.height=2,fig.width=8,fig.cap="Admixture plot for K=4. The colors represent different genetic populations."}
+```{r admixK4,fig.height=2,fig.width=8,fig.cap="Admixture plot for K=4. The colors represent different genetic populations."}
 admixK4<-admixPlotting("admixture/fwsw_all_filt.4.Q",4)
 ```
 
-```{r admix_k5,fig.height=2,fig.width=8,fig.cap="Admixture plot for K=5. The colors represent different genetic populations."}
+```{r admixk5,fig.height=2,fig.width=8,fig.cap="Admixture plot for K=5. The colors represent different genetic populations."}
 admixK5<-admixPlotting("admixture/fwsw_all_filt.5.Q",5)
 write.table(admixK5,"admixture/admixK5.txt",sep = '\t',
             quote = FALSE,col.names = TRUE,row.names = FALSE)
@@ -996,7 +996,7 @@ poporder<-poporder$poporder
 ```
 
 
-```{r NewPopStructure_v2,eval=TRUE,results='hide'}
+```{r NewPopStructureV2,eval=TRUE,results='hide'}
 npop<-length(pop.list)
 pseq<-1:npop
 m<-matrix(c(rep(1,16),rep(2,6),
@@ -1135,7 +1135,7 @@ The alignments were done with a preliminary genome assembly that is different fr
 
 
 
-```{r convert_agp}
+```{r convertAgp}
 
 convert.agp<-function(locus=NULL,old.agp,old.scf,new.agp,scf.agp,
                       chr=NULL,bp=NULL,id=NULL){
@@ -1255,7 +1255,7 @@ convert.stacks<-function(stacks.fst,outname,lgs,ssc.agp,sscf.agp,chr.agp,scf.agp
 }
 ```
 
-```{r gen_agp_lgs}
+```{r genAgpLGs}
 # old agps
 ssc.agp<-read.delim("../../scovelli_genome/SSC_genome.agp",
                     comment.char="#",header=FALSE)
@@ -1276,7 +1276,7 @@ colnames(chr.agp)<-c("object","object_beg","object_end","part_number","W",
                      "component_id","component_beg","component_end","orientation")
 ```
 
-```{r convert_vcf,eval=FALSE}
+```{r convertVcf,eval=FALSE}
 vcf<-parse.vcf("stacks/populations_subset75/batch_2.pruned.vcf")
 converted<-data.frame(Locus=integer(),OrigChr=character(),OrigBP=integer(),
                       NewChr=character(),NewBP=integer(),
@@ -1295,7 +1295,7 @@ lgs<-c("LG1","LG2","LG3","LG4","LG5","LG6","LG7","LG8","LG9","LG10","LG11",
 ```
 
 
-```{r replace_vcf,eval=FALSE}
+```{r replaceVcf,eval=FALSE}
 new.vcf<-as.data.frame(vcf,stringsAsFactor=FALSE)
 for(i in 1:nrow(vcf)){
   new.vcf$POS[i]<-converted$NewBP[i]
@@ -1320,14 +1320,14 @@ upd.sf<-convert.stacks(swsw.fl,"stacks/converted.fst_FLCC-FLHB.txt",
 
 ## Stacks {-}
 
-```{r read_stacks_fsts}
+```{r readStacksFsts}
 fwsw.al<-read.delim("stacks/converted.fst_ALFW-ALST.txt")
 fwsw.la<-read.delim("stacks/converted.fst_ALST-LAFW.txt")
 fwsw.tx<-read.delim("stacks/converted.fst_TXCC-TXFW.txt")
 fwsw.fl<-read.delim("stacks/converted.fst_FLCC-FLLG.txt")
 ```
 
-```{r plot_stacks_fsts,fig.height=8,fig.width=6,fig.cap="Manhattan plot of pairwise AMOVA-corrected Fst values from Stacks for each freshwater - nearest saltwater population pair. The x-axis corresponds to genomic locations, with chromosomes labelled. To the right are loci that mapped to unanchored scaffolds."}
+```{r plotStacksFsts,fig.height=8,fig.width=6,fig.cap="Manhattan plot of pairwise AMOVA-corrected Fst values from Stacks for each freshwater - nearest saltwater population pair. The x-axis corresponds to genomic locations, with chromosomes labelled. To the right are loci that mapped to unanchored scaffolds."}
 source("../R/205_popgenPlotting.R")
 fst_dat<-list(fwsw.al,fwsw.la,fwsw.tx,fwsw.fl)
 fsts<-plot_multiple_LGs(list_fsts = fst_dat,fst_name = "Corrected.AMOVA.Fst",
@@ -1344,7 +1344,7 @@ fsts<-plot_multiple_LGs(list_fsts = fst_dat,fst_name = "Corrected.AMOVA.Fst",
 
 So this generated a plot for each pairwise comparison. We could look for shared outliers and see if we can find anything.
 
-```{r get_stacks_sig}
+```{r getStacksSig}
 tx.sig<-fwsw.tx[fwsw.tx$Fisher.s.P<0.01,"Locus.ID"]
 la.sig<-fwsw.la[fwsw.la$Fisher.s.P<0.01,"Locus.ID"]
 al.sig<-fwsw.al[fwsw.al$Fisher.s.P<0.01,"Locus.ID"]
@@ -1359,7 +1359,7 @@ There are `r length(unique(all.shared))` outliers (as determined by Fisher's P f
 
 As a point of comparison, we can repeat this with the similar pairwise saltwater-saltwater $F_{ST}$ comparisons.
 
-```{r plot_stacks_fsts_swsw,fig.height=8,fig.width=6,fig.cap="Manhattan plot of pairwise AMOVA-corrected Fst values from Stacks for the saltwater populations nearest to freshwater populations compared to their nearest saltwater neightbor. The x-axis corresponds to genomic locations, with chromosomes labelled. To the right are loci that mapped to unanchored scaffolds."}
+```{r plotStacksFstsSWSW,fig.height=8,fig.width=6,fig.cap="Manhattan plot of pairwise AMOVA-corrected Fst values from Stacks for the saltwater populations nearest to freshwater populations compared to their nearest saltwater neightbor. The x-axis corresponds to genomic locations, with chromosomes labelled. To the right are loci that mapped to unanchored scaffolds."}
 swsw.fl<-read.delim("stacks/converted.fst_TXCB-TXCC.txt")
 swsw.tx<-read.delim("stacks/converted.fst_ALST-FLSG.txt")
 swsw.al<-read.delim("stacks/converted.fst_FLCC-FLHB.txt")
@@ -1376,7 +1376,7 @@ fsts<-plot_multiple_LGs(list_fsts = fst_dat,fst_name = "Corrected.AMOVA.Fst",
 
 So this generated a plot for each pairwise comparison. We could look for shared outliers and see if we can find anything.
 
-```{r get_stacks_sig_swsw}
+```{r getStacksSigSWSW}
 tx.sig<-swsw.tx[swsw.tx$Fisher.s.P<0.01,"Locus.ID"]
 al.sig<-swsw.al[swsw.al$Fisher.s.P<0.01,"Locus.ID"]
 fl.sig<-swsw.fl[swsw.fl$Fisher.s.P<0.01,"Locus.ID"]
@@ -1387,7 +1387,7 @@ There are `r length(unique(all.shared))` outliers (as determined by Fisher's P f
 
 ## Permutations {-}
 
-```{r permute.gwsca}
+```{r permutegwsca}
 permute.gwsca<-function(vcf,map1,nperms,z=1.96, maf.cutoff = 0.05,cov.thresh=0.2){
   # calculate the actuals
   actual_fsts<-gwsca(vcf,colnames(vcf)[1:9],
@@ -1443,7 +1443,7 @@ saveRDS(permuted_fsts,"permuted_fsts.RDS")
 
 Now let's visualize it.
 
-```{r plot_fst_hists}
+```{r plotFstHists}
 plot_fst_hists<-function(perms,plot_lab=NULL,cols=NULL,permlab="mean_perm",
                          reallab="Fst",baseplot=TRUE,inset=NULL){
   require(scales)
@@ -1486,7 +1486,7 @@ plot_fst_hists<-function(perms,plot_lab=NULL,cols=NULL,permlab="mean_perm",
 }
 
 ```
-```{r plot_permutations, eval=FALSE}
+```{r plotPermutations, eval=FALSE}
 plot_labs<-list("TXFW vs TXCC","FLFW vs FLCC","ALFW vs ALST","ALST vs LAFW")
 pt_cols<-list(TXTX=grp.colors[1],FLFL=grp.colors[6],
               ALAL=grp.colors[3],ALLA=grp.colors[2])
@@ -1506,7 +1506,7 @@ dev.off()
 
 Now let's start to aggregate everything.
 
-```{r create_fw_SNPinfo, eval=FALSE}
+```{r createFWSNPinfo, eval=FALSE}
 permuted_fsts<-readRDS("permuted_fsts.RDS")
 
 perm_dat<-do.call(cbind,permuted_fsts)
@@ -2127,7 +2127,7 @@ dev.off()
 ## Annotations {-}
 
 
-```{r annotate_snps}
+```{r annotateSNPs}
 annotate_snps<-function(snpDF,gff,genome.blast,ID="Locus.ID",
                         chrom="Chr",bp="BP",pos="Column")
 {
