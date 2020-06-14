@@ -1800,21 +1800,23 @@ Now, to plot.
 ```{r plotOutliersSetup}
 library(scales)
 fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
-cols<-c(perm=alpha('#e41a1c',0.75),sal=alpha('#377eb8',0.75),
-        pc=alpha('#4daf4a',0.75),xtx=alpha('#984ea3',0.75),
-        stacks=alpha('#ff7f00',0.75))
+
+
 ```
 ```{r plotOutliers,fig.keep='last',fig.cap="Manhattan plots of the Bayenv XTX statistic and the log of the Bayes factors associated with salinity. Shown are only loci that mapped to regions on chromosomes. Grey points represent loci that are not outlier in any analyses. Colored points represent outliers in both the Bayenv analyses and the other outlier analyses."}
+cols<-c(perm=alpha('#e41a1c',0.75),sal=alpha('#377eb8',0.75),pc=alpha('#a65628',0.75),
+        stacks=alpha('#f781bf',0.75),xtx=alpha('#ff7f00',0.75))
+png("../figs/BayenvOutliers.png",height=5,width=8.5,units="in",res=300,pointsize=12)
 par(mfrow=c(2,1),oma=c(1,2,1,1),mar=c(2,2,1,1),xpd=TRUE)
 # plot XtX
 plot_dat<-fst.plot(fw_SNPinfo,scaffs.to.plot = lgs,fst.name = "XtX",
                    chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19)
 points(plot_dat$plot.pos[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
        plot_dat$XtX[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
-       col=cols["xtx"],cex=0.75,pch=19)
+       col=cols["xtx"],cex=0.75,pch=3)
 points(plot_dat$plot.pos[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
        plot_dat$XtX[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
-       col=cols["sal"],cex=0.85,pch=17)
+       col=cols["sal"],cex=0.85,pch=2)
 points(plot_dat$plot.pos[
   rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
        plot_dat$XtX[
@@ -1840,10 +1842,10 @@ plot_dat<-fst.plot(plot_dat,scaffs.to.plot = lgs,fst.name = "logSalBF",
                    chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19)
 points(plot_dat$plot.pos[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
        plot_dat$logSalBF[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
-       col=cols["sal"],cex=0.85,pch=17)
+       col=cols["sal"],cex=0.85,pch=2)
 points(plot_dat$plot.pos[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
        plot_dat$logSalBF[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
-       col=cols["xtx"],cex=0.75,pch=19)
+       col=cols["xtx"],cex=0.75,pch=3)
 points(plot_dat$plot.pos[
   rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
        plot_dat$logSalBF[
@@ -1876,7 +1878,8 @@ legend("top",c(expression("Permutation"~italic("F")["ST"]),
        xjust = 0.5,x.intersp = 0.5,
        col = cols[c("perm","stacks","pc","xtx","sal")],
        pt.bg=cols[c("perm","stacks","pc","xtx","sal")],
-       pch=c(4,5,0,19,17),bty='n',ncol=3)
+       pch=c(4,5,0,3,2),bty='n',ncol=5)
+dev.off()
 ```
 
 
