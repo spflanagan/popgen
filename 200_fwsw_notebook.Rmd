@@ -45,6 +45,10 @@ On rccuser FLCC_ALFW_SC2NG_1 is running, and ALFW_TXFW_2 IM2N and IM2nG, plus se
 tail FLCC-ALFW_SC2NG_1_2.log -- Round 4, 24 of 40
 tail FLCC_ALST_20.SC2N2mG.log.txt -- Round 3, 24 of 30 (number 2 is on Round 3, 6 of 30) -- hopefully these aren't interfering with each other, but they might be.
 
+Other stuff:
+- I need to run a maximum likelihood unrooted tree with the consensus in treemix to generate covariances.
+- I need to re-make the summary figure with the treemix FLLG label turned into FLFW. And change the colors of the tip labels.
+- re-run the dadi best models plotting script.
 
 # 12 June 2020
 
