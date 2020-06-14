@@ -1,5 +1,5 @@
 ---
-title: Supplemental Material \# 2 for "Multiple colonizations of freshwater by the Gulf pipefish reveal a shared genomic signature of adaptation"
+title: Supplemental Material \# 3 for "Multiple colonizations of freshwater by the Gulf pipefish reveal a shared genomic signature of adaptation"
 preprint: false
 author: 
   - name: Sarah P. Flanagan
