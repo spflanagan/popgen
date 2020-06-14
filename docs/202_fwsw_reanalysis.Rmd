@@ -993,7 +993,16 @@ library(lattice); library(grid); library(RColorBrewer)
 poporder<-read.delim("treemix/poporder")
 colors<-poporder$colors
 poporder<-poporder$poporder
+d <- read.table("treemix/migrations/fwsw_FLAB_m1.vertices.gz", 
+                as.is  = T, comment.char = "", quote = "")
+branch.cols<-rep("black",nrow(d))
+branch.cols[d[,2] %in% c("TXFW","ALFW","LAFW","FLLG")]<-"cornflowerblue"
 
+tip.names<-as.vector(d[d[,5] == "TIP",2])
+tip.names<-data.frame(Original=tip.names,Replacement=tip.names,stringsAsFactors = FALSE)
+tip.names$Replacement[tip.names$Replacement=="FLLG"]<-"FLFW"
+
+plotdat<-merge(tip.names,poporder,by.y="poporder",by.x="Original")
 ```
 
 
@@ -1020,7 +1029,9 @@ text(x = 0.5,y=1.2,"C",cex = 2,font =2)
 #Treemix
 par(mar=c(0,0,0,1))
 t2<-plot_tree("treemix/migrations/fwsw_FLAB_m1",scale=T,mbar=T,cex = 1.5,
-              lwd=2,mig_left=FALSE,disp=0.0002,scadj=0.05)
+              lwd=2,mig_left=FALSE,disp=0.0002,scadj=0.05,
+              tip.order=tip.names$Replacement,branch.cols = branch.cols,
+              tip.col=plotdat$colors)
 text(x = 0.035,y=0.9,"B",cex = 2,font =2)
 #STRUCTURE
 par(mar=c(1,0,0,0))
@@ -1073,7 +1084,7 @@ fst_mat<-as.matrix(full_fsts)
 ```
 
 ```{r covPlot,results='hide',fig.show='true'}
-cov<-read.table(gzfile("treemix/unrooted/fwsw_1.cov.gz"), as.is = T, head = T, quote = "", 
+cov<-read.table(gzfile("treemix/unrooted/fwsw_ML_consensus.cov.gz"), as.is = T, head = T, quote = "", 
                 comment.char = "")
 #reorder
 covplot <- data.frame(matrix(nrow = nrow(cov), ncol = ncol(cov)))
