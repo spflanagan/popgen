@@ -32,6 +32,19 @@ Sweet, some runs on abacus are done:
 
 I finally quit job 439 ALST_TXFW_12 & made sure all the data had been moved to C001KR.
 
+Need to run: 
+- ALFW vs ALST (# 15) - wait for 628 to finish (just one more model)
+- FLCC vs TXCC (# 14) - wait for 619 to finish (just one more model)
+- FLCC vs TXFW (anything > 10) - running # 14 models 238-259 on abacus (job 645)
+- FLCC vs LAFW (#14) models 212-233 (job 646)
+
+For now that's what I'll go with, and hopefully some more of these models will finish running on abacus in the next couple days.  
+
+On rccuser FLCC_ALFW_SC2NG_1 is running, and ALFW_TXFW_2 IM2N and IM2nG, plus several FLCC_ALST_2 and FLCC_ALST_SC2N2mG_20, plus FLCC_ALFW_2_AM2NG and SC2mG, and FLCC_LAFW_2 (various models). 
+
+tail FLCC-ALFW_SC2NG_1_2.log -- Round 4, 24 of 40
+tail FLCC_ALST_20.SC2N2mG.log.txt -- Round 3, 24 of 30 (number 2 is on Round 3, 6 of 30) -- hopefully these aren't interfering with each other, but they might be.
+
 
 # 12 June 2020
 
