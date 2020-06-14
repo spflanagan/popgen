@@ -1177,11 +1177,11 @@ params_order<-list(SI=c("nu1", "nu2", "Ts", "O"),
 ```
 
 ```{r writePythonScript}
-write.table("#!/bin/bash","../scripts/make_best_plots_dadi.py",
+write.table("#!/bin/bash","../scripts/make_best_plots_dadi.sh",
             quote=FALSE,row.names = FALSE,col.names = FALSE)
-write.table("cd \"${0%/*}\"","../scripts/make_best_plots_dadi.py",
+write.table("cd \"${0%/*}\"","../scripts/make_best_plots_dadi.sh",
             append=TRUE, quote=FALSE,row.names = FALSE,col.names = FALSE)
-write.table("cd ../fwsw_results/dadi_results/","../scripts/make_best_plots_dadi.py",
+write.table("cd ../fwsw_results/dadi_results/","../scripts/make_best_plots_dadi.sh",
             append=TRUE, quote=FALSE,row.names = FALSE,col.names = FALSE)
 pyt_tab<-apply(outTable,1,function(dat,params_order){
   pord<-params_order[[dat["Model"]]]
@@ -1190,7 +1190,7 @@ pyt_tab<-apply(outTable,1,function(dat,params_order){
   pop2<-gsub("(\\w+)_(\\w+)","\\2",dat["PopPair"])
   parms<-gsub(" ","",dat[pord])
   write.table(rbind(c("python ../../scripts/253_plot_best_dadi.py",
-                pop1,pop2,dat["Model"],parms)),"../scripts/make_best_plots_dadi.py",
+                pop1,pop2,dat["Model"],parms)),"../scripts/make_best_plots_dadi.sh",
               append=TRUE,sep=" ",quote=FALSE,row.names = FALSE,col.names = FALSE)
 },params_order=params_order)
 ```
