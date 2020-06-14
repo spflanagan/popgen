@@ -646,8 +646,43 @@ xtx.sig<-bayenv.dat[bayenv.dat$XtX > quantile(bayenv.dat$XtX,0.99,na.rm=TRUE),]
 
 We ran Bayenv2.0 to identify environmental correlations for each SNP (represented by the resulting Bayes Factors) and to estimate population differentiation statistics (represented by the $X^TX$ value for each SNP). To analyze the output of the Bayenv2.0 environmental correlation runs, we identified loci that had extreme Bayes Factors and extreme $X^TX$ statistics as those in the 99th quantile. We found `r nrow(temp.bf.sig[temp.bf.sig$locus %in% sal.bf.sig$locus & temp.bf.sig$locus %in% grass.bf.sig,])` overlapping outliers between temperature-, salinity-, and seagrass-associated loci. However, because we are interested in shared signatures of adaptation to freshwater, we focused our attention to the salinity-associated loci, of which we found `r nrow(sal.bf.sig)`. Of those, `r nrow(xtx.sig[xtx.sig$locus %in% sal.bf.sig$locus,])` were also outliers in the distribuion of the population differentiation statistics, $X^TX$. Neither the set of outliers associated with associated or population differentiation showed spatial clustering genome-wide (see figure 4 in the main text).
 
+## Summarizing outliers
 
-## Annotations {-}
+To summarize the results of the outliers
+
+```{r getOutliers}
+fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
+outliers<-list(xtx=fw_SNPinfo$ID[fw_SNPinfo$XtX >= quantile(fw_SNPinfo$XtX,0.99,na.rm = TRUE)],
+               salBF=fw_SNPinfo$ID[fw_SNPinfo$logSalBF>=
+                                     quantile(fw_SNPinfo$logSalBF,0.99,na.rm = TRUE)],
+               permutations=fw_SNPinfo$ID[
+                 rowSums(fw_SNPinfo[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+               pcadapt=fw_SNPinfo$ID[which(fw_SNPinfo$pcadaptQ<0.01)],
+               Alabama=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05)], 
+               Louisiana=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_LA_P < 0.05)],
+               Texas=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_TX_P < 0.05)],
+               Florida=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_FL_P < 0.05)],
+               sharedStacks=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05 & 
+                                                  fw_SNPinfo$stacks_LA_P < 0.05 &
+                 fw_SNPinfo$stacks_TX_P < 0.05 & fw_SNPinfo$stacks_FL_P < 0.05)])
+```
+```{r outChroms}
+outlierSumm<-do.call(rbind,lapply(outliers,function(outs){
+
+  chs<-table(fw_SNPinfo$Chrom[fw_SNPinfo$ID %in% outs])
+  return(data.frame(NumOutliers=nrow(fw_SNPinfo[fw_SNPinfo$ID %in% outs,]),
+              NumChrom=length(chs[grep("LG",names(chs))]),
+             NumScaffs=length(chs[grep("LG",names(chs),invert = TRUE)]),
+             NumCoding=length(which(!is.na(fw_SNPinfo$SSCID[fw_SNPinfo$ID %in% outs])))))
+}) )
+kable(outlierSumm,"latex",booktabs=TRUE,
+      caption="Table summarizing the outliers from each analysis.")
+```
+
+
+
+
+# Annotations {-}
 
 Adaptation to freshwater might involve changes in coding regions of the genome or changes in regulatory regions, so we used the *S. scovelli* genome to identify the genomic locations of the outlier loci identified by our various analyses (Stacks $F_{ST}$s, permutations, PCAdapt outliers, Bayenv population differentiation, and Bayenv salinity correlations). We were able to identify whether outlier SNPs were located in coding regions, 3' or 5' untranslated regions ('regulatory regions'), or un-annotated regions of the genome. This last category we consider to be 'non-coding' as the *S. scovelli* genome was annotated using RNA-sequencing data from embryonic head tissue and brood pouch tissue, as well as other fish species such as *Danio rerio*, so un-annotated regions are likely to be non-coding. One of the SNPs in the dataset could not be mapped to a location in the genome. 
 
