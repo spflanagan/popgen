@@ -765,6 +765,7 @@ tre<-read.tree("treemix/unrooted_consensus.newick")
 png("../figs/treemix_unrooted_consense.png",height=8,width=8,units="in",res=300)
 plot(tre)
 dev.off()
+write.tree(tre,'treemix/unrooted_consensus.newick')
 ```
 
 ```{r treemixUnrooted, fig.cap="The consensus tree from running Treemix without any migration edges  and no root."}
