@@ -323,7 +323,7 @@ fllg_flcc<-dadi_initialCompare("FLLG_FLCC",modSel="median")
 sumTab<-dadi_pairSummary(fllg_flcc)
 
 landscape(kable(sumTab,"latex",booktabs=TRUE,
-      caption = "Table showing the results of the run with the median log likelihood for each model",
+      caption = "Table showing the results of the run with the median log likelihood for each model for the FLFW vs FLCC comparison. The parameters are not converted to biologically realistic values, and their meanings are presented in Table S2.2.",
       row.names = FALSE)) %>%
   kable_styling(latex_options=c("scale_down","HOLD_position"))
 
@@ -395,7 +395,7 @@ fllg_alfw<-dadi_initialCompare("FLLG_ALFW")
 sumTab<-dadi_pairSummary(fllg_alfw)
 
 landscape(kable(sumTab,"latex",booktabs=TRUE,
-      caption = "Table showing the results of the run with the median log likelihood for each model",
+      caption = "Table showing the results of the run with the median log likelihood for each model for the FLFW vs ALFW comparison. The parameters are not converted to biologically realistic values, and their meanings are presented in Table S2.2.",
       row.names = FALSE)) %>%
   kable_styling(latex_options=c("scale_down","HOLD_position"))
 
@@ -435,7 +435,7 @@ fllg_alst<-dadi_initialCompare("FLLG_ALST")
 sumTab<-dadi_pairSummary(fllg_alst)
 
 landscape(kable(sumTab,"latex",booktabs=TRUE,
-      caption = "Table showing the results of the run with the median log likelihood for each model",
+      caption = "Table showing the results of the run with the median log likelihood for each model for the FLFW vs ALST comparison. The parameters are not converted to biologically realistic values, and their meanings are presented in Table S2.2.",
       row.names = FALSE)) %>%
   kable_styling(latex_options=c("scale_down","HOLD_position"))
 
@@ -473,7 +473,7 @@ fllg_lafw<-dadi_initialCompare("FLLG_LAFW")
 sumTab<-dadi_pairSummary(fllg_lafw)
 
 landscape(kable(sumTab,"latex",booktabs=TRUE,
-      caption = "Table showing the results of the run with the median log likelihood for each model",
+      caption = "Table showing the results of the run with the median log likelihood for each model for the FLFW vs LAFW comparison. The parameters are not converted to biologically realistic values, and their meanings are presented in Table S2.2.",
       row.names = FALSE)) %>%
   kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
@@ -513,7 +513,7 @@ fllg_txfw<-dadi_initialCompare("FLLG_TXFW")
 sumTab<-dadi_pairSummary(fllg_txfw)
 
 landscape(kable(sumTab,"latex",booktabs=TRUE,
-      caption = "Table showing the results of the run with the median log likelihood for each model",
+      caption = "Table showing the results of the run with the median log likelihood for each model for the FLFW vs TXFW comparison. The parameters are not converted to biologically realistic values, and their meanings are presented in Table S2.2.",
       row.names = FALSE)) %>%
   kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
@@ -547,7 +547,7 @@ fllg_txcc<-dadi_initialCompare("FLLG_TXCC")
 sumTab<-dadi_pairSummary(fllg_txcc)
 
 landscape(kable(sumTab,"latex",booktabs=TRUE,
-      caption = "Table showing the results of the run with the median log likelihood for each model",
+      caption = "Table showing the results of the run with the median log likelihood for each model for the FLFW vs TXCC comparison. The parameters are not converted to biologically realistic values, and their meanings are presented in Table S2.2.",
       row.names = FALSE)) %>%
   kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
@@ -582,7 +582,7 @@ flcc_alfw<-dadi_initialCompare("FLCC_ALFW")
 sumTab<-dadi_pairSummary(flcc_alfw)
 
 landscape(kable(sumTab,"latex",booktabs=TRUE,
-      caption = "Table showing the results of the run with the median log likelihood for each model",
+      caption = "Table showing the results of the run with the median log likelihood for each model for the FLCC vs ALFW comparison. The parameters are not converted to biologically realistic values, and their meanings are presented in Table S2.2.",
       row.names = FALSE)) %>%
   kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
@@ -616,7 +616,7 @@ flcc_alst<-dadi_initialCompare("FLCC_ALST")
 sumTab<-dadi_pairSummary(flcc_alst)
 
 landscape(kable(sumTab,"latex",booktabs=TRUE,
-      caption = "Table showing the results of the run with the median log likelihood for each model",
+      caption = "Table showing the results of the run with the median log likelihood for each model for the FLCC vs ALST comparison. The parameters are not converted to biologically realistic values, and their meanings are presented in Table S2.2.",
       row.names = FALSE)) %>%
   kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
@@ -651,7 +651,7 @@ flcc_lafw<-dadi_initialCompare("FLCC_LAFW")
 sumTab<-dadi_pairSummary(flcc_lafw)
 
 landscape(kable(sumTab,"latex",booktabs=TRUE,
-      caption = "Table showing the results of the run with the median log likelihood for each model",
+      caption = "Table showing the results of the run with the median log likelihood for each model for the FLCC vs LAFW comparison. The parameters are not converted to biologically realistic values, and their meanings are presented in Table S2.2.",
       row.names = FALSE)) %>%
   kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
@@ -685,7 +685,7 @@ flcc_txfw<-dadi_initialCompare("FLCC_TXFW")
 sumTab<-dadi_pairSummary(flcc_txfw)
 
 landscape(kable(sumTab,"latex",booktabs=TRUE,
-      caption = "Table showing the results of the run with the median log likelihood for each model",
+      caption = "Table showing the results of the run with the median log likelihood for each model for the FLCC vs TXFW comparison. The parameters are not converted to biologically realistic values, and their meanings are presented in Table S2.2.",
       row.names = FALSE)) %>%
   kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
@@ -719,7 +719,7 @@ flcc_txcc<-dadi_initialCompare("FLCC_TXCC")
 sumTab<-dadi_pairSummary(flcc_txcc)
 
 landscape(kable(sumTab,"latex",booktabs=TRUE,
-      caption = "Table showing the results of the run with the median log likelihood for each model",
+      caption = "Table showing the results of the run with the median log likelihood for each model for the FLCC vs TXCC comparison. The parameters are not converted to biologically realistic values, and their meanings are presented in Table S2.2.",
       row.names = FALSE)) %>%
   kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
@@ -737,6 +737,7 @@ outTable[11,]<-sumTab[sumTab$Model==best_mod,colnames(outTable)]
 bestModels[11,]<-c("FLCC","TXCC",Model=best_mod)
 ```
 ```{r dadiPlots11,out.width="90%",fig.cap="Summary plot of the joint site frequency spectrum of the data for the FLCC vs TXCC comparison (left) and the best-fitting model (right), plus their residuals (bottom row)."}
+multiname<-paste0("../figs/dadi/FLCC_TXCC_",best_mod,"multinom.png")
 if(file.exists(multiname)){
   knitr::include_graphics(multiname)
 }
@@ -752,7 +753,7 @@ alfw_alst<-dadi_initialCompare("ALFW_ALST")
 sumTab<-dadi_pairSummary(alfw_alst)
 
 landscape(kable(sumTab,"latex",booktabs=TRUE,
-      caption = "Table showing the results of the run with the median log likelihood for each model",
+      caption = "Table showing the results of the run with the median log likelihood for each model for the ALFW vs ALST comparison. The parameters are not converted to biologically realistic values, and their meanings are presented in Table S2.2.",
       row.names = FALSE)) %>%
   kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
@@ -786,7 +787,7 @@ alfw_lafw<-dadi_initialCompare("ALFW_LAFW")
 sumTab<-dadi_pairSummary(alfw_lafw)
 
 landscape(kable(sumTab,"latex",booktabs=TRUE,
-      caption = "Table showing the results of the run with the median log likelihood for each model",
+      caption = "Table showing the results of the run with the median log likelihood for each model for the ALFW vs LAFW comparison. The parameters are not converted to biologically realistic values, and their meanings are presented in Table S2.2.",
       row.names = FALSE)) %>%
   kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
@@ -820,7 +821,7 @@ alfw_txfw<-dadi_initialCompare("ALFW_TXFW")
 sumTab<-dadi_pairSummary(alfw_txfw)
 
 landscape(kable(sumTab,"latex",booktabs=TRUE,
-      caption = "Table showing the results of the run with the median log likelihood for each model",
+      caption = "Table showing the results of the run with the median log likelihood for each model for the ALFW vs TXFW comparison. The parameters are not converted to biologically realistic values, and their meanings are presented in Table S2.2.",
       row.names = FALSE)) %>%
   kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
@@ -855,7 +856,7 @@ alfw_txcc<-dadi_initialCompare("ALFW_TXCC")
 sumTab<-dadi_pairSummary(alfw_txcc)
 
 landscape(kable(sumTab,"latex",booktabs=TRUE,
-      caption = "Table showing the results of the run with the median log likelihood for each model",
+      caption = "Table showing the results of the run with the median log likelihood for each model for the ALFW vs TXCC comparison. The parameters are not converted to biologically realistic values, and their meanings are presented in Table S2.2.",
       row.names = FALSE)) %>%
   kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
@@ -890,7 +891,7 @@ alst_lafw<-dadi_initialCompare("ALST_LAFW")
 sumTab<-dadi_pairSummary(alst_lafw)
 
 landscape(kable(sumTab,"latex",booktabs=TRUE,
-      caption = "Table showing the results of the run with the median log likelihood for each model",
+      caption = "Table showing the results of the run with the median log likelihood for each model for the ALST vs LAFW comparison. The parameters are not converted to biologically realistic values, and their meanings are presented in Table S2.2.",
       row.names = FALSE)) %>%
   kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
@@ -925,7 +926,7 @@ alst_txfw<-dadi_initialCompare("ALST_TXFW")
 sumTab<-dadi_pairSummary(alst_txfw)
 
 landscape(kable(sumTab,"latex",booktabs=TRUE,
-      caption = "Table showing the results of the run with the median log likelihood for each model",
+      caption = "Table showing the results of the run with the median log likelihood for each model for the ALST vs TXFW comparison. The parameters are not converted to biologically realistic values, and their meanings are presented in Table S2.2.",
       row.names = FALSE)) %>%
   kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
@@ -959,7 +960,7 @@ alst_txcc<-dadi_initialCompare("ALST_TXCC")
 sumTab<-dadi_pairSummary(alst_txcc)
 
 landscape(kable(sumTab,"latex",booktabs=TRUE,
-      caption = "Table showing the results of the run with the median log likelihood for each model",
+      caption = "Table showing the results of the run with the median log likelihood for each model for the ALST vs TXCC comparison. The parameters are not converted to biologically realistic values, and their meanings are presented in Table S2.2.",
       row.names = FALSE)) %>%
   kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
@@ -993,7 +994,7 @@ lafw_txfw<-dadi_initialCompare("LAFW_TXFW")
 sumTab<-dadi_pairSummary(lafw_txfw)
 
 landscape(kable(sumTab,"latex",booktabs=TRUE,
-      caption = "Table showing the results of the run with the median log likelihood for each model",
+      caption = "Table showing the results of the run with the median log likelihood for each model for the LAFW vs TXFW comparison. The parameters are not converted to biologically realistic values, and their meanings are presented in Table S2.2.",
       row.names = FALSE)) %>%
   kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
@@ -1027,7 +1028,7 @@ lafw_txcc<-dadi_initialCompare("LAFW_TXCC")
 sumTab<-dadi_pairSummary(lafw_txcc)
 
 landscape(kable(sumTab,"latex",booktabs=TRUE,
-      caption = "Table showing the results of the run with the median log likelihood for each model",
+      caption = "Table showing the results of the run with the median log likelihood for each model for the LAFW vs TXCC comparison. The parameters are not converted to biologically realistic values, and their meanings are presented in Table S2.2.",
       row.names = FALSE)) %>%
   kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
@@ -1061,7 +1062,7 @@ txfw_txcc<-dadi_initialCompare("TXFW_TXCC")
 sumTab<-dadi_pairSummary(txfw_txcc)
 
 landscape(kable(sumTab,"latex",booktabs=TRUE,
-      caption = "Table showing the results of the run with the median log likelihood for each model",
+      caption = "Table showing the results of the run with the median log likelihood for each model for the TXFW vs TXCC comparison. The parameters are not converted to biologically realistic values, and their meanings are presented in Table S2.2.",
       row.names = FALSE)) %>%
   kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
