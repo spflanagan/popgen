@@ -265,8 +265,8 @@ paramsMeanings<-data.frame(parameter=c("theta","b1","b2","m12","m21","me12","me2
 kable(paramsMeanings,"latex",booktabs=TRUE,longtable=TRUE,
       caption="Table describing all of the parameters from the dadi models and which models they appear in.") %>%
   kable_styling(latex_options=c("HOLD_position","repeat_header")) %>%
-  column_spec(2,width="15em") %>%
-  column_spec(3,width="15em")
+  column_spec(2,width="17.5em") %>%
+  column_spec(3,width="17.5em")
 ```
 
 
