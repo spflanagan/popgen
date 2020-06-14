@@ -779,11 +779,11 @@ We ran Treemix assuming the FLAB was the root with 100 bootstrap replicates. We 
 
 ```{r rootedConsensus, eval=FALSE}
 # rooted tree
-tre<-read.tree("rooted_consensus.newick")
+tre<-read.tree("treemix/rooted_consensus.newick")
 png("../../figs/treemix_rooted_consense.png",height=8,width=8,units="in",res=300)
 plot(tre)
 dev.off()
-write.tree(tre,'rooted_consensus.newick')
+write.tree(tre,'treemix/rooted_consensus.newick')
 
 ```
 
