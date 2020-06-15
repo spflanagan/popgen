@@ -29,6 +29,7 @@ Sweet, some runs on abacus are done:
 - ALST_TXFW # 13
 - ALST_LAFW # 13
 - ALST_TXCC # 14
+- ALST_ALFW # 14 finished during the day so I moved it & started another one. 
 
 I finally quit job 439 ALST_TXFW_12 & made sure all the data had been moved to C001KR.
 
@@ -49,6 +50,7 @@ Other stuff:
 - I need to run a maximum likelihood unrooted tree with the consensus in treemix to generate covariances. [done]
 - I need to re-make the summary figure with the treemix FLLG label turned into FLFW. And change the colors of the tip labels. [done]
 - re-run the dadi best models plotting script.
+  - The FLLG_TXFW and FLLG_TXCC jSFS plots look strange -- need to investigate that.
 
 # 12 June 2020
 
