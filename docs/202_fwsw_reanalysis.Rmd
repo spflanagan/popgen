@@ -993,6 +993,7 @@ library(lattice); library(grid); library(RColorBrewer)
 poporder<-read.delim("treemix/poporder")
 colors<-poporder$colors
 poporder<-poporder$poporder
+
 d <- read.table("treemix/migrations/fwsw_FLAB_m1.vertices.gz", 
                 as.is  = T, comment.char = "", quote = "")
 branch.cols<-rep("black",nrow(d))
@@ -1002,7 +1003,10 @@ tip.names<-as.vector(d[d[,5] == "TIP",2])
 tip.names<-data.frame(Original=tip.names,Replacement=tip.names,stringsAsFactors = FALSE)
 tip.names$Replacement[tip.names$Replacement=="FLLG"]<-"FLFW"
 
-plotdat<-merge(tip.names,poporder,by.y="poporder",by.x="Original")
+
+col_vector<-c(TXSP='#762a83',TXCC='#762a83',TXFW="#2166ac",TXCB='#762a83',LAFW="#2166ac",ALST='#af8dc3',
+              ALFW="#2166ac",FLSG='#e7d4e8',FLKB='#e7d4e8',FLFD='#e7d4e8',FLSI='#e7d4e8',FLAB='#7fbf7b',
+              FLPB='#1b7837',FLHB='#1b7837',FLCC='#1b7837',FLFW="#2166ac")
 ```
 
 
@@ -1030,8 +1034,8 @@ text(x = 0.5,y=1.2,"C",cex = 2,font =2)
 par(mar=c(0,0,0,1))
 t2<-plot_tree("treemix/migrations/fwsw_FLAB_m1",scale=T,mbar=T,cex = 1.5,
               lwd=2,mig_left=FALSE,disp=0.0002,scadj=0.05,
-              tip.order=tip.names$Replacement,branch.cols = branch.cols,
-              tip.col=plotdat$colors)
+              tip.order=tip.names,branch.cols = branch.cols,
+              tip.col=col_vector[tip.names$Replacement])
 text(x = 0.035,y=0.9,"B",cex = 2,font =2)
 #STRUCTURE
 par(mar=c(1,0,0,0))
