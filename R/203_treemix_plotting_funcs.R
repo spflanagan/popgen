@@ -143,7 +143,7 @@ set_x_coord = function(d, e, i){
 plot_tree_internal = function(d, e, o = NULL, cex = 1, disp = 0.005, plus = 0.005, arrow = 0.05, 
                               ybar = 0.01, scale = T, mbar = T,mse = 0.01, plotmig = T, xlab=T,
                               plotnames = T, xmin = 0, lwd = 1, font = 1,branch.cols="black",tip.order=NULL,
-                              mig_left=TRUE,scadj=0.04){
+                              mig_left=TRUE,scadj=0.04,tip.col="black"){
   
   if(!isTRUE(xlab)){ lab = "" } else { lab= "Drift parameter" }
   plot(d$x, d$y, axes = F, ylab = "", xlab = lab, xlim = c(xmin, max(d$x)+plus), pch = "")
@@ -198,7 +198,7 @@ plot_tree_internal = function(d, e, o = NULL, cex = 1, disp = 0.005, plus = 0.00
 		  if(!is.null(tip.order)){
 		    label<-tip.order[,2]
 		  }else{ label<- tmp[,2] }
-		text(tmp$x+disp, tmp$y, labels = label, adj = 0, cex = cex, font = font)
+		text(tmp$x+disp, tmp$y, labels = label, adj = 0, cex = cex, font = font,col=tip.col)
 		}
 	}
 	if (scale){
@@ -282,7 +282,7 @@ get_f = function(stem){
 
 plot_tree = function(stem, o = NULL, cex = 1, disp = 0.003, plus = 0.01, flip = vector(), arrow = 0.05, scale = T, ybar = 0.1,
                      mbar = T, plotmig = T, plotnames = T, xmin = 0, lwd = 1, font = 1,branch.cols="black",tip.order=NULL,
-                     xlab=TRUE,mig_left=TRUE,scadj=0.04){
+                     xlab=TRUE,mig_left=TRUE,scadj=0.04,tip.col="black"){
 	d = paste(stem, ".vertices.gz", sep = "")
 	e = paste(stem, ".edges.gz", sep = "")
 	se = paste(stem, ".covse.gz", sep = "")
@@ -317,7 +317,7 @@ plot_tree = function(stem, o = NULL, cex = 1, disp = 0.003, plus = 0.01, flip = 
 	plot_tree_internal(d, e, o = o, cex = cex, xmin = xmin, disp = disp, plus = plus, arrow = arrow, ybar = ybar, 
 	                   mbar = mbar, mse = m, scale = scale, plotmig = plotmig, plotnames = plotnames, lwd = lwd, 
 	                   font = font,branch.cols=branch.cols,tip.order=tip.order,xlab=xlab,mig_left=mig_left,
-	                   scadj=scadj)
+	                   scadj=scadj,tip.col=tip.col)
 	return(list( d= d, e = e))
 }
 
