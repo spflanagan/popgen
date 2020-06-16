@@ -23,6 +23,10 @@ library(knitr)
 pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 ```
 
+# 16 June 2020
+
+ALST_LAFW # 14 is done on abacus and so is FLLG_ALFW_SC2N2mG_6 on C001KR (now only # 7 needs to finish running).
+
 # 15 June 2020
 
 Sweet, some runs on abacus are done:
