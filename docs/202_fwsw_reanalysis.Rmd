@@ -1839,20 +1839,31 @@ dev.off()
 library(magick);library(multipanelfigure)
 
 image_files <- c("../figs/FstOutliers_NoBayenv.png",
-                 "../figs/sharedStacks.png")
+                 "../figs/sharedStacks.png",
+                 "../figs/sharedPerms.png")
 
 
-png("../figs/fstPlots.png",height=4,width=8,units="in",res=300,pointsize = 20)
+png("../figs/fstPlots.png",height=4,width=6.5,units="in",res=300,pointsize = 20)
 figure <- multi_panel_figure(
-  width = c(4.5, 3),
+  width = c(4, 2),
   height = c(1.8,1.8),
   unit = "inches",
-  row_spacing = 0.0,column_spacing = 0
+  row_spacing = 0.0,
+  column_spacing = 0,
+    
 )
 (figure %<>% fill_panel(image_files[1],row = 1:2,scaling="fit",
                         allow_panel_overwriting = TRUE) )
-(figure %<>% fill_panel(image_files[2],column=2,row=1:2,scaling="fit"))
+#(figure %<>% fill_panel(image_files[2],column=2,row=1:2,scaling="fit"))
+(figure %<>% fill_panel(image_files[2], column=2, row=1,scaling="fit",
+                        allow_panel_overwriting = TRUE) )
+(figure %<>% fill_panel(image_files[3],column=2,row=2,scaling="fit",
+                        allow_panel_overwriting = TRUE) )
 dev.off()
+
+
+
+
 
 ```
 
