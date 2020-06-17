@@ -31,6 +31,13 @@ Goals:
 3. update supplement 3 (include histograms of Stacks outliers and manhattan plots of permutation outliers)
 4. email Adam
 
+Starting with # 1:
+
+This command: 
+`../../scripts/run_bayenv2_matrix_general.sh MATRIX noFL ~/Programs/bayenv/ 5`
+is not properly creating the matrices, so let's dig into it a bit. It runs bayenv in 'matrix estimation mode', which requires input of the SNPSFILE and the number of populations. So, is the SNPSFILE generated correctly? It seems to be, it's got 24206 lines (12103 * 2) and 5 columns, and they appear to be tab-separated. BUT! it says there should only be polymorphic sites, and looking at the SNPSFILE there are some loci that had another allele in the FL pops but is not in these pops, so those should be removed. I'm adding that to the `SNPSFILEfromPLINKfrq.R` script, and removing monomorphic sites results in a dataset of 10743 SNPs and a SNPSFILE with 21486 rows. I'm also saving the SNP names to a file when creating the SNPSFILE.
+
+Now it seems to be working! 
 # 17 June 2020
 
 I got comments back from Adam, which were useful. He recommended the following:
