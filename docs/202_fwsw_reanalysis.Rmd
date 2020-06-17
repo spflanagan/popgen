@@ -1815,6 +1815,27 @@ dev.off()
 
 ```
 
+```{r CreateFstsFig, eval=FALSE}
+library(magick);library(multipanelfigure)
+
+image_files <- c("../figs/FstOutliers_NoBayenv.png",
+                 "../figs/sharedStacks.png")
+
+
+png("../figs/fstPlots.png",height=4,width=8,units="in",res=300,pointsize = 20)
+figure <- multi_panel_figure(
+  width = c(4.5, 3),
+  height = c(1.8,1.8),
+  unit = "inches",
+  row_spacing = 0.0,column_spacing = 0
+)
+(figure %<>% fill_panel(image_files[1],row = 1:2,scaling="fit",
+                        allow_panel_overwriting = TRUE) )
+(figure %<>% fill_panel(image_files[2],column=2,row=1:2,scaling="fit"))
+dev.off()
+
+```
+
 ## PCAdapt {-}
 
 For this analysis, to maintain consistency with the other outlier analyses, I'm using the subestted dataset. So I need to run PCAdapt [@luu_pcadapt:_2017] another time.
