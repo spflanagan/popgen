@@ -36,3 +36,5 @@ snpsfile<-interleave(mac.by.pop,nac.by.pop)
 
 write.table(snpsfile, paste(directory,"SNPSFILE",sep="/"), 
             col.names=F,row.names=F,quote=F,sep="\t",eol="\n") #bayenv SNPSFILE
+write.table(rownames(nac.by.pop),"SNPFILES_names.txt",quote=FALSE,col.names = FALSE,row.names = FALSE)
+
