@@ -2049,10 +2049,23 @@ Before running the analysis, I need to subset and standardize the environmental 
 
 ```{r extractFLenv, eval=FALSE}
 env_dat<-read.csv("bayenv/env_data_sub75.csv",row.names=1)
-clust<-read.delim("bayenv/noFL/sub75.noFL.clust",header=FALSE,sep=" ")
-env_keep<-env_dat[,colnames(env_dat) %in% unique(clust$V3)]
-env.std<-t(apply(env_keep,1,std.by.mean))
-write.table(env.std,"bayenv/noFL/env_data_noFL.txt",sep='\t',quote=FALSE,col.names=FALSE,row.names=FALSE)
+
+# make sure it's in the same order as the plinkfile
+freq<-read.table("bayenv/noFL/bayenv.frq.strat",header=T, stringsAsFactors=F)
+freq<-cbind(freq,freq$NCHROBS-freq$MAC)
+colnames(freq)[ncol(freq)]<-"NAC"
+pop.order<-levels(as.factor(freq$CLST))
+snp.names<-split(freq$SNP,freq$CLST)[[1]]
+
+env_dat<-env_dat[,pop.order]
+std_dat<-t(apply(env_dat,1,function(x){
+  stands<-(x-mean(x))/sd(x)
+  return(stands)
+}))
+
+write.table(std_dat[,pop.order],
+            "bayenv/noFL/env_data_noFL.txt",sep='\t',col.names = FALSE,row.names = FALSE)
+
 ```
 
 
