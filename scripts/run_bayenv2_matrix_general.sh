@@ -47,7 +47,7 @@ if [ "$ANALYSIS" == "MATRIX" ]; then
 	done
 
 	# AFTER THIS IT IS IMPORTANT TO COMPARE MATRICES #
-	Rscript ../../R/plot_bayenv_matrices.R fwsw75_pruned.png
+	Rscript ../../R/plot_bayenv_matrices.R ${OUT_DIR}/fwsw75_pruned.png
 
 fi
 
