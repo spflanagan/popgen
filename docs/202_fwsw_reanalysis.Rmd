@@ -1676,11 +1676,11 @@ points(plot_dat$plot.pos[which(plot_dat$stacks_AL_P < 0.05 &
                            plot_dat$stacks_TX_P < 0.05 & 
                              plot_dat$stacks_FL_P < 0.05)],
        col=cols["stacks"],cex=1,pch=5,lwd=2)
-axis(2,las=1,pos=-1500000)
-mtext("TXFW vs. TXCC",2,line=1,cex=0.65)
+axis(2,las=1,pos=-1500000,cex.axis=1)
+mtext("Texas",2,line=1.2,cex=1)
 # add the LG labels
 midpts<-tapply(plot_dat$plot.pos,plot_dat$Chrom,median)
-text(x=midpts[lgs],y=-0.15)
+text(x=midpts[lgs],y=-0.15,cex=1)
 
 # plot AL
 plot_dat<-fst.plot(fw_SNPinfo,scaffs.to.plot = lgs,fst.name = "stacks_AL",
@@ -1696,7 +1696,7 @@ points(plot_dat$plot.pos[
   rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
        plot_dat$stacks_AL[
          rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
-       col=cols["perm"],cex=1,pch=4,lwd=2)
+       col=cols["perm"],cex=2,pch=5,lwd=3)
 # points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.01],
 #        plot_dat$stacks_AL[plot_dat$pcadaptQ<0.01],
 #        col=cols["pc"],cex=1,pch=0,lwd=2)
@@ -1709,11 +1709,11 @@ points(plot_dat$plot.pos[which(plot_dat$stacks_AL_P < 0.05 &
                            plot_dat$stacks_TX_P < 0.05 & 
                              plot_dat$stacks_FL_P < 0.05)],
        col=cols["stacks"],cex=1,pch=5,lwd=2)
-axis(2,las=1,pos=-1500000)
-mtext("ALFW vs. ALST",2,line=1,cex=0.65)
+axis(2,las=1,pos=-1500000,cex.axis=1)
+mtext("Alabama",2,line=1.2,cex=1)
 # add the LG labels
 midpts<-tapply(plot_dat$plot.pos,plot_dat$Chrom,median)
-text(x=midpts[lgs],y=-0.15)
+text(x=midpts[lgs],y=-0.15,cex=1)
 
 # plot LA
 plot_dat<-fst.plot(fw_SNPinfo,scaffs.to.plot = lgs,fst.name = "stacks_LA",
@@ -1742,11 +1742,11 @@ points(plot_dat$plot.pos[which(plot_dat$stacks_AL_P < 0.05 &
                            plot_dat$stacks_TX_P < 0.05 & 
                              plot_dat$stacks_FL_P < 0.05)],
        col=cols["stacks"],cex=1,pch=5,lwd=2)
-axis(2,las=1,pos=-1500000)
-mtext("LAFW vs. ALST",2,line=1,cex=0.65)
+axis(2,las=1,pos=-1500000,cex.axis=1)
+mtext("Louisiana",2,line=1.2,cex=1)
 # add the LG labels
 midpts<-tapply(plot_dat$plot.pos,plot_dat$Chrom,median)
-text(x=midpts[lgs],y=-0.15)
+text(x=midpts[lgs],y=-0.15,cex=1)
 
 
 # FL
@@ -1776,11 +1776,11 @@ points(plot_dat$plot.pos[which(plot_dat$stacks_AL_P < 0.05 &
                            plot_dat$stacks_TX_P < 0.05 & 
                              plot_dat$stacks_FL_P < 0.05)],
        col=cols["stacks"],cex=1,pch=5,lwd=2)
-axis(2,las=1,pos=-1500000)
-mtext("FLFW vs. FLCC",2,line=1,cex=0.65)
+axis(2,las=1,pos=-1500000,cex.axis=1)
+mtext("Florida",2,line=1.2,cex=1)
 # add the LG labels
 midpts<-tapply(plot_dat$plot.pos,plot_dat$Chrom,median)
-text(x=midpts[lgs],y=-0.15)
+text(x=midpts[lgs],y=-0.15,cex=1)
 
 # add outside legend
 
