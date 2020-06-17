@@ -23,6 +23,16 @@ library(knitr)
 pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 ```
 
+# 17 June 2020
+
+I got comments back from Adam, which were useful. He recommended the following:
+
+1. Re-run bayenv without the Florida populations and compare the results to the one that I've already done.
+2. Focus on shared outliers from just the TX, AL, and LA Fst analyses
+3. Revisit the permutations, as the Fst values are surprisingly small (and use those with the Stacks Fsts)
+4. Make Fig 2 focused on Fsts (stacks + permutations) and increase font sizes and possibly change colors.
+5. Make Fig 3 focused on Bayenv and increase font sizes and possibly change colors.
+6. Have more discussion of shared outliers (possibly) and definitely the lack of genomic islands.
 # 16 June 2020
 
 ALST_LAFW # 14 is done on abacus and so is FLLG_ALFW_SC2N2mG_6 on C001KR (now only # 7 needs to finish running).
