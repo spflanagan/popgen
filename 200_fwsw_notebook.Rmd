@@ -33,6 +33,10 @@ I got comments back from Adam, which were useful. He recommended the following:
 4. Make Fig 2 focused on Fsts (stacks + permutations) and increase font sizes and possibly change colors.
 5. Make Fig 3 focused on Bayenv and increase font sizes and possibly change colors.
 6. Have more discussion of shared outliers (possibly) and definitely the lack of genomic islands.
+
+
+I think that possibly the positional data in the bayenv analyses has been wrong this whole time...oh no, because I merged the locus IDs and then pulled it from fw_SNPinfo, so it's ok. Phew.
+
 # 16 June 2020
 
 ALST_LAFW # 14 is done on abacus and so is FLLG_ALFW_SC2N2mG_6 on C001KR (now only # 7 needs to finish running).
