@@ -37,6 +37,28 @@ I got comments back from Adam, which were useful. He recommended the following:
 
 I think that possibly the positional data in the bayenv analyses has been wrong this whole time...oh no, because I merged the locus IDs and then pulled it from fw_SNPinfo, so it's ok. Phew.
 
+Digging into the permutations:
+
+```{r}
+perms<-readRDS("permuted_fsts.RDS")
+par(mfrow=c(4,1))
+plts<-lapply(perms,fst.plot,scaffs.to.plot = lgs,fst.name = "Fst",
+                   chrom.name = "Chrom",bp.name = "Pos",
+                   pch=19,pt.cex = 1,y.lim=c(0,1))
+```
+
+I see what Adam means, the Florida comparison's Fst values are really small, and these are the actuals.
+
+```{r}
+perms_new<-readRDS("permuted_fsts_29052020.RDS")
+par(mfrow=c(4,1))
+plts<-lapply(perms,fst.plot,scaffs.to.plot = lgs,fst.name = "Fst",
+                   chrom.name = "Chrom",bp.name = "Pos",
+                   pch=19,pt.cex = 1,y.lim=c(0,1))
+```
+
+It's true for both of these permutations. It's strange...
+
 # 16 June 2020
 
 ALST_LAFW # 14 is done on abacus and so is FLLG_ALFW_SC2N2mG_6 on C001KR (now only # 7 needs to finish running).
