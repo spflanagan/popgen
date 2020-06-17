@@ -23,7 +23,7 @@ if [ "$ANALYSIS" == "FILEMANIP" ]; then
 	~/Programs/plink-1.07-x86_64/plink --ped "$PED_NAME" --map "$MAP_NAME" \
 	--out "$OUT_DIR"/bayenv --noweb --allow-no-sex --recode --freq --within "$CLUST_NAME"
 
-	Rscript ../R/SNPSFILEfromPLINKfrq.R "${OUT_DIR}/bayenv.frq.strat" "$OUT_DIR"
+	Rscript ../../R/SNPSFILEfromPLINKfrq.R "${OUT_DIR}/bayenv.frq.strat" "$OUT_DIR"
 
 fi
 
