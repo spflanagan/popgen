@@ -28,6 +28,7 @@ pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 I got comments back from Adam, which were useful. He recommended the following:
 
 1. Re-run bayenv without the Florida populations and compare the results to the one that I've already done.
+  - I started the bayenv run this AM after subsetting the files.
 2. Focus on shared outliers from just the TX, AL, and LA Fst analyses
 3. Revisit the permutations, as the Fst values are surprisingly small (and use those with the Stacks Fsts)
 4. Make Fig 2 focused on Fsts (stacks + permutations) and increase font sizes and possibly change colors.
