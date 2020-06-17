@@ -1648,9 +1648,9 @@ plot_dat<-fst.plot(fw_SNPinfo,scaffs.to.plot = lgs,fst.name = "stacks_TX",
 #       plot_dat$stacks_TX[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
 #       col=cols["xtx"],cex=1,pch=3,lwd=2)
 points(plot_dat$plot.pos[
-  rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+  rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
        plot_dat$stacks_TX[
-         rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+         rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
        col=cols["perm"],cex=2,pch=5,lwd=3)
 #points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.01],
 #       plot_dat$stacks_TX[plot_dat$pcadaptQ<0.01],
