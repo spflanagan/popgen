@@ -1798,6 +1798,22 @@ legend("top",c(expression("Permutation"~italic("F")["ST"]),
 dev.off()
 ```
 
+```{r stacksUpset}
+cols<-c(permutations='#e41a1c',salBF='#377eb8',pcadapt='#a65628',
+        xtx='#ff7f00',sharedStacks='#f781bf',
+        Alabama='#af8dc3',Louisiana='#e7d4e8',Texas='#762a83',Florida='#1b7837')
+
+png("../figs/sharedStacks.png",res=300,height=8,width=7.5,units="in",pointsize = 20)
+upset(fromList(outliers),sets=c("Texas","Alabama","Louisiana","Florida"),
+      point.size=5,line.size=2,mainbar.y.label = "Number of Shared Outliers",
+      sets.x.label = "# Outliers",text.scale=rep(3,6),
+      sets.bar.color =cols[c("Texas","Alabama","Louisiana","Florida")],
+      margin1scale = 0.2,
+      sets.pt.color=cols[c("Texas","Alabama","Louisiana","Florida")],
+      keep.order = TRUE)
+dev.off()
+
+```
 
 ## PCAdapt {-}
 
@@ -2385,15 +2401,6 @@ upset(fromList(outliers),sets=c("permutations","salBF","xtx","pcadapt","sharedSt
       sets.bar.color =cols[c("permutations","salBF","xtx","pcadapt","sharedStacks")],
       margin1scale = 0.2,
       sets.pt.color=cols[c("permutations","salBF","xtx","pcadapt","sharedStacks")])
-dev.off()
-png("../figs/sharedStacks.png",res=300,height=4,width=7.5,units="in",pointsize = 20)
-upset(fromList(outliers),sets=c("Texas","Alabama","Louisiana","Florida"),
-      point.size=3.5,line.size=2,mainbar.y.label = "Number of Shared Outliers",
-      sets.x.label = " Number of Outliers",text.scale=c(1.5,1.5,1.5,1.5,1.5,1.5),
-      sets.bar.color =cols[c("Texas","Alabama","Louisiana","Florida")],
-      margin1scale = 0.2,
-      sets.pt.color=cols[c("Texas","Alabama","Louisiana","Florida")],
-      keep.order = TRUE)
 dev.off()
 
 
