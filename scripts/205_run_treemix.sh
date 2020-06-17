@@ -66,6 +66,8 @@ if [ "$METHOD" == "migrations" ]; then
 	echo "Running treemix with migration edges"
 	[ ! -d "migrations" ] && mkdir -p migrations
 	# maximum likelihood trees
+	treemix -i ${PREFIX}_treemix.gz -k 100 -tf unrooted_consensus.newick -se -o unrooted/${PREFIX}_ML_consensus 
+	# with migration edges
 	treemix -i ${PREFIX}_treemix.gz -k 100 -tf rooted_consensus.newick -root ${ROOT} -se -m 0 -o migrations/${PREFIX}_${ROOT}_m0
 	treemix -i ${PREFIX}_treemix.gz -k 100 -tf rooted_consensus.newick -root ${ROOT} -se -m 1 -o migrations/${PREFIX}_${ROOT}_m1
 	treemix -i ${PREFIX}_treemix.gz -k 100 -tf rooted_consensus.newick -root ${ROOT} -se -m 2 -o migrations/${PREFIX}_${ROOT}_m2
