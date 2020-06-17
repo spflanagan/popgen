@@ -41,7 +41,7 @@ if [ "$ANALYSIS" == "MATRIX" ]; then
 	for i in `seq 1 10`;
 	do
 		echo "Running rep $i"
-		${BAYENV_DIR}bayenv2 -i SNPSFILE -p "$NUMPOPS" -k 100000 -r 628398 > matrix.$i.out
+		${BAYENV_DIR}bayenv2 -i SNPSFILE -p "$NUMPOPS" -k 100000 > matrix.$i.out
 		grep "ITER = 100000" matrix.$i.out -A ${NUMPOPS} > matrix.$i.out.last
 
 	done
