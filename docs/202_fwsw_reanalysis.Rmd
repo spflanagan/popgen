@@ -1618,19 +1618,7 @@ library(grid);library(gwscaR);library(gridGraphics)
 source("../R/upset_hacked.R")
 source("../R/205_popgenPlotting.R")
 fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
-outliers<-list(xtx=fw_SNPinfo$ID[fw_SNPinfo$XtX >= quantile(fw_SNPinfo$XtX,0.99,na.rm=TRUE)],
-               salBF=fw_SNPinfo$ID[fw_SNPinfo$logSalBF>=
-                                     quantile(fw_SNPinfo$logSalBF,0.99,na.rm=TRUE)],
-               permutations=fw_SNPinfo$ID[
-                 rowSums(fw_SNPinfo[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
-               pcadapt=fw_SNPinfo$ID[which(fw_SNPinfo$pcadaptQ<0.01)],
-               Alabama=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05)], 
-               Louisiana=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_LA_P < 0.05)],
-               Texas=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_TX_P < 0.05)],
-               Florida=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_FL_P < 0.05)],
-               sharedStacks=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05 & 
-                                                  fw_SNPinfo$stacks_LA_P < 0.05 &
-                 fw_SNPinfo$stacks_TX_P < 0.05)])
+
 ```
 
 Then we'll plot the Stacks Fst outliers.
@@ -1796,6 +1784,16 @@ dev.off()
 ```
 
 ```{r stacksUpset}
+outliers<-list( permutations=fw_SNPinfo$ID[
+                 rowSums(fw_SNPinfo[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+               
+               Alabama=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05)], 
+               Louisiana=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_LA_P < 0.05)],
+               Texas=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_TX_P < 0.05)],
+               Florida=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_FL_P < 0.05)],
+               sharedStacks=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05 & 
+                                                  fw_SNPinfo$stacks_LA_P < 0.05 &
+                 fw_SNPinfo$stacks_TX_P < 0.05)])
 cols<-c(permutations='#e41a1c',salBF='#377eb8',pcadapt='#a65628',
         xtx='#ff7f00',sharedStacks='#f781bf',
         Alabama='#af8dc3',Louisiana='#e7d4e8',Texas='#762a83',Florida='#1b7837')
