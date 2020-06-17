@@ -2219,7 +2219,7 @@ legend("top",c(expression("Permutation"~italic("F")["ST"]),
 ```
 
 
-## Summary plot of outliers
+## Bayenv Plots
 
 First we'll get set up with the libraries, code, and data.
 
