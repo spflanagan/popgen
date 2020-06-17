@@ -59,6 +59,13 @@ plts<-lapply(perms,fst.plot,scaffs.to.plot = lgs,fst.name = "Fst",
 
 It's true for both of these permutations. It's strange...
 
+Now, looking into the Fst values, I'm noticing that we have way too many loci included, and somehow we've got multiple SNPs per locus! I have no idea how that happened. It's almost like the fwsw.tx etc haven't had the correct SNPs retained...and they didn't! But it doesn't matter because it's all ok in the fw_SNPinfo container. 
+
+I've now saved the subsetted files in the populations_subset75 directory. The 'raw' Fst values from Stacks includes negative values, which is silly.
+
+
+Note: population_whitelist includes ones run with the radiator-filtered whitelist on all 16 populations.
+
 # 16 June 2020
 
 ALST_LAFW # 14 is done on abacus and so is FLLG_ALFW_SC2N2mG_6 on C001KR (now only # 7 needs to finish running).
