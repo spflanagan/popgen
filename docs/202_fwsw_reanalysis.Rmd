@@ -1320,6 +1320,32 @@ for(i in 1:nrow(vcf)){
 write.table(new.vcf,"converted_subset.vcf",sep='\t',
             quote=FALSE,col.names = TRUE,row.names = FALSE)
 ```
+```{r convertFWSW,eval=FALSE}
+snps<-read.delim("stacks/populations_subset75/pruned_snps.txt")
+
+fwsw.fl<-read.delim("stacks/populations_subset75/batch_2.fst_FLCC-FLFW.tsv")
+fwsw.tx<-read.delim("stacks/populations_subset75/batch_2.fst_TXCC-TXFW.tsv")
+fwsw.al<-read.delim("stacks/populations_subset75/batch_2.fst_ALFW-ALST.tsv")
+fwsw.la<-read.delim("stacks/populations_subset75/batch_2.fst_ALST-LAFW.tsv")
+
+
+fwsw.tx<-fwsw.tx[paste(fwsw.tx$Locus.ID,fwsw.tx$BP) %in% paste(snps$V1,snps$V2),]
+fwsw.fl<-fwsw.fl[paste(fwsw.fl$Locus.ID,fwsw.fl$BP) %in% paste(snps$V1,snps$V2),]
+fwsw.al<-fwsw.al[paste(fwsw.al$Locus.ID,fwsw.al$BP) %in% paste(snps$V1,snps$V2),]
+fwsw.la<-fwsw.la[paste(fwsw.la$Locus.ID,fwsw.la$BP) %in% paste(snps$V1,snps$V2),]
+
+
+upd.tx<-convert.stacks(fwsw.tx,"stacks/populations_subset75/converted.fst_TXCC-TXFW.txt",
+                       lgs,ssc.agp,sscf.agp,chr.agp,scf.agp)
+upd.al<-convert.stacks(fwsw.al,"stacks/populations_subset75/converted.fst_ALFW-ALST.txt",
+                       lgs,ssc.agp,sscf.agp,chr.agp,scf.agp)
+upd.la<-convert.stacks(fwsw.al,"stacks/populations_subset75/converted.fst_ALST-LAFW.txt",
+                       lgs,ssc.agp,sscf.agp,chr.agp,scf.agp)
+upd.fl<-convert.stacks(fwsw.fl,"stacks/populations_subset75/converted.fst_FLCC-FLFW.txt",
+                       lgs,ssc.agp,sscf.agp,chr.agp,scf.agp)
+
+```
+
 ```{r convertSWSW, eval=FALSE}
 swsw.fl<-read.delim("stacks/populations_whitelist/batch_2.fst_FLCC-FLHB.tsv")
 swsw.tx<-read.delim("stacks/populations_whitelist/batch_2.fst_TXCB-TXCC.tsv")
@@ -1337,11 +1363,16 @@ upd.sf<-convert.stacks(swsw.fl,"stacks/converted.fst_FLCC-FLHB.txt",
 ## Stacks {-}
 
 ```{r readStacksFsts}
-fwsw.al<-read.delim("stacks/converted.fst_ALFW-ALST.txt")
-fwsw.la<-read.delim("stacks/converted.fst_ALST-LAFW.txt")
-fwsw.tx<-read.delim("stacks/converted.fst_TXCC-TXFW.txt")
-fwsw.fl<-read.delim("stacks/converted.fst_FLCC-FLLG.txt")
+fwsw.al<-read.delim("stacks/populations_subset75/converted.fst_ALFW-ALST.txt")
+fwsw.la<-read.delim("stacks/populations_subset75/converted.fst_ALST-LAFW.txt")
+fwsw.tx<-read.delim("stacks/populations_subset75/converted.fst_TXCC-TXFW.txt")
+fwsw.fl<-read.delim("stacks/populations_subset75/converted.fst_FLCC-FLLG.txt")
+kable(cbind(nrow(fwsw.al),nrow(fwsw.la),nrow(fwsw.tx),nrow(fwsw.fl)),
+      col.names=c("Alabama","Louisiana","Texas","Florida"),
+      caption="The number of SNPs in each dataset")
 ```
+
+These datasets do not contain the full 12103 SNPs (\@ref(tab:readStacksFsts)) because some of those SNPs are fixed in the populations or do not pass coverage or minimum allele frequency thresholds.
 
 ```{r plotStacksFsts,fig.height=8,fig.width=6,fig.cap="Manhattan plot of pairwise AMOVA-corrected Fst values from Stacks for each freshwater - nearest saltwater population pair. The x-axis corresponds to genomic locations, with chromosomes labelled. To the right are loci that mapped to unanchored scaffolds."}
 source("../R/205_popgenPlotting.R")
