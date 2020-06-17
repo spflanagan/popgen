@@ -1145,7 +1145,7 @@ saveWorkbook(wb, file)
 
 
 
-# Outliers: Fsts from Stacks, permutations, PCadapt  {-}
+# Fst Outliers  {-}
 
 The alignments were done with a preliminary genome assembly that is different from the published, updated one. The data that I need to convert are the vcf and the stacks files. 
 
@@ -1674,7 +1674,7 @@ saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
 
 I should note that for some of these PCAdapt gives "NA" -- not sure what causes this behaviour but there it is. It's true for the residuals and everything else. It looks to be due to low allele frequencies -- though stacks should have been run with a minimum allele frequency cutoff, so this is perplexing. 
 
-## Bayenv {-}
+# Bayenv {-}
 
 Investigate the environmental data
 
