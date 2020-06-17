@@ -1800,7 +1800,7 @@ cols<-c(permutations='#e41a1c',salBF='#377eb8',pcadapt='#a65628',
 
 png("../figs/sharedStacks.png",res=300,height=8,width=7.5,units="in",pointsize = 20)
 upset(fromList(outliers),sets=c("Texas","Alabama","Louisiana","Florida"),
-      point.size=5,line.size=2,mainbar.y.label = "Number of Shared Outliers",
+      point.size=7,line.size=2,mainbar.y.label = "Shared Stacks Outliers",
       sets.x.label = "# Outliers",text.scale=rep(3,6),
       sets.bar.color =cols[c("Texas","Alabama","Louisiana","Florida")],
       margin1scale = 0.2,
