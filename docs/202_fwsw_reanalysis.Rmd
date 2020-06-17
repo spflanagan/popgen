@@ -1249,12 +1249,13 @@ convert.agp<-function(locus=NULL,old.agp,old.scf,new.agp,scf.agp,
   return(out)
 }
 convert.stacks<-function(stacks.fst,outname,lgs,ssc.agp,sscf.agp,chr.agp,scf.agp){
+  stacks.fst$Chr<-as.character(stacks.fst$Chr)
   for(i in 1:nrow(stacks.fst)){
      convert<-convert.agp(old.agp=ssc.agp,old.scf=sscf.agp,
                           new.agp=chr.agp[chr.agp$W=="W",],scf.agp = scf.agp,
                           chr=as.character(stacks.fst$Chr[i]),
                           bp=stacks.fst$BP[i],id=as.character(stacks.fst$Locus.ID[i]))
-    stacks.fst[i,"Chr"]<-convert["NewChr"]
+    stacks.fst[i,"Chr"]<-as.character(convert["NewChr"])
     stacks.fst[i,"BP"]<-convert["NewBP"]
   }
   # reorder by chrom
