@@ -32,12 +32,11 @@ if [ "$METHOD" == "unrooted" ]; then
 	Rscript ../../R/202_combine_treemix.R unrooted/${PREFIX} unrooted/${PREFIX}_cat.tre 100
 	rm outtree; rm outfile
 	cp unrooted/${PREFIX}_cat.tre intree
-	# NOW RUN CONSENSE from phylip
-	# no longer using sumtrees, using phylip ^ instead
-	#sumtrees.py --unrooted -o unrooted/${PREFIX}_boottree.txt -F 'newick' unrooted/${PREFIX}_cat.tre -s 'consensus'
+	# NOW RUN CONSENSE from phylip & convert with R -- saved as unrooted_consensus.newick
 	# create plot
 	#R -e "png("../../figs/treemix_unrooted_consensus.png",height=8,width=8,units="in",res=300); plot(ape::read.tree("unrooted/fwsw_boottree.txt"));dev.off()"
-	
+	#
+	# run threepop and fourpop
 	threepop -i ${PREFIX}_treemix.gz -k 100  >> ${PREFIX}_threepop.txt
 	fourpop -i ${PREFIX}_treemix.gz -k 100 >> ${PREFIX}_fourpop.txt
 fi
@@ -56,7 +55,7 @@ if [ "$METHOD" == "rooted" ]; then
 	Rscript ../../R/202_combine_treemix.R rooted/${PREFIX}_${ROOT} rooted/${PREFIX}_${ROOT}_cat.tre 100 
 	rm outtree; rm outfile
 	cp rooted/${PREFIX}_${ROOT}_cat.tre intree # Then use consense & convert with R -- saved as rooted_consensus.newick
-	#sumtrees.py --rooted -o rooted/${PREFIX}_${ROOT}_boottree.newick -F 'newick' rooted/${PREFIX}_${ROOT}_cat.tre -s 'consensus' -set-outgroup FLAB
+	
 	# convert it in R
 	#R -e "ape::write.tree(ape::read.tree('rooted/${PREFIX}_${ROOT}_boottree.newick'),'rooted/${PREFIX}_${ROOT}_consensus.tre',digits=1)"
 fi
