@@ -1921,7 +1921,7 @@ stacks/populations_subset75/batch_2.pruned.map bayenv ~/Programs/bayenv 7
 
 At this point I looked at the matrices
 
-![Heatmap plots of each of the ten replicate Bayenv matrices. Colors represent xx](../fwsw_results/bayenv/fwsw75_pruned.png)
+![Heatmap plots of each of the ten replicate Bayenv matrices, run without the Florida populations. Colors represent (co)variances, with larger values shown in darker colors](../fwsw_results/bayenv/fwsw75_pruned.png)
 
 They all looked fine so I chose the randomly selected a matrix to use for the remainder of the analyses.
 
