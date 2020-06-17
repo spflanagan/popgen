@@ -64,7 +64,72 @@ It's true for both of these permutations. It's strange...
 
 Now, looking into the Fst values, I'm noticing that we have way too many loci included, and somehow we've got multiple SNPs per locus! I have no idea how that happened. It's almost like the fwsw.tx etc haven't had the correct SNPs retained...and they didn't! But it doesn't matter because it's all ok in the fw_SNPinfo container. 
 
-I've now saved the subsetted files in the populations_subset75 directory. The 'raw' Fst values from Stacks includes negative values, which is silly.
+I've now saved the subsetted files in the populations_subset75 directory. The 'raw' Fst values from Stacks includes negative values, which is silly, but I can plot histograms and see what's going on there. 
+
+```{r}
+par(mfrow=c(2,2))
+hist(fwsw.tx$Fst,xlim=c(-0.2,1),breaks=seq(-1,1,0.1))
+hist(fwsw.al$Fst,xlim=c(-0.2,1),breaks=seq(-1,1,0.1))
+hist(fwsw.la$Fst,xlim=c(-0.2,1),breaks=seq(-1,1,0.1))
+hist(fwsw.fl$Fst,xlim=c(-0.2,1),breaks=seq(-1,1,0.1))
+```
+
+```{r}
+par(mfrow=c(2,2))
+hist(fwsw.tx$Corrected.AMOVA.Fst,xlim=c(0,1),breaks=seq(-1,1,0.1))
+hist(fwsw.al$Corrected.AMOVA.Fst,xlim=c(0,1),breaks=seq(-1,1,0.1))
+hist(fwsw.la$Corrected.AMOVA.Fst,xlim=c(0,1),breaks=seq(-1,1,0.1))
+hist(fwsw.fl$Corrected.AMOVA.Fst,xlim=c(0,1),breaks=seq(-1,1,0.1))
+```
+
+
+The reason I'm doing this is to try to see how different the permutations are. They do show substantially zero-skewed distributions, so that's not nothing. But the genome-wide plots of permutations above are much more damning, and more troubling really. I'm not sure this is the correct approach...let's dive into the details of the permutations a bit more.
+
+None of the permutations have lost loci and seem to have approximately the same numbers as the other analyses -- but in different orders!
+
+```{r}
+lapply(perms,nrow)
+lapply(perms,function(x) nrow(x[x$NumAlleles>1,]))
+```
+
+These seem to be in the order: 
+[[1]] Texas
+[[2]] Florida
+[[3]] Alabama
+[[4]] Louisiana
+
+Oh, this is the order their histograms are plotted too. 
+
+```{r}
+lapply(perms,summary)
+```
+
+Ok, I think I've confinced myself that the permutations are done correctly. But the fact remains that the outliers don't match other things. 
+
+What if I ignore FL? -- this increases the number of permutation outliers. I could make an upset plot of the permutation outliers and compare them to the shared Fst outliers
+
+```{r}
+outliers<-list(permutations=fw_SNPinfo$ID[
+                 rowSums(fw_SNPinfo[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+               Alabama=fw_SNPinfo$ID[which(fw_SNPinfo$perm_AL==1)], 
+               Louisiana=fw_SNPinfo$ID[which(fw_SNPinfo$perm_LA ==1)],
+               Texas=fw_SNPinfo$ID[which(fw_SNPinfo$perm_TX==1)],
+               Florida=fw_SNPinfo$ID[which(fw_SNPinfo$perm_FL==1)],
+               sharedStacks=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05 & 
+                                                  fw_SNPinfo$stacks_LA_P < 0.05 &
+                                                  fw_SNPinfo$stacks_TX_P < 0.05)])
+cols<-c(permutations='#e41a1c',salBF='#377eb8',pcadapt='#a65628',
+        xtx='#ff7f00',sharedStacks='#f781bf',
+        Alabama='#af8dc3',Louisiana='#e7d4e8',Texas='#762a83',Florida='#1b7837')
+
+upset(fromList(outliers),sets=c("Texas","Alabama","Louisiana","Florida","sharedStacks"),
+      point.size=5,line.size=2,mainbar.y.label = "Number of Shared Outliers",
+      sets.x.label = "# Outliers",text.scale=rep(2,6),
+      sets.bar.color =cols[c("Texas","Alabama","Louisiana","Florida","sharedStacks")],
+      margin1scale = 0.2,
+      sets.pt.color=cols[c("Texas","Alabama","Louisiana","Florida","sharedStacks")],
+      keep.order = TRUE)
+```
 
 
 Note: population_whitelist includes ones run with the radiator-filtered whitelist on all 16 populations.
