@@ -1509,11 +1509,11 @@ plot_fst_hists<-function(perms,plot_lab=NULL,cols=NULL,permlab="mean_perm",
   #browser()
   if(isTRUE(baseplot)){
     hist(perms[,permlab],col=alpha(cols[1],0.5),border = alpha(cols[1],0.5),
-         xlim=c(0,1),breaks = seq(0,1,0.01),main = plot_lab,
+         xlim=c(0,1),breaks = seq(0,1,0.1),main = plot_lab,
          xlab=expression(italic(F)[ST]),
          ylab="Number of SNPs")
     hist(perms[,reallab],col=alpha(cols[2],0.5),border = alpha(cols[2],0.5),
-         xlim=c(0,1),breaks = seq(0,1,0.01),main = "",
+         xlim=c(0,1),breaks = seq(0,1,0.1),main = "",
          xlab=expression(italic(F)[ST]),
          ylab="Number of SNPs",add=TRUE)
   }
@@ -1524,12 +1524,12 @@ plot_fst_hists<-function(perms,plot_lab=NULL,cols=NULL,permlab="mean_perm",
     par(fig = ifig,new=TRUE) # start x, end x, start y, end y (percent plotting space)
     hist(perms[,permlab][perms[,reallab]>0],col=alpha(cols[1],0.5),
          border = alpha(cols[1],0.5),
-         xlim=c(0,1),breaks = seq(0,1,0.01),main = "",xlab="",
+         xlim=c(0,1),breaks = seq(0,1,0.1),main = "",xlab="",
          ylab="")
     box() #give it a box
     hist(perms[,reallab,][perms[,reallab]>0],col=alpha(cols[2],0.5),
          border = alpha(cols[2],0.5),
-         xlim=c(0,1),breaks = seq(0,1,0.01),main = "",xlab="",
+         xlim=c(0,1),breaks = seq(0,1,0.1),main = "",xlab="",
          ylab="",add=TRUE)
   }
   invisible(par()$fig)
