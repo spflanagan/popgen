@@ -1810,6 +1810,31 @@ dev.off()
 
 ```
 
+```{r permsUpset}
+outliers<-list(permutations=fw_SNPinfo$ID[
+                 rowSums(fw_SNPinfo[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+               Alabama=fw_SNPinfo$ID[which(fw_SNPinfo$perm_AL==1)], 
+               Louisiana=fw_SNPinfo$ID[which(fw_SNPinfo$perm_LA ==1)],
+               Texas=fw_SNPinfo$ID[which(fw_SNPinfo$perm_TX==1)],
+               Florida=fw_SNPinfo$ID[which(fw_SNPinfo$perm_FL==1)],
+               sharedStacks=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05 & 
+                                                  fw_SNPinfo$stacks_LA_P < 0.05 &
+                                                  fw_SNPinfo$stacks_TX_P < 0.05)])
+cols<-c(permutations='#e41a1c',salBF='#377eb8',pcadapt='#a65628',
+        xtx='#ff7f00',sharedStacks='#f781bf',
+        Alabama='#af8dc3',Louisiana='#e7d4e8',Texas='#762a83',Florida='#1b7837')
+png("../figs/sharedPerms.png",res=300,height=8,width=8.5,units="in",pointsize = 20)
+upset(fromList(outliers),sets=c("Texas","Alabama","Louisiana","Florida","sharedStacks"),
+      point.size=7,line.size=2,mainbar.y.label = "Shared Permutation Outliers",
+      sets.x.label = "# Outliers",text.scale=rep(3,6),
+      sets.bar.color =cols[c("Texas","Alabama","Louisiana","Florida","sharedStacks")],
+      margin1scale = 0.2,
+      sets.pt.color=cols[c("Texas","Alabama","Louisiana","Florida","sharedStacks")],
+      keep.order = TRUE)
+dev.off()
+```
+
+
 ```{r CreateFstsFig, eval=FALSE}
 library(magick);library(multipanelfigure)
 
