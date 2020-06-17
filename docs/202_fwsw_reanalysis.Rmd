@@ -1673,6 +1673,7 @@ points(plot_dat$plot.pos[which(plot_dat$stacks_AL_P < 0.05 &
        plot_dat$stacks_TX[which(plot_dat$stacks_AL_P < 0.05 & 
                                   plot_dat$stacks_LA_P < 0.05 &
                            plot_dat$stacks_TX_P < 0.05)],
+       col=cols["stacks"],cex=2,pch=8,lwd=3)
 axis(2,las=1,pos=-1500000,cex.axis=1)
 mtext("Texas",2,line=1.2,cex=1)
 # add the LG labels
@@ -1702,8 +1703,8 @@ points(plot_dat$plot.pos[which(plot_dat$stacks_AL_P < 0.05 &
                            plot_dat$stacks_TX_P < 0.05)],
        plot_dat$stacks_AL[which(plot_dat$stacks_AL_P < 0.05 & 
                                   plot_dat$stacks_LA_P < 0.05 &
-       col=cols["stacks"],cex=1,pch=5,lwd=2)
                            plot_dat$stacks_TX_P < 0.05)],
+       col=cols["stacks"],cex=2,pch=8,lwd=3)
 axis(2,las=1,pos=-1500000,cex.axis=1)
 mtext("Alabama",2,line=1.2,cex=1)
 # add the LG labels
@@ -1727,13 +1728,13 @@ points(plot_dat$plot.pos[
   rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
        plot_dat$stacks_LA[
          rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
-       col=cols["perm"],cex=1,pch=4,lwd=2)
+       col=cols["perm"],cex=2,pch=5,lwd=3)
+
 points(plot_dat$plot.pos[which(plot_dat$stacks_AL_P < 0.05 & 
                                  plot_dat$stacks_LA_P < 0.05 &
                            plot_dat$stacks_TX_P < 0.05)],
        plot_dat$stacks_LA[which(plot_dat$stacks_AL_P < 0.05 & 
                                   plot_dat$stacks_LA_P < 0.05 &
-       col=cols["stacks"],cex=1,pch=5,lwd=2)
                            plot_dat$stacks_TX_P < 0.05 )],
        col=cols["stacks"],cex=2,pch=8,lwd=3)
 axis(2,las=1,pos=-1500000,cex.axis=1)
@@ -1760,14 +1761,14 @@ points(plot_dat$plot.pos[
   rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
        plot_dat$stacks_FL[
          rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
-       col=cols["perm"],cex=1,pch=4,lwd=2)
+       col=cols["perm"],cex=2,pch=5,lwd=3)
 points(plot_dat$plot.pos[which(plot_dat$stacks_AL_P < 0.05 & 
                                  plot_dat$stacks_LA_P < 0.05 &
                            plot_dat$stacks_TX_P < 0.05)],
        plot_dat$stacks_FL[which(plot_dat$stacks_AL_P < 0.05 & 
                                   plot_dat$stacks_LA_P < 0.05 &
-       col=cols["stacks"],cex=1,pch=5,lwd=2)
                            plot_dat$stacks_TX_P < 0.05)],
+       col=cols["stacks"],cex=2,pch=8,lwd=3)
 axis(2,las=1,pos=-1500000,cex.axis=1)
 mtext("Florida",2,line=1.2,cex=1)
 # add the LG labels
