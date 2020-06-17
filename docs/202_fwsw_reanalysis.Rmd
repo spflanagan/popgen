@@ -1369,9 +1369,11 @@ length(tx.sig[(tx.sig %in% c(la.sig,al.sig,fl.sig))])
 length(la.sig[(la.sig %in% c(tx.sig,al.sig,fl.sig))])
 length(al.sig[(al.sig %in% c(la.sig,tx.sig,fl.sig))])
 all.shared<-fl.sig[fl.sig %in% la.sig & fl.sig %in% al.sig & fl.sig %in% tx.sig]
+
+gulf_shared<-tx.sig[tx.sig %in% la.sig & tx.sig %in% al.sig]
 ```
 
-There are `r length(unique(all.shared))` outliers (as determined by Fisher's P from stacks < 0.01). 
+There are `r length(unique(all.shared))` outliers (as determined by Fisher's P from stacks < 0.01). But because of the large pairwise 
 
 As a point of comparison, we can repeat this with the similar pairwise saltwater-saltwater $F_{ST}$ comparisons.
 
@@ -1921,6 +1923,7 @@ outliers<-list(xtx=fw_SNPinfo$ID[fw_SNPinfo$XtX >= quantile(fw_SNPinfo$XtX,0.99,
                Florida=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_FL_P < 0.05)],
                sharedStacks=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05 & 
                                                   fw_SNPinfo$stacks_LA_P < 0.05 &
+                 fw_SNPinfo$stacks_TX_P < 0.05)])
 ```
 
 Then we'll plot the Stacks Fst outliers.
