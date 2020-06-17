@@ -1610,7 +1610,7 @@ colnames(fw_SNPinfo)[ncol(fw_SNPinfo)]<-"stacks_FL_P"
 saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
 ```
 
-## Summary plot
+## Fst plot
 
 ```{r getOutliers, eval=FALSE}
 library(UpSetR);library(scales);library(ggplot2)
