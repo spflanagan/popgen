@@ -28,8 +28,10 @@ snp.names<-split(freq$SNP,freq$CLST)[[1]]
 
 mac.by.pop<-as.data.frame(split(freq$MAC,freq$CLST))
 rownames(mac.by.pop)<-snp.names
+mac.by.pop<-mac.by.pop[which(rowSums(mac.by.pop)>0),]
 nac.by.pop<-as.data.frame(split(freq$NAC,freq$CLST))
 rownames(nac.by.pop)<-snp.names
+nac.by.pop<-nac.by.pop[rownames(nac.by.pop) %in% rownames(mac.by.pop),]
 snpsfile<-interleave(mac.by.pop,nac.by.pop)
 
 write.table(snpsfile, paste(directory,"SNPSFILE",sep="/"), 
