@@ -2045,7 +2045,8 @@ They're all really similar-looking so I used a randomly-selected one (it was #9)
 ../../scripts/run_bayenv2_matrix_general.sh SNPFILES noFL/SNPSFILE noFL/SNPFILES
 ```
 
-Before running the analysis, I need to subset the environmental data too.
+Before running the analysis, I need to subset and standardize the environmental data too.
+
 ```{r extractFLenv, eval=FALSE}
 env_dat<-read.csv("bayenv/env_data_sub75.csv",row.names=1)
 clust<-read.delim("bayenv/noFL/sub75.noFL.clust",header=FALSE,sep=" ")
