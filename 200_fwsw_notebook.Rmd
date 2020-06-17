@@ -137,6 +137,11 @@ It's possible it's not the environ file that's causing the problem -- maybe ther
 
 I will need to figure out what's going on there.
 
+Tomorrow:
+- figure out Bayenv matrix issues
+- annotate shared stacks/permutation outliers
+- update supplement 3 (include histograms of Stacks outliers and manhattan plots of permutation outliers)
+- email Adam
 
 # 16 June 2020
 
