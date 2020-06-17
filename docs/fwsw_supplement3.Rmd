@@ -304,12 +304,18 @@ upd.sf<-convert.stacks(swsw.fl,"stacks/converted.fst_FLCC-FLHB.txt",
 
 We used the AMOVA-corrected $F_{ST}$ values calculated by the populations module in Stacks to investigate the patterns of fixation between each pair of freshwater and nearest saltwater populations. In each pairwise comparison, we identified SNPs that were outliers using the Fisher's $P$-value in the Stacks output, using an $\alpha=0.01$. We then identified those SNPs that were shared among all four pairwise comparisons as genomic regions with a potentially parallel response to selection from the freshwater habitats.
 
-```{r read_stacks_fsts}
-fwsw.al<-read.delim("stacks/converted.fst_ALFW-ALST.txt")
-fwsw.la<-read.delim("stacks/converted.fst_ALST-LAFW.txt")
-fwsw.tx<-read.delim("stacks/converted.fst_TXCC-TXFW.txt")
-fwsw.fl<-read.delim("stacks/converted.fst_FLCC-FLLG.txt")
+```{r readStacksFsts}
+fwsw.al<-read.delim("stacks/populations_subset75/converted.fst_ALFW-ALST.txt")
+fwsw.la<-read.delim("stacks/populations_subset75/converted.fst_ALST-LAFW.txt")
+fwsw.tx<-read.delim("stacks/populations_subset75/converted.fst_TXCC-TXFW.txt")
+fwsw.fl<-read.delim("stacks/populations_subset75/converted.fst_FLCC-FLLG.txt")
+kable(cbind(nrow(fwsw.al),nrow(fwsw.la),nrow(fwsw.tx),nrow(fwsw.fl)),
+      col.names=c("Alabama","Louisiana","Texas","Florida"),
+      caption="The number of SNPs in each dataset")
 ```
+
+These datasets do not contain the full 12103 SNPs (\@ref(tab:readStacksFsts)) because some of those SNPs are fixed in the populations or do not pass coverage or minimum allele frequency thresholds.
+
 
 ```{r plotStacksFsts,fig.height=9,fig.width=7,fig.cap="Manhattan plot of pairwise AMOVA-corrected Fst values from Stacks for each freshwater - nearest saltwater population pair. The x-axis corresponds to genomic locations, with chromosomes labelled. To the right are loci that mapped to unanchored scaffolds."}
 source("../R/205_popgenPlotting.R")
