@@ -1612,7 +1612,7 @@ saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
 
 ## Fst plot
 
-```{r getOutliers, eval=FALSE}
+```{r plottingSetup}
 library(UpSetR);library(scales);library(ggplot2)
 library(grid);library(gwscaR);library(gridGraphics)
 source("../R/upset_hacked.R")
@@ -1623,7 +1623,7 @@ fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
 
 Then we'll plot the Stacks Fst outliers.
 
-```{r plotStacksOutliers, eval=FALSE}
+```{r plotStacksOutliers2, eval=TRUE}
 pop.list<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
 	"FLFD","FLSI","FLAB","FLPB","FLHB","FLCC","FLLG")
 pop.labs<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
