@@ -373,6 +373,53 @@ all.shared<-fl.sig[fl.sig %in% al.sig & fl.sig %in% tx.sig]
 
 We found `r length(unique(all.shared))` outliers shared among all four freshwater-saltwater pairwise $F_{ST}$ analyses and only `r length(unique(all.shared))` outlier shared among the saltwater-saltwater pairwise comparisons.
 
+
+
+```{r plot_fst_hists}
+plot_fst_hists<-function(perms,plot_lab=NULL,cols=NULL,permlab="mean_perm",
+                         reallab="Fst",baseplot=TRUE,inset=NULL){
+  require(scales)
+  if(is.null(plot_lab)){
+    plot_lab<-""
+  }
+  if(is.null(cols)){
+    cols<-c("grey","black")
+  } else if(length(cols)==1){
+    cols<-c("dark grey",cols)
+  }
+  #inset<-par()$fig
+  #browser()
+  if(isTRUE(baseplot)){
+    hist(perms[,permlab][perms[,permlab]>0],col=alpha(cols[1],0.5),border = alpha(cols[1],0.5),
+         xlim=c(0,1),breaks = seq(0,1,0.1),main = plot_lab,
+         xlab=expression(italic(F)[ST]),
+         ylab="Number of SNPs")
+    # hist(perms[,reallab],col=alpha(cols[2],0.5),border = alpha(cols[2],0.5),
+    #      xlim=c(0,1),breaks = seq(0,1,0.1),main = "",
+    #      xlab=expression(italic(F)[ST]),
+    #      ylab="Number of SNPs",add=TRUE)
+  }
+  if(!is.null(inset)){ # add an inset
+    # adjust the fig coordinates
+    ifig<-c(inset[1]+0.25*(inset[2]-inset[1]),inset[2], 
+            inset[3]+0.25*(inset[4]-inset[3]), inset[4])
+    par(fig = ifig,new=TRUE) # start x, end x, start y, end y (percent plotting space)
+    # hist(perms[,permlab][perms[,reallab]>0],col=alpha(cols[1],0.5),
+    #      border = alpha(cols[1],0.5),
+    #      xlim=c(0,1),breaks = seq(0,1,0.1),main = "",xlab="",
+    #      ylab="")
+    
+    hist(perms[,reallab,][perms[,reallab]>0],col=alpha(cols[2],0.5),
+         border = alpha(cols[2],0.5),
+         xlim=c(0,1),breaks = seq(0,1,0.1),main = "",xlab="",
+         ylab="")
+    box() #give it a box
+  }
+  invisible(par()$fig)
+}
+
+```
+
 ```{r StacksFstsHists,dpi=300,fig.width=8,fig.height=7,fig.cap="Distributions of the Stacks AMOVA-Corrected Fst values for the pairwise comparisons of each freshwater population and its nearest saltwater neighbor (in color) and the pairwise comparisons of those saltwater popuulations and their nearset saltwater population (in grey, in insests)."}
 fwsw_list<-list(fwsw.tx,fwsw.la,fwsw.al,fwsw.fl)
 swsw_list<-list(swsw.tx,swsw.al,swsw.al,swsw.fl)
