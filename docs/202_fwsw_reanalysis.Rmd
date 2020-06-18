@@ -1367,7 +1367,7 @@ upd.sf<-convert.stacks(swsw.fl,"stacks/converted.fst_FLCC-FLHB.txt",
 fwsw.al<-read.delim("stacks/populations_subset75/converted.fst_ALFW-ALST.txt")
 fwsw.la<-read.delim("stacks/populations_subset75/converted.fst_ALST-LAFW.txt")
 fwsw.tx<-read.delim("stacks/populations_subset75/converted.fst_TXCC-TXFW.txt")
-fwsw.fl<-read.delim("stacks/populations_subset75/converted.fst_FLCC-FLLG.txt")
+fwsw.fl<-read.delim("stacks/populations_subset75/converted.fst_FLCC-FLFW.txt")
 kable(cbind(nrow(fwsw.al),nrow(fwsw.la),nrow(fwsw.tx),nrow(fwsw.fl)),
       col.names=c("Alabama","Louisiana","Texas","Florida"),
       caption="The number of SNPs in each dataset")
@@ -1621,6 +1621,7 @@ fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
 
 ```
 
+
 Then we'll plot the Stacks Fst outliers.
 
 ```{r plotStacksOutliers2, eval=TRUE}
@@ -1784,6 +1785,7 @@ dev.off()
 ```
 
 ```{r stacksUpset}
+fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
 outliers<-list( permutations=fw_SNPinfo$ID[
                  rowSums(fw_SNPinfo[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
                
