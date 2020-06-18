@@ -426,9 +426,8 @@ plot_fst_hists<-function(perms,plot_lab=NULL,cols=NULL,permlab="mean_perm",
 fwsw_list<-list(fwsw.tx,fwsw.la,fwsw.al,fwsw.fl)
 swsw_list<-list(swsw.tx,swsw.al,swsw.al,swsw.fl)
 
-plot_labs<-list("TXFW vs TXCC","FLFW vs FLCC","ALFW vs ALST","ALST vs LAFW")
-pt_cols<-list(TXTX=grp.colors[1],FLFL=grp.colors[6],
-              ALAL=grp.colors[3],ALLA=grp.colors[2])
+plot_labs<-list("TXFW vs TXCC","ALST vs LAFW","ALFW vs ALST","FLFW vs FLCC")
+pt_cols<-list(grp.colors[1],grp.colors[2],grp.colors[3],grp.colors[6])
 
 par(mfrow=c(2,2),new=FALSE,mar=c(4,4,3,1),ps=16)
 #plot the base
