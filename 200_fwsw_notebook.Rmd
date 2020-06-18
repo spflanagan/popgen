@@ -41,6 +41,62 @@ Now it seems to be working!
 
 I've also updated supplement 3 to show more graphs of stacks and permutation outliers, and this should also update the annotations of the outliers (in the minimal sense).
 
+So let's think about the Fst outliers and their annotations. 
+
+```{r}
+fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
+outliers<-list(xtx=fw_SNPinfo$ID[fw_SNPinfo$XtX >= quantile(fw_SNPinfo$XtX,0.99,na.rm = TRUE)],
+               salBF=fw_SNPinfo$ID[fw_SNPinfo$logSalBF>=
+                                     quantile(fw_SNPinfo$logSalBF,0.99,na.rm = TRUE)],
+               permutations=fw_SNPinfo$ID[
+                 rowSums(fw_SNPinfo[,c("perm_TX","perm_AL","perm_LA")])==3],
+               pcadapt=fw_SNPinfo$ID[which(fw_SNPinfo$pcadaptQ<0.01)],
+               Alabama=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05)], 
+               Louisiana=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_LA_P < 0.05)],
+               Texas=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_TX_P < 0.05)],
+               Florida=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_FL_P < 0.05)],
+               sharedStacks=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05 & 
+                                                  fw_SNPinfo$stacks_LA_P < 0.05 &
+                 fw_SNPinfo$stacks_TX_P < 0.05)])
+```
+```{r}
+annInfo<-fw_SNPinfo[,c("ID","region")]
+annInfo$region<-as.character(annInfo$region)
+
+annInfo$region[grep("UTR",annInfo$region)]<-"regulatory"
+annInfo$region[grep("gene",annInfo$region)]<-"coding"
+annInfo$region[annInfo$region %in% "contig"]<-"non-coding"
+annInfo$region[annInfo$region %in% "scaffNotFound"]<-"unkown"
+
+annInfo$outlier<-"not-outlier"
+annInfo$outlier[annInfo$ID %in% outliers$sharedStacks]<-"outlier"
+annInfo$salgene<-"not-putative"
+annInfo$salgene[annInfo$ID %in% fw_SNPinfo$ID[!is.na(fw_SNPinfo$Gene)]]<-"putative"
+
+fisher.test(table(annInfo$region,annInfo$outlier))
+fisher.test(table(annInfo$outlier,annInfo$salgene))
+
+```
+
+```{r}
+fst_outs<-outliers$permutations[outliers$permutations %in% outliers$sharedStacks]
+fst_out_dat<-fw_SNPinfo[fw_SNPinfo$ID %in% fst_outs,
+           c("ID","SSCID","Chrom","BP","REF","ALT","region","description")]
+fst_out_dat$region<-as.character(fst_out_dat$region)
+fst_out_dat$region[grep("UTR",fst_out_dat$region)]<-"regulatory"
+fst_out_dat$region[grep("gene",fst_out_dat$region)]<-"coding"
+fst_out_dat$region[fst_out_dat$region %in% "contig"]<-"non-coding"
+fst_out_dat$region[fst_out_dat$region %in% "scaffNotFound"]<-"unkown"
+fst_out_dat$SSCID<-gsub(";","; ",fst_out_dat$SSCID)
+kable(fst_out_dat,"latex",booktabs=TRUE,
+      caption="SNPs that were Fst outliers in all pairwise Texas, Alabama, and Louisiana Stacks and permutation analyses. Shown are the SNP ID in this dataset, the ID of the gene it is mapped to in the S. scovelli genome, its location and reference and alternative alleles. The final two columns show the type of genomic region the SNP is in and the gene description (if relevant).") %>%
+  kable_styling(latex_options="HOLD_position")%>%
+  column_spec(2,width="10em") %>%
+  column_spec(8,width="20em")
+```
+
+This should be good for a preliminary investigation. 
+
 # 17 June 2020
 
 I got comments back from Adam, which were useful. He recommended the following:
