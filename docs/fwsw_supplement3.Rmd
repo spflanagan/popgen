@@ -373,6 +373,7 @@ all.shared<-fl.sig[fl.sig %in% al.sig & fl.sig %in% tx.sig]
 
 We found `r length(unique(all.shared))` outliers shared among all four freshwater-saltwater pairwise $F_{ST}$ analyses and only `r length(unique(all.shared))` outlier shared among the saltwater-saltwater pairwise comparisons.
 
+We can also look at the distributions of the Fst values for these two sets of pairwise comparisons, and we see that they are different.
 
 
 ```{r plot_fst_hists}
