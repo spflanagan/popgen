@@ -385,9 +385,10 @@ plot_fst_hists<-function(perms,plot_lab=NULL,cols=NULL,permlab="mean_perm",
   }
   if(is.null(cols)){
     cols<-c("grey","black")
-  } else if(length(cols)==1){
-    cols<-c("dark grey",cols)
-  }
+  } 
+  # else if(length(cols)==1){
+  #   cols<-c("dark grey",cols)
+  # }
   #inset<-par()$fig
   #browser()
   if(isTRUE(baseplot)){
