@@ -431,12 +431,12 @@ pt_cols<-list(grp.colors[1],grp.colors[2],grp.colors[3],grp.colors[6])
 
 par(mfrow=c(2,2),new=FALSE,mar=c(4,4,3,1),ps=16)
 #plot the base
-pars<-mapply(plot_fst_hists,perms=fwsw_list,plot_lab=plot_labs,cols=pt_cols,
-             perm_lab="Corrected.AMOVA.Fst",real_lab="Corrected.AMOVA.Fst",
+pars<-mapply(plot_fst_hists,perms=fwsw_list,plot_lab=plot_labs,
+             permlab="Corrected.AMOVA.Fst",reallab="Corrected.AMOVA.Fst",
              cols=pt_cols,SIMPLIFY = FALSE)
 # add the insets
-ipars<-mapply(plot_fst_hists,perms=permuted_fsts,plot_lab=plot_labs,
-              inset=pars,perm_lab="Corrected.AMOVA.Fst",real_lab="Corrected.AMOVA.Fst",
+ipars<-mapply(plot_fst_hists,perms=swsw_list,plot_lab=plot_labs,
+              inset=pars,permlab="Corrected.AMOVA.Fst",reallab="Corrected.AMOVA.Fst",
               MoreArgs = list(baseplot=FALSE))
 
 
