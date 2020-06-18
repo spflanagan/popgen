@@ -521,6 +521,8 @@ dev.off()
 knitr::include_graphics('../figs/permuted_fsts.png')
 ```
 
+We can also look at the genome-wide patterns of the permutations vs the actual Fsts, and we can see that the permuted Fsts have much smaller average Fsts and virtually no outliers (Figure \@ref(fig:permFstGenomewide)), unlike the actual pairwise Fst values (Figure \@ref(fig:permActualFstGenomewide)). The actual Fsts (Figure \@ref(fig:permActualFstGenomewide)) show similar patterns to the Stacks Fst analysis (Figure \@ref(fig:plotStacksFsts)) in the actual fsts , where the Florida pairwise comparison has much higher overall Fst values. These are not identical to the Stacks analysis because these Fsts are calculated without any corrections using the 
+
 ```{r permFstGenomewide,fig.height=9,fig.width=7,fig.cap="Manhattan plot of pairwise average Fst values from the permutation of population IDs for each freshwater - nearest saltwater population pair. The x-axis corresponds to genomic locations, with chromosomes labelled. To the right are loci that mapped to unanchored scaffolds."}
 perm_dat<-list(permuted_fsts[[1]],permuted_fsts[[4]],permuted_fsts[[3]],permuted_fsts[[2]])
 fsts<-plot_multiple_LGs(list_fsts = perm_dat,fst_name = "mean_perm",
