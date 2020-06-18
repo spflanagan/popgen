@@ -618,7 +618,7 @@ kable(fst_out_dat,"latex",booktabs=TRUE,row.names=FALSE,
   column_spec(8,width="15em")
 ```
 
-We can also take a look at the SNPs shared in both the Stacks and permutation analyses (focusing on the outliers in all pairwise Texas, Louisiana, and Alabama comparisons but not the Florida analyses). We found `r nrow(fst_out_dat)` shared SNPs, and most of them (`r nrow(fst_out_dat[!is.na(fst_out_dat$SSCID),])`) matched annotated regions in the *S. scovelli* genome. One of these (Tripartite motif-containing protein 7, or TRIM7) is in the list of genes previously found to be involved in freshwater adaptation (Table \@ref(tab:putativeGeneAnns)). 
+We can also take a look at the SNPs shared in both the Stacks and permutation analyses (focusing on the outliers in all pairwise Texas, Louisiana, and Alabama comparisons but not the Florida analyses). We found `r nrow(fst_out_dat)` shared SNPs, (`r nrow(fst_out_dat[grep("SSCG",fst_out_dat$SSCID),])`) of which matched annotated regions in the *S. scovelli* genome. One of these (Tripartite motif-containing protein 7, or TRIM7) is in the list of genes previously found to be involved in freshwater adaptation (Table \@ref(tab:putativeGeneAnns)). 
 
 ## PCAdapt {-}
 
