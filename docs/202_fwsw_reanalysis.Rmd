@@ -2017,7 +2017,7 @@ write.table(keep_ped,"stacks/populations_subset75/noFL_subset75.ped",col.names=F
 
 And create a cluster file (i.e., pop map)
 
-```{r extractFLclust}
+```{r extractFLclust,eval=FALSE}
 clust<-keep_ped[,1:2]
 clust$clust<-gsub("sample_(\\w{4}).*","\\1",clust$V2)
 write.table(clust,"bayenv/noFL/sub75.noFL.clust",col.names = FALSE,row.names = FALSE,quote=FALSE)
