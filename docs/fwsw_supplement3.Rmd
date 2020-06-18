@@ -604,11 +604,18 @@ fst_out_dat$region[grep("gene",fst_out_dat$region)]<-"coding"
 fst_out_dat$region[fst_out_dat$region %in% "contig"]<-"non-coding"
 fst_out_dat$region[fst_out_dat$region %in% "scaffNotFound"]<-"unkown"
 fst_out_dat$SSCID<-gsub(";","; ",fst_out_dat$SSCID)
-kable(fst_out_dat,"latex",booktabs=TRUE,
+fst_out_dat$Chrom<-gsub("_"," ",fst_out_dat$Chrom)
+kable(fst_out_dat,"latex",booktabs=TRUE,row.names=FALSE,
       caption="SNPs that were Fst outliers in all pairwise Texas, Alabama, and Louisiana Stacks and permutation analyses. Shown are the SNP ID in this dataset, the ID of the gene it is mapped to in the S. scovelli genome, its location and reference and alternative alleles. The final two columns show the type of genomic region the SNP is in and the gene description (if relevant).") %>%
   kable_styling(latex_options="HOLD_position")%>%
-  column_spec(2,width="10em") %>%
-  column_spec(8,width="20em")
+  column_spec(1,width="2.5em") %>%
+  column_spec(2,width="7.5em") %>%
+  column_spec(3,width="3em") %>%
+  column_spec(4,width="3em") %>%
+  column_spec(5,width="1.5em") %>%
+  column_spec(6,width="1.5em") %>%
+  column_spec(7,width="3.5em") %>%
+  column_spec(8,width="15em")
 ```
 
 We can also take a look at the SNPs shared in both the Stacks and permutation analyses (focusing on the outliers in all pairwise Texas, Louisiana, and Alabama comparisons but not the Florida analyses). We found `r nrow(fst_out_dat)` shared SNPs, and most of them (`r nrow(fst_out_dat[!is.na(fst_out_dat$SSCID),])`) matched annotated regions in the *S. scovelli* genome. One of these (Tripartite motif-containing protein 7, or TRIM7) is in the list of genes previously found to be involved in freshwater adaptation (Table \@ref(tab:putativeGeneAnns)). 
