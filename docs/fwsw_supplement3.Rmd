@@ -521,6 +521,34 @@ dev.off()
 knitr::include_graphics('../figs/permuted_fsts.png')
 ```
 
+```{r permFstGenomewide,fig.height=9,fig.width=7,fig.cap="Manhattan plot of pairwise average Fst values from the permutation of population IDs for each freshwater - nearest saltwater population pair. The x-axis corresponds to genomic locations, with chromosomes labelled. To the right are loci that mapped to unanchored scaffolds."}
+perm_dat<-list(permuted_fsts[[1]],permuted_fsts[[4]],permuted_fsts[[3]],permuted_fsts[[2]])
+fsts<-plot_multiple_LGs(list_fsts = perm_dat,fst_name = "mean_perm",
+                        bp_name="Pos",chr_name="Chrom",lgs=lgs,
+                        plot_labs=list("TXFW vs TXCC","ALST vs LAFW",
+                                       "ALFW vs ALST","FLFW vs FLCC"),
+                        pt_cols = list(c(grp.colors[3],grp.colors[2]),
+                                       c(grp.colors[2],grp.colors[3]),
+                                       c(grp.colors[1],grp.colors[2]),
+                                       c(grp.colors[6],grp.colors[5])),
+                        ncol=1,addSmooth = FALSE,pch=19,y.lim = c(0,1),
+                        pt.cex=1,axis.size = 1)
+```
+
+```{r permActualFstGenomewide,fig.height=9,fig.width=7,fig.cap="Manhattan plot of pairwise Fst values calculated for each freshwater - nearest saltwater population pair. The x-axis corresponds to genomic locations, with chromosomes labelled. To the right are loci that mapped to unanchored scaffolds."}
+perm_dat<-list(permuted_fsts[[1]],permuted_fsts[[4]],permuted_fsts[[3]],permuted_fsts[[2]])
+fsts<-plot_multiple_LGs(list_fsts = perm_dat,fst_name = "Fst",
+                        bp_name="Pos",chr_name="Chrom",lgs=lgs,
+                        plot_labs=list("TXFW vs TXCC","ALST vs LAFW",
+                                       "ALFW vs ALST","FLFW vs FLCC"),
+                        pt_cols = list(c(grp.colors[1],grp.colors[2]),
+                                       c(grp.colors[2],grp.colors[3]),
+                                       c(grp.colors[3],grp.colors[2]),
+                                       c(grp.colors[6],grp.colors[5])),
+                        ncol=1,addSmooth = FALSE,pch=19,y.lim = c(0,1),
+                        pt.cex=1,axis.size = 1)
+```
+
 
 
 ## PCAdapt {-}
