@@ -23,6 +23,12 @@ library(knitr)
 pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 ```
 
+# 19 June 2020
+
+Goals:
+1. Update text with Adam's comments
+2. Look into Bayenv results without Florida pops.
+
 # 18 June 2020
 
 Goals:
