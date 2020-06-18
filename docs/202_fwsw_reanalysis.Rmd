@@ -1624,7 +1624,7 @@ fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
 
 Then we'll plot the Stacks Fst outliers.
 
-```{r plotStacksOutliers2, eval=TRUE}
+```{r plotStacksOutliers2, eval=FALSE}
 pop.list<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
 	"FLFD","FLSI","FLAB","FLPB","FLHB","FLCC","FLLG")
 pop.labs<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
@@ -1680,9 +1680,9 @@ plot_dat<-fst.plot(fw_SNPinfo,scaffs.to.plot = lgs,fst.name = "stacks_AL",
 #        plot_dat$stacks_AL[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
 #        col=cols["sal"],cex=1,pch=2)
 points(plot_dat$plot.pos[
-  rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+  rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
        plot_dat$stacks_AL[
-         rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+         rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
        col=cols["perm"],cex=2,pch=5,lwd=3)
 # points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.01],
 #        plot_dat$stacks_AL[plot_dat$pcadaptQ<0.01],
@@ -1714,9 +1714,9 @@ plot_dat<-fst.plot(fw_SNPinfo,scaffs.to.plot = lgs,fst.name = "stacks_LA",
 #        plot_dat$stacks_LA[plot_dat$pcadaptQ<0.01],
 #        col=cols["pc"],cex=1,pch=0,lwd=2)
 points(plot_dat$plot.pos[
-  rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+  rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
        plot_dat$stacks_LA[
-         rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+         rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
        col=cols["perm"],cex=2,pch=5,lwd=3)
 
 points(plot_dat$plot.pos[which(plot_dat$stacks_AL_P < 0.05 & 
@@ -1747,9 +1747,9 @@ plot_dat<-fst.plot(fw_SNPinfo,scaffs.to.plot = lgs,fst.name = "stacks_FL",
 #        plot_dat$stacks_FL[plot_dat$pcadaptQ<0.01],
 #        col=cols["pc"],cex=1,pch=0,lwd=2)
 points(plot_dat$plot.pos[
-  rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+  rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
        plot_dat$stacks_FL[
-         rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+         rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
        col=cols["perm"],cex=2,pch=5,lwd=3)
 points(plot_dat$plot.pos[which(plot_dat$stacks_AL_P < 0.05 & 
                                  plot_dat$stacks_LA_P < 0.05 &
