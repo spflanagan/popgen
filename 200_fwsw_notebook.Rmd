@@ -29,6 +29,9 @@ Goals:
 1. Update text with Adam's comments
 2. Look into Bayenv results without Florida pops.
 
+dadi updates:
+I was able to transfer some of the dadi results from abacus to C001KR. Also started ALFW_TXFW_13 (run 660) and FLCC_TXCC_14 (run 661, all models except SC2N2mG, which is still running with # 13 in run 619). I noticed that FLLG_TXFW nothing's been updated since Jun 15 and the only log remaining is SC2N2mG.log.txt, which was updated on 10 June. So I'm thinking of stopping that one (job 626) and re-starting just SC2N2mG. - yep, done. 
+
 # 18 June 2020
 
 Goals:
