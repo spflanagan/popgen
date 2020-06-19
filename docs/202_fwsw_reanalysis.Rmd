@@ -2349,6 +2349,49 @@ legend("top",c(expression(italic("X")^T~italic("X")),"Salinity BF"),
 ```
 
 
+Let's compare the results of the analyses with and without the Florida populations.
+
+```{r BayenvCompareFL}
+bayenv_cor<-cor(bayenv_noFL[,c("XtX_noFL",
+                   "logSalBF_noFL",
+                   "logTemBF_noFL",
+                   "logSegBF_noFL",
+                   "XtX_FL","logSalBF_FL","logTemBF_FL","logSegBF_FL")])
+kable(bayenv_cor[grep("_FL",rownames(bayenv_cor)),grep("_noFL",colnames(bayenv_cor))],
+      "latex",booktabs=TRUE,
+      caption="Correlations between the Bayenv analyses without the Florida populations ('noFL') and with the Florida popualtions ('FL'). The comparison of each statistic with itself in each analysis is on the diagonal.")
+```
+```{r BayenvCompareFLPlots,fig.height=6,fig.width=6,fig.cap="Plots of the Bayenv statistics in the analysis with the Florida populations (x-axis) vs without the Florida populations (y-axis)."}
+par(mfrow=c(2,2))
+plot(bayenv_noFL$XtX_FL, bayenv_noFL$XtX_noFL,
+     xlab="XtX with Florida populations",ylab="XtX without Florida Populations",
+     pch=19,cex=1.5,col=alpha("dark grey",0.75))
+plot(bayenv_noFL$logSalBF_FL, bayenv_noFL$logSalBF_noFL,
+     xlab="log of Salinity Bayes Factors with Florida populations",
+     ylab="log of Salinity Bayes Factors without Florida Populations",
+     pch=19,cex=1.5,col=alpha("dark grey",0.75))
+plot(bayenv_noFL$logTemBF_FL, bayenv_noFL$logTemBF_noFL,
+     xlab="log of Temperature Bayes Factors with Florida populations",
+     ylab="log of Temperature Bayes Factors without Florida Populations",
+     pch=19,cex=1.5,col=alpha("dark grey",0.75))
+plot(bayenv_noFL$logSegBF_FL, bayenv_noFL$logSegBF_noFL,
+     xlab="log of Seagrass cover Bayes Factors with Florida populations",
+     ylab="log of Seagrass cover Bayes Factors without Florida Populations",
+     pch=19,cex=1.5,col=alpha("dark grey",0.75))
+```
+
+Are any of the outliers the same in the two analyses?
+
+```{r BayenvCompareOutliers}
+bothXtX<-bayenv_noFL$ID[bayenv_noFL$XtX_FL>=quantile(plot_dat$XtX_FL,0.99) &
+                 bayenv_noFL$XtX_noFL>=quantile(plot_dat$XtX_noFL,0.99)]
+bothSal<-bayenv_noFL$ID[bayenv_noFL$logSalBF_FL>=quantile(plot_dat$logSalBF_FL,0.99) &
+                 bayenv_noFL$logSalBF_noFL>=quantile(plot_dat$logSalBF_noFL,0.99)]
+```
+
+There are `r length(bothXtX)` SNPs that are XtX outliers in both Bayenv analyses and `r length(bothSal)` salinity-associated outliers in both.
+
+
 ## Bayenv Plots
 
 First we'll get set up with the libraries, code, and data.
