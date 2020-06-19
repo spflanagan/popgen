@@ -54,13 +54,9 @@ The initial analyses are in `200_fwsw_analysis.Rmd` and conducted the analyses o
 2. A dataset containing only the 4 freshwater populations (TXFW, LAFW, ALFW, FLFW) and their nearest saltwater populations (TXCC, ALST, FLCC -- note ALST is the nearest neighbor to both ALFW and LAFW). This dataset also contains SNPs found in 75% of individuals with a minor allele frequency of at least 5%. 
 
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE,out.extra='',fig.pos="H",
-                      warning = FALSE,message = FALSE,
-                      dev='png',dpi=300)
-knitr::opts_knit$set(root.dir='../fwsw_results/')
-```
-```{r source}
+
+
+```r
 source("../../gwscaR/R/gwscaR.R")
 source("../../gwscaR/R/gwscaR_plot.R")
 source("../../gwscaR/R/gwscaR_utility.R")
@@ -75,7 +71,8 @@ library(vegan)
 library(RColorBrewer)
 ```
 
-```{r popSetup}
+
+```r
 pop.list<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
 	"FLFD","FLSI","FLAB","FLPB","FLHB","FLCC","FLLG")
 pop.labs<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
@@ -113,13 +110,14 @@ ppi$pch[grep("FW",ppi$Pop)]<-c(15,16,17,18)
 
 First, we'll plot these populations on a map
 
-```{r map_setup, eval=FALSE}
+
+```r
 library(maps);library(gplots);library(mapdata)
 mar.coor<-read.csv("marine_coordinates_revised.csv", header=T)
 fw.coor<-read.csv("fw_coordinates.csv", header=T)
-
 ```
-```{r map, eval=FALSE}
+
+```r
 jpeg("all_sites_map.jpeg", res=300, height=7,width=14, units="in")
 #pdf("all_sites_map.pdf",height=7,width=14)
 par(oma=c(0,0,0,0),mar=c(0,0,0,0),pin=c(7,7))
@@ -154,13 +152,13 @@ text(x=-79.4,y=27.2,"FLHB",font=2,cex=1.75)
 text(x=-79.9,y=28.5,"FLCC",font=2,cex=1.75)
 text(x=-80.9,y=29.5,"FLFW",font=2,col="cornflowerblue",cex=1.75)
 dev.off()
-
 ```
 
 ## Phenotypic variation
 
 
-```{r organizeData, eval=FALSE}
+
+```r
 raw.pheno<-read.table("../sw_results/popgen.pheno.txt", sep="\t", header=T)
 	raw.pheno$PopID<-gsub("(\\w{4})\\w+","\\1",raw.pheno$ID)
 	raw.pheno<-raw.pheno[raw.pheno$PopID %in% pop.list,]
@@ -180,13 +178,15 @@ mal.pheno<-raw.pheno[raw.pheno$sex %in% c("P","N"),-8]
 	write.table(mal.pheno,"mal.pheno.txt",sep='\t',row.names=F,col.names=T,
 		quote=F)
 ```
-```{r readMalFem}
+
+```r
 fem.pheno<-read.table("fem.pheno.txt",header=T)
 	fem.pheno<-fem.pheno[!is.na(fem.pheno$BandNum),]
 mal.pheno<-read.table("mal.pheno.txt",header=T)
 ```
 
-```{r PCA}
+
+```r
 fem.pheno$PopID<-factor(fem.pheno$PopID)
 fem.pheno<-fem.pheno[!is.na(fem.pheno$BandNum),]
 mal.pheno$PopID<-factor(mal.pheno$PopID)
@@ -196,9 +196,9 @@ bands.pcdat<-fem.pheno[!is.na(fem.pheno$BandNum),
 band.pca<-rda(bands.pcdat[,3:4])
 fem.pheno.pca<-rda(fem.pheno[,4:9])
 mal.pheno.pca<-rda(mal.pheno[,4:9])
-
 ```
-```{r extractEigenvalue}
+
+```r
 ####extract eigenvalue
 band.eig<-band.pca$CA$eig
 band.pc<-band.eig/sum(band.eig)*100
@@ -235,10 +235,10 @@ mal.u.new<-rbind(mal.u.sep$TXSP,mal.u.sep$TXCC,mal.u.sep$TXCB,
 	mal.u.sep$ALST,mal.u.sep$FLSG,mal.u.sep$FLKB,
 	mal.u.sep$FLFD,mal.u.sep$FLSI,mal.u.sep$FLAB,
 	mal.u.sep$FLPB,mal.u.sep$FLHB,mal.u.sep$FLCC)
-
 ```
 
-```{r PCAplotSetup}
+
+```r
 # females
 fem.pop<-as.character(bands.pcdat$PopID)
 fem.pop[fem.pop=="FLLG"]<-"FLFW"
@@ -266,11 +266,11 @@ mal.pch<-as.numeric(mal.pch)
 
 fw.fem.rows<-which(fem.pheno$PopID %in% fw.list)
 fw.mal.rows<-which(mal.pheno$PopID %in% fw.list)
-
 ```
 
 
-```{r plotPCA,fig.height=8,fig.width=10,fig.keep='last',fig.path="../figs/",fig.cap="Principal components analysis of morphological traits in S. scovelli reveals that phenotypic variation among populations is not based on habitat type. The top set of panels show the results of the PCA with all 16 populations, color-coded by populations and point shape. The bottom set of panels show the same PCA results, but with different x- and y-axis scaling and without the saltwater populations plotted, to facilitate visualizing the differences among saltwater populations. The left panels show male body traits (SVL, tail length, trunk depth, head length, snout length, and snout depth), the middle panels show those same traits in females, and the right panels show the female band traits (band number and band area)."}
+
+```r
 ptCex<-2
 
 par(mfrow=c(2,3),oma=c(2,2,2,2),mar=c(2,2,2,2),lwd=1.3)
@@ -334,16 +334,22 @@ legend("top", legend=ppi$Pop,
 	pt.cex=ptCex,bty='n',pch=ppi$pch, ncol=8)
 ```
 
+\begin{figure}[H]
+\includegraphics{../figs/plotPCA-1} \caption{Principal components analysis of morphological traits in S. scovelli reveals that phenotypic variation among populations is not based on habitat type. The top set of panels show the results of the PCA with all 16 populations, color-coded by populations and point shape. The bottom set of panels show the same PCA results, but with different x- and y-axis scaling and without the saltwater populations plotted, to facilitate visualizing the differences among saltwater populations. The left panels show male body traits (SVL, tail length, trunk depth, head length, snout length, and snout depth), the middle panels show those same traits in females, and the right panels show the female band traits (band number and band area).}(\#fig:plotPCA)
+\end{figure}
+
 ## Table of summary statistics
 
 
-```{r readVCFs1, eval=FALSE}
+
+```r
 pop_map<-read.delim("../fwsw_pops_map.txt",header = FALSE,stringsAsFactors = FALSE)
 ful_vcf<-parse.vcf(
   "filter_rad_20191014@1654/14_filtered/radiator_data_20191014@1710.vcf")
 colnames(ful_vcf)<-gsub("\\-","_",colnames(ful_vcf))
 ```
-```{r readSubVCF,eval=FALSE}
+
+```r
 sub_vcf<-parse.vcf("stacks/populations_subset75/batch_2.pruned.vcf")
 sub_all_vcf<-parse.vcf("stacks/populations_subset75/all_pops_subset75/batch_2.vcf")
 # combine the two
@@ -353,7 +359,8 @@ sub<-sub[,-rmv]
 colnames(sub)<-gsub(".x","",colnames(sub))
 ```
 
-```{r popSummaries, eval=FALSE}
+
+```r
 pop_summaries<-do.call(rbind,lapply(pop.list,function(pop,ful,sub){
   ful_dat<-ful[,c(1:9,grep(pop,colnames(ful)))]
   sub_dat<-sub[,c(1:9,grep(pop,colnames(sub)))]
@@ -391,14 +398,16 @@ write.csv(pop_summaries,"population_summaries.csv",row.names = FALSE,quote=FALSE
 ```
 
 We can merge the genetic info with the environmental info. 
-```{r pop_env_summaries}
+
+```r
 pop_summaries<-read.csv("population_summaries.csv")
 env.data<-data.frame(t(read.csv("bayenv/env_data_raw.csv",row.names = 1)))
 env.data$pop<-rownames(env.data)
 pop_summaries<-merge(env.data,pop_summaries,by="pop")
 ```
 
-```{r pretty_sum}
+
+```r
 pretty_sum<-data.frame(Population = pop_summaries$pop,
                        Temperature = pop_summaries$temp,
                        Salinity = pop_summaries$salinity,
@@ -432,7 +441,8 @@ write.table(pretty_sum,"Table1_populationSummaries.txt",
 
 ## Minor allele frequencies
 
-```{r calcAFS, eval=FALSE}
+
+```r
 locus.info<-colnames(ful_vcf[1:9])
 fw.afs<-lapply(fw.list,function(pop,vcf){
   this.vcf<-cbind(vcf[,locus.info],vcf[,grep(pop,colnames(vcf))])
@@ -450,11 +460,10 @@ minAF<-lapply(all.afs,function(x){
   return(as.numeric(mins))
 })
 names(minAF)<-names(all.afs)
-
 ```
 
-```{r minorAFplot,fig.height=10,fig.width=8,dpi=300,fig.keep='last', fig.path="../figs/",eval=FALSE}
 
+```r
 par(mfrow=c(4,4),mar=c(2,2,1,0),oma=c(2,3,0.5,0.5))
 for(i in 1:length(pop.labs)){
   if(pop.labs[i] %in% names(fw.afs)){
@@ -475,7 +484,6 @@ for(i in 1:length(pop.labs)){
 }
 mtext("Minor Allele Frequency",1,outer=TRUE,cex=1.75*0.75)
 mtext("Number of SNPs (x 1000)",2,outer = TRUE,cex=1.75*0.75,line=1)
-
 ```
 
 ![Minor allele frequency distributions of the full dataset (7433 SNPs) for each population. Freshwater populations are plotted in blue. The histograms show the number of SNPs with various frequencies of the reference alleles. All populations are skewed towards having small minor allele frequencies, but the TXFW and FLFW have additional reductions in genetic variation.](../figs/minorAFplot-1.png)
@@ -487,7 +495,8 @@ mtext("Number of SNPs (x 1000)",2,outer = TRUE,cex=1.75*0.75,line=1)
 
 This will calculate the pairwise $F_{ST}$s (but it's slow)
 
-```{r pairwiseFstsCalc, eval=FALSE}
+
+```r
 pop_map<-read.delim("../fwsw_pops_map.txt",header = FALSE,stringsAsFactors = FALSE)
 fst_mat<-matrix(NA,
                 nrow=length(unique(pop_map$V2)),ncol=length(unique(pop_map$V2)),
@@ -511,7 +520,8 @@ write.table(fst_mat,"pairwise_fsts_full.txt",sep='\t',
             col.names = TRUE,row.names=TRUE,quote=FALSE)
 ```
 
-```{r readStacksFstSumm}
+
+```r
 full_fsts<-read.delim("stacks/populations_whitelist/batch_2.fst_summary.tsv",
                       row.names = 1)
 full_fsts<-rbind(full_fsts,TXSP=rep(NA,ncol(full_fsts))) #add the final row
@@ -523,7 +533,8 @@ fst_mat<-as.matrix(full_fsts)
 ```
 
 
-```{r fstHeatmaps,fig.width=8,fig.height=5,eval=FALSE}
+
+```r
 library(lattice); library(grid); library(RColorBrewer)
 poporder<-read.delim("treemix/poporder")
 colors<-poporder$colors
@@ -564,7 +575,6 @@ grid.text("Treemix", 0.2, 0, hjust=0.5, vjust=1.2,gp=gpar(cex=0.75))
 trellis.unfocus()
 
 dev.off()
-
 ```
 
 ![Heatmaps depicting population structure. In all graphs, dark colors depict similarity between populations and light grey and blue depict populations with high differentiation. The left panel shows pairwise FST values calculated by the populations module in Stacks (Catchen et al. 2013). The right panel shows covariances between populations as calculated by TreeMix (Pickrell and Pritchard 2012).](../figs/fst_heatmaps.png)
@@ -573,24 +583,74 @@ dev.off()
 ## PCAdapt {-}
 
 
-```{r loadPCAdapt}
+
+```r
 library(pcadapt)
 ```
 
-```{r pcadaptChoose,fig.cap="Scree plot from PCAdapt, specifying keeping 20 PC axes."}
+
+```r
 filename<-read.pcadapt("filter_rad_20191014@1654/14_filtered/radiator_data_20191014@1710.vcf",
                        type="vcf")
+```
+
+```
+## No variant got discarded.
+## Summary:
+## 
+## 	- input file:				filter_rad_20191014@1654/14_filtered/radiator_data_20191014@1710.vcf
+## 	- output file:				/tmp/RtmpWYtABi/file21ac60c77de8.pcadapt
+## 
+## 	- number of individuals detected:	605
+## 	- number of loci detected:		7433
+## 
+## 7433 lines detected.
+## 605 columns detected.
+```
+
+```r
 x<-pcadapt(filename, K=20)
 plot(x,option="screeplot") #K=7
 ```
 
-```{r pcadaptAnalyze}
+\begin{figure}[H]
+\includegraphics{202_fwsw_reanalysis_files/figure-latex/pcadaptChoose-1} \caption{Scree plot from PCAdapt, specifying keeping 20 PC axes.}(\#fig:pcadaptChoose)
+\end{figure}
+
+
+```r
 pa<-pcadapt(filename,K=7)
 saveRDS(pa,"fwsw_all_pcadapt.RDS")
 pa.props<-round((pa$singular.values/sum(pa$singular.values))*100,2)
 kable(pa.props,caption="Proportion of variation explained by all 7 of the retained PC axes in PCAdapt")
 ```
-```{r pcadaptSummarize}
+
+\begin{table}
+
+\caption{(\#tab:pcadaptAnalyze)Proportion of variation explained by all 7 of the retained PC axes in PCAdapt}
+\centering
+\begin{tabular}[t]{r}
+\hline
+x\\
+\hline
+33.26\\
+\hline
+20.25\\
+\hline
+16.71\\
+\hline
+10.09\\
+\hline
+7.58\\
+\hline
+6.68\\
+\hline
+5.43\\
+\hline
+\end{tabular}
+\end{table}
+
+```r
 ind_dat<-read.table(
   "filter_rad_20191014@1654/14_filtered/individuals.qc.stats_20191014@1654.tsv",
   header=T, stringsAsFactors = F)
@@ -609,12 +669,11 @@ for(i in 1:nrow(pap)){
   pap[i,"pch"]<-as.numeric(ppi[ppi$Pop %in% pap[i,"Pop"],"pch"])
 }
 write.table(pap,"pcadapt_colp.txt",col.names=TRUE,sep='\t',quote=F)
-
 ```
 
 
-```{r plotPcadaptInitial, fig.height=8,fig.width=10.5,dev='png',fig.dim="in",fig.cap="Principal components analysis of genotypes in S. scovelli reveals population structure due to geographic distance and habitat type. The top set of panels show the results of the PCA with all 16 populations, color-coded by populations and point shape. The bottom set of panels show the same PCA results, but with different x- and y-axis scaling and without the saltwater populations plotted, to facilitate visualizing the differences among saltwater populations. The left panels show the first and second PC axes, whcih together account for 53.5% of the varation, the middle panels show the 3rd and 4th PC axes (another 26.8% of the variation), and the right panels the fifth and sixth axes (another % of variation)."}
 
+```r
 #plot
 par(mfrow=c(2,3),oma=c(2,2,2,2),mar=c(2,2,2,2))
 plot(pa$scores[,1],pa$scores[,2],col=alpha(pap$cols,0.5),bg=alpha(pap$cols,0.75),
@@ -657,8 +716,11 @@ plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
 
 legend("top", legend=ppi$Pop, pch=as.numeric(ppi$pch), pt.cex=1.5,cex=0.85,
        col=alpha(ppi$cols, 0.5),pt.bg=alpha(ppi$cols,0.25), ncol=8,bty='n')
-
 ```
+
+\begin{figure}[H]
+\includegraphics{202_fwsw_reanalysis_files/figure-latex/plotPcadaptInitial-1} \caption{Principal components analysis of genotypes in S. scovelli reveals population structure due to geographic distance and habitat type. The top set of panels show the results of the PCA with all 16 populations, color-coded by populations and point shape. The bottom set of panels show the same PCA results, but with different x- and y-axis scaling and without the saltwater populations plotted, to facilitate visualizing the differences among saltwater populations. The left panels show the first and second PC axes, whcih together account for 53.5% of the varation, the middle panels show the 3rd and 4th PC axes (another 26.8% of the variation), and the right panels the fifth and sixth axes (another % of variation).}(\#fig:plotPcadaptInitial)
+\end{figure}
 
 
 
@@ -666,7 +728,8 @@ legend("top", legend=ppi$Pop, pch=as.numeric(ppi$pch), pt.cex=1.5,cex=0.85,
 ## Admixture scree plots {-}
 
 
-```{r admixScree,fig.cap="Admixture screeplot for K=1 through K=16. The coefficient of variation (CV) is shown on the y-axis."}
+
+```r
 admixK<-read.delim("admixture/K_CVs.txt",header = FALSE)
 admixK$K<-as.numeric(gsub(".*\\(K=(\\d+)\\).*","\\1",admixK$V1))
 admixK$CV<-as.numeric(gsub("^.*\\: (\\d+\\.\\d+)$","\\1",admixK$V1))
@@ -674,12 +737,16 @@ admixK$CV<-as.numeric(gsub("^.*\\: (\\d+\\.\\d+)$","\\1",admixK$V1))
 admixK<-admixK[order(admixK$K),]
 
 plot(admixK$K,admixK$CV,pch=19,type = "b",lty=1,xlab = "K",ylab="CV",las=1,lwd=2)
-
 ```
+
+\begin{figure}[H]
+\includegraphics{202_fwsw_reanalysis_files/figure-latex/admixScree-1} \caption{Admixture screeplot for K=1 through K=16. The coefficient of variation (CV) is shown on the y-axis.}(\#fig:admixScree)
+\end{figure}
 
 Looks like $K=5$ or $K=7$ are the best, let's look at all of the $K=2$ through $K=7$.
 
-```{r admixSetup}
+
+```r
 library(RColorBrewer)
 famfile<-"admixture/fwsw_all_filt.fam"
 
@@ -688,7 +755,8 @@ poporderDF<-read.table(poporderFile,col.names = c("Pop"),stringsAsFactors = F)
 poporderDF$orderNum<-1:nrow(poporderDF)
 ```
 
-```{r plotAdmixFxn}
+
+```r
 admixPlotting<-function(qfile,K,famfile="admixture/fwsw_all_filt.fam",
                         poporder=poporderDF){
   # read files in 
@@ -710,29 +778,65 @@ admixPlotting<-function(qfile,K,famfile="admixture/fwsw_all_filt.fam",
 }
 ```
 
-```{r admixK2,fig.height=2,fig.width=8,fig.cap="Admixture plot for K=2. The colors represent different genetic populations."}
+
+```r
 admixK2<-admixPlotting("admixture/fwsw_all_filt.2.Q",2)
 ```
 
-```{r admixK3,fig.height=2,fig.width=8,fig.cap="Admixture plot for K=3. The colors represent different genetic populations."}
+\begin{figure}[H]
+\includegraphics{202_fwsw_reanalysis_files/figure-latex/admixK2-1} \caption{Admixture plot for K=2. The colors represent different genetic populations.}(\#fig:admixK2)
+\end{figure}
+
+
+```r
 admixK3<-admixPlotting("admixture/fwsw_all_filt.3.Q",3)
 ```
-```{r admixK4,fig.height=2,fig.width=8,fig.cap="Admixture plot for K=4. The colors represent different genetic populations."}
+
+\begin{figure}[H]
+\includegraphics{202_fwsw_reanalysis_files/figure-latex/admixK3-1} \caption{Admixture plot for K=3. The colors represent different genetic populations.}(\#fig:admixK3)
+\end{figure}
+
+```r
 admixK4<-admixPlotting("admixture/fwsw_all_filt.4.Q",4)
 ```
 
-```{r admixk5,fig.height=2,fig.width=8,fig.cap="Admixture plot for K=5. The colors represent different genetic populations."}
+\begin{figure}[H]
+\includegraphics{202_fwsw_reanalysis_files/figure-latex/admixK4-1} \caption{Admixture plot for K=4. The colors represent different genetic populations.}(\#fig:admixK4)
+\end{figure}
+
+
+```r
 admixK5<-admixPlotting("admixture/fwsw_all_filt.5.Q",5)
+```
+
+\begin{figure}[H]
+\includegraphics{202_fwsw_reanalysis_files/figure-latex/admixk5-1} \caption{Admixture plot for K=5. The colors represent different genetic populations.}(\#fig:admixk5)
+\end{figure}
+
+```r
 write.table(admixK5,"admixture/admixK5.txt",sep = '\t',
             quote = FALSE,col.names = TRUE,row.names = FALSE)
 ```
 
-```{r admixk6,fig.height=2,fig.width=8,fig.cap="Admixture plot for K=6. The colors represent different genetic populations."}
+
+```r
 admixK6<-admixPlotting("admixture/fwsw_all_filt.6.Q",6)
 ```
 
-```{r admixk7,fig.height=2,fig.width=8,fig.cap="Admixture plot for K=7. The colors represent different genetic populations."}
+\begin{figure}[H]
+\includegraphics{202_fwsw_reanalysis_files/figure-latex/admixk6-1} \caption{Admixture plot for K=6. The colors represent different genetic populations.}(\#fig:admixk6)
+\end{figure}
+
+
+```r
 admixK7<-admixPlotting("admixture/fwsw_all_filt.7.Q",7)
+```
+
+\begin{figure}[H]
+\includegraphics{202_fwsw_reanalysis_files/figure-latex/admixk7-1} \caption{Admixture plot for K=7. The colors represent different genetic populations.}(\#fig:admixk7)
+\end{figure}
+
+```r
 write.table(admixK7,"admixture/admixK7.txt",sep = '\t',quote = FALSE,col.names = TRUE,row.names = FALSE)
 ```
 
@@ -740,7 +844,8 @@ write.table(admixK7,"admixture/admixK7.txt",sep = '\t',quote = FALSE,col.names =
 ## Treemix analysis {-}
 
 
-```{r treemixPoporder}
+
+```r
 poporder<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST",
             "ALFW","FLSG","FLKB","FLFD","FLSI","FLAB",
             "FLPB","FLHB","FLCC","FLLG")
@@ -758,7 +863,8 @@ write.table(cbind(poporder,colors),"poporder",quote=F,sep='\t')
 
 It's informative to plot the treemix tree that does not have any migration edges added for comparison later.
 
-```{r treemixPrep, eval=FALSE}
+
+```r
 # unrooted tree
 library(ape)
 tre<-read.tree("treemix/unrooted_consensus.newick")
@@ -768,28 +874,38 @@ dev.off()
 write.tree(tre,'treemix/unrooted_consensus.newick')
 ```
 
-```{r treemixUnrooted, fig.cap="The consensus tree from running Treemix without any migration edges  and no root."}
+
+```r
 knitr::include_graphics('../figs/treemix_unrooted_consense.png')
 ```
+
+\begin{figure}[H]
+\includegraphics[width=8in,]{../figs/treemix_unrooted_consense} \caption{The consensus tree from running Treemix without any migration edges  and no root.}(\#fig:treemixUnrooted)
+\end{figure}
 
 
 ### Tree with FLAB as root
 
 We ran Treemix assuming the FLAB was the root with 100 bootstrap replicates. We then used PHYLIP's consense program to build a consensus tree, assuming that it was a rooted tree. We also re-saved it to file so it would be in one line and thus compatible with treemix. 
 
-```{r rootedConsensus, eval=FALSE}
+
+```r
 # rooted tree
 tre<-read.tree("treemix/rooted_consensus.newick")
 png("../../figs/treemix_rooted_consense.png",height=8,width=8,units="in",res=300)
 plot(tre)
 dev.off()
 write.tree(tre,'treemix/rooted_consensus.newick')
-
 ```
 
-```{r treemixRooted, fig.cap="The consensus tree from running Treemix without any migration edges and FLAB as root."}
+
+```r
 knitr::include_graphics('../figs/treemix_unrooted_consense.png')
 ```
+
+\begin{figure}[H]
+\includegraphics[width=8in,]{../figs/treemix_unrooted_consense} \caption{The consensus tree from running Treemix without any migration edges and FLAB as root.}(\#fig:treemixRooted)
+\end{figure}
 
 
 ### Choosing the optimal number of migration edges
@@ -797,13 +913,19 @@ knitr::include_graphics('../figs/treemix_unrooted_consense.png')
 To choose the optimal number of migration edges, we used the R package optM [@fitak_optm:_2019].
 
 
-```{r plotOptM,message=FALSE,fig.show='true',fig.cap="Plot showing the comparison of Treemix number of migration edges using the Evanno method."}
+
+```r
 library(OptM)
 tmOpt<-optM("treemix/migrations/")
 evanno_treemix(tmOpt)
 ```
 
-```{r treemixLlik,fig.height=8,fig.width=6,dpi=300,fig.cap="Average log likelihoods of treemix bootstrap replicates with 0 through 5 migration edges. Shown are the means (of 100 bootstraps) and the standard error of the mean."}
+\begin{figure}[H]
+\includegraphics{202_fwsw_reanalysis_files/figure-latex/plotOptM-1} \caption{Plot showing the comparison of Treemix number of migration edges using the Evanno method.}(\#fig:plotOptM)
+\end{figure}
+
+
+```r
 lliks<-list.files(path="treemix/migrations/",pattern=".llik",full.names = TRUE)
 likes<-data.frame(do.call(rbind,lapply(lliks,function(file){
   likdat<-read.delim(file,header=FALSE,row.names=1,sep=':')
@@ -825,7 +947,12 @@ arrows(x0 = 0:5,y0=c(llikMean-llikSEM),
        x1=0:5,y1=c(llikMean+llikSEM),code=3,angle=0,lwd=2)
 ```
 
-```{r treemixMigrationEdges,message=FALSE}
+\begin{figure}[H]
+\includegraphics{202_fwsw_reanalysis_files/figure-latex/treemixLlik-1} \caption{Average log likelihoods of treemix bootstrap replicates with 0 through 5 migration edges. Shown are the means (of 100 bootstraps) and the standard error of the mean.}(\#fig:treemixLlik)
+\end{figure}
+
+
+```r
 m1s<-list.files(pattern="m1.*treeout",path="treemix/migrations/",full.names = TRUE)
 edges<-do.call(rbind,lapply(m1s,function(file){
   treeout<-scan(file,what="character",sep='\n')
@@ -835,7 +962,8 @@ edges<-do.call(rbind,lapply(m1s,function(file){
 rownames(edges)<-m1s
 ```
 
-```{r M1Starts}
+
+```r
 starts<-gsub("[[:digit:]]","\\1",edges[,5])
 starts<-gsub(":","",starts)
 starts<-gsub("\\.","",starts)
@@ -851,7 +979,58 @@ kable(starTab,"latex",booktabs=TRUE,row.names=FALSE,longtable=TRUE,
   column_spec(1,width = "30em")
 ```
 
-```{r M1Stops}
+
+\begin{longtable}[t]{>{\raggedright\arraybackslash}p{30em}r}
+\caption{(\#tab:M1Starts)Number of bootstraps with the one migration edge beginning at each of these points on the population trees.}\\
+\toprule
+tree location & number of bootstraps\\
+\midrule
+\endfirsthead
+\caption[]{(\#tab:M1Starts)Number of bootstraps with the one migration edge beginning at each of these points on the population trees. \textit{(continued)}}\\
+\toprule
+tree location & number of bootstraps\\
+\midrule
+\endhead
+\
+\endfoot
+\bottomrule
+\endlastfoot
+(((((((TXCB, (TXCC, TXSP)), TXFW), (ALFW, LAFW)), ALST), (FLKB, FLSG)), (FLSI, FLFD)), (FLHB, ((FLCC, FLLG), FLPB))) & 1\\
+(((((((TXCB, (TXCC, TXSP)), TXFW), (ALFW, LAFW)), ALST), (FLKB, FLSG)), (FLSI, FLFD)), (FLHB, (FLCC, (FLPB, FLLG)))) & 1\\
+(((((((TXCB, (TXCC, TXSP)), TXFW), (ALFW, LAFW)), ALST), (FLKB, FLSG)), (FLSI, FLFD)), (FLLG, ((FLHB, FLCC), FLPB))) & 11\\
+(((((((TXCB, (TXCC, TXSP)), TXFW), (ALFW, LAFW)), ALST), (FLKB, FLSG)), (FLSI, FLFD)), (FLLG, (FLCC, (FLHB, FLPB)))) & 9\\
+(((((((TXCB, (TXCC, TXSP)), TXFW), (ALFW, LAFW)), ALST), (FLKB, FLSG)), (FLSI, FLFD)), (FLLG, (FLHB, (FLCC, FLPB)))) & 28\\
+\addlinespace
+(((((((TXCB, (TXCC, TXSP)), TXFW), (ALFW, LAFW)), ALST), (FLKB, FLSG)), (FLSI, FLFD)), (FLLG, (FLPB, (FLCC, FLHB)))) & 7\\
+((((((TXCB, (TXCC, TXSP)), TXFW), (ALFW, LAFW)), ALST), ((FLKB, FLSG), (FLSI, FLFD))), (FLLG, ((FLHB, FLCC), FLPB))) & 1\\
+((((((TXCB, (TXCC, TXSP)), TXFW), (ALFW, LAFW)), ALST), ((FLKB, FLSG), (FLSI, FLFD))), (FLLG, (FLCC, (FLHB, FLPB)))) & 1\\
+((((((TXCB, (TXCC, TXSP)), TXFW), (ALFW, LAFW)), ALST), ((FLKB, FLSG), (FLSI, FLFD))), (FLLG, (FLHB, (FLCC, FLPB)))) & 8\\
+(((((LAFW, (ALFW, ((TXCB, (TXCC, TXSP)), TXFW))), ALST), (FLKB, FLSG)), (FLSI, FLFD)), (FLLG, (FLCC, (FLHB, FLPB)))) & 6\\
+\addlinespace
+(((((LAFW, (ALFW, ((TXCB, (TXCC, TXSP)), TXFW))), ALST), (FLKB, FLSG)), (FLSI, FLFD)), (FLLG, (FLCC, (FLPB, FLHB)))) & 1\\
+(((((LAFW, (ALFW, ((TXCB, (TXCC, TXSP)), TXFW))), ALST), (FLKB, FLSG)), (FLSI, FLFD)), (FLLG, (FLHB, (FLCC, FLPB)))) & 7\\
+(((((LAFW, (ALFW, ((TXCB, (TXCC, TXSP)), TXFW))), ALST), (FLSG, FLKB)), (FLSI, FLFD)), (FLLG, (FLCC, (FLHB, FLPB)))) & 1\\
+((((LAFW, (ALFW, ((TXCB, (TXCC, TXSP)), TXFW))), ALST), ((FLKB, FLSG), (FLSI, FLFD))), (FLLG, (FLCC, (FLHB, FLPB)))) & 1\\
+((((LAFW, (ALFW, ((TXCB, (TXCC, TXSP)), TXFW))), ALST), ((FLKB, FLSG), (FLSI, FLFD))), (FLLG, (FLHB, (FLCC, FLPB)))) & 1\\
+\addlinespace
+((((LAFW, (ALFW, ((TXCB, (TXCC, TXSP)), TXFW))), ALST), ((FLKB, FLSG), (FLSI, FLFD))), (FLLG, (FLPB, (FLCC, FLHB)))) & 1\\
+((((LAFW, (ALFW, ((TXCB, (TXCC, TXSP)), TXFW))), ALST), (FLSG, (FLKB, (FLSI, FLFD)))), (FLLG, (FLHB, (FLCC, FLPB)))) & 1\\
+(((FLKB, (FLSG, ((((TXCB, (TXCC, TXSP)), TXFW), (ALFW, LAFW)), ALST))), (FLSI, FLFD)), (FLLG, (FLCC, (FLHB, FLPB)))) & 1\\
+(((FLKB, (FLSG, ((((TXCB, (TXCC, TXSP)), TXFW), (ALFW, LAFW)), ALST))), (FLSI, FLFD)), (FLLG, (FLHB, (FLCC, FLPB)))) & 5\\
+(((FLKB, (FLSG, ((((TXCB, (TXCC, TXSP)), TXFW), (ALFW, LAFW)), ALST))), (FLSI, FLFD)), (FLLG, (FLHB, (FLPB, FLCC)))) & 1\\
+\addlinespace
+(((FLKB, (FLSG, ((LAFW, (ALFW, ((TXCB, (TXCC, TXSP)), TXFW))), ALST))), (FLSI, FLFD)), (FLLG, (FLCC, (FLHB, FLPB)))) & 1\\
+(((FLKB, (FLSG, ((LAFW, (ALFW, ((TXCB, (TXCC, TXSP)), TXFW))), ALST))), (FLSI, FLFD)), (FLLG, (FLHB, (FLCC, FLPB)))) & 2\\
+(((FLKB, (FLSI, FLFD)), (FLSG, ((((TXCB, (TXCC, TXSP)), TXFW), (ALFW, LAFW)), ALST))), (FLLG, (FLCC, (FLHB, FLPB)))) & 1\\
+(((FLSG, ((((TXCB, (TXCC, TXSP)), TXFW), (ALFW, LAFW)), ALST)), (FLKB, (FLSI, FLFD))), (FLLG, (FLHB, (FLCC, FLPB)))) & 1\\
+(FLLG, ((FLHB, FLCC), FLPB)) & 1\\
+\addlinespace
+FLLG & 1\\
+TXFW & 1\\*
+\end{longtable}
+
+
+```r
 stops<-gsub("[[:digit:]]","\\1",edges[,6])
 stops<-gsub(":","",stops)
 stops<-gsub("\\.","",stops)
@@ -862,11 +1041,27 @@ kable(summary(as.factor(stops)),"latex",booktabs=TRUE,
   kable_styling(latex_options=c("HOLD_position"))
 ```
 
+\begin{table}[H]
+
+\caption{(\#tab:M1Stops)Number of bootstraps with the one migration edge ending at each of these points on the population trees.}
+\centering
+\begin{tabular}[t]{lr}
+\toprule
+  & number of bootstraps\\
+\midrule
+(TXCB,(TXCC,TXSP)) & 1\\
+FLCC & 1\\
+FLPB & 99\\
+\bottomrule
+\end{tabular}
+\end{table}
+
 The overwhelming majority of bootstrapped trees with one migration edge have that edge leading from the main branch of the tree to FLPB (see the above tables for the common start and end points).
 
 
 
-```{r MaketreemixCompare,results='hide',eval=TRUE}
+
+```r
 bestM1<-gsub("\\.llik","",
              rownames(likes[likes$migs==1,])[
                which.max(likes$loglikelihood[likes$migs==1])])
@@ -881,9 +1076,14 @@ t2<-plot_tree(bestM1,scale=T,mbar=T,cex = 1.5,
 dev.off()
 ```
 
-```{r treemixCompare, out.width='90%',fig.cap="The plot of the tree with FLAB as root but no migration edges (left) compared to the tree with FLAB as root and two migration edges. The drift parameter is plotted on the x-axis, and migration edges are colored based on the migration weight."}
+
+```r
 knitr::include_graphics('../figs/treemix_comparison.png')
 ```
+
+\begin{figure}[H]
+\includegraphics[width=0.9\linewidth,]{../figs/treemix_comparison} \caption{The plot of the tree with FLAB as root but no migration edges (left) compared to the tree with FLAB as root and two migration edges. The drift parameter is plotted on the x-axis, and migration edges are colored based on the migration weight.}(\#fig:treemixCompare)
+\end{figure}
 
 
 
@@ -892,7 +1092,8 @@ knitr::include_graphics('../figs/treemix_comparison.png')
  
 We investigated the two migration edges that are in the best Treemix model using threepop and fourpop analyses. In the threepop analysis, significantly negative f3 statistics mean that the first pop in the list (A in A;B,C) is admixed [@pickrellInferencePopulationSplits2012; @reichReconstructingIndianPopulation2009]. Therefore, with the threepop analysis we want to look for the tree (A;B,C) where A corresponds to the end of an arrow and (B,C) corresponds to where an arrow begins. In the fourpop analysis, a significantly non-zero value indicates gene flow in the tree [@pickrellInferencePopulationSplits2012; @reichReconstructingIndianPopulation2009]. 
 
-```{r readf3f4}
+
+```r
 threepop<-data.frame(do.call(rbind,
                              strsplit(grep(
                                ";",readLines("treemix/fwsw_threepop.txt"),
@@ -906,13 +1107,13 @@ fourpop<-data.frame(do.call(rbind,
                                           value = TRUE),' ')),
                      stringsAsFactors = FALSE)
 colnames(fourpop)<-c("pops","f4_stat","f4_se","f4_z")
-
 ```
 
 
 The migration edge we investigated indicated potential migration from the ancestral Florida branch to the FLPB branch. We first investigated all of the three-population trees with FLPB and FLAB and found that the majority of these trees are positive, which suggests that FLPB is not admixed with the other Florida populations. Several trees are negative, but their standard errors overlap with zero, which suggests that FLPB may experience some admixtre with those populations. Unsurprisingly, given the admixture and pcadapt results, these trees are those with other Atlantic Florida populations (FLHB, FLCC, and FLLG/FLFW). 
 
-```{r f3Edge1,fig.pos='H',fig.width=9,fig.height=6,fig.cap="Plot of the f3 statistic for three-population trees including both FLPB and FLAB. Error bars show the standard errors generated from block jackknifes. Trees indicative of admixture in FLPB are those with significantly negative f3 statistics."}
+
+```r
 FLPB_edge<-threepop[grep("FLPB;.*FLAB.*",threepop$pops),]
 FLPB_edge$f3_stat<-as.numeric(FLPB_edge$f3_stat)
 FLPB_edge$f3_se<-as.numeric(FLPB_edge$f3_se)
@@ -932,13 +1133,16 @@ arrows(1:nrow(FLPB_edge),FLPB_edge$lowSE,
 axis(2,at=seq(-0.05,0.05,0.01),las=1)
 axis(1,pos=-0.01,at=1:nrow(FLPB_edge),
      labels = FLPB_edge$pops,las=2,cex.axis=0.75)
-
-
 ```
+
+\begin{figure}[H]
+\includegraphics{202_fwsw_reanalysis_files/figure-latex/f3Edge1-1} \caption{Plot of the f3 statistic for three-population trees including both FLPB and FLAB. Error bars show the standard errors generated from block jackknifes. Trees indicative of admixture in FLPB are those with significantly negative f3 statistics.}(\#fig:f3Edge1)
+\end{figure}
 
 To investigate the results of the fourpop analysis for this migration edge, we focused on four-population trees including both FLAB and FLPB and other Florida populations. All of these four population trees show evidence of admixture, which is unsurprising given that these trees include populations that are in the same population clusters in the admixture and pcadapt results.
 
-```{r f4Edge1,fig.pos='H'}
+
+```r
 f4s<-fourpop[c(grep("FLPB,FL.*;FLAB,FL.*",fourpop$pops),
                grep("FL.*,FLPB;FLAB,FL.*",fourpop$pops),
                grep("FLPB,FL.*;FL.*,FLAB",fourpop$pops),
@@ -948,7 +1152,69 @@ kable(f4s,"latex",booktabs=TRUE,longtable=TRUE,
   kable_styling(latex_options=c("HOLD_position","repeat_header"))
 ```
 
-```{r f4Edge1Fig,fig.pos='H',fig.width=8,fig.height=6,fig.cap="Plot of the f4 statistic for four-population trees including both FLPB and FLAB and other Florida populations. Error bars show the standard errors generated from block jackknifes. Trees indicative of admixture in the tree are those with significantly non-zero f4 statistics."}
+
+\begin{longtable}[t]{lllll}
+\caption{(\#tab:f4Edge1)Four-population trees with FLPB and FLAB and their f4 statistic, standard error, z-score, and p-value.}\\
+\toprule
+  & pops & f4\_stat & f4\_se & f4\_z\\
+\midrule
+\endfirsthead
+\caption[]{(\#tab:f4Edge1)Four-population trees with FLPB and FLAB and their f4 statistic, standard error, z-score, and p-value. \textit{(continued)}}\\
+\toprule
+  & pops & f4\_stat & f4\_se & f4\_z\\
+\midrule
+\endhead
+\
+\endfoot
+\bottomrule
+\endlastfoot
+7569 & FLSG,FLPB;FLAB,FLHB & 0.0108426 & 0.0006659 & 16.2826\\
+7572 & FLSG,FLPB;FLAB,FLCC & 0.0108142 & 0.000676126 & 15.9943\\
+7575 & FLSG,FLPB;FLAB,FLLG & 0.00958893 & 0.000746125 & 12.8516\\
+7674 & FLKB,FLPB;FLAB,FLHB & 0.0108759 & 0.000673324 & 16.1526\\
+7677 & FLKB,FLPB;FLAB,FLCC & 0.0108676 & 0.000684369 & 15.8797\\
+\addlinespace
+7680 & FLKB,FLPB;FLAB,FLLG & 0.00966079 & 0.000769578 & 12.5534\\
+7734 & FLFD,FLPB;FLAB,FLHB & 0.0111537 & 0.000685198 & 16.2781\\
+7737 & FLFD,FLPB;FLAB,FLCC & 0.0111212 & 0.000694793 & 16.0064\\
+7740 & FLFD,FLPB;FLAB,FLLG & 0.00984951 & 0.000772256 & 12.7542\\
+7764 & FLSI,FLPB;FLAB,FLHB & 0.0114181 & 0.000690251 & 16.5419\\
+\addlinespace
+7767 & FLSI,FLPB;FLAB,FLCC & 0.01141 & 0.00070008 & 16.2981\\
+7770 & FLSI,FLPB;FLAB,FLLG & 0.0100674 & 0.000766841 & 13.1284\\
+13029 & FLSG,FLPB;FLAB,FLHB & 0.0108426 & 0.0006659 & 16.2826\\
+13032 & FLSG,FLPB;FLAB,FLCC & 0.0108142 & 0.000676126 & 15.9943\\
+13035 & FLSG,FLPB;FLAB,FLLG & 0.00958893 & 0.000746125 & 12.8516\\
+\addlinespace
+13134 & FLKB,FLPB;FLAB,FLHB & 0.0108759 & 0.000673324 & 16.1526\\
+13137 & FLKB,FLPB;FLAB,FLCC & 0.0108676 & 0.000684369 & 15.8797\\
+13140 & FLKB,FLPB;FLAB,FLLG & 0.00966079 & 0.000769578 & 12.5534\\
+13194 & FLFD,FLPB;FLAB,FLHB & 0.0111537 & 0.000685198 & 16.2781\\
+13197 & FLFD,FLPB;FLAB,FLCC & 0.0111212 & 0.000694793 & 16.0064\\
+\addlinespace
+13200 & FLFD,FLPB;FLAB,FLLG & 0.00984951 & 0.000772256 & 12.7542\\
+13224 & FLSI,FLPB;FLAB,FLHB & 0.0114181 & 0.000690251 & 16.5419\\
+13227 & FLSI,FLPB;FLAB,FLCC & 0.01141 & 0.00070008 & 16.2981\\
+13230 & FLSI,FLPB;FLAB,FLLG & 0.0100674 & 0.000766841 & 13.1284\\
+7464 & FLSG,FLPB;FLKB,FLAB & 0.00230133 & 0.000211957 & 10.8575\\
+\addlinespace
+7509 & FLSG,FLPB;FLFD,FLAB & 0.00177997 & 0.000177424 & 10.0323\\
+7538 & FLSG,FLPB;FLSI,FLAB & 0.00179893 & 0.000166984 & 10.7731\\
+7614 & FLKB,FLPB;FLFD,FLAB & 0.00185955 & 0.000176447 & 10.5389\\
+7643 & FLKB,FLPB;FLSI,FLAB & 0.00188169 & 0.000170658 & 11.0261\\
+7703 & FLFD,FLPB;FLSI,FLAB & 0.00222764 & 0.000196885 & 11.3145\\
+\addlinespace
+12924 & FLSG,FLPB;FLKB,FLAB & 0.00230133 & 0.000211957 & 10.8575\\
+12969 & FLSG,FLPB;FLFD,FLAB & 0.00177997 & 0.000177424 & 10.0323\\
+12998 & FLSG,FLPB;FLSI,FLAB & 0.00179893 & 0.000166984 & 10.7731\\
+13074 & FLKB,FLPB;FLFD,FLAB & 0.00185955 & 0.000176447 & 10.5389\\
+13103 & FLKB,FLPB;FLSI,FLAB & 0.00188169 & 0.000170658 & 11.0261\\
+\addlinespace
+13163 & FLFD,FLPB;FLSI,FLAB & 0.00222764 & 0.000196885 & 11.3145\\*
+\end{longtable}
+
+
+```r
 f4s$lowSE<-as.numeric(f4s$f4_stat)-as.numeric(f4s$f4_se)
 f4s$uppSE<-as.numeric(f4s$f4_stat)+as.numeric(f4s$f4_se)
 ymax<-max(abs(c(f4s$lowSE,FLPB_edge$uppSE)))+0.001
@@ -963,19 +1229,24 @@ arrows(1:nrow(f4s),f4s$lowSE,
 axis(2,at=seq(-0.05,0.05,0.01),las=1)
 axis(1,pos=-0.01,at=1:nrow(f4s),
      labels = f4s$pops,las=2,cex.axis=0.75)
-
 ```
+
+\begin{figure}[H]
+\includegraphics{202_fwsw_reanalysis_files/figure-latex/f4Edge1Fig-1} \caption{Plot of the f4 statistic for four-population trees including both FLPB and FLAB and other Florida populations. Error bars show the standard errors generated from block jackknifes. Trees indicative of admixture in the tree are those with significantly non-zero f4 statistics.}(\#fig:f4Edge1Fig)
+\end{figure}
 
 
 ## Make figure
 
-```{r defineColors}
+
+```r
 grp.colors<-c('#762a83','#af8dc3','#e7d4e8','#d9f0d3','#7fbf7b','#1b7837') 
 grp7colors<-c('#762a83','#9970ab','#c2a5cf','#d9f0d3','#a6dba0','#5aae61','#1b7837')
 grp5colors<-c('#762a83','#c2a5cf','#a6dba0','#5aae61','#1b7837')
 ```
 
-```{r NewPopStructurePrep,eval=TRUE,results='hide'}
+
+```r
 #admixture 
 admixK5<-read.delim("admixture/admixK5.txt",header = TRUE)
 admixK7<-read.delim("admixture/admixK7.txt",header = TRUE)
@@ -1010,7 +1281,8 @@ col_vector<-c(TXSP='#762a83',TXCC='#762a83',TXFW="#2166ac",TXCB='#762a83',LAFW="
 ```
 
 
-```{r NewPopStructureV2,eval=TRUE,results='hide'}
+
+```r
 npop<-length(pop.list)
 pseq<-1:npop
 m<-matrix(c(rep(1,16),rep(2,6),
@@ -1076,7 +1348,8 @@ dev.off()
 ## Make table
 
 
-```{r fstMatrix}
+
+```r
 full_fsts<-read.delim("stacks/populations_whitelist/batch_2.fst_summary.tsv",
                       row.names = 1)
 full_fsts<-rbind(full_fsts,TXSP=rep(NA,ncol(full_fsts))) #add the final row
@@ -1087,7 +1360,8 @@ colnames(full_fsts)<-rownames(full_fsts)<-pop.labs
 fst_mat<-as.matrix(full_fsts)
 ```
 
-```{r covPlot,results='hide',fig.show='true'}
+
+```r
 cov<-read.table(gzfile("treemix/unrooted/fwsw_ML_consensus.cov.gz"), as.is = T, head = T, quote = "", 
                 comment.char = "")
 #reorder
@@ -1101,10 +1375,9 @@ for(i in 1:length(pop.list)){
   }
 }
 covplot<-as.matrix(covplot)
-
-
 ```
-```{r createFstExcel,eval=FALSE}
+
+```r
 library(xlsx); library(RColorBrewer); library(scales)
 
 table2<-fst_mat
@@ -1151,8 +1424,8 @@ The alignments were done with a preliminary genome assembly that is different fr
 
 
 
-```{r convertAgp}
 
+```r
 convert.agp<-function(locus=NULL,old.agp,old.scf,new.agp,scf.agp,
                       chr=NULL,bp=NULL,id=NULL){
   
@@ -1272,7 +1545,8 @@ convert.stacks<-function(stacks.fst,outname,lgs,ssc.agp,sscf.agp,chr.agp,scf.agp
 }
 ```
 
-```{r genAgpLGs}
+
+```r
 # old agps
 ssc.agp<-read.delim("../../scovelli_genome/SSC_genome.agp",
                     comment.char="#",header=FALSE)
@@ -1293,7 +1567,8 @@ colnames(chr.agp)<-c("object","object_beg","object_end","part_number","W",
                      "component_id","component_beg","component_end","orientation")
 ```
 
-```{r convertVcf,eval=FALSE}
+
+```r
 vcf<-parse.vcf("stacks/populations_subset75/batch_2.pruned.vcf")
 converted<-data.frame(Locus=integer(),OrigChr=character(),OrigBP=integer(),
                       NewChr=character(),NewBP=integer(),
@@ -1302,17 +1577,18 @@ for(i in 1:nrow(vcf)){
   converted[i,]<-convert.agp(locus=vcf[i,],old.agp=ssc.agp,old.scf=sscf.agp,
                              new.agp=chr.agp[chr.agp$W=="W",],scf.agp = scf.agp)
 }
-
 ```
 
-```{r lgs}
+
+```r
 lgs<-c("LG1","LG2","LG3","LG4","LG5","LG6","LG7","LG8","LG9","LG10","LG11",
 	"LG12","LG13","LG14","LG15","LG16","LG17","LG18","LG19","LG20","LG21",
 	"LG22")
 ```
 
 
-```{r replaceVcf,eval=FALSE}
+
+```r
 new.vcf<-as.data.frame(vcf,stringsAsFactor=FALSE)
 for(i in 1:nrow(vcf)){
   new.vcf$POS[i]<-converted$NewBP[i]
@@ -1321,7 +1597,8 @@ for(i in 1:nrow(vcf)){
 write.table(new.vcf,"converted_subset.vcf",sep='\t',
             quote=FALSE,col.names = TRUE,row.names = FALSE)
 ```
-```{r convertFWSW,eval=FALSE}
+
+```r
 snps<-read.delim("stacks/populations_subset75/pruned_snps.txt")
 
 fwsw.fl<-read.delim("stacks/populations_subset75/batch_2.fst_FLCC-FLFW.tsv")
@@ -1344,10 +1621,10 @@ upd.la<-convert.stacks(fwsw.al,"stacks/populations_subset75/converted.fst_ALST-L
                        lgs,ssc.agp,sscf.agp,chr.agp,scf.agp)
 upd.fl<-convert.stacks(fwsw.fl,"stacks/populations_subset75/converted.fst_FLCC-FLFW.txt",
                        lgs,ssc.agp,sscf.agp,chr.agp,scf.agp)
-
 ```
 
-```{r convertSWSW, eval=FALSE}
+
+```r
 swsw.fl<-read.delim("stacks/populations_whitelist/batch_2.fst_FLCC-FLHB.tsv")
 swsw.tx<-read.delim("stacks/populations_whitelist/batch_2.fst_TXCB-TXCC.tsv")
 swsw.al<-read.delim("stacks/populations_whitelist/batch_2.fst_ALST-FLSG.tsv")
@@ -1363,7 +1640,8 @@ upd.sf<-convert.stacks(swsw.fl,"stacks/converted.fst_FLCC-FLHB.txt",
 
 ## Stacks {-}
 
-```{r readStacksFsts}
+
+```r
 fwsw.al<-read.delim("stacks/populations_subset75/converted.fst_ALFW-ALST.txt")
 fwsw.la<-read.delim("stacks/populations_subset75/converted.fst_ALST-LAFW.txt")
 fwsw.tx<-read.delim("stacks/populations_subset75/converted.fst_TXCC-TXFW.txt")
@@ -1373,9 +1651,23 @@ kable(cbind(nrow(fwsw.al),nrow(fwsw.la),nrow(fwsw.tx),nrow(fwsw.fl)),
       caption="The number of SNPs in each dataset")
 ```
 
+\begin{table}
+
+\caption{(\#tab:readStacksFsts)The number of SNPs in each dataset}
+\centering
+\begin{tabular}[t]{r|r|r|r}
+\hline
+Alabama & Louisiana & Texas & Florida\\
+\hline
+6918 & 6918 & 3687 & 2049\\
+\hline
+\end{tabular}
+\end{table}
+
 These datasets do not contain the full 12103 SNPs (\@ref(tab:readStacksFsts)) because some of those SNPs are fixed in the populations or do not pass coverage or minimum allele frequency thresholds.
 
-```{r plotStacksFsts,fig.height=8,fig.width=6,fig.cap="Manhattan plot of pairwise AMOVA-corrected Fst values from Stacks for each freshwater - nearest saltwater population pair. The x-axis corresponds to genomic locations, with chromosomes labelled. To the right are loci that mapped to unanchored scaffolds."}
+
+```r
 source("../R/205_popgenPlotting.R")
 fst_dat<-list(fwsw.al,fwsw.la,fwsw.tx,fwsw.fl)
 fsts<-plot_multiple_LGs(list_fsts = fst_dat,fst_name = "Corrected.AMOVA.Fst",
@@ -1390,26 +1682,53 @@ fsts<-plot_multiple_LGs(list_fsts = fst_dat,fst_name = "Corrected.AMOVA.Fst",
                         pt.cex=1,axis.size = 1)
 ```
 
+\begin{figure}[H]
+\includegraphics{202_fwsw_reanalysis_files/figure-latex/plotStacksFsts-1} \caption{Manhattan plot of pairwise AMOVA-corrected Fst values from Stacks for each freshwater - nearest saltwater population pair. The x-axis corresponds to genomic locations, with chromosomes labelled. To the right are loci that mapped to unanchored scaffolds.}(\#fig:plotStacksFsts)
+\end{figure}
+
 So this generated a plot for each pairwise comparison. We could look for shared outliers and see if we can find anything.
 
-```{r getStacksSig}
+
+```r
 tx.sig<-fwsw.tx[fwsw.tx$Fisher.s.P<0.01,"Locus.ID"]
 la.sig<-fwsw.la[fwsw.la$Fisher.s.P<0.01,"Locus.ID"]
 al.sig<-fwsw.al[fwsw.al$Fisher.s.P<0.01,"Locus.ID"]
 fl.sig<-fwsw.fl[fwsw.fl$Fisher.s.P<0.01,"Locus.ID"]
 length(tx.sig[(tx.sig %in% c(la.sig,al.sig,fl.sig))])
+```
+
+```
+## [1] 84
+```
+
+```r
 length(la.sig[(la.sig %in% c(tx.sig,al.sig,fl.sig))])
+```
+
+```
+## [1] 189
+```
+
+```r
 length(al.sig[(al.sig %in% c(la.sig,tx.sig,fl.sig))])
+```
+
+```
+## [1] 189
+```
+
+```r
 all.shared<-fl.sig[fl.sig %in% la.sig & fl.sig %in% al.sig & fl.sig %in% tx.sig]
 
 gulf_shared<-tx.sig[tx.sig %in% la.sig & tx.sig %in% al.sig]
 ```
 
-There are `r length(unique(all.shared))` outliers (as determined by Fisher's P from stacks < 0.01). But because of the large pairwise Fsts between the Florida populations, we'll focus on the shared SNPs in the Texas, Alabama, and Louisiana analyeses, in which we have `r length(unique(gulf_shared))`
+There are 10 outliers (as determined by Fisher's P from stacks < 0.01). But because of the large pairwise Fsts between the Florida populations, we'll focus on the shared SNPs in the Texas, Alabama, and Louisiana analyeses, in which we have 46
 
 As a point of comparison, we can repeat this with the similar pairwise saltwater-saltwater $F_{ST}$ comparisons.
 
-```{r plotStacksFstsSWSW,fig.height=8,fig.width=6,fig.cap="Manhattan plot of pairwise AMOVA-corrected Fst values from Stacks for the saltwater populations nearest to freshwater populations compared to their nearest saltwater neightbor. The x-axis corresponds to genomic locations, with chromosomes labelled. To the right are loci that mapped to unanchored scaffolds."}
+
+```r
 swsw.fl<-read.delim("stacks/converted.fst_TXCB-TXCC.txt")
 swsw.tx<-read.delim("stacks/converted.fst_ALST-FLSG.txt")
 swsw.al<-read.delim("stacks/converted.fst_FLCC-FLHB.txt")
@@ -1424,20 +1743,26 @@ fsts<-plot_multiple_LGs(list_fsts = fst_dat,fst_name = "Corrected.AMOVA.Fst",
                         pt.cex=1,axis.size = 1)
 ```
 
+\begin{figure}[H]
+\includegraphics{202_fwsw_reanalysis_files/figure-latex/plotStacksFstsSWSW-1} \caption{Manhattan plot of pairwise AMOVA-corrected Fst values from Stacks for the saltwater populations nearest to freshwater populations compared to their nearest saltwater neightbor. The x-axis corresponds to genomic locations, with chromosomes labelled. To the right are loci that mapped to unanchored scaffolds.}(\#fig:plotStacksFstsSWSW)
+\end{figure}
+
 So this generated a plot for each pairwise comparison. We could look for shared outliers and see if we can find anything.
 
-```{r getStacksSigSWSW}
+
+```r
 tx.sig<-swsw.tx[swsw.tx$Fisher.s.P<0.01,"Locus.ID"]
 al.sig<-swsw.al[swsw.al$Fisher.s.P<0.01,"Locus.ID"]
 fl.sig<-swsw.fl[swsw.fl$Fisher.s.P<0.01,"Locus.ID"]
 all.shared<-fl.sig[fl.sig %in% al.sig & fl.sig %in% tx.sig]
 ```
 
-There are `r length(unique(all.shared))` outliers (as determined by Fisher's P from stacks < 0.01).
+There are 1 outliers (as determined by Fisher's P from stacks < 0.01).
 
 ## Permutations {-}
 
-```{r permutegwsca}
+
+```r
 permute.gwsca<-function(vcf,map1,nperms,z=1.96, maf.cutoff = 0.05,cov.thresh=0.2){
   # calculate the actuals
   actual_fsts<-gwsca(vcf,colnames(vcf)[1:9],
@@ -1477,7 +1802,8 @@ permute.gwsca<-function(vcf,map1,nperms,z=1.96, maf.cutoff = 0.05,cov.thresh=0.2
   return(fst_dat)
 }
 ```
-```{r permuteVCF,eval=FALSE}
+
+```r
 vcf<-parse.vcf("converted_subset.vcf")
 popmap<-data.frame(inds=colnames(vcf)[10:ncol(vcf)],
                    pops=gsub("sample_(\\w{4}).*","\\1",colnames(vcf)[10:ncol(vcf)]),
@@ -1493,7 +1819,8 @@ saveRDS(permuted_fsts,"permuted_fsts.RDS")
 
 Now let's visualize it.
 
-```{r plotFstHists}
+
+```r
 plot_fst_hists<-function(perms,plot_lab=NULL,cols=NULL,permlab="mean_perm",
                          reallab="Fst",baseplot=TRUE,inset=NULL){
   require(scales)
@@ -1534,9 +1861,9 @@ plot_fst_hists<-function(perms,plot_lab=NULL,cols=NULL,permlab="mean_perm",
   }
   invisible(par()$fig)
 }
-
 ```
-```{r plotPermutations, eval=FALSE}
+
+```r
 plot_labs<-list("TXFW vs TXCC","FLFW vs FLCC","ALFW vs ALST","ALST vs LAFW")
 pt_cols<-list(TXTX=grp.colors[1],FLFL=grp.colors[6],
               ALAL=grp.colors[3],ALLA=grp.colors[2])
@@ -1556,7 +1883,8 @@ dev.off()
 
 Now let's start to aggregate everything.
 
-```{r createFWSNPinfo, eval=FALSE}
+
+```r
 permuted_fsts<-readRDS("permuted_fsts.RDS")
 
 perm_dat<-do.call(cbind,permuted_fsts)
@@ -1576,7 +1904,8 @@ fw_SNPinfo<-data.frame(ID=vcf$ID,Chrom=vcf$`#CHROM`,Pos=vcf$POS,BP=vcf$POS-1,
 
 
 
-```{r add2SnpInfo, eval=FALSE}
+
+```r
 # add Fsts
 fw_SNPinfo<-merge(fw_SNPinfo,fwsw.al,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),
                   all.x=TRUE,all.y = FALSE)[,c(colnames(fw_SNPinfo),
@@ -1612,19 +1941,20 @@ saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
 
 ## Fst plot
 
-```{r plottingSetup}
+
+```r
 library(UpSetR);library(scales);library(ggplot2)
 library(grid);library(gwscaR);library(gridGraphics)
 source("../R/upset_hacked.R")
 source("../R/205_popgenPlotting.R")
 fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
-
 ```
 
 
 Then we'll plot the Stacks Fst outliers.
 
-```{r plotStacksOutliers2, eval=FALSE}
+
+```r
 pop.list<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
 	"FLFD","FLSI","FLAB","FLPB","FLHB","FLCC","FLLG")
 pop.labs<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
@@ -1784,7 +2114,8 @@ legend("top",
 dev.off()
 ```
 
-```{r stacksUpset}
+
+```r
 fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
 outliers<-list( permutations=fw_SNPinfo$ID[
                  rowSums(fw_SNPinfo[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
@@ -1809,10 +2140,15 @@ upset(fromList(outliers),sets=c("Texas","Alabama","Louisiana","Florida"),
       sets.pt.color=cols[c("Texas","Alabama","Louisiana","Florida")],
       keep.order = TRUE)
 dev.off()
-
 ```
 
-```{r permsUpset}
+```
+## png 
+##   2
+```
+
+
+```r
 outliers<-list(permutations=fw_SNPinfo$ID[
                  rowSums(fw_SNPinfo[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
                Alabama=fw_SNPinfo$ID[which(fw_SNPinfo$perm_AL==1)], 
@@ -1836,8 +2172,14 @@ upset(fromList(outliers),sets=c("Texas","Alabama","Louisiana","Florida","sharedS
 dev.off()
 ```
 
+```
+## png 
+##   2
+```
 
-```{r CreateFstsFig, eval=FALSE}
+
+
+```r
 library(magick);library(multipanelfigure)
 
 image_files <- c("../figs/FstOutliers_NoBayenv.png",
@@ -1862,18 +2204,14 @@ figure <- multi_panel_figure(
 (figure %<>% fill_panel(image_files[3],column=2,row=2,scaling="fit",
                         allow_panel_overwriting = TRUE) )
 dev.off()
-
-
-
-
-
 ```
 
 ## PCAdapt {-}
 
 For this analysis, to maintain consistency with the other outlier analyses, I'm using the subestted dataset. So I need to run PCAdapt [@luu_pcadapt:_2017] another time.
 
-```{r convertVCF, eval=TRUE}
+
+```r
 vcf<-parse.vcf("converted_subset.vcf")
 write.table("##fileformat=VCFv","pcadapt_fw/fwsw.pruned.vcf",quote=FALSE,
             col.names = FALSE,row.names = FALSE)
@@ -1884,17 +2222,40 @@ suppressWarnings(write.table(vcf,"pcadapt_fw/fwsw.pruned.vcf",
 
 
 
-```{r pcadaptOutliers, fig.cap="Screeplot for the subsetted dataset with 20 PC axes retained in the analysis."}
+
+```r
 library(pcadapt)
 #need to remove the first line with a # 
 filename<-read.pcadapt("pcadapt_fw/fwsw.pruned.vcf",type="vcf") 
+```
+
+```
+## No variant got discarded.
+## Summary:
+## 
+## 	- input file:				pcadapt_fw/fwsw.pruned.vcf
+## 	- output file:				/tmp/RtmpWYtABi/file21ac69a1c01c.pcadapt
+## 
+## 	- number of individuals detected:	303
+## 	- number of loci detected:		12103
+## 
+## 12103 lines detected.
+## 303 columns detected.
+```
+
+```r
 x<-pcadapt(filename, K=20)
 plot(x,option="screeplot")
 ```
 
+\begin{figure}[H]
+\includegraphics{202_fwsw_reanalysis_files/figure-latex/pcadaptOutliers-1} \caption{Screeplot for the subsetted dataset with 20 PC axes retained in the analysis.}(\#fig:pcadaptOutliers)
+\end{figure}
+
 $K=4$ seems like the best choice here to keep values to the left of the straight line (or could be $K=6$). 
 
-```{r organizePopInfo}
+
+```r
 # Organize pop info
 pops<-gsub("sample_(\\w{4}).*","\\1",colnames(vcf)[10:ncol(vcf)])	
 grp<-pops
@@ -1903,31 +2264,57 @@ grp[grp!="freshwater"]<-"saltwater"
 ```
 
 
-```{r PcadaptK4-1, fig.cap="Manhattan plot for the PCAdapt outlier analysis with the subsetted dataset and 4 PC axes retained in the analysis."}
+
+```r
 res<-pcadapt(filename,K=4)
 plot(res, option="manhattan")
 ```
-```{r PcadaptK4-2, fig.cap="Q-Q plot for the PCAdapt outlier analysis with the subsetted dataset and 4 PC axes retained in the analysis."}
+
+\begin{figure}[H]
+\includegraphics{202_fwsw_reanalysis_files/figure-latex/PcadaptK4-1-1} \caption{Manhattan plot for the PCAdapt outlier analysis with the subsetted dataset and 4 PC axes retained in the analysis.}(\#fig:PcadaptK4-1)
+\end{figure}
+
+```r
 plot(res, option="qqplot")
 ```
-```{r PcadaptK4-3, fig.cap="Distribution of the  for the PCAdapt outlier analysis with the subsetted dataset and 4 PC axes retained in the analysis."}
+
+\begin{figure}[H]
+\includegraphics{202_fwsw_reanalysis_files/figure-latex/PcadaptK4-2-1} \caption{Q-Q plot for the PCAdapt outlier analysis with the subsetted dataset and 4 PC axes retained in the analysis.}(\#fig:PcadaptK4-2)
+\end{figure}
+
+```r
 plot(res, option="stat.distribution")
 ```
-```{r PcadaptK4-4, fig.cap="Plot of the scores from the PCAdapt outlier analysis with the subsetted dataset and 4 PC axes retained in the analysis."}
+
+\begin{figure}[H]
+\includegraphics{202_fwsw_reanalysis_files/figure-latex/PcadaptK4-3-1} \caption{Distribution of the  for the PCAdapt outlier analysis with the subsetted dataset and 4 PC axes retained in the analysis.}(\#fig:PcadaptK4-3)
+\end{figure}
+
+```r
 plot(res, option="scores",pop=pops)
 ```
 
+\begin{figure}[H]
+\includegraphics{202_fwsw_reanalysis_files/figure-latex/PcadaptK4-4-1} \caption{Plot of the scores from the PCAdapt outlier analysis with the subsetted dataset and 4 PC axes retained in the analysis.}(\#fig:PcadaptK4-4)
+\end{figure}
+
 The PCAdapt vignette recommends displaying the loadings and evaluate if loadings are clustered in single or several genomic regions
 
-```{r PcadaptLoadings, fig.cap="Plots of the loadings for the four PC axes according to genomic position (on the x-axis)."}
+
+```r
 par(mfrow = c(2, 2))
 for (i in 1:4)
   plot(res$loadings[, i], pch = 19, cex = .3, ylab = paste0("Loadings PC", i))
 ```
 
+\begin{figure}[H]
+\includegraphics{202_fwsw_reanalysis_files/figure-latex/PcadaptLoadings-1} \caption{Plots of the loadings for the four PC axes according to genomic position (on the x-axis).}(\#fig:PcadaptLoadings)
+\end{figure}
+
 This suggests that loadings are not clustered (assuming these are grouped by space), so we don't need to worry about LD thinning. Now let's look chromosome by chromosome:
 
-```{r PcadaptLoadingsChr,fig.height=8, fig.cap="Inspecting the loadings for the four PC axes according to genomic position (on the x-axis) for each chromosome individually."}
+
+```r
 par(mfrow=c(6,4),mar=c(3,3,2,1.5))
 l<-lapply(lgs, function(lg,vcf){
   plot(res$loadings[which(vcf$`#CHROM` %in% lg), 1], pch = 19, cex = .3, 
@@ -1936,11 +2323,16 @@ l<-lapply(lgs, function(lg,vcf){
 },vcf=vcf)
 ```
 
+\begin{figure}[H]
+\includegraphics{202_fwsw_reanalysis_files/figure-latex/PcadaptLoadingsChr-1} \caption{Inspecting the loadings for the four PC axes according to genomic position (on the x-axis) for each chromosome individually.}(\#fig:PcadaptLoadingsChr)
+\end{figure}
+
 None of the LGs seem to have huge clusters of outliers so we can move on, lumping them all together.
 
 We need to choose a cutoff for outlier detection. I'll use the qvalue approach, which identifies outliers with a false discovery rate of $\alpha$, which I'm setting here to 0.05.
 
-```{r PcadaptQvalue}
+
+```r
 library(qvalue)
 qval <- qvalue(res$pvalues)$qvalues
 alpha <- 0.05
@@ -1948,15 +2340,23 @@ outliers <- which(qval < alpha)
 snp_pc<-get.pc(res,outliers) # Get the PCs associated with outliers
 ```
 
-We identified `r length(outliers)` outliers with this analysis, which are associated with `r length(unique(snp_pc$PC))` of the 4 clusters. If we look at the distribution of these, though, we see that most are associated with PC 1
+We identified 181 outliers with this analysis, which are associated with 4 of the 4 clusters. If we look at the distribution of these, though, we see that most are associated with PC 1
 
-```{r showPcadaptOutliers}
+
+```r
 table(snp_pc$PC)
+```
+
+```
+## 
+##   1   2   3   4 
+## 115  36  10  20
 ```
 
 Now we can add the qvalues to the fw_SNPinfo dataframe
 
-```{r Pcadapt2Snpinfo, eval=FALSE}
+
+```r
 fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
 fw_SNPinfo$pcadaptQ<-qval
 fw_SNPinfo$pcadaptPC<-get.pc(res,1:length(qval))$PC
@@ -1969,18 +2369,41 @@ I should note that for some of these PCAdapt gives "NA" -- not sure what causes 
 
 Investigate the environmental data
 
-```{r compareEnvVar}
+
+```r
 env.data<-read.csv("bayenv/env_data_raw.csv",row.names = 1)
 env.data<-rbind(env.data,pop=c(rep("SW",12),rep("FW",4)))
 env.data<-as.data.frame(t(env.data))
 wilcox.test(as.numeric(env.data$temp)~env.data$pop) #ties, but p=0.539
+```
+
+```
+## 
+## 	Wilcoxon rank sum test with continuity correction
+## 
+## data:  as.numeric(env.data$temp) by env.data$pop
+## W = 18.5, p-value = 0.5392
+## alternative hypothesis: true location shift is not equal to 0
+```
+
+```r
 wilcox.test(as.numeric(env.data$seagrass)~env.data$pop) #ties, but p=0.897
+```
+
+```
+## 
+## 	Wilcoxon rank sum test with continuity correction
+## 
+## data:  as.numeric(env.data$seagrass) by env.data$pop
+## W = 25.5, p-value = 0.8968
+## alternative hypothesis: true location shift is not equal to 0
 ```
 
 
 This analysis is of just the freshwater and saltwater populations. First I ran bayenv using the script `run_bayenv2_matrix_general.sh`.
 
-```{bash, eval=FALSE}
+
+```bash
 # set up correct file formats
 ../../scripts/run_bayenv2_matrix_general.sh FILEMANIP \
 bayenv/sub75.pruned.clust stacks/populations_subset75/batch_2.pruned.ped \
@@ -1995,7 +2418,8 @@ At this point I looked at the matrices
 
 They all looked fine so I chose the randomly selected a matrix to use for the remainder of the analyses.
 
-```{bash, eval=FALSE}
+
+```bash
 # Create the SNPFILES
 ../../scripts/run_bayenv2_matrix_general.sh SNPFILES SNPSFILE SNPFILES
 # Run bayenv
@@ -2007,7 +2431,8 @@ nohup ../../scripts/run_bayenv2_matrix_general.sh BAYENV \
 
 Once Bayenv was finished running, I first aggregated all of the output. 
 
-```{r getBayenvResults}
+
+```r
 get_bayenv_results<-function(dir,env_vars){
   # process the variable names
   var_names<-unlist(lapply(env_vars,function(var){
@@ -2038,7 +2463,8 @@ get_bayenv_results<-function(dir,env_vars){
 
 The SNP names are uninformative, just the row number the SNP was in. We can make these better using the freq info
 
-```{r snpnames4bayenv, eval=FALSE}
+
+```r
 bayenv_dat<-get_bayenv_results(dir="bayenv/SNPFILES",
                                env_vars=c("temp","salinity","seagrass"))
 
@@ -2067,7 +2493,8 @@ write.table(bayenv_dat,"bayenv/bayenv_output.txt",sep="\t",
 ```
 
 Merge it with other snp info
-```{r bayenv2snpinfo, eval=FALSE}
+
+```r
 bayenv_dat<-read.delim("bayenv/bayenv_output.txt",header = TRUE)
 bayenv_dat$logSalBF<-log(bayenv_dat$salinity_BF)
 bayenv_dat$logTemBF<-log(bayenv_dat$temp_BF)
@@ -2081,7 +2508,8 @@ saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
 
 Now we can investigate the outliers etc.
 
-```{r bayenv}
+
+```r
 #taken directly from fwsw_analysis.R
 bayenv.dat<-read.delim("bayenv/bayenv_output.txt",header=T)
 # calculate quantiles for bayes factors
@@ -2099,13 +2527,14 @@ bayenv.dat$logSeagrass<-log(bayenv.dat$seagrass_BF)
 xtx.sig<-bayenv.dat[bayenv.dat$XtX > quantile(bayenv.dat$XtX,0.99),]
 ```
 
-There are `r nrow(temp.bf.sig[temp.bf.sig$locus %in% sal.bf.sig$locus & temp.bf.sig$locus %in% grass.bf.sig,])` overlapping outliers between temperature-, salinity-, and seagrass-associated loci.
+There are 0 overlapping outliers between temperature-, salinity-, and seagrass-associated loci.
 
-But if we only care about salinity ones, there are `r nrow(sal.bf.sig)` outliers. Are any of those XtX outliers too? `r nrow(xtx.sig[xtx.sig$locus %in% sal.bf.sig$locus,])` overlap -- not bad!
+But if we only care about salinity ones, there are 122 outliers. Are any of those XtX outliers too? 0 overlap -- not bad!
 
 
 
-```{r plotBayenv,fig.keep='last',fig.cap="Manhattan plots of the Bayenv XTX statistic and the log of the Bayes factors associated with salinity. Shown are only loci that mapped to regions on chromosomes. Grey points represent loci that are not outlier in any analyses. Colored points represent outliers in both the Bayenv analyses and the other outlier analyses."}
+
+```r
 library(scales)
 fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
 cols<-c(perm=alpha('#e41a1c',0.75),sal=alpha('#377eb8',0.75),pc=alpha('#a65628',0.75),
@@ -2183,6 +2612,13 @@ legend("top",c(expression("Permutation"~italic("F")["ST"]),
        col = cols[c("perm","stacks","pc","xtx","sal")],
        pt.bg=cols[c("perm","stacks","pc","xtx","sal")],
        pch=c(4,5,0,3,2),bty='n',ncol=5)
+```
+
+\begin{figure}[H]
+\includegraphics{202_fwsw_reanalysis_files/figure-latex/plotBayenv-1} \caption{Manhattan plots of the Bayenv XTX statistic and the log of the Bayes factors associated with salinity. Shown are only loci that mapped to regions on chromosomes. Grey points represent loci that are not outlier in any analyses. Colored points represent outliers in both the Bayenv analyses and the other outlier analyses.}(\#fig:plotBayenv)
+\end{figure}
+
+```r
 #dev.off()
 ```
 
@@ -2192,7 +2628,8 @@ legend("top",c(expression("Permutation"~italic("F")["ST"]),
 
 First I need to subset the ped file so that it doesn't contain the Florida samples.
 
-```{r noFLped,eval=FALSE}
+
+```r
 ped<-read.delim("stacks/populations_subset75/batch_2.pruned.ped",header=FALSE,sep=' ')
 keep_ped<-ped[grep("FL",ped$V2,invert=TRUE),]
 keep_ped$V1<-as.numeric(as.factor(gsub("sample_(\\w{4}).*","\\1",keep_ped$V2)))
@@ -2201,7 +2638,8 @@ write.table(keep_ped,"stacks/populations_subset75/noFL_subset75.ped",col.names=F
 
 And create a cluster file (i.e., pop map)
 
-```{r extractFLclust,eval=FALSE}
+
+```r
 clust<-keep_ped[,1:2]
 clust$clust<-gsub("sample_(\\w{4}).*","\\1",clust$V2)
 write.table(clust,"bayenv/noFL/sub75.noFL.clust",col.names = FALSE,row.names = FALSE,quote=FALSE)
@@ -2212,7 +2650,8 @@ And I want to use the correctly specified locations
 
 Then I can use the `run_bayenv2_matrix_general.sh` script to run the matrices.
 
-```{bash, eval=FALSE}
+
+```bash
 # set up correct file formats creating a clust file - run from bayenv/ dir
 ../../scripts/run_bayenv2_matrix_general.sh FILEMANIP \
 noFL/sub75.noFL.clust ../stacks/populations_subset75/noFL_subset75.ped \
@@ -2226,14 +2665,16 @@ They're all really similar-looking so I used a randomly-selected one (it was #9)
 ![Heatmap plots of each of the ten replicate Bayenv matrices. Colors represent (co)variances, with larger values shown in darker colors](../fwsw_results/bayenv/noFL/fwsw75_noFL.png)
 
 
-```{bash, eval=FALSE}
+
+```bash
 # Create the SNPFILES
 ../../scripts/run_bayenv2_matrix_general.sh SNPFILES noFL/SNPSFILE noFL/SNPFILES
 ```
 
 Before running the analysis, I need to subset and standardize the environmental data too.
 
-```{r extractFLenv, eval=FALSE}
+
+```r
 env_dat<-read.csv("bayenv/env_data_sub75.csv",row.names=1)
 
 # make sure it's in the same order as the plinkfile
@@ -2251,21 +2692,185 @@ std_dat<-t(apply(env_dat,1,function(x){
 
 write.table(std_dat[,pop.order],
             "bayenv/noFL/env_data_noFL.txt",sep='\t',col.names = FALSE,row.names = FALSE)
-
 ```
 
 
-```{bash, eval=FALSE}
+
+```bash
 # Run bayenv
 nohup ../../scripts/run_bayenv2_matrix_general.sh BAYENV \
 ~/Programs/bayenv/ noFL/matrix noFL/env_data_noFL.txt 5 3 noFL/SNPFILES > ../../logs/bayenv_noFL.log 2>&1 &
 ```
 
+
+```r
+bayenv_noFL<-get_bayenv_results(dir="bayenv/noFL/SNPFILES/",
+                               env_vars=c("temp","salinity","seagrass"))
+# match up SNP names and IDS
+snp_names<-read.delim("bayenv/noFL/SNPFILES_names.txt",header=FALSE)
+snpsfile<-read.delim("bayenv/noFL/SNPSFILE",header = FALSE)
+
+snp_names$BayenvID<-as.numeric(rownames(snpsfile)[seq(1,(nrow(snpsfile)-1),2)])
+colnames(snp_names)[1]<-"SNP_name"
+snp_names$ID<-as.numeric(gsub("(\\d+)_\\d+","\\1",snp_names$SNP_name))
+snp_names$Column<-as.numeric(gsub("(\\d+)_(\\d+)","\\2",snp_names$SNP_name))
+
+bayenv_noFL$BayenvID<-as.numeric(gsub(".*/(\\d+)","\\1",bayenv_noFL$locus))
+bayenv_noFL<-merge(bayenv_noFL,snp_names)
+
+# get positional info from the master information file
+fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
+bayenv_noFL<-merge(bayenv_noFL,fw_SNPinfo[,c(1:4,21:24)],by="ID")
+colnames(bayenv_noFL)[4:13]<-paste0(colnames(bayenv_noFL[,4:13]),"_noFL")
+colnames(bayenv_noFL)[19:22]<-paste0(colnames(bayenv_noFL[,19:22]),"_FL")
+colnames(bayenv_noFL)<-gsub("\\.\\w","",colnames(bayenv_noFL))
+
+# calculate logs of Bayes factors
+bayenv_noFL$logSalBF_noFL<-log(bayenv_noFL$salinity_BF_noFL)
+bayenv_noFL$logTemBF_noFL<-log(bayenv_noFL$temp_BF_noFL)
+bayenv_noFL$logSegBF_noFL<-log(bayenv_noFL$seagrass_BF_noFL)
+
+# save to file
+write.table(bayenv_noFL,"bayenv/bayenv_output_noFL.txt",sep="\t",
+            col.names = TRUE,row.names = FALSE,quote = FALSE)
+```
+
+
+
+```r
+library(scales)
+bayenv_noFL<-read.delim("bayenv/bayenv_output_noFL.txt",header=TRUE)
+
+cols<-c(perm=alpha('#e41a1c',0.75),sal=alpha('#377eb8',0.75),pc=alpha('#a65628',0.75),
+        stacks=alpha('#f781bf',0.75),xtx=alpha('#ff7f00',0.75))
+#png("../figs/BayenvOutliers.png",height=5,width=8.5,units="in",res=300,pointsize=12)
+par(mfrow=c(2,1),oma=c(1,2,1,1),mar=c(2,2,1,1),xpd=TRUE)
+# plot XtX
+plot_dat<-fst.plot(bayenv_noFL,scaffs.to.plot = lgs,fst.name = "XtX_noFL",
+                   chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19)
+points(plot_dat$plot.pos[plot_dat$XtX_noFL>=quantile(plot_dat$XtX_noFL,0.99)],
+       plot_dat$XtX_noFL[plot_dat$XtX_noFL>=quantile(plot_dat$XtX_noFL,0.99)],
+       col=cols["xtx"],cex=0.75,pch=3)
+points(plot_dat$plot.pos[plot_dat$logSalBF_noFL>=quantile(plot_dat$logSalBF_noFL,0.99)],
+       plot_dat$XtX_noFL[plot_dat$logSalBF_noFL>=quantile(plot_dat$logSalBF_noFL,0.99)],
+       col=cols["sal"],cex=0.85,pch=2)
+axis(2,las=1)
+mtext(expression(italic("X")^"T"~italic("X")),2,line=2)
+
+# add the LG labels
+midpts<-tapply(plot_dat$plot.pos,plot_dat$Chrom,median)
+text(x=midpts[lgs],y=0)
+
+# plot Bayes Factors
+plot_dat<-fst.plot(plot_dat,scaffs.to.plot = lgs,fst.name = "logSalBF_noFL",
+                   chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19)
+points(plot_dat$plot.pos[plot_dat$logSalBF_noFL>=quantile(plot_dat$logSalBF_noFL,0.99)],
+       plot_dat$logSalBF_noFL[plot_dat$logSalBF_noFL>=quantile(plot_dat$logSalBF_noFL,0.99)],
+       col=cols["sal"],cex=0.85,pch=2)
+points(plot_dat$plot.pos[plot_dat$XtX_noFL>=quantile(plot_dat$XtX_noFL,0.99)],
+       plot_dat$logSalBF_noFL[plot_dat$XtX_noFL>=quantile(plot_dat$XtX_noFL,0.99)],
+       col=cols["xtx"],cex=0.75,pch=3)
+axis(2,las=1)
+mtext("log(Salinity Bayes Factors)",2,line=2)
+
+# add the LG labels
+midpts<-tapply(plot_dat$plot.pos,plot_dat$Chrom,median)
+text(x=midpts[lgs],y=-5)
+
+# add outside legend
+
+opar <- par(fig=c(0, 1, 0, 1), oma=c(0, 0, 0, 0),
+            mar=c(0, 0, 0, 0), new=TRUE)
+on.exit(par(opar))
+plot(0, 0, type='n', bty='n', xaxt='n', yaxt='n')
+legend("top",c(expression(italic("X")^T~italic("X")),"Salinity BF"),
+       xjust = 0.5,x.intersp = 0.5,
+       col = cols[c("xtx","sal")],
+       pt.bg=cols[c("xtx","sal")],
+       pch=c(3,2),bty='n',ncol=5)
+```
+
+\begin{figure}[H]
+\includegraphics{202_fwsw_reanalysis_files/figure-latex/plotBayenvNoFL-1} \caption{Manhattan plots of the Bayenv XTX statistic and the log of the Bayes factors associated with salinity from the analysis without the Florida populations. Shown are only loci that mapped to regions on chromosomes. Grey points represent loci that are not outlier in any analyses. Colored points represent outliers in both the Bayenv analyses and the other outlier analyses.}(\#fig:plotBayenvNoFL)
+\end{figure}
+
+```r
+#dev.off()
+```
+
+
+Let's compare the results of the analyses with and without the Florida populations.
+
+
+```r
+bayenv_cor<-cor(bayenv_noFL[,c("XtX_noFL",
+                   "logSalBF_noFL",
+                   "logTemBF_noFL",
+                   "logSegBF_noFL",
+                   "XtX_FL","logSalBF_FL","logTemBF_FL","logSegBF_FL")])
+kable(bayenv_cor[grep("_FL",rownames(bayenv_cor)),grep("_noFL",colnames(bayenv_cor))],
+      "latex",booktabs=TRUE,
+      caption="Correlations between the Bayenv analyses without the Florida populations ('noFL') and with the Florida popualtions ('FL'). The comparison of each statistic with itself in each analysis is on the diagonal.")
+```
+
+\begin{table}
+
+\caption{(\#tab:BayenvCompareFL)Correlations between the Bayenv analyses without the Florida populations ('noFL') and with the Florida popualtions ('FL'). The comparison of each statistic with itself in each analysis is on the diagonal.}
+\centering
+\begin{tabular}[t]{lrrrr}
+\toprule
+  & XtX\_noFL & logSalBF\_noFL & logTemBF\_noFL & logSegBF\_noFL\\
+\midrule
+XtX\_FL & 0.5482418 & 0.3697998 & 0.4264008 & 0.4234426\\
+logSalBF\_FL & 0.4926238 & 0.5913697 & 0.3864321 & 0.4268952\\
+logTemBF\_FL & 0.3977142 & 0.4089924 & 0.4567702 & 0.3327506\\
+logSegBF\_FL & 0.3772125 & 0.3057937 & 0.2178636 & 0.3283923\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+```r
+par(mfrow=c(2,2))
+plot(bayenv_noFL$XtX_FL, bayenv_noFL$XtX_noFL,
+     xlab="XtX with Florida populations",ylab="XtX without Florida Populations",
+     pch=19,cex=1.5,col=alpha("dark grey",0.75))
+plot(bayenv_noFL$logSalBF_FL, bayenv_noFL$logSalBF_noFL,
+     xlab="log of Salinity Bayes Factors with Florida populations",
+     ylab="log of Salinity Bayes Factors without Florida Populations",
+     pch=19,cex=1.5,col=alpha("dark grey",0.75))
+plot(bayenv_noFL$logTemBF_FL, bayenv_noFL$logTemBF_noFL,
+     xlab="log of Temperature Bayes Factors with Florida populations",
+     ylab="log of Temperature Bayes Factors without Florida Populations",
+     pch=19,cex=1.5,col=alpha("dark grey",0.75))
+plot(bayenv_noFL$logSegBF_FL, bayenv_noFL$logSegBF_noFL,
+     xlab="log of Seagrass cover Bayes Factors with Florida populations",
+     ylab="log of Seagrass cover Bayes Factors without Florida Populations",
+     pch=19,cex=1.5,col=alpha("dark grey",0.75))
+```
+
+\begin{figure}[H]
+\includegraphics{202_fwsw_reanalysis_files/figure-latex/BayenvCompareFLPlots-1} \caption{Plots of the Bayenv statistics in the analysis with the Florida populations (x-axis) vs without the Florida populations (y-axis).}(\#fig:BayenvCompareFLPlots)
+\end{figure}
+
+Are any of the outliers the same in the two analyses?
+
+
+```r
+bothXtX<-bayenv_noFL$ID[bayenv_noFL$XtX_FL>=quantile(plot_dat$XtX_FL,0.99) &
+                 bayenv_noFL$XtX_noFL>=quantile(plot_dat$XtX_noFL,0.99)]
+bothSal<-bayenv_noFL$ID[bayenv_noFL$logSalBF_FL>=quantile(plot_dat$logSalBF_FL,0.99) &
+                 bayenv_noFL$logSalBF_noFL>=quantile(plot_dat$logSalBF_noFL,0.99)]
+```
+
+There are 33 SNPs that are XtX outliers in both Bayenv analyses and 58 salinity-associated outliers in both.
+
+
 ## Bayenv Plots
 
 First we'll get set up with the libraries, code, and data.
 
-```{r getOutliers, eval=FALSE}
+
+```r
 library(UpSetR);library(scales);library(ggplot2)
 library(grid);library(gwscaR);library(gridGraphics)
 source("../R/upset_hacked.R")
@@ -2288,7 +2893,8 @@ outliers<-list(xtx=fw_SNPinfo$ID[fw_SNPinfo$XtX >= quantile(fw_SNPinfo$XtX,0.99,
 
 Then we'll plot the Stacks Fst outliers.
 
-```{r plotStacksOutliers, eval=FALSE}
+
+```r
 pop.list<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
 	"FLFD","FLSI","FLAB","FLPB","FLHB","FLCC","FLLG")
 pop.labs<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
@@ -2453,7 +3059,8 @@ dev.off()
 
 And create upset plots to show overlap between pairwise Stacks comparisons and between all outlier methods.
 
-```{r createUpsetPlots, eval=FALSE}
+
+```r
 cols<-c(permutations='#e41a1c',salBF='#377eb8',pcadapt='#a65628',
         xtx='#ff7f00',sharedStacks='#f781bf',
         Alabama='#af8dc3',Louisiana='#e7d4e8',Texas='#762a83',Florida='#1b7837')
@@ -2465,13 +3072,12 @@ upset(fromList(outliers),sets=c("permutations","salBF","xtx","pcadapt","sharedSt
       margin1scale = 0.2,
       sets.pt.color=cols[c("permutations","salBF","xtx","pcadapt","sharedStacks")])
 dev.off()
-
-
 ```
 
 And finally we'll stitch them together into a final image.
 
-```{r CreateOutliersImage, eval=FALSE}
+
+```r
 library(magick);library(multipanelfigure)
 
 image_files <- c("../figs/FstOutliers.png",
@@ -2491,7 +3097,6 @@ figure <- multi_panel_figure(
 (figure %<>% fill_panel(image_files[3], column=2, row=1,scaling="fit") )
 (figure %<>% fill_panel(image_files[2],column=2,row=2,scaling="fit"))
 dev.off()
-
 ```
 
 ![Multipanel figure showing the locations of outlier loci in the genome (A) as well as overlap between the outlier analyses (B and C). This figure is Figure 2 in the main text.](../figs/fstPlots.png)
@@ -2499,7 +3104,8 @@ dev.off()
 ## Annotations {-}
 
 
-```{r annotateSNPs}
+
+```r
 annotate_snps<-function(snpDF,gff,genome.blast,ID="Locus.ID",
                         chrom="Chr",bp="BP",pos="Column")
 {
@@ -2545,7 +3151,8 @@ annotate_snps<-function(snpDF,gff,genome.blast,ID="Locus.ID",
 }
 ```
 
-```{r getGFF, eval=FALSE}
+
+```r
 gff.name<-"ssc_2016_12_20_chromlevel.gff.gz"
 if(length(grep("gz",gff.name))>0){
   gff<-read.delim(gzfile(paste("../../scovelli_genome/",gff.name,sep="")),header=F)
@@ -2557,7 +3164,8 @@ colnames(gff)<-c("seqname","source","feature","start","end","score",
 genome.blast<-read.csv("../../scovelli_genome/ssc_2016_12_20_cds_nr_blast_results.csv",
                        skip=1,header=T)#I saved it as a csv
 ```
-```{r annotate_snpinfo, eval=FALSE}
+
+```r
 fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
 
 snp_annotate<-annotate_snps(fw_SNPinfo,gff,genome.blast,ID="ID",
@@ -2570,7 +3178,8 @@ fw_SNPinfo<-merge(fw_SNPinfo,snp_annotate[,-c(2,3)],
 saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
 ```
 
-```{r ann2outlier,eval=TRUE}
+
+```r
 fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
 outliers<-list(xtx=fw_SNPinfo$ID[fw_SNPinfo$XtX >= quantile(fw_SNPinfo$XtX,0.99,na.rm = TRUE)],
                salBF=fw_SNPinfo$ID[fw_SNPinfo$logSalBF>=
@@ -2588,7 +3197,8 @@ outliers<-list(xtx=fw_SNPinfo$ID[fw_SNPinfo$XtX >= quantile(fw_SNPinfo$XtX,0.99,
 out_snps<-fw_SNPinfo[fw_SNPinfo$ID %in% unlist(outliers),]
 ```
 
-````{r summarizeAnnotations, eval=TRUE}
+
+```r
 annInfo<-fw_SNPinfo[,c("ID","region")]
 annInfo$region<-as.character(annInfo$region)
 
@@ -2603,17 +3213,44 @@ kable(table(annInfo$region,annInfo$outlier),booktabs=TRUE,
       caption="The number of SNPs in the subsetted dataset that were outliers in coding and non-coding regions of the genome.")
 ```
 
+\begin{table}
+
+\caption{(\#tab:summarizeAnnotations)The number of SNPs in the subsetted dataset that were outliers in coding and non-coding regions of the genome.}
+\centering
+\begin{tabular}[t]{lrr}
+\toprule
+  & not-outlier & outlier\\
+\midrule
+coding & 4469 & 764\\
+non-coding & 3535 & 620\\
+regulatory & 363 & 59\\
+unkown & 1 & 0\\
+\bottomrule
+\end{tabular}
+\end{table}
+
 If our null hypothesis is that we have randomly selected outliers with equal probability from coding and non-coding regions, we can use a Fisher's exact test to calculate the probability of our observed distribution of outliers.
 
-```{r fisherTestOutliers}
+
+```r
 fisher.test(table(annInfo$region,annInfo$outlier))
+```
+
+```
+## 
+## 	Fisher's Exact Test for Count Data
+## 
+## data:  table(annInfo$region, annInfo$outlier)
+## p-value = 0.8654
+## alternative hypothesis: two.sided
 ```
 
 Based on this, we could conclude that our table of outliers in coding regions is more extreme than expected under the null. 
 
 Now let's look at a more specific set of genes -- those from our salinity-associated gene set.
 
-```{r rearrangePutatives,eval=FALSE}
+
+```r
 put_genes<-read.delim("putative_genes.txt",stringsAsFactors = FALSE)
 s<-strsplit(put_genes$Scovelli_geneID,",")
 genes<-data.frame(Gene=rep(put_genes$Gene,sapply(s,length)),
@@ -2642,14 +3279,44 @@ fw_SNPinfo<-merge(fw_SNPinfo,dati,by="ID",all.x=TRUE)
 colnames(fw_SNPinfo)[colnames(fw_SNPinfo)=="SSCID.x"]<-"SSCID"
 saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
 ```
-```{r putativeGeneAnns}
+
+```r
 annInfo$salgene<-"not-putative"
 annInfo$salgene[annInfo$ID %in% fw_SNPinfo$ID[!is.na(fw_SNPinfo$Gene)]]<-"putative"
 kable(table(annInfo$outlier,annInfo$salgene),booktabs=TRUE,
       caption="The number of SNPs in the subsetted dataset that were outliers in putative salinity genes or not.")
 ```
-```{r fisherTestOutliersPutative}
+
+\begin{table}
+
+\caption{(\#tab:putativeGeneAnns)The number of SNPs in the subsetted dataset that were outliers in putative salinity genes or not.}
+\centering
+\begin{tabular}[t]{lrr}
+\toprule
+  & not-putative & putative\\
+\midrule
+not-outlier & 10248 & 117\\
+outlier & 1714 & 24\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+```r
 fisher.test(table(annInfo$outlier,annInfo$salgene))
+```
+
+```
+## 
+## 	Fisher's Exact Test for Count Data
+## 
+## data:  table(annInfo$outlier, annInfo$salgene)
+## p-value = 0.3967
+## alternative hypothesis: true odds ratio is not equal to 1
+## 95 percent confidence interval:
+##  0.7533815 1.9217177
+## sample estimates:
+## odds ratio 
+##   1.226425
 ```
 
 Putative salinity genes do not appear to be enriched with outliers.
