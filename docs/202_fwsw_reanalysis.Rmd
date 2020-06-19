@@ -2105,7 +2105,7 @@ But if we only care about salinity ones, there are `r nrow(sal.bf.sig)` outliers
 
 
 
-```{r plotBayenv,fig.keep='last',fig.cap="Manhattan plots of the Bayenv XTX statistic and the log of the Bayes factors associated with salinity. Shown are only loci that mapped to regions on chromosomes. Grey points represent loci that are not outlier in any analyses. Colored points represent outliers in both the Bayenv analyses and the other outlier analyses."}
+```{r plotBayenv,fig.cap="Manhattan plots of the Bayenv XTX statistic and the log of the Bayes factors associated with salinity. Shown are only loci that mapped to regions on chromosomes. Grey points represent loci that are not outlier in any analyses. Colored points represent outliers in both the Bayenv analyses and the other outlier analyses."}
 library(scales)
 fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
 cols<-c(perm=alpha('#e41a1c',0.75),sal=alpha('#377eb8',0.75),pc=alpha('#a65628',0.75),
@@ -2294,7 +2294,7 @@ write.table(bayenv_noFL,"bayenv/bayenv_output_noFL.txt",sep="\t",
 ```
 
 
-```{r plotBayenvNoFL,fig.keep='last',fig.cap="Manhattan plots of the Bayenv XTX statistic and the log of the Bayes factors associated with salinity from the analysis without the Florida populations. Shown are only loci that mapped to regions on chromosomes. Grey points represent loci that are not outlier in any analyses. Colored points represent outliers in both the Bayenv analyses and the other outlier analyses."}
+```{r plotBayenvNoFL,fig.cap="Manhattan plots of the Bayenv XTX statistic and the log of the Bayes factors associated with salinity from the analysis without the Florida populations. Shown are only loci that mapped to regions on chromosomes. Grey points represent loci that are not outlier in any analyses. Colored points represent outliers in both the Bayenv analyses and the other outlier analyses."}
 library(scales)
 bayenv_noFL<-read.delim("bayenv/bayenv_output_noFL.txt",header=TRUE)
 
