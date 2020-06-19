@@ -2364,19 +2364,19 @@ kable(bayenv_cor[grep("_FL",rownames(bayenv_cor)),grep("_noFL",colnames(bayenv_c
 ```{r BayenvCompareFLPlots,fig.height=6,fig.width=6,fig.cap="Plots of the Bayenv statistics in the analysis with the Florida populations (x-axis) vs without the Florida populations (y-axis)."}
 par(mfrow=c(2,2))
 plot(bayenv_noFL$XtX_FL, bayenv_noFL$XtX_noFL,
-     xlab="XtX with Florida populations",ylab="XtX without Florida Populations",
+     xlab="XtX with Florida",ylab="XtX without Florida",
      pch=19,cex=1.5,col=alpha("dark grey",0.75))
 plot(bayenv_noFL$logSalBF_FL, bayenv_noFL$logSalBF_noFL,
-     xlab="log of Salinity Bayes Factors with Florida populations",
-     ylab="log of Salinity Bayes Factors without Florida Populations",
+     xlab="log of Salinity BF with Florida",
+     ylab="log of Salinity BF without Florida",
      pch=19,cex=1.5,col=alpha("dark grey",0.75))
 plot(bayenv_noFL$logTemBF_FL, bayenv_noFL$logTemBF_noFL,
-     xlab="log of Temperature Bayes Factors with Florida populations",
-     ylab="log of Temperature Bayes Factors without Florida Populations",
+     xlab="log of Temp BF with Florida",
+     ylab="log of Temp BF without Florida",
      pch=19,cex=1.5,col=alpha("dark grey",0.75))
 plot(bayenv_noFL$logSegBF_FL, bayenv_noFL$logSegBF_noFL,
-     xlab="log of Seagrass cover Bayes Factors with Florida populations",
-     ylab="log of Seagrass cover Bayes Factors without Florida Populations",
+     xlab="log of Seagrass BF with Florida",
+     ylab="log of Seagrass BF without Florida",
      pch=19,cex=1.5,col=alpha("dark grey",0.75))
 ```
 
