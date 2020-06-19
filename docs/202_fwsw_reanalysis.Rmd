@@ -2261,6 +2261,37 @@ nohup ../../scripts/run_bayenv2_matrix_general.sh BAYENV \
 ~/Programs/bayenv/ noFL/matrix noFL/env_data_noFL.txt 5 3 noFL/SNPFILES > ../../logs/bayenv_noFL.log 2>&1 &
 ```
 
+```{r bayenvDat_NoFL, eval=FALSE}
+bayenv_noFL<-get_bayenv_results(dir="bayenv/noFL/SNPFILES/",
+                               env_vars=c("temp","salinity","seagrass"))
+# match up SNP names and IDS
+snp_names<-read.delim("bayenv/noFL/SNPFILES_names.txt",header=FALSE)
+snpsfile<-read.delim("bayenv/noFL/SNPSFILE",header = FALSE)
+
+snp_names$BayenvID<-as.numeric(rownames(snpsfile)[seq(1,(nrow(snpsfile)-1),2)])
+colnames(snp_names)[1]<-"SNP_name"
+snp_names$ID<-as.numeric(gsub("(\\d+)_\\d+","\\1",snp_names$SNP_name))
+snp_names$Column<-as.numeric(gsub("(\\d+)_(\\d+)","\\2",snp_names$SNP_name))
+
+bayenv_noFL$BayenvID<-as.numeric(gsub(".*/(\\d+)","\\1",bayenv_noFL$locus))
+bayenv_noFL<-merge(bayenv_noFL,snp_names)
+
+# get positional info from the master information file
+fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
+bayenv_noFL<-merge(bayenv_noFL,fw_SNPinfo[,c(1:4,21:24)],by="ID")
+colnames(bayenv_noFL)[4:13]<-paste0(colnames(bayenv_noFL[,4:13]),"_noFL")
+colnames(bayenv_noFL)[19:22]<-paste0(colnames(bayenv_noFL[,19:22]),"_FL")
+colnames(bayenv_noFL)<-gsub("\\.\\w","",colnames(bayenv_noFL))
+
+# calculate logs of Bayes factors
+bayenv_noFL$logSalBF_noFL<-log(bayenv_noFL$salinity_BF_noFL)
+bayenv_noFL$logTemBF_noFL<-log(bayenv_noFL$temp_BF_noFL)
+bayenv_noFL$logSegBF_noFL<-log(bayenv_noFL$seagrass_BF_noFL)
+
+# save to file
+write.table(bayenv_noFL,"bayenv/bayenv_output_noFL.txt",sep="\t",
+            col.names = TRUE,row.names = FALSE,quote = FALSE)
+```
 ## Bayenv Plots
 
 First we'll get set up with the libraries, code, and data.
