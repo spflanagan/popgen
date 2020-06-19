@@ -33,7 +33,40 @@ dadi updates:
 I was able to transfer some of the dadi results from abacus to C001KR. Also started ALFW_TXFW_13 (run 660) and FLCC_TXCC_14 (run 661, all models except SC2N2mG, which is still running with # 13 in run 619). I noticed that FLLG_TXFW nothing's been updated since Jun 15 and the only log remaining is SC2N2mG.log.txt, which was updated on 10 June. So I'm thinking of stopping that one (job 626) and re-starting just SC2N2mG. - yep, done. 
 
 Analyzing Bayenv no Florida results:
+XTX and salinity are correlated with a correlation coefficient ~0.5. They share ~30-50 outliers and the analysis without Florida has a lot less noise. There's a peak in LG6 that looks like it might be shared by the stacks Fst outliers -- this is the next thing to check.
 
+```{r}
+fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
+bayenv_noFL<-read.delim("bayenv_output_noFL.txt",header=TRUE)
+
+
+bothXtX<-bayenv_noFL$ID[bayenv_noFL$XtX_FL>=quantile(bayenv_noFL$XtX_FL,0.99) &
+                 bayenv_noFL$XtX_noFL>=quantile(bayenv_noFL$XtX_noFL,0.99)]
+bothSal<-bayenv_noFL$ID[bayenv_noFL$logSalBF_FL>=quantile(bayenv_noFL$logSalBF_FL,0.99) &
+                 bayenv_noFL$logSalBF_noFL>=quantile(bayenv_noFL$logSalBF_noFL,0.99)]
+
+sharedStacks=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05 & 
+                                                  fw_SNPinfo$stacks_LA_P < 0.05 &
+                 fw_SNPinfo$stacks_TX_P < 0.05)]
+sharedPerm=fw_SNPinfo$ID[
+                 rowSums(fw_SNPinfo[,c("perm_TX","perm_AL","perm_LA")])==3]
+
+pcout<-fw_SNPinfo$ID[which(fw_SNPinfo$pcadaptQ<0.01)]
+
+
+bothXtX[bothXtX %in% sharedPerm]
+bothXtX[bothXtX %in% sharedStacks]
+bothXtX[bothXtX %in% pcout]
+
+fw_SNPinfo[fw_SNPinfo$ID==11220,]
+fw_SNPinfo[fw_SNPinfo$ID==50576,]
+fw_SNPinfo[fw_SNPinfo$ID==50892,]
+fw_SNPinfo[fw_SNPinfo$ID==46960,]
+fw_SNPinfo[fw_SNPinfo$ID==7507,]
+fw_SNPinfo[fw_SNPinfo$ID==7925,]
+```
+
+So it looks like some of the ones that are shared among some analyses are not in others (e.g., PCAdapt) because they were removed from that analysis for one reason or another. 
 
 # 18 June 2020
 
