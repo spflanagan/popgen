@@ -2103,14 +2103,11 @@ There are `r nrow(temp.bf.sig[temp.bf.sig$locus %in% sal.bf.sig$locus & temp.bf.
 
 But if we only care about salinity ones, there are `r nrow(sal.bf.sig)` outliers. Are any of those XtX outliers too? `r nrow(xtx.sig[xtx.sig$locus %in% sal.bf.sig$locus,])` overlap -- not bad!
 
-Now, to plot.
-```{r plotOutliersSetup}
+
+
+```{r plotBayenv,fig.keep='last',fig.cap="Manhattan plots of the Bayenv XTX statistic and the log of the Bayes factors associated with salinity. Shown are only loci that mapped to regions on chromosomes. Grey points represent loci that are not outlier in any analyses. Colored points represent outliers in both the Bayenv analyses and the other outlier analyses."}
 library(scales)
 fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
-
-
-```
-```{r plotOutliers,fig.keep='last',fig.cap="Manhattan plots of the Bayenv XTX statistic and the log of the Bayes factors associated with salinity. Shown are only loci that mapped to regions on chromosomes. Grey points represent loci that are not outlier in any analyses. Colored points represent outliers in both the Bayenv analyses and the other outlier analyses."}
 cols<-c(perm=alpha('#e41a1c',0.75),sal=alpha('#377eb8',0.75),pc=alpha('#a65628',0.75),
         stacks=alpha('#f781bf',0.75),xtx=alpha('#ff7f00',0.75))
 #png("../figs/BayenvOutliers.png",height=5,width=8.5,units="in",res=300,pointsize=12)
