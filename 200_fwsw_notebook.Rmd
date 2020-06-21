@@ -29,6 +29,9 @@ A few things:
 1. I see what Adam was saying about the permutation outliers being small Fst values -- it's on the Manhattan plot. Perhaps there needs to be a different way of identifying these as outliers.
 2. PCAdapt doesn't share many of the same outliers because those loci are removed by the minor allele frequency cutoff. If I remove this cutoff, then thousands of loci have really small q-values, which also doesn't seem quite right.
 3. I need to look into the set of outliers that shows up on LG6. 
+
+Working on 1:
+
 # 19 June 2020
 
 Goals:
