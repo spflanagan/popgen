@@ -10,7 +10,7 @@ python ../../scripts/253_plot_best_dadi.py FLLG TXCC AM2N2mG 0.0152 1.0156 25.19
 python ../../scripts/253_plot_best_dadi.py FLCC ALFW SC2N2mG 1.5967 4.9544 4.6681 23.1958 0.6344 0.0641 0.0704 4.6161 9.2835 0.9642 0.3993 0.9404 0.4962 0.2953
 python ../../scripts/253_plot_best_dadi.py FLCC ALST SC2N 4.6363 49.1332 0.1182 0.9110 0.1312 1.0786 0.0648 0.4616 0.2762
 python ../../scripts/253_plot_best_dadi.py FLCC LAFW IM2NG 5.4317 9.4584 0.9922 8.3757 0.1635 0.0694 0.0826 1.3392 0.3706 0.9796
-python ../../scripts/253_plot_best_dadi.py FLCC TXFW AMG 0.2896 0.6996 20.2206 1.4422 1.2760 3.3247 0.1440 0.5057 0.5139
+python ../../scripts/253_plot_best_dadi.py FLCC TXFW SI2NG 0.8060 1.7054 9.1578 0.7863 0.3513 0.5458 0.4701 0.5774
 python ../../scripts/253_plot_best_dadi.py FLCC TXCC SI2N 9.5902 35.8944 0.7791 0.7915 0.0912 0.9822
 python ../../scripts/253_plot_best_dadi.py ALFW ALST IM2mG 0.5215 5.4804 17.3463 5.3399 0.3279 1.0676 18.3524 0.5006 0.7573 0.5478 0.1948
 python ../../scripts/253_plot_best_dadi.py ALFW LAFW SC2N2mG 15.9434 19.9520 6.6591 4.9409 0.0165 1.1196 3.9867 0.0262 0.8786 1.2971 0.4232 0.5776 0.3415 0.2098
