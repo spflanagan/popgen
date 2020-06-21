@@ -1904,7 +1904,7 @@ grp[grp!="freshwater"]<-"saltwater"
 
 
 ```{r PcadaptK4-1, fig.cap="Manhattan plot for the PCAdapt outlier analysis with the subsetted dataset and 4 PC axes retained in the analysis."}
-res<-pcadapt(filename,K=4,min.maf=0.0001)
+res<-pcadapt(filename,K=4,min.maf=0.01)
 plot(res, option="manhattan")
 ```
 ```{r PcadaptK4-2, fig.cap="Q-Q plot for the PCAdapt outlier analysis with the subsetted dataset and 4 PC axes retained in the analysis."}
@@ -1956,7 +1956,7 @@ table(snp_pc$PC)
 
 Now we can add the qvalues to the fw_SNPinfo dataframe
 
-```{r Pcadapt2Snpinfo, eval=FALSE}
+```{r Pcadapt2Snpinfo, eval=TRUE}
 fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
 fw_SNPinfo$pcadaptQ<-qval
 fw_SNPinfo$pcadaptPC<-get.pc(res,1:length(qval))$PC
