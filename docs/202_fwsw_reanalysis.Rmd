@@ -1965,11 +1965,6 @@ saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
 
 I should note that for some of these PCAdapt gives "NA" because it has its own built-in pruning, including a minor allele frequency setting, which apparently works somewhat differently from Stacks' pruning. 
 
-```{r ManhattanPCadapt, fig.cap="Manhattan plot of the q-values from the PCAdapt outlier analysis with the subsetted dataset and 4 PC axes retained in the analysis."}
-plot_dat<-fst.plot(fw_SNPinfo,scaffs.to.plot = lgs,fst.name = "pcadaptQ",
-                   chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19)
-```
-
 
 # Bayenv {-}
 
