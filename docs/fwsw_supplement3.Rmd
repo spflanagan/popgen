@@ -826,9 +826,9 @@ Adaptation to freshwater might involve changes in coding regions of the genome o
 
 ```{r getOutliers}
 fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
-outliers<-list(xtx=fw_SNPinfo$ID[fw_SNPinfo$XtX >= quantile(fw_SNPinfo$XtX,0.99,na.rm = TRUE)],
-               salBF=fw_SNPinfo$ID[fw_SNPinfo$logSalBF>=
-                                     quantile(fw_SNPinfo$logSalBF,0.99,na.rm = TRUE)],
+outliers<-list(xtx=fw_SNPinfo$ID[fw_SNPinfo$XtX >= quantile(fw_SNPinfo$XtX_noFL,0.99,na.rm = TRUE)],
+               salBF=fw_SNPinfo$ID[fw_SNPinfo$logSalB_noFLF>=
+                                     quantile(fw_SNPinfo$logSalBF_noFL,0.99,na.rm = TRUE)],
                permutations=fw_SNPinfo$ID[
                  rowSums(fw_SNPinfo[,c("perm_TX","perm_AL","perm_LA")])==3],
                pcadapt=fw_SNPinfo$ID[which(fw_SNPinfo$pcadaptQ<0.01)],
