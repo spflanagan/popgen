@@ -1624,7 +1624,7 @@ fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
 
 Then we'll plot the Stacks Fst outliers.
 
-```{r plotStacksOutliers2, eval=FALSE}
+```{r OutlierPlotSetup}
 pop.list<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
 	"FLFD","FLSI","FLAB","FLPB","FLHB","FLCC","FLLG")
 pop.labs<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
@@ -1635,7 +1635,12 @@ lgs<-c("LG1","LG2","LG3","LG4","LG5","LG6","LG7","LG8","LG9","LG10","LG11",
 lgn<-seq(1,22)
 cols<-c(perm=alpha('#e41a1c',0.75),sal=alpha('#377eb8',0.75),pc=alpha('#a65628',0.75),
         stacks=alpha('#f781bf',0.75),xtx=alpha('#ff7f00',0.75))
+pchs<-c(perm=5,sal=2,pc=0,stacks=8,xtx=3)
 grp7colors<-c('#762a83','#9970ab','#c2a5cf','#d9f0d3','#a6dba0','#5aae61','#1b7837')
+```
+
+```{r plotStacksOutliers2, eval=FALSE}
+ptsize<-3
 png("../figs/FstOutliers_NoBayenv.png",height=8,width=8.5,units="in",res=300,pointsize=20)
 par(mfrow=c(4,1),oma=c(1,1,0.5,1),mar=c(2,2,1,1),xpd=TRUE)
 # plot TX
@@ -1652,7 +1657,7 @@ points(plot_dat$plot.pos[
   rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
        plot_dat$stacks_TX[
          rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
-       col=cols["perm"],cex=2,pch=5,lwd=3)
+       col=cols["perm"],cex=2,pch=pchs["perm"],lwd=ptsize)
 #points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.01],
 #       plot_dat$stacks_TX[plot_dat$pcadaptQ<0.01],
 #       col=cols["pc"],cex=1,pch=0,lwd=2)
@@ -1662,7 +1667,7 @@ points(plot_dat$plot.pos[which(plot_dat$stacks_AL_P < 0.05 &
        plot_dat$stacks_TX[which(plot_dat$stacks_AL_P < 0.05 & 
                                   plot_dat$stacks_LA_P < 0.05 &
                            plot_dat$stacks_TX_P < 0.05)],
-       col=cols["stacks"],cex=2,pch=8,lwd=3)
+       col=cols["stacks"],cex=2,pch=pchs["stacks"],lwd=ptsize)
 axis(2,las=1,pos=-1500000,cex.axis=1)
 mtext("Texas",2,line=1.2,cex=1)
 # add the LG labels
@@ -1683,7 +1688,7 @@ points(plot_dat$plot.pos[
   rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
        plot_dat$stacks_AL[
          rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
-       col=cols["perm"],cex=2,pch=5,lwd=3)
+       col=cols["perm"],cex=2,pch=pchs["perm"],lwd=3)
 # points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.01],
 #        plot_dat$stacks_AL[plot_dat$pcadaptQ<0.01],
 #        col=cols["pc"],cex=1,pch=0,lwd=2)
@@ -1693,7 +1698,7 @@ points(plot_dat$plot.pos[which(plot_dat$stacks_AL_P < 0.05 &
        plot_dat$stacks_AL[which(plot_dat$stacks_AL_P < 0.05 & 
                                   plot_dat$stacks_LA_P < 0.05 &
                            plot_dat$stacks_TX_P < 0.05)],
-       col=cols["stacks"],cex=2,pch=8,lwd=3)
+       col=cols["stacks"],cex=2,pch=pchs["stacks"],lwd=ptsize)
 axis(2,las=1,pos=-1500000,cex.axis=1)
 mtext("Alabama",2,line=1.2,cex=1)
 # add the LG labels
@@ -1717,7 +1722,7 @@ points(plot_dat$plot.pos[
   rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
        plot_dat$stacks_LA[
          rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
-       col=cols["perm"],cex=2,pch=5,lwd=3)
+       col=cols["perm"],cex=2,pch=pchs["perm"],lwd=ptsize)
 
 points(plot_dat$plot.pos[which(plot_dat$stacks_AL_P < 0.05 & 
                                  plot_dat$stacks_LA_P < 0.05 &
@@ -1725,7 +1730,7 @@ points(plot_dat$plot.pos[which(plot_dat$stacks_AL_P < 0.05 &
        plot_dat$stacks_LA[which(plot_dat$stacks_AL_P < 0.05 & 
                                   plot_dat$stacks_LA_P < 0.05 &
                            plot_dat$stacks_TX_P < 0.05 )],
-       col=cols["stacks"],cex=2,pch=8,lwd=3)
+       col=cols["stacks"],cex=2,pch=pchs["stacks"],lwd=ptsize)
 axis(2,las=1,pos=-1500000,cex.axis=1)
 mtext("Louisiana",2,line=1.2,cex=1)
 # add the LG labels
@@ -1750,14 +1755,14 @@ points(plot_dat$plot.pos[
   rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
        plot_dat$stacks_FL[
          rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
-       col=cols["perm"],cex=2,pch=5,lwd=3)
+       col=cols["perm"],cex=2,pch=pchs["perm"],lwd=ptsize)
 points(plot_dat$plot.pos[which(plot_dat$stacks_AL_P < 0.05 & 
                                  plot_dat$stacks_LA_P < 0.05 &
                            plot_dat$stacks_TX_P < 0.05)],
        plot_dat$stacks_FL[which(plot_dat$stacks_AL_P < 0.05 & 
                                   plot_dat$stacks_LA_P < 0.05 &
                            plot_dat$stacks_TX_P < 0.05)],
-       col=cols["stacks"],cex=2,pch=8,lwd=3)
+       col=cols["stacks"],cex=2,pch=pchs["stacks"],lwd=ptsize)
 axis(2,las=1,pos=-1500000,cex.axis=1)
 mtext("Florida",2,line=1.2,cex=1)
 # add the LG labels
@@ -1779,7 +1784,7 @@ legend("top",
        col = cols[c("perm","stacks")],
        pt.bg=cols[c("perm","stacks")],
        #pch=c(4,5,0,3,2),
-       pch=c(5,8),pt.lwd =2,pt.cex=2,cex=1,
+       pch=pchs[c("perm","stacks")],pt.lwd =ptsize,pt.cex=2,cex=1,
        bty='n',ncol=2)
 dev.off()
 ```
