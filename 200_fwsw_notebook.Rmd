@@ -47,6 +47,192 @@ A few things:
 Working on 2:
 I'll try a min.maf=0.01 and see if that helps include more outliers without creating chaos. 
 
+Working on 3:
+I need to identify which outliers are coming up on LG6, how far apart they are, and whether they're annotated. Then I could visualize it somehow -- some packages exist, but they seem to be bioconductor related. This package might be useful: https://bioconductor.org/packages/release/bioc/vignettes/genomation/inst/doc/GenomationManual.html
+
+```{r}
+fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
+outliers<-list(xtx=fw_SNPinfo$ID[fw_SNPinfo$XtX >= quantile(fw_SNPinfo$XtX,0.99,na.rm = TRUE)],
+               salBF=fw_SNPinfo$ID[fw_SNPinfo$logSalBF>=
+                                     quantile(fw_SNPinfo$logSalBF,0.99,na.rm = TRUE)],
+               permutations=fw_SNPinfo$ID[
+                 rowSums(fw_SNPinfo[,c("perm_TX","perm_AL","perm_LA")])==3],
+               pcadapt=fw_SNPinfo$ID[which(fw_SNPinfo$pcadaptQ<0.01)],
+               Alabama=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05)], 
+               Louisiana=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_LA_P < 0.05)],
+               Texas=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_TX_P < 0.05)],
+               Florida=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_FL_P < 0.05)],
+               sharedStacks=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05 & 
+                                                  fw_SNPinfo$stacks_LA_P < 0.05 &
+                 fw_SNPinfo$stacks_TX_P < 0.05)])
+```
+
+There are `r nrow(dim(fw_SNPinfo[fw_SNPinfo$Chrom=="LG6",]))` SNPs on LG6 and `r nrow(fw_SNPinfo[fw_SNPinfo$ID %in% unlist(outliers) & fw_SNPinfo$Chrom=="LG6",])` are outliers in one or more analyses. 
+
+```{r}
+cols<-c(perm=alpha('#e41a1c',0.75),sal=alpha('#377eb8',0.75),pc=alpha('#a65628',0.75),
+        stacks=alpha('#f781bf',0.75),xtx=alpha('#ff7f00',0.75))
+
+lg6<-fw_SNPinfo[fw_SNPinfo$Chrom=="LG6",]
+lg6$avgFst<-rowMeans(lg6[,c("stacks_AL","stacks_LA","stacks_TX")],na.rm = TRUE)
+plot_dat<-fst.plot(lg6,scaffs.to.plot = "LG6",fst.name = "avgFst",
+                   chrom.name = "Chrom",bp.name = "Pos",axis.size = 1,pch=19,pt.cex = 1.5)
+points(plot_dat$plot.pos[grep("SSC",plot_dat$SSCID)],
+       plot_dat$avgFst[grep("SSC",plot_dat$SSCID)],
+       col="black",cex=2,pch=19,lwd=2)
+points(plot_dat$plot.pos[grep("UTR",plot_dat$region)],
+       plot_dat$avgFst[grep("UTR",plot_dat$region)],
+       col="red",cex=2,pch=19,lwd=2)
+
+points(plot_dat$plot.pos[which(plot_dat$stacks_AL_P < 0.05 & 
+                                 plot_dat$stacks_LA_P < 0.05 &
+                           plot_dat$stacks_TX_P < 0.05 )],
+              plot_dat$avgFst[which(plot_dat$stacks_AL_P < 0.05 & 
+                                  plot_dat$stacks_LA_P < 0.05 &
+                           plot_dat$stacks_TX_P < 0.05)],
+       col=cols["stacks"],cex=2,pch=8,lwd=3)
+points(plot_dat$plot.pos[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+       plot_dat$avgFst[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+       col=cols["sal"],cex=2,pch=2,lwd=2)
+
+
+```
+
+Ok, that's a start for visualizing. But I wonder if I can show the genomic information below too
+
+```{r}
+gff.name<-"ssc_2016_12_20_chromlevel.gff.gz"
+if(length(grep("gz",gff.name))>0){
+  gff<-read.delim(gzfile(paste("../../scovelli_genome/",gff.name,sep="")),header=F)
+} else{
+  gff<-read.delim(paste("../../scovelli_genome/",gff.name,sep=""),header=F)
+}
+colnames(gff)<-c("seqname","source","feature","start","end","score",
+                 "strand","frame","attribute")
+gff6<-gff[gff$seqname=="LG6",]
+```
+
+
+I should identify what the genes are in these regions.
+
+```{r}
+lg6$description[which(lg6$stacks_AL_P < 0.05 &
+                         lg6$stacks_LA_P < 0.05 &
+                         lg6$stacks_TX_P < 0.05 )]
+lg6$description[lg6$logSalBF>=quantile(lg6$logSalBF,0.99,na.rm = TRUE) & 
+           !is.na(lg6$description)]
+
+lg6$abbr<-NA
+lg6$abbr[which(lg6$stacks_AL_P < 0.05 &
+                         lg6$stacks_LA_P < 0.05 &
+                         lg6$stacks_TX_P < 0.05 )]<-c("WRNIP1",
+                                                      "uncharacterised",NA,
+                                                      "PTPRF6",
+                                                      "LRRCC1",NA)
+lg6$abbr[lg6$logSalBF>=quantile(lg6$logSalBF,0.99,na.rm = TRUE) & 
+           !is.na(lg6$description)]<-c("RP1","WRNIP1",NA,"LRRCC1")
+
+```
+
+
+
+```{r}
+plot(x=c(min(gff6$start),max(gff6$end)),
+     y=c(0,1),type='n', axes=FALSE,
+     xlab="",ylab="")#,xlim=c(200,2000000)
+abline(h=0.5)
+rect(gff6$start[gff6$feature=="gene"],0.25,
+     gff6$end[gff6$feature=="gene"],0.75,col = "grey",border="grey")
+
+stacksout<-lg6$Pos[which(lg6$stacks_AL_P < 0.05 &
+                         lg6$stacks_LA_P < 0.05 &
+                         lg6$stacks_TX_P < 0.05 )]
+abline(v=stacksout,col=cols["stacks"],lwd=2)
+abline(v=lg6$Pos[lg6$logSalBF>=quantile(lg6$logSalBF,0.99,na.rm = TRUE)],
+       col=cols["sal"],lty=2,lwd=2)
+text(x =lg6$Pos[!is.na(lg6$abbr)],y=rep(1.1,nrow(lg6[!is.na(lg6$abbr),])),
+     lg6$abbr[!is.na(lg6$abbr)],xpd=TRUE,srt=90, pos=3)
+```
+
+```{r}
+plot(x=c(min(gff6$start),max(gff6$end)),
+     y=c(0,1),type='n', axes=FALSE,
+     xlab="",ylab="",xlim=c(200,2000000))
+abline(h=0.5)
+rect(gff6$start[gff6$feature=="gene"],0.25,
+     gff6$end[gff6$feature=="gene"],0.75,col = "grey",border="grey")
+
+stacksout<-lg6$Pos[which(lg6$stacks_AL_P < 0.05 &
+                         lg6$stacks_LA_P < 0.05 &
+                         lg6$stacks_TX_P < 0.05 )]
+abline(v=stacksout,col=cols["stacks"],lwd=2)
+abline(v=lg6$Pos[lg6$logSalBF>=quantile(lg6$logSalBF,0.99,na.rm = TRUE)],
+       col=cols["sal"],lty=2,lwd=2)
+text(x =lg6$Pos[!is.na(lg6$abbr)],y=rep(1.1,nrow(lg6[!is.na(lg6$abbr),])),
+     lg6$abbr[!is.na(lg6$abbr)],xpd=TRUE,srt=90, pos=3)
+```
+
+Are the ones in gene regions in UTRs or in coding regions?
+
+```{r}
+lg6$region[which(lg6$stacks_AL_P < 0.05 &
+                         lg6$stacks_LA_P < 0.05 &
+                         lg6$stacks_TX_P < 0.05 )]
+lg6$region[lg6$logSalBF>=quantile(lg6$logSalBF,0.99,na.rm = TRUE) & 
+           !is.na(lg6$description)]
+
+
+
+```
+
+They are all in coding regions. Weirdly, one of the SNPs is apparently in a gene if we look at the gff but it's got NAs instead. I'll fix that and then re-plot the above and create a table.
+
+```{r}
+outdat<-data.frame(rbind(lg6[which(lg6$stacks_AL_P < 0.05& 
+                         lg6$stacks_LA_P < 0.05 &
+                         lg6$stacks_TX_P < 0.05 ),],
+lg6[lg6$logSalBF>=quantile(lg6$logSalBF,0.99,na.rm = TRUE) & 
+           !is.na(lg6$description),]),stringsAsFactors = FALSE)
+outdat<-unique(outdat)
+
+
+genome.blast<-read.csv("../../scovelli_genome/ssc_2016_12_20_cds_nr_blast_results.csv",
+                       skip=1,header=T)#I saved it as a csv
+outdat$SSCID[outdat$ID==9871]<-"SSCG00000016415"
+outdat$description[outdat$ID==9871]<-genome.blast$blastp_hit_description[genome.blast$sscv4_gene_ID=="SSCG00000016415"]
+outdat$abbr[outdat$ID==9871]<-"GPC5"
+
+# replot
+plot(x=c(min(gff6$start),max(gff6$end)),
+     y=c(0,1),type='n', axes=FALSE,
+     xlab="",ylab="",xlim=c(200,2000000))
+abline(h=0.5)
+rect(gff6$start[gff6$feature=="gene"],0.25,
+     gff6$end[gff6$feature=="gene"],0.75,col = "grey",border="grey")
+
+stacksout<-lg6$Pos[which(lg6$stacks_AL_P < 0.05 &
+                         lg6$stacks_LA_P < 0.05 &
+                         lg6$stacks_TX_P < 0.05 )]
+abline(v=stacksout,col=cols["stacks"],lwd=2)
+abline(v=lg6$Pos[lg6$logSalBF>=quantile(lg6$logSalBF,0.99,na.rm = TRUE)],
+       col=cols["sal"],lty=2,lwd=2)
+text(x =outdat$Pos[!is.na(outdat$abbr)],y=rep(1.1,nrow(outdat[!is.na(outdat$abbr),])),
+     outdat$abbr[!is.na(outdat$abbr)],xpd=TRUE,srt=90, pos=3)
+```
+
+I realize I should use the outlier thing instead of calling quartile every time for salinity loci because the quartile from LG6 will be different from overall...fixing that in the supplement. 
+
+I'm a bit concerned that the annotation wasn't there for the one locus, so let me try the function again but just for LG6 outliers. ...but wait, maybe I was just dumb and confused? because looking at it now I don't think that it is in a gene. 
+
+```{r}
+
+lg6_annotate<-annotate_snps(outdat,gff,genome.blast,ID="ID",
+                            chrom="Chrom",bp="BP",pos = "Pos")
+```
+
+
+Also, what if this isn't the best way to do it? I could look for the element that has the closest start/end points and see if it falls between them. But I don't actually think this is necessary. 
+
 
 # 19 June 2020
 

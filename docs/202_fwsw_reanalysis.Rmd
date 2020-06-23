@@ -1982,7 +1982,7 @@ saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
 I should note that for some of these PCAdapt gives "NA" because it has its own built-in pruning, including a minor allele frequency setting, which apparently works somewhat differently from Stacks' pruning. 
 
 ```{r PcadaptManhattan,fig.cap="Manhattan plot of the PCAdapt statistics with the outliers from other analyses included."}
-resPlot<-data.frame(cbind(fw_SNPinfo[,1:5],Stat=res$stat))
+resPlot<-data.frame(cbind(fw_SNPinfo,Stat=res$stat))
 plot_dat<-fst.plot(resPlot,scaffs.to.plot = lgs,fst.name = "Stat",
                    chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19,pt.cex=2)
 points(plot_dat$plot.pos[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
