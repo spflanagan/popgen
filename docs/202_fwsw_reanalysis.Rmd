@@ -2497,11 +2497,10 @@ And finally we'll stitch them together into a final image.
 library(magick);library(multipanelfigure)
 
 image_files <- c("../figs/FstOutliers.png",
-                 "../figs/upsetOutliers.png",
-                 "../figs/sharedStacks.png")
+                 "../figs/upsetOutliers.png")
 
 
-png("../figs/fstPlots.png",height=4,width=8,units="in",res=300,pointsize = 11)
+png("../figs/BayenvPlots.png",height=4,width=8,units="in",res=300,pointsize = 11)
 figure <- multi_panel_figure(
   width = c(4.5, 3),
   height = c(1.8,1.8),
