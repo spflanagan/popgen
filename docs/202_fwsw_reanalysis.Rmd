@@ -1666,9 +1666,9 @@ points(plot_dat$plot.pos[
        plot_dat$stacks_TX[
          rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
        col=cols["perm"],cex=2,pch=pchs["perm"],lwd=ptsize)
-#points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.01],
-#       plot_dat$stacks_TX[plot_dat$pcadaptQ<0.01],
-#       col=cols["pc"],cex=1,pch=0,lwd=2)
+points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.01],
+      plot_dat$stacks_TX[plot_dat$pcadaptQ<0.01],
+      col=cols["pc"],cex=1,pch=pchs["pc"],lwd=ptsize)
 points(plot_dat$plot.pos[which(plot_dat$stacks_AL_P < 0.05 & 
                                  plot_dat$stacks_LA_P < 0.05 &
                            plot_dat$stacks_TX_P < 0.05 )],
@@ -1697,9 +1697,9 @@ points(plot_dat$plot.pos[
        plot_dat$stacks_AL[
          rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
        col=cols["perm"],cex=2,pch=pchs["perm"],lwd=3)
-# points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.01],
-#        plot_dat$stacks_AL[plot_dat$pcadaptQ<0.01],
-#        col=cols["pc"],cex=1,pch=0,lwd=2)
+points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.01],
+       plot_dat$stacks_AL[plot_dat$pcadaptQ<0.01],
+       col=cols["pc"],cex=1,pch=pchs["pc"],lwd=ptsize)
 points(plot_dat$plot.pos[which(plot_dat$stacks_AL_P < 0.05 & 
                                  plot_dat$stacks_LA_P < 0.05 &
                            plot_dat$stacks_TX_P < 0.05)],
@@ -1723,9 +1723,9 @@ plot_dat<-fst.plot(fw_SNPinfo,scaffs.to.plot = lgs,fst.name = "stacks_LA",
 # points(plot_dat$plot.pos[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
 #        plot_dat$stacks_LA[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
 #        col=cols["xtx"],cex=1,pch=3,lwd=2)
-# points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.01],
-#        plot_dat$stacks_LA[plot_dat$pcadaptQ<0.01],
-#        col=cols["pc"],cex=1,pch=0,lwd=2)
+points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.01],
+       plot_dat$stacks_LA[plot_dat$pcadaptQ<0.01],
+       col=cols["pc"],cex=1,pch=pchs["pc"],lwd=ptsize)
 points(plot_dat$plot.pos[
   rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
        plot_dat$stacks_LA[
@@ -1756,9 +1756,9 @@ plot_dat<-fst.plot(fw_SNPinfo,scaffs.to.plot = lgs,fst.name = "stacks_FL",
 # points(plot_dat$plot.pos[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
 #        plot_dat$stacks_FL[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
 #        col=cols["xtx"],cex=1,pch=3,lwd=2)
-# points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.01],
-#        plot_dat$stacks_FL[plot_dat$pcadaptQ<0.01],
-#        col=cols["pc"],cex=1,pch=0,lwd=2)
+points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.01],
+       plot_dat$stacks_FL[plot_dat$pcadaptQ<0.01],
+       col=cols["pc"],cex=1,pch=pchs["pc"],lwd=ptsize)
 points(plot_dat$plot.pos[
   rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
        plot_dat$stacks_FL[
@@ -1785,15 +1785,14 @@ on.exit(par(opar))
 plot(0, 0, type='n', bty='n', xaxt='n', yaxt='n')
 legend("top",
        c(expression("Permutation"~italic("F")["ST"]),
-         expression("Stacks"~italic("F")["ST"])
-         #"PCAdapt",expression(italic("X")^T~italic("X")),"Salinity BF"
-         ),
+         expression("Stacks"~italic("F")["ST"]),
+         "PCAdapt"), #expression(italic("X")^T~italic("X")),"Salinity BF"
        #xjust = 0.5,x.intersp = 0.5,
-       col = cols[c("perm","stacks")],
-       pt.bg=cols[c("perm","stacks")],
+       col = cols[c("perm","stacks","pc")],
+       pt.bg=cols[c("perm","stacks","pc")],
        #pch=c(4,5,0,3,2),
-       pch=pchs[c("perm","stacks")],pt.lwd =ptsize,pt.cex=2,cex=1,
-       bty='n',ncol=2)
+       pch=pchs[c("perm","stacks","pc")],pt.lwd =ptsize,pt.cex=2,cex=1,
+       bty='n',ncol=3)
 dev.off()
 ```
 
