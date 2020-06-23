@@ -825,10 +825,10 @@ Adaptation to freshwater might involve changes in coding regions of the genome o
 
 
 ```{r getOutliers}
-fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
-outliers<-list(xtx=fw_SNPinfo$ID[fw_SNPinfo$XtX >= quantile(fw_SNPinfo$XtX_noFL,0.99,na.rm = TRUE)],
-               salBF=fw_SNPinfo$ID[fw_SNPinfo$logSalB_noFLF>=
-                                     quantile(fw_SNPinfo$logSalBF_noFL,0.99,na.rm = TRUE)],
+fw_SNPinfo<-readRDS("fw_SNPinfo_noFL.RDS")
+outliers<-list(xtx=fw_SNPinfo$ID[which(fw_SNPinfo$XtX_noFL >= quantile(fw_SNPinfo$XtX_noFL,0.99,na.rm = TRUE))],
+               salBF=fw_SNPinfo$ID[which(fw_SNPinfo$logSalBF_noFL>=
+                                     quantile(fw_SNPinfo$logSalBF_noFL,0.99,na.rm = TRUE))],
                permutations=fw_SNPinfo$ID[
                  rowSums(fw_SNPinfo[,c("perm_TX","perm_AL","perm_LA")])==3],
                pcadapt=fw_SNPinfo$ID[which(fw_SNPinfo$pcadaptQ<0.01)],
@@ -941,8 +941,11 @@ outdat<-data.frame(rbind(lg6[which(lg6$ID %in% outliers$sharedStacks),],
 outdat<-unique(outdat)
 
 outdat$abbr<-NA
+# outdat$abbr<-c("WRNIP1","uncharacterised protein ",NA,
+#                "PTPRF6","LRRCC1",NA,"RP1","LAMA3",NA,NA,NA)
+
 outdat$abbr<-c("WRNIP1","uncharacterised protein ",NA,
-               "PTPRF6","LRRCC1",NA,"RP1","LAMA3",NA,NA,NA)
+               "PTPRF6","LRRCC1",NA,"RP1",NA, NA, NA,"PPP1R9A","RIOK1",NA)
 
 
 ```
