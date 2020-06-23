@@ -2399,7 +2399,7 @@ legend("top",c(expression(italic("X")^T~italic("X")),"Salinity BF"),
        xjust = 0.5,x.intersp = 0.5,
        col = cols[c("xtx","sal")],
        pt.bg=cols[c("xtx","sal")],
-       pch=c(3,2),bty='n',ncol=5)
+       pch=c(3,2),bty='n',ncol=2)
 dev.off()
 ```
 
@@ -2484,7 +2484,7 @@ outliers<-list(xtx=fw_SNPinfo$ID[fw_SNPinfo$XtX >= quantile(fw_SNPinfo$XtX,0.99,
 upsetcols<-c(permutations='#e41a1c',salBF='#377eb8',pcadapt='#a65628',
         xtx='#ff7f00',sharedStacks='#f781bf',
         Alabama='#e7d4e8',Louisiana='#af8dc3',Texas='#762a83',Florida='#1b7837')
-png("../figs/upsetOutliers.png",res=300,height=4,width=7.5,units="in",pointsize = 20)
+png("../figs/upsetOutliers.png",res=300,height=8,width=8.5,,units="in",pointsize = 20)
 upset(fromList(outliers),sets=c("pcadapt","permutations","sharedStacks","xtx","salBF"),
       point.size=7,line.size=2,mainbar.y.label = "Shared Outliers",
       sets.x.label = "# Outliers",text.scale=rep(3,6),
@@ -2501,21 +2501,20 @@ And finally we'll stitch them together into a final image.
 ```{r CreateOutliersImage, eval=FALSE}
 library(magick);library(multipanelfigure)
 
-image_files <- c("../figs/FstOutliers.png",
+image_files <- c("../figs/BayenvOutliersNoFL.png",
                  "../figs/upsetOutliers.png")
 
 
-png("../figs/BayenvPlots.png",height=4,width=8,units="in",res=300,pointsize = 11)
+png("../figs/BayenvPlots.png",height=2.5,width=6.5,units="in",res=300,pointsize = 11)
 figure <- multi_panel_figure(
-  width = c(4.5, 3),
-  height = c(1.8,1.8),
+  width = c(4, 2),
+  height = c(1,1),
   unit = "inches",
   row_spacing = 0.0,column_spacing = 0
 )
 (figure %<>% fill_panel(image_files[1],row = 1:2,scaling="fit",
                         allow_panel_overwriting = TRUE) )
-(figure %<>% fill_panel(image_files[3], column=2, row=1,scaling="fit") )
-(figure %<>% fill_panel(image_files[2],column=2,row=2,scaling="fit"))
+(figure %<>% fill_panel(image_files[2],column=2,row=1:2,scaling="fit"))
 dev.off()
 
 ```
