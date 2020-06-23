@@ -1459,6 +1459,10 @@ permute.gwsca<-function(vcf,map1,nperms,z=1.96, maf.cutoff = 0.05,cov.thresh=0.2
   # calculate stats
   fsts<-t(do.call(rbind,lapply(perm_fsts,'[[',"Fst"))) #extract permuted fsts
   perm_fst_mu<-rowMeans(fsts)
+  perm_fst_sem<-apply(fsts,1, sem)
+  perm_fst_t<-(perm_fst_mu-actual_fsts$Fst)/perm_fst_sem
+  perm_fst_p<-pt(perm_fst_t,df=nperms-1,lower.tail = FALSE) # one-tailed
+  perm_fst_padj<-p.adjust(perm_fst_p,method = "bonferroni")
   perm_fst_in<-NULL
   for(i in 1:nrow(actual_fsts)){
     pmax<-max(fsts[i,] )
@@ -1473,6 +1477,10 @@ permute.gwsca<-function(vcf,map1,nperms,z=1.96, maf.cutoff = 0.05,cov.thresh=0.2
   fst_dat<-data.frame(cbind(actual_fsts,
                             n_perms=nperms,
                             mean_perm=perm_fst_mu,
+                            sem_perm=perf_fst_sem,
+                            tstat=perm_fst_t,
+                            pval=perm_fst_p,
+                            adjP=perm_fst_padj,
                             act_in_perm=perm_fst_in))
   return(fst_dat)
 }
