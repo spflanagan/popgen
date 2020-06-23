@@ -1918,7 +1918,7 @@ grp[grp!="freshwater"]<-"saltwater"
 
 
 ```{r PcadaptK4-1, fig.cap="Manhattan plot for the PCAdapt outlier analysis with the subsetted dataset and 4 PC axes retained in the analysis."}
-res<-pcadapt(filename,K=4,min.maf=0.01)
+res<-pcadapt(filename,K=4)
 plot(res, option="manhattan")
 ```
 ```{r PcadaptK4-2, fig.cap="Q-Q plot for the PCAdapt outlier analysis with the subsetted dataset and 4 PC axes retained in the analysis."}
@@ -1957,7 +1957,7 @@ We need to choose a cutoff for outlier detection. I'll use the qvalue approach, 
 ```{r PcadaptQvalue}
 library(qvalue)
 qval <- qvalue(res$pvalues)$qvalues
-alpha <- 0.05
+alpha <- 0.01
 outliers <- which(qval < alpha)
 snp_pc<-get.pc(res,outliers) # Get the PCs associated with outliers
 ```
