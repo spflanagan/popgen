@@ -2188,12 +2188,9 @@ text(x=midpts[lgs],y=0)
 # plot Bayes Factors
 plot_dat<-fst.plot(plot_dat,scaffs.to.plot = lgs,fst.name = "logSalBF",
                    chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19,pt.cex = 2)
-points(plot_dat$plot.pos[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
-       plot_dat$logSalBF[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
-       col=cols["sal"],cex=2,pch=pchs["sal"],lwd=ptlwd)
-points(plot_dat$plot.pos[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
-       plot_dat$logSalBF[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
-       col=cols["xtx"],cex=2,pch=pchs["xtx"],lwd=ptlwd)
+points(plot_dat$plot.pos[plot_dat$pcadaptOut],
+       plot_dat$logSalBF[plot_dat$pcadaptOut],
+       col=cols["pc"],cex=2,pch=pchs["pc"],lwd=ptlwd)
 points(plot_dat$plot.pos[
   rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
        plot_dat$logSalBF[
@@ -2204,9 +2201,14 @@ points(plot_dat$plot.pos[plot_dat$stacks_AL_P < 0.05 & plot_dat$stacks_LA_P < 0.
        plot_dat$logSalBF[plot_dat$stacks_AL_P < 0.05 & plot_dat$stacks_LA_P < 0.05 &
                            plot_dat$stacks_TX_P < 0.05 ],
        col=cols["stacks"],cex=2,pch=pchs["stacks"],lwd=ptlwd)
-points(plot_dat$plot.pos[plot_dat$pcadaptOut],
-       plot_dat$logSalBF[plot_dat$pcadaptOut],
-       col=cols["pc"],cex=2,pch=pchs["pc"],lwd=ptlwd)
+
+points(plot_dat$plot.pos[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+       plot_dat$logSalBF[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+       col=cols["sal"],cex=2,pch=pchs["sal"],lwd=ptlwd)
+points(plot_dat$plot.pos[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+       plot_dat$logSalBF[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+       col=cols["xtx"],cex=2,pch=pchs["xtx"],lwd=ptlwd)
+
 axis(2,las=1)
 mtext("log(Salinity Bayes Factors)",2,line=2)
 
