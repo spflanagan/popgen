@@ -776,6 +776,7 @@ knitr::include_graphics('../figs/BayenvOutliersNoFL.png')
 To quantify the similarity between the analysis with the Florida populations and without, we calculated correlation coefficients between the statistics. As supported by the presence of few overlapping outliers, the correlations between variables were low, but the correlation coefficients were > 0.5 between the same statistics calculated with and without the Florida populations (Table \@ref(tab:BayenvCompareFL)). The salinity-associated loci, in particular, were fairly highly correlated (Table \@ref(tab:BayenvCompareFL); Figure \@ref(fig:BayenvCompareFLPlots)).
 
 ```{r BayenvCompareFL}
+bayenv_noFL<-read.delim("bayenv/bayenv_output_noFL.txt",header=TRUE)
 bayenv_cor<-cor(bayenv_noFL[,c("XtX_noFL",
                    "logSalBF_noFL",
                    "logTemBF_noFL",
@@ -807,10 +808,10 @@ plot(bayenv_noFL$logSegBF_FL, bayenv_noFL$logSegBF_noFL,
 
 
 ```{r BayenvCompareOutliers}
-bothXtX<-bayenv_noFL$ID[bayenv_noFL$XtX_FL>=quantile(plot_dat$XtX_FL,0.99) &
-                 bayenv_noFL$XtX_noFL>=quantile(plot_dat$XtX_noFL,0.99)]
-bothSal<-bayenv_noFL$ID[bayenv_noFL$logSalBF_FL>=quantile(plot_dat$logSalBF_FL,0.99) &
-                 bayenv_noFL$logSalBF_noFL>=quantile(plot_dat$logSalBF_noFL,0.99)]
+bothXtX<-bayenv_noFL$ID[bayenv_noFL$XtX_FL>=quantile(bayenv_noFL$XtX_FL,0.99) &
+                 bayenv_noFL$XtX_noFL>=quantile(bayenv_noFL$XtX_noFL,0.99)]
+bothSal<-bayenv_noFL$ID[bayenv_noFL$logSalBF_FL>=quantile(bayenv_noFL$logSalBF_FL,0.99) &
+                 bayenv_noFL$logSalBF_noFL>=quantile(bayenv_noFL$logSalBF_noFL,0.99)]
 ```
 
 The two analyses produced `r length(bothXtX)` SNPs that are XtX outliers in both Bayenv analyses and `r length(bothSal)` salinity-associated outliers in both.
