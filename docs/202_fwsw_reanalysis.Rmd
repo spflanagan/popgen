@@ -1874,6 +1874,8 @@ dev.off()
 
 ```
 
+![Multipanel figure showing the locations of outlier loci in the genome (A) as well as overlap between the outlier analyses (B and C). This figure is Figure 2 in the main text.](../figs/fstPlots.png)
+
 ## PCAdapt {-}
 
 For this analysis, to maintain consistency with the other outlier analyses, I'm using the subestted dataset. So I need to run PCAdapt [@luu_pcadapt:_2017] another time.
@@ -2639,7 +2641,7 @@ dev.off()
 
 ```
 
-![Multipanel figure showing the locations of outlier loci in the genome (A) as well as overlap between the outlier analyses (B and C). This figure is Figure 2 in the main text.](../figs/fstPlots.png)
+
 
 ## Annotations {-}
 
