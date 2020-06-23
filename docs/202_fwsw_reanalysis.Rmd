@@ -2346,20 +2346,20 @@ write.table(bayenv_noFL,"bayenv/bayenv_output_noFL.txt",sep="\t",
 ```{r makePlotBayenvNoFL}
 library(scales)
 bayenv_noFL<-read.delim("bayenv/bayenv_output_noFL.txt",header=TRUE)
+ptlwd<-3
 
-cols<-c(perm=alpha('#e41a1c',0.75),sal=alpha('#377eb8',0.75),pc=alpha('#a65628',0.75),
-        stacks=alpha('#f781bf',0.75),xtx=alpha('#ff7f00',0.75))
 png("../figs/BayenvOutliersNoFL.png",height=5,width=8.5,units="in",res=300,pointsize=12)
 par(mfrow=c(2,1),oma=c(1,2,1,1),mar=c(2,2,1,1),xpd=TRUE)
 # plot XtX
 plot_dat<-fst.plot(bayenv_noFL,scaffs.to.plot = lgs,fst.name = "XtX_noFL",
-                   chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19)
-points(plot_dat$plot.pos[plot_dat$XtX_noFL>=quantile(plot_dat$XtX_noFL,0.99)],
-       plot_dat$XtX_noFL[plot_dat$XtX_noFL>=quantile(plot_dat$XtX_noFL,0.99)],
-       col=cols["xtx"],cex=0.75,pch=3)
+                   chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19,pt.cex = 2)
 points(plot_dat$plot.pos[plot_dat$logSalBF_noFL>=quantile(plot_dat$logSalBF_noFL,0.99)],
        plot_dat$XtX_noFL[plot_dat$logSalBF_noFL>=quantile(plot_dat$logSalBF_noFL,0.99)],
-       col=cols["sal"],cex=0.85,pch=2)
+       col=cols["sal"],cex=2,pch=pchs["sal"],lwd=ptlwd)
+points(plot_dat$plot.pos[plot_dat$XtX_noFL>=quantile(plot_dat$XtX_noFL,0.99)],
+       plot_dat$XtX_noFL[plot_dat$XtX_noFL>=quantile(plot_dat$XtX_noFL,0.99)],
+       col=cols["xtx"],cex=2,pch=pchs["xtx"],lwd=ptlwd)
+
 axis(2,las=1)
 mtext(expression(italic("X")^"T"~italic("X")),2,line=2)
 
@@ -2370,12 +2370,13 @@ text(x=midpts[lgs],y=0)
 # plot Bayes Factors
 plot_dat<-fst.plot(plot_dat,scaffs.to.plot = lgs,fst.name = "logSalBF_noFL",
                    chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19)
-points(plot_dat$plot.pos[plot_dat$logSalBF_noFL>=quantile(plot_dat$logSalBF_noFL,0.99)],
-       plot_dat$logSalBF_noFL[plot_dat$logSalBF_noFL>=quantile(plot_dat$logSalBF_noFL,0.99)],
-       col=cols["sal"],cex=0.85,pch=2)
 points(plot_dat$plot.pos[plot_dat$XtX_noFL>=quantile(plot_dat$XtX_noFL,0.99)],
        plot_dat$logSalBF_noFL[plot_dat$XtX_noFL>=quantile(plot_dat$XtX_noFL,0.99)],
-       col=cols["xtx"],cex=0.75,pch=3)
+       col=cols["xtx"],cex=2,pch=pchs["xtx"],lwd=ptlwd)
+points(plot_dat$plot.pos[plot_dat$logSalBF_noFL>=quantile(plot_dat$logSalBF_noFL,0.99)],
+       plot_dat$logSalBF_noFL[plot_dat$logSalBF_noFL>=quantile(plot_dat$logSalBF_noFL,0.99)],
+       col=cols["sal"],cex=2,pch=pchs["sal"],lwd=ptlwd)
+
 axis(2,las=1)
 mtext("log(Salinity Bayes Factors)",2,line=2)
 
@@ -2386,7 +2387,7 @@ text(x=midpts[lgs],y=-5)
 # add outside legend
 
 opar <- par(fig=c(0, 1, 0, 1), oma=c(0, 0, 0, 0),
-            mar=c(0, 0, 0, 0), new=TRUE)
+             mar=c(0, 0, 0, 0), new=TRUE)
 on.exit(par(opar))
 plot(0, 0, type='n', bty='n', xaxt='n', yaxt='n')
 legend("top",c(expression(italic("X")^T~italic("X")),"Salinity BF"),
