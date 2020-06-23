@@ -1653,7 +1653,7 @@ pchs<-c(perm=5,sal=2,pc=0,stacks=8,xtx=3)
 grp7colors<-c('#762a83','#9970ab','#c2a5cf','#d9f0d3','#a6dba0','#5aae61','#1b7837')
 ```
 
-```{r plotStacksOutliers2, eval=FALSE}
+```{r plotStacksOutliers2, eval=TRUE}
 ptsize<-3
 png("../figs/FstOutliers_NoBayenv.png",height=8,width=8.5,units="in",res=300,pointsize=20)
 par(mfrow=c(4,1),oma=c(1,1,0.5,1),mar=c(2,2,1,1),xpd=TRUE)
@@ -1797,12 +1797,12 @@ legend("top",
        col = cols[c("perm","stacks","pc")],
        pt.bg=cols[c("perm","stacks","pc")],
        #pch=c(4,5,0,3,2),
-       pch=pchs[c("perm","stacks","pc")],pt.lwd =ptsize,pt.cex=2,cex=1,
+       pch=pchs[c("perm","stacks","pc")],pt.lwd =ptsize,pt.cex=2,cex=1.5,
        bty='n',ncol=3)
 dev.off()
 ```
 
-```{r stacksUpset, eval=FALSE}
+```{r stacksUpset, eval=TRUE}
 fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
 outliers<-list( permutations=fw_SNPinfo$ID[
                  rowSums(fw_SNPinfo[,c("perm_TX","perm_AL","perm_LA")])==3],
@@ -1830,7 +1830,7 @@ dev.off()
 
 ```
 
-```{r permsUpset, eval=FALSE}
+```{r permsUpset, eval=TRUE}
 outliers<-list(permutations=fw_SNPinfo$ID[
                  rowSums(fw_SNPinfo[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
                Alabama=fw_SNPinfo$ID[which(fw_SNPinfo$perm_AL==1)], 
@@ -1855,7 +1855,7 @@ dev.off()
 ```
 
 
-```{r CreateFstsFig, eval=FALSE}
+```{r CreateFstsFig, eval=TRUE}
 library(magick);library(multipanelfigure)
 
 image_files <- c("../figs/FstOutliers_NoBayenv.png",
@@ -2352,7 +2352,7 @@ write.table(bayenv_noFL,"bayenv/bayenv_output_noFL.txt",sep="\t",
 ```
 
 
-```{r makePlotBayenvNoFL, eval=FALSE}
+```{r makePlotBayenvNoFL, eval=TRUE}
 library(scales)
 bayenv_noFL<-read.delim("bayenv/bayenv_output_noFL.txt",header=TRUE)
 ptlwd<-3
@@ -2400,7 +2400,7 @@ opar <- par(fig=c(0, 1, 0, 1), oma=c(0, 0, 0, 0),
 on.exit(par(opar))
 plot(0, 0, type='n', bty='n', xaxt='n', yaxt='n')
 legend("top",c(expression(italic("X")^T~italic("X")),"Salinity BF"),
-       xjust = 0.5,x.intersp = 0.5,
+       xjust = 0.5,x.intersp = 0.5,cex=1.5,
        col = cols[c("xtx","sal")],
        pt.bg=cols[c("xtx","sal")],
        pch=c(3,2),bty='n',ncol=2)
@@ -2415,6 +2415,7 @@ knitr::include_graphics('../figs/BayenvOutliersNoFL.png')
 Let's compare the results of the analyses with and without the Florida populations.
 
 ```{r BayenvCompareFL}
+bayenv_noFL<-read.delim("bayenv/bayenv_output_noFL.txt",header=TRUE)
 bayenv_cor<-cor(bayenv_noFL[,c("XtX_noFL",
                    "logSalBF_noFL",
                    "logTemBF_noFL",
@@ -2502,7 +2503,7 @@ dev.off()
 
 And finally we'll stitch them together into a final image.
 
-```{r CreateOutliersImage, eval=FALSE}
+```{r CreateOutliersImage, eval=TRUE}
 library(magick);library(multipanelfigure)
 
 image_files <- c("../figs/BayenvOutliersNoFL.png",
