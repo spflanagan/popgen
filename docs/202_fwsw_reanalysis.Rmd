@@ -1981,6 +1981,33 @@ saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
 
 I should note that for some of these PCAdapt gives "NA" because it has its own built-in pruning, including a minor allele frequency setting, which apparently works somewhat differently from Stacks' pruning. 
 
+```{r PcadaptManhattan,fig.cap="Manhattan plot of the PCAdapt statistics with the outliers from other analyses included."}
+resPlot<-data.frame(cbind(fw_SNPinfo[,1:5],Stat=res$stat))
+plot_dat<-fst.plot(resPlot,scaffs.to.plot = lgs,fst.name = "Stat",
+                   chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19,pt.cex=2)
+points(plot_dat$plot.pos[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+       plot_dat$XtX[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+       col=cols["xtx"],cex=2,pch=pchs["xtx"],lwd=2)
+points(plot_dat$plot.pos[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+       plot_dat$XtX[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+       col=cols["sal"],cex=2,pch=pchs["sal"],lwd=2)
+points(plot_dat$plot.pos[
+  rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
+       plot_dat$XtX[
+         rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
+       col=cols["perm"],cex=2,pch=pchs["perm"],lwd=2)
+points(plot_dat$plot.pos[plot_dat$stacks_AL < 0.05 & plot_dat$stacks_LA < 0.05 &
+                           plot_dat$stacks_TX < 0.05],
+       plot_dat$XtX[plot_dat$stacks_AL < 0.05 & plot_dat$stacks_LA < 0.05 &
+                           plot_dat$stacks_TX < 0.05],
+       col=cols["stacks"],cex=2,pch=pchs["stacks"],lwd=2)
+points(plot_dat$plot.pos[plot_dat$pcadaptOut],
+       plot_dat$XtX[plot_dat$pcadaptOut],
+       col=cols["pc"],cex=2,pch=pchs["pc"],lwd=2)
+
+```
+
+
 
 # Bayenv {-}
 
