@@ -2149,7 +2149,7 @@ But if we only care about salinity ones, there are `r nrow(sal.bf.sig)` outliers
 
 
 
-```{r MakePlotBayenv}
+```{r MakePlotBayenv,eval=FALSE}
 library(scales)
 ptlwd<-3
 fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
@@ -2159,12 +2159,9 @@ par(mfrow=c(2,1),oma=c(1,2,1,1),mar=c(2,2,1,1),xpd=TRUE)
 # plot XtX
 plot_dat<-fst.plot(fw_SNPinfo,scaffs.to.plot = lgs,fst.name = "XtX",
                    chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19,pt.cex=2)
-points(plot_dat$plot.pos[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
-       plot_dat$XtX[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
-       col=cols["xtx"],cex=2,pch=pchs["xtx"],lwd=ptlwd)
-points(plot_dat$plot.pos[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
-       plot_dat$XtX[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
-       col=cols["sal"],cex=2,pch=pchs["sal"],lwd=ptlwd)
+points(plot_dat$plot.pos[plot_dat$pcadaptOut],
+       plot_dat$XtX[plot_dat$pcadaptOut],
+       col=cols["pc"],cex=2,pch=pchs["pc"],lwd=ptlwd)
 points(plot_dat$plot.pos[
   rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
        plot_dat$XtX[
@@ -2175,9 +2172,13 @@ points(plot_dat$plot.pos[which(plot_dat$stacks_AL_P < 0.05 & plot_dat$stacks_LA_
        plot_dat$XtX[which(plot_dat$stacks_AL_P < 0.05 & plot_dat$stacks_LA_P < 0.05 &
                            plot_dat$stacks_TX_P < 0.05)],
        col=cols["stacks"],cex=2,pch=pchs["stacks"],lwd=ptlwd)
-points(plot_dat$plot.pos[plot_dat$pcadaptOut],
-       plot_dat$XtX[plot_dat$pcadaptOut],
-       col=cols["pc"],cex=2,pch=pchs["pc"],lwd=ptlwd)
+points(plot_dat$plot.pos[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+       plot_dat$XtX[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+       col=cols["xtx"],cex=2,pch=pchs["xtx"],lwd=ptlwd)
+points(plot_dat$plot.pos[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+       plot_dat$XtX[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+       col=cols["sal"],cex=2,pch=pchs["sal"],lwd=ptlwd)
+
 axis(2,las=1)
 mtext(expression(italic("X")^"T"~italic("X")),2,line=2)
 
