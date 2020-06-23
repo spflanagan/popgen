@@ -25,7 +25,14 @@ pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 
 # 23 June 2020
 
-The pemutations are still running this morning but hopefully they'll be done by the afternoon so I can dig into it.
+The pemutations are still running this morning but hopefully they'll be done by the afternoon so I can dig into it. They seem to have finished, whoot...but I screwed up and they didn't save properly. facepalm. 
+
+```{r}
+perms<-readRDS("permuted_fsts_22062020.RDS")
+```
+
+So I'll start it again and look at them tomorrow. 
+
 
 Right now I want to get to the bottom of the PCAdapt weirdness. Ok, so I've discovered that with min.maf=0.05, only 781 SNPs pass PCAdapt's pruning. With min.maf=0.01 only 2358 SNPs pass the pruning. With min.maf=0, 12094 pass. With an alpha level of 0.01, there are still 3330 outliers, and most of these are ones with really small minor allele frequencies (median=0.014). But many of these have negative z-scores -- perhaps I can focus my attention only on those with positive z-scores. No, that probably won't work. What I can do is restrict attention to those loci with statistics in the top 99% quantile and then only keep those with qvalues <= alpha (0.01)
 
