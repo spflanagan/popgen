@@ -44,7 +44,9 @@ A few things:
 2. PCAdapt doesn't share many of the same outliers because those loci are removed by the minor allele frequency cutoff. If I remove this cutoff, then thousands of loci have really small q-values, which also doesn't seem quite right.
 3. I need to look into the set of outliers that shows up on LG6. 
 
-Working on 1:
+Working on 2:
+I'll try a min.maf=0.01 and see if that helps include more outliers without creating chaos. 
+
 
 # 19 June 2020
 
