@@ -1653,7 +1653,7 @@ pchs<-c(perm=5,sal=2,pc=0,stacks=8,xtx=3)
 grp7colors<-c('#762a83','#9970ab','#c2a5cf','#d9f0d3','#a6dba0','#5aae61','#1b7837')
 ```
 
-```{r plotStacksOutliers2, eval=TRUE}
+```{r plotStacksOutliers2, eval=FALSE}
 ptsize<-3
 png("../figs/FstOutliers_NoBayenv.png",height=8,width=8.5,units="in",res=300,pointsize=20)
 par(mfrow=c(4,1),oma=c(1,1,0.5,1),mar=c(2,2,1,1),xpd=TRUE)
@@ -1797,12 +1797,12 @@ legend("top",
        col = cols[c("perm","stacks","pc")],
        pt.bg=cols[c("perm","stacks","pc")],
        #pch=c(4,5,0,3,2),
-       pch=pchs[c("perm","stacks","pc")],pt.lwd =ptsize,pt.cex=2,cex=1.5,
+       pch=pchs[c("perm","stacks","pc")],pt.lwd =ptsize,pt.cex=2,cex=1.25,
        bty='n',ncol=3)
 dev.off()
 ```
 
-```{r stacksUpset, eval=TRUE}
+```{r stacksUpset, eval=FALSE}
 fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
 outliers<-list( permutations=fw_SNPinfo$ID[
                  rowSums(fw_SNPinfo[,c("perm_TX","perm_AL","perm_LA")])==3],
@@ -1830,7 +1830,7 @@ dev.off()
 
 ```
 
-```{r permsUpset, eval=TRUE}
+```{r permsUpset, eval=FALSE}
 outliers<-list(permutations=fw_SNPinfo$ID[
                  rowSums(fw_SNPinfo[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
                Alabama=fw_SNPinfo$ID[which(fw_SNPinfo$perm_AL==1)], 
@@ -1843,13 +1843,13 @@ outliers<-list(permutations=fw_SNPinfo$ID[
 upsetcols<-c(permutations='#e41a1c',salBF='#377eb8',pcadapt='#a65628',
         xtx='#ff7f00',sharedStacks='#f781bf',
         Alabama='#e7d4e8',Louisiana='#af8dc3',Texas='#762a83',Florida='#1b7837')
-png("../figs/sharedPerms.png",res=300,height=8,width=8.5,units="in",pointsize = 20)
-upset(fromList(outliers),sets=c("Texas","Alabama","Louisiana","Florida","sharedStacks"),
+png("../figs/sharedPerms.png",res=300,height=8,width=9,units="in",pointsize = 20)
+upset(fromList(outliers),sets=c("Texas","Louisiana","Alabama","Florida","sharedStacks"),
       point.size=7,line.size=2,mainbar.y.label = "Shared Permutation Outliers",
       sets.x.label = "# Outliers",text.scale=rep(3,6),
-      sets.bar.color =upsetcols[c("Texas","Alabama","Louisiana","Florida","sharedStacks")],
+      sets.bar.color =upsetcols[c("Texas","Louisiana","Alabama","Florida","sharedStacks")],
       margin1scale = 0.2,matrix.dot.alpha =0,
-      sets.pt.color=upsetcols[c("Texas","Alabama","Louisiana","Florida","sharedStacks")],
+      sets.pt.color=upsetcols[c("Texas","Louisiana","Alabama","Florida","sharedStacks")],
       keep.order = TRUE)
 dev.off()
 ```
@@ -1880,11 +1880,6 @@ figure <- multi_panel_figure(
 (figure %<>% fill_panel(image_files[3],column=2,row=2,scaling="fit",
                         allow_panel_overwriting = TRUE) )
 dev.off()
-
-
-
-
-
 ```
 
 ![Multipanel figure showing the locations of outlier loci in the genome (A) as well as overlap between the outlier analyses (B and C). This figure is Figure 2 in the main text.](../figs/fstPlots.png)
@@ -2352,7 +2347,7 @@ write.table(bayenv_noFL,"bayenv/bayenv_output_noFL.txt",sep="\t",
 ```
 
 
-```{r makePlotBayenvNoFL, eval=TRUE}
+```{r makePlotBayenvNoFL, eval=FALSE}
 library(scales)
 bayenv_noFL<-read.delim("bayenv/bayenv_output_noFL.txt",header=TRUE)
 ptlwd<-3
@@ -2481,9 +2476,9 @@ fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
 We can create upset plots to show overlap between pairwise Stacks comparisons and between all outlier methods.
 
 ```{r createUpsetPlots, eval=FALSE}
-outliers<-list(xtx=fw_SNPinfo$ID[fw_SNPinfo$XtX >= quantile(fw_SNPinfo$XtX,0.99,na.rm=TRUE)],
-               salBF=fw_SNPinfo$ID[fw_SNPinfo$logSalBF>=
-                                     quantile(fw_SNPinfo$logSalBF,0.99,na.rm=TRUE)],
+outliers<-list(xtx=fw_SNPinfo$ID[fw_SNPinfo$XtX_noFL >= quantile(fw_SNPinfo$XtX_noFL,0.99,na.rm=TRUE)],
+               salBF=fw_SNPinfo$ID[fw_SNPinfo$logSalBF_noFL>=
+                                     quantile(fw_SNPinfo$logSalBF_noFL,0.99,na.rm=TRUE)],
                permutations=fw_SNPinfo$ID[
                  rowSums(fw_SNPinfo[,c("perm_TX","perm_AL","perm_LA")])==3],
                pcadapt=fw_SNPinfo$ID[which(fw_SNPinfo$pcadaptQ<0.01)],
@@ -2497,7 +2492,7 @@ outliers<-list(xtx=fw_SNPinfo$ID[fw_SNPinfo$XtX >= quantile(fw_SNPinfo$XtX,0.99,
 upsetcols<-c(permutations='#e41a1c',salBF='#377eb8',pcadapt='#a65628',
         xtx='#ff7f00',sharedStacks='#f781bf',
         Alabama='#e7d4e8',Louisiana='#af8dc3',Texas='#762a83',Florida='#1b7837')
-png("../figs/upsetOutliers.png",res=300,height=8,width=8.5,,units="in",pointsize = 20)
+png("../figs/upsetOutliers_noFL.png",res=300,height=8,width=8.5,,units="in",pointsize = 20)
 upset(fromList(outliers),sets=c("pcadapt","permutations","sharedStacks","xtx","salBF"),
       point.size=7,line.size=2,mainbar.y.label = "Shared Outliers",
       sets.x.label = "# Outliers",text.scale=rep(3,6),
@@ -2515,10 +2510,10 @@ And finally we'll stitch them together into a final image.
 library(magick);library(multipanelfigure)
 
 image_files <- c("../figs/BayenvOutliersNoFL.png",
-                 "../figs/upsetOutliers.png")
+                 "../figs/upsetOutliers_noFL.png")
 
 
-png("../figs/BayenvPlots.png",height=2.5,width=6.5,units="in",res=300,pointsize = 11)
+png("../figs/BayenvPlots_noFL.png",height=2.5,width=6.5,units="in",res=300,pointsize = 11)
 figure <- multi_panel_figure(
   width = c(4, 2),
   height = c(1,1),
