@@ -949,6 +949,10 @@ outdat$abbr<-c("WRNIP1","uncharacterisedprotein ",NA,
 
 
 ```{r LG6plot,fig.cap="Plot of the outliers in their positions in LG6. Gene regions are shown in grey, the salinity-associated outliers are shown in the blue dashed lines, and the shared Stacks outliers (TX, AL, and LA only) are shown as pink lines. Outliers in gene regions have their gene abbreviation printed above the lines."}
+cols<-c(perm=alpha('#e41a1c',0.75),sal=alpha('#377eb8',0.75),pc=alpha('#a65628',0.75),
+        stacks=alpha('#f781bf',0.75),xtx=alpha('#ff7f00',0.75))
+pchs<-c(perm=5,sal=2,pc=0,stacks=8,xtx=3)
+
 plot(x=c(min(gff6$start),max(gff6$end)),
      y=c(0,1),type='n', axes=FALSE,
      xlab="",ylab="")
