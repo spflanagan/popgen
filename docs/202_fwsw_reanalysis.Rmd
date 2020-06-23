@@ -1004,9 +1004,11 @@ tip.names<-data.frame(Original=tip.names,Replacement=tip.names,stringsAsFactors 
 tip.names$Replacement[tip.names$Replacement=="FLLG"]<-"FLFW"
 
 
-col_vector<-c(TXSP='#762a83',TXCC='#762a83',TXFW="#2166ac",TXCB='#762a83',LAFW="#2166ac",ALST='#af8dc3',
-              ALFW="#2166ac",FLSG='#e7d4e8',FLKB='#e7d4e8',FLFD='#e7d4e8',FLSI='#e7d4e8',FLAB='#7fbf7b',
-              FLPB='#1b7837',FLHB='#1b7837',FLCC='#1b7837',FLFW="#2166ac")
+col_vector<-c(TXSP=grp7colors[1],TXCC=grp7colors[1],TXFW="#2166ac",TXCB=grp7colors[1],
+              LAFW="#2166ac",ALST=grp7colors[3],ALFW="#2166ac",
+              FLSG=grp7colors[4],FLKB=grp7colors[4],FLFD=grp7colors[4],
+              FLSI=grp7colors[4],FLAB=grp7colors[5],
+              FLPB=grp7colors[6],FLHB=grp7colors[6],FLCC=grp7colors[6],FLFW="#2166ac")
 ```
 
 
