@@ -98,9 +98,9 @@ col_vector<-c(red='#e6194b', green='#3cb44b', blue='#4363d8',yellow='#ffe119',
               mint='#aaffc3', navy='#000075', beige='#fffac8', grey='#808080', 
               white='#ffffff', black='#000000')
 
-col_vector<-c('#762a83','#762a83',"#2166ac",'#762a83',"#2166ac",'#af8dc3',
-              "#2166ac",'#e7d4e8','#e7d4e8','#e7d4e8','#e7d4e8','#7fbf7b',
-              '#1b7837','#1b7837','#1b7837',"#2166ac")
+col_vector<-c('#762a83','#762a83',"#2166ac",'#762a83',"#2166ac",'#c2a5cf',
+              "#2166ac",'#d9f0d3','#d9f0d3','#d9f0d3','#d9f0d3','#a6dba0',
+              '#5aae61','#5aae61','#5aae61',"#2166ac")
 
 ppi<-data.frame(Pop=pop.labs,cols = col_vector,
                 pch=rep(c(15,16,17,18),4))
@@ -970,7 +970,7 @@ axis(1,pos=-0.01,at=1:nrow(f4s),
 ## Make figure
 
 ```{r defineColors}
-grp.colors<-c('#762a83','#af8dc3','#e7d4e8','#d9f0d3','#7fbf7b','#1b7837') 
+#grp.colors<-c('#762a83','#af8dc3','#e7d4e8','#d9f0d3','#7fbf7b','#1b7837') 
 grp7colors<-c('#762a83','#9970ab','#c2a5cf','#d9f0d3','#a6dba0','#5aae61','#1b7837')
 grp5colors<-c('#762a83','#c2a5cf','#a6dba0','#5aae61','#1b7837')
 ```
