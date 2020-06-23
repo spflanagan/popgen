@@ -490,28 +490,28 @@ admixPlotting<-function(qfile,K,famfile="admixture/fwsw_all_filt.fam",
 }
 ```
 
-```{r admixK2,fig.height=1,fig.width=8,fig.cap="Admixture plot for K=2. The colors represent different genetic populations."}
+```{r admixK2,fig.height=1,fig.width=8,fig.cap="Admixture plot for K=2. The colors represent different genetic populations. 'FLLG' is the freshwater Florida population ('FLFW' in  main text)."}
 admixK2<-admixPlotting("admixture/fwsw_all_filt.2.Q",2)
 ```
 
-```{r admixK3,fig.height=1,fig.width=8,fig.cap="Admixture plot for K=3. The colors represent different genetic populations."}
+```{r admixK3,fig.height=1,fig.width=8,fig.cap="Admixture plot for K=3. The colors represent different genetic populations. 'FLLG' is the freshwater Florida population ('FLFW' in  main text)."}
 admixK3<-admixPlotting("admixture/fwsw_all_filt.3.Q",3)
 ```
-```{r admixK4,fig.height=1,fig.width=8,fig.cap="Admixture plot for K=4. The colors represent different genetic populations."}
+```{r admixK4,fig.height=1,fig.width=8,fig.cap="Admixture plot for K=4. The colors represent different genetic populations. 'FLLG' is the freshwater Florida population ('FLFW' in  main text)."}
 admixK4<-admixPlotting("admixture/fwsw_all_filt.4.Q",4)
 ```
 
-```{r admixk5,fig.height=1,fig.width=8,fig.cap="Admixture plot for K=5. The colors represent different genetic populations."}
+```{r admixk5,fig.height=1,fig.width=8,fig.cap="Admixture plot for K=5. The colors represent different genetic populations. 'FLLG' is the freshwater Florida population ('FLFW' in  main text)."}
 admixK5<-admixPlotting("admixture/fwsw_all_filt.5.Q",5)
 write.table(admixK5,"admixture/admixK5.txt",sep = '\t',
             quote = FALSE,col.names = TRUE,row.names = FALSE)
 ```
 
-```{r admixk6,fig.height=1,fig.width=8,fig.cap="Admixture plot for K=6. The colors represent different genetic populations."}
+```{r admixk6,fig.height=1,fig.width=8,fig.cap="Admixture plot for K=6. The colors represent different genetic populations. 'FLLG' is the freshwater Florida population ('FLFW' in  main text)."}
 admixK6<-admixPlotting("admixture/fwsw_all_filt.6.Q",6)
 ```
 
-```{r admixk7,fig.height=1,fig.width=8,fig.cap="Admixture plot for K=7. The colors represent different genetic populations."}
+```{r admixk7,fig.height=1,fig.width=8,fig.cap="Admixture plot for K=7. The colors represent different genetic populations. 'FLLG' is the freshwater Florida population ('FLFW' in  main text)."}
 admixK7<-admixPlotting("admixture/fwsw_all_filt.7.Q",7)
 write.table(admixK7,"admixture/admixK7.txt",sep = '\t',quote = FALSE,col.names = TRUE,row.names = FALSE)
 ```
@@ -640,7 +640,7 @@ write.table(cbind(poporder,colors),"poporder",quote=F,sep='\t')
 
 We began by running 100 bootstrap replicates without a root and without migration edges. We then built a consensus tree using PHYLIP v. 3.697 [@felsensteinPHYLIPPhylogenyInference2005] and used that tree (Figure \@ref(fig:treemixConsensus)) to choose the best population to set as a root. We then ran another 100 bootstrap replicates with the chosen population (which was FLAB) as root but with no migration edges. Again, we built a consensus tree with PHYLIP v. 3.697 [@felsensteinPHYLIPPhylogenyInference2005], which we used in the analyses with migration edges. 
 
-```{r treemixConsensus, results='hide', fig.show='true',fig.cap="The consensus tree from running Treemix any migration edges and without a root (left) and without migration edges but FLAB set as root (right)."}
+```{r treemixConsensus, results='hide', fig.show='true',fig.cap="The consensus tree from running Treemix any migration edges and without a root (left) and without migration edges but FLAB set as root (right).'FLLG' is the freshwater Florida population ('FLFW' in  main text)."}
 source("../R/203_treemix_plotting_funcs.R") #I've modified the functions from treemix
 library(lattice); library(grid); library(RColorBrewer);library(ape)
 poporder<-read.delim("treemix/poporder")
@@ -648,9 +648,10 @@ colors<-poporder$colors
 poporder<-poporder$poporder
 ur<-ape::read.tree("treemix/unrooted_consensus.newick")
 rt<-ape::read.tree("treemix/rooted_consensus.newick")
-par(mfrow=c(1,2),oma=c(2,2,2,2),mar=c(2,2,2,2))
+par(mfrow=c(1,2),oma=c(2,2,2,2),mar=c(2,2,2,2),xpd=TRUE)
 plot(ur, main="unrooted consensus")
-plot(rt, main="consensus with FLAB set as root")
+plot(rt, main="consensus with 
+FLAB set as root")
 ```
 
 
@@ -659,7 +660,7 @@ plot(rt, main="consensus with FLAB set as root")
 
 We ran treemix, specifying the consensus tree with FLAB as root as the tree to use, with zero to five migration edges. We can inspect these trees and their residuals to look for patterns.
 
-```{r treemixMigrations, message=FALSE,results='hide',fig.height=10,fig.width=5,fig.cap="Residuals (left) and trees of the treemix runs with migration edges. All models used the consensus tree with FLAB as root."}
+```{r treemixMigrations, message=FALSE,results='hide',fig.height=10,fig.width=5,fig.cap="Residuals (left) and trees of the treemix runs with migration edges. All models used the consensus tree with FLAB as root. 'FLLG' is the freshwater Florida population ('FLFW' in  main text)."}
 
 par(mfrow=c(6,2),mar=c(2,2,2,2),oma=c(2,2,2,2))
 r0<-plot_resid("treemix/migrations/fwsw_FLAB_m0","treemix/poplist",cex = 0.75)
@@ -726,7 +727,7 @@ stops<-gsub("\\.","",stops)
 stops<-gsub("e-","",stops)
 kable(summary(as.factor(stops)),"latex",booktabs=TRUE,
       col.names = c("number of bootstraps"),
-      caption="Number of bootstraps with the one migration edge ending at each of these points on the population trees.")%>%
+      caption="Number of bootstraps with the one migration edge ending at each of these points on the population trees. 'FLLG' is the freshwater Florida population ('FLFW' in  main text).")%>%
   kable_styling(latex_options=c("HOLD_position"))
 ```
 
@@ -755,7 +756,7 @@ t2<-plot_tree(bestM1,scale=T,mbar=T,cex = 1.5,
 dev.off()
 ```
 
-```{r treemixCompare, out.width='95%',fig.cap="The plot of the tree with FLAB as root but no migration edges (left) compared to the tree with FLAB as root and two migration edges. The drift parameter is plotted on the x-axis, and migration edges are colored based on the migration weight."}
+```{r treemixCompare, out.width='95%',fig.cap="The plot of the tree with FLAB as root but no migration edges (left) compared to the tree with FLAB as root and two migration edges. The drift parameter is plotted on the x-axis, and migration edges are colored based on the migration weight. 'FLLG' is the freshwater Florida population ('FLFW' in  main text)."}
 knitr::include_graphics('../figs/treemix_comparison.png')
 ```
 
@@ -786,7 +787,7 @@ colnames(fourpop)<-c("pops","f4_stat","f4_se","f4_z")
 
 The migration edge we investigated indicated potential migration from the ancestral Florida branch to the FLPB branch. We first investigated all of the three-population trees with FLPB and FLAB and found that the majority of these trees are positive (Figure \@ref(fig:f3Edge1)), which suggests that FLPB is not admixed with the other Florida populations. Several trees are negative, but their standard errors overlap with zero (Figure \@ref(fig:f3Edge1)), which suggests that FLPB may experience some admixtre with those populations. Unsurprisingly, given the \@ref(admixture) and \@ref(pcadapt) results, these trees are those with other Atlantic Florida populations (FLHB, FLCC, and FLLG/FLFW). 
 
-```{r f3Edge1,fig.pos='H',fig.width=9,fig.height=6,fig.cap="Plot of the f3 statistic for three-population trees including both FLPB and FLAB. Error bars show the standard errors generated from block jackknifes. Trees indicative of admixture in FLPB are those with significantly negative f3 statistics."}
+```{r f3Edge1,fig.pos='H',fig.width=9,fig.height=6,fig.cap="Plot of the f3 statistic for three-population trees including both FLPB and FLAB. Error bars show the standard errors generated from block jackknifes. Trees indicative of admixture in FLPB are those with significantly negative f3 statistics. 'FLLG' is the freshwater Florida population ('FLFW' in  main text)."}
 FLPB_edge<-threepop[grep("FLPB;.*FLAB.*",threepop$pops),]
 FLPB_edge$f3_stat<-as.numeric(FLPB_edge$f3_stat)
 FLPB_edge$f3_se<-as.numeric(FLPB_edge$f3_se)
@@ -818,11 +819,11 @@ f4s<-fourpop[c(grep("FLPB,FL.*;FLAB,FL.*",fourpop$pops),
                grep("FLPB,FL.*;FL.*,FLAB",fourpop$pops),
                grep("FL.*,FLPB;FL.*,FLAB",fourpop$pops)),]
 kable(f4s,"latex",booktabs=TRUE,longtable=TRUE,
-      caption = "Four-population trees with FLPB and FLAB and their f4 statistic, standard error, z-score, and p-value." )%>%
+      caption = "Four-population trees with FLPB and FLAB and their f4 statistic, standard error, z-score, and p-value. 'FLLG' is the freshwater Florida population ('FLFW' in  main text)." )%>%
   kable_styling(latex_options=c("HOLD_position","repeat_header"))
 ```
 
-```{r f4Edge1Fig,fig.pos='H',fig.width=8,fig.height=6,fig.cap="Plot of the f4 statistic for four-population trees including both FLPB and FLAB and other Florida populations. Error bars show the standard errors generated from block jackknifes. Trees indicative of admixture in the tree are those with significantly non-zero f4 statistics."}
+```{r f4Edge1Fig,fig.pos='H',fig.width=8,fig.height=6,fig.cap="Plot of the f4 statistic for four-population trees including both FLPB and FLAB and other Florida populations. Error bars show the standard errors generated from block jackknifes. Trees indicative of admixture in the tree are those with significantly non-zero f4 statistics. 'FLLG' is the freshwater Florida population ('FLFW' in  main text)."}
 f4s$lowSE<-as.numeric(f4s$f4_stat)-as.numeric(f4s$f4_se)
 f4s$uppSE<-as.numeric(f4s$f4_stat)+as.numeric(f4s$f4_se)
 ymax<-max(abs(c(f4s$lowSE,FLPB_edge$uppSE)))+0.001
