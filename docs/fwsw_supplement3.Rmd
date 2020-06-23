@@ -752,7 +752,7 @@ xtx.sig<-bayenv.dat[bayenv.dat$XtX > quantile(bayenv.dat$XtX,0.99,na.rm=TRUE),]
 We ran Bayenv2.0 to identify environmental correlations for each SNP (represented by the resulting Bayes Factors) and to estimate population differentiation statistics (represented by the $X^TX$ value for each SNP). To analyze the output of the Bayenv2.0 environmental correlation runs, we identified loci that had extreme Bayes Factors and extreme $X^TX$ statistics as those in the 99th quantile. We found `r nrow(temp.bf.sig[temp.bf.sig$locus %in% sal.bf.sig$locus & temp.bf.sig$locus %in% grass.bf.sig,])` overlapping outliers between temperature-, salinity-, and seagrass-associated loci. However, because we are interested in shared signatures of adaptation to freshwater, we focused our attention to the salinity-associated loci, of which we found `r nrow(sal.bf.sig)`. Of those, `r nrow(xtx.sig[xtx.sig$locus %in% sal.bf.sig$locus,])` were also outliers in the distribuion of the population differentiation statistics, $X^TX$. Neither the set of outliers associated with associated or population differentiation showed spatial clustering genome-wide (Figure \@ref(fig:plotBayenv)).
 
 
-```{r plotBayenv,fig.cap="Manhattan plots of the Bayenv XTX statistic and the log of the Bayes factors associated with salinity. Shown are only loci that mapped to regions on chromosomes. Grey points represent loci that are not outlier in any analyses. Colored points represent outliers in both the Bayenv analyses and the other outlier analyses."}
+```{r plotBayenv,out.width='90%',fig.cap="Manhattan plots of the Bayenv XTX statistic and the log of the Bayes factors associated with salinity. Shown are only loci that mapped to regions on chromosomes. Grey points represent loci that are not outlier in any analyses. Colored points represent outliers in both the Bayenv analyses and the other outlier analyses."}
 knitr::include_graphics('../figs/BayenvOutliers.png')
 ```
 
@@ -767,7 +767,7 @@ knitr::include_graphics('../fwsw_results/bayenv/noFL/fwsw75_noFL.png')
 
 
 
-```{r plotBayenvNoFL,fig.cap="Manhattan plots of the Bayenv XTX statistic and the log of the Bayes factors associated with salinity from the analysis without the Florida populations. Shown are only loci that mapped to regions on chromosomes. Grey points represent loci that are not outlier in any analyses. Colored points represent outliers in both the Bayenv analyses and the other outlier analyses."}
+```{r plotBayenvNoFL,out.width='90%',fig.cap="Manhattan plots of the Bayenv XTX statistic and the log of the Bayes factors associated with salinity from the analysis without the Florida populations. Shown are only loci that mapped to regions on chromosomes. Grey points represent loci that are not outlier in any analyses. Colored points represent outliers in both the Bayenv analyses and the other outlier analyses."}
 knitr::include_graphics('../figs/BayenvOutliersNoFL.png')
 ```
 
