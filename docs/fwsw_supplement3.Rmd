@@ -690,6 +690,7 @@ plot(res, option="stat.distribution")
 ```
 
 
+
 ```{r PcadaptQvalue}
 library(qvalue)
 qval <- qvalue(res$pvalues)$qvalues
@@ -859,7 +860,7 @@ The two analyses produced `r length(bothXtX)` SNPs that are XtX outliers in both
 
 ## Summarizing outliers
 
-To summarize the results of the outliers
+To summarize the results of the outliers, we used the genome annotation information, including the Dec 2016 blastp file (https://creskolab.uoregon.edu/pipefish/). 
 
 ```{r getOutliers}
 fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
