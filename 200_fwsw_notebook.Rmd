@@ -233,6 +233,11 @@ lg6_annotate<-annotate_snps(outdat,gff,genome.blast,ID="ID",
 
 Also, what if this isn't the best way to do it? I could look for the element that has the closest start/end points and see if it falls between them. But I don't actually think this is necessary. 
 
+Working on #1, the permutation analysis:
+
+I could also return the SEM and do one-sample t-tests, apply a bonferroni correction, and then look at loci that are significant. Ok, I'm running this now, we'll see how it goes. 
+
+
 
 # 19 June 2020
 
