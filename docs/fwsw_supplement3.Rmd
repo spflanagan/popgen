@@ -941,7 +941,7 @@ outdat<-data.frame(rbind(lg6[which(lg6$ID %in% outliers$sharedStacks),],
 outdat<-unique(outdat)
 
 outdat$abbr<-NA
-outdat$abbr<-c("WRNIP1","uncharacterisedprotein ",NA,
+outdat$abbr<-c("WRNIP1","uncharacterised protein ",NA,
                "PTPRF6","LRRCC1",NA,"RP1","LAMA3",NA,NA,NA)
 
 
@@ -991,14 +991,14 @@ kable(outdat[,c("ID","Chrom","BP","REF","ALT","region","abbr","SSCID","analysis"
       "latex",booktabs=TRUE,row.names=FALSE,
       caption="Outliers on LG6 that were shared among Stacks Texas, Alabama, and Louisiana freshwater-saltwater pairwise AMOVA-corrected Fst analyses and also outliers in the salinity-association analysis from Bayenv2.")%>%
   kable_styling(latex_options="HOLD_position","repeat_header") %>%
-  column_spec(1,width="3.5em") %>%
-  column_spec(2,width="3.5em") %>%
-  column_spec(3,width="5em") %>%
-  column_spec(4,width="3em") %>%
-  column_spec(5,width="3em") %>%
-  column_spec(6,width="5em") %>%
-  column_spec(7,width="10em") %>%
-  column_spec(8,width="12em")%>%
+  column_spec(1,width="2em") %>%
+  column_spec(2,width="2em") %>%
+  column_spec(3,width="4em") %>%
+  column_spec(4,width="1em") %>%
+  column_spec(5,width="1em") %>%
+  column_spec(6,width="4em") %>%
+  column_spec(7,width="6em") %>%
+  column_spec(8,width="8em")%>%
   column_spec(9,width="10em")
 ```
 
