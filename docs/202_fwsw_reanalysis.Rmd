@@ -2175,6 +2175,9 @@ points(plot_dat$plot.pos[which(plot_dat$stacks_AL_P < 0.05 & plot_dat$stacks_LA_
        plot_dat$XtX[which(plot_dat$stacks_AL_P < 0.05 & plot_dat$stacks_LA_P < 0.05 &
                            plot_dat$stacks_TX_P < 0.05)],
        col=cols["stacks"],cex=2,pch=pchs["stacks"],lwd=ptlwd)
+points(plot_dat$plot.pos[plot_dat$pcadaptOut],
+       plot_dat$XtX[plot_dat$pcadaptOut],
+       col=cols["pc"],cex=2,pch=pchs["pc"],lwd=ptlwd)
 axis(2,las=1)
 mtext(expression(italic("X")^"T"~italic("X")),2,line=2)
 
