@@ -816,9 +816,13 @@ bothSal<-bayenv_noFL$ID[bayenv_noFL$logSalBF_FL>=quantile(bayenv_noFL$logSalBF_F
 
 The two analyses produced `r length(bothXtX)` SNPs that are XtX outliers in both Bayenv analyses and `r length(bothSal)` salinity-associated outliers in both.
 
-## Summarizing outliers
 
-To summarize the results of the outliers, we used the genome annotation information, including the Dec 2016 blastp file (https://creskolab.uoregon.edu/pipefish/). 
+
+
+# Annotations {-}
+
+Adaptation to freshwater might involve changes in coding regions of the genome or changes in regulatory regions, so we used the *S. scovelli* genome (including the Dec 2016 blastp annotations, https://creskolab.uoregon.edu/pipefish/) to identify the genomic locations of the outlier loci identified by our various analyses (Stacks $F_{ST}$s, permutations, PCAdapt outliers, Bayenv population differentiation, and Bayenv salinity correlations). We were able to identify whether outlier SNPs were located in coding regions, 3' or 5' untranslated regions ('regulatory regions'), or un-annotated regions of the genome. This last category we consider to be 'non-coding' as the *S. scovelli* genome was annotated using RNA-sequencing data from embryonic head tissue and brood pouch tissue, as well as other fish species such as *Danio rerio*, so un-annotated regions are likely to be non-coding. One of the SNPs in the dataset could not be mapped to a location in the genome. Overall, these outlier analyses demonstrate that there does not seem to be a single region of the genome with high densities of outlier SNPs (Table \@ref(tab:outChroms)). 
+
 
 ```{r getOutliers}
 fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
@@ -850,11 +854,6 @@ kable(outlierSumm,"latex",booktabs=TRUE,
 ```
 
 
-
-
-# Annotations {-}
-
-Adaptation to freshwater might involve changes in coding regions of the genome or changes in regulatory regions, so we used the *S. scovelli* genome to identify the genomic locations of the outlier loci identified by our various analyses (Stacks $F_{ST}$s, permutations, PCAdapt outliers, Bayenv population differentiation, and Bayenv salinity correlations). We were able to identify whether outlier SNPs were located in coding regions, 3' or 5' untranslated regions ('regulatory regions'), or un-annotated regions of the genome. This last category we consider to be 'non-coding' as the *S. scovelli* genome was annotated using RNA-sequencing data from embryonic head tissue and brood pouch tissue, as well as other fish species such as *Danio rerio*, so un-annotated regions are likely to be non-coding. One of the SNPs in the dataset could not be mapped to a location in the genome. 
 
 ```{r ann2outlier,eval=TRUE}
 fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
