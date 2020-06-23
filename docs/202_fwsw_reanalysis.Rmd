@@ -2455,6 +2455,14 @@ bothSal<-bayenv_noFL$ID[bayenv_noFL$logSalBF_FL>=quantile(plot_dat$logSalBF_FL,0
 
 There are `r length(bothXtX)` SNPs that are XtX outliers in both Bayenv analyses and `r length(bothSal)` salinity-associated outliers in both.
 
+```{r bayenvNoFL2fw_SNPinfo}
+fw_SNPinfo<-merge(fw_SNPinfo,
+                  bayenv_noFL[,c("ID","XtX_noFL","logSalBF_noFL","logTemBF_noFL","logSegBF_noFL")],
+                  by.x="ID",by.y="ID",all.x=TRUE)
+saveRDS(fw_SNPinfo,"fw_SNPinfo_noFL.RDS")
+```
+
+
 
 ## Bayenv Plots
 
