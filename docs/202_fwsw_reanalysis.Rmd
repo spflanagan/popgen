@@ -1974,6 +1974,8 @@ Now we can add the qvalues to the fw_SNPinfo dataframe
 fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
 fw_SNPinfo$pcadaptQ<-qval
 fw_SNPinfo$pcadaptPC<-get.pc(res,1:length(qval))$PC
+fw_SNPinfo$pcadaptOut<-FALSE
+fw_SNPinfo$pcadaptOut[outliers]<-TRUE
 saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
 ```
 
