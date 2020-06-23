@@ -2106,12 +2106,12 @@ But if we only care about salinity ones, there are `r nrow(sal.bf.sig)` outliers
 
 
 
-```{r plotBayenv,fig.keep='high',fig.cap="Manhattan plots of the Bayenv XTX statistic and the log of the Bayes factors associated with salinity. Shown are only loci that mapped to regions on chromosomes. Grey points represent loci that are not outlier in any analyses. Colored points represent outliers in both the Bayenv analyses and the other outlier analyses."}
+```{r MakePlotBayenv}
 library(scales)
 fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
 cols<-c(perm=alpha('#e41a1c',0.75),sal=alpha('#377eb8',0.75),pc=alpha('#a65628',0.75),
         stacks=alpha('#f781bf',0.75),xtx=alpha('#ff7f00',0.75))
-#png("../figs/BayenvOutliers.png",height=5,width=8.5,units="in",res=300,pointsize=12)
+png("../figs/BayenvOutliers.png",height=5,width=8.5,units="in",res=300,pointsize=12)
 par(mfrow=c(2,1),oma=c(1,2,1,1),mar=c(2,2,1,1),xpd=TRUE)
 # plot XtX
 plot_dat<-fst.plot(fw_SNPinfo,scaffs.to.plot = lgs,fst.name = "XtX",
@@ -2184,7 +2184,11 @@ legend("top",c(expression("Permutation"~italic("F")["ST"]),
        col = cols[c("perm","stacks","pc","xtx","sal")],
        pt.bg=cols[c("perm","stacks","pc","xtx","sal")],
        pch=c(4,5,0,3,2),bty='n',ncol=5)
-#dev.off()
+dev.off()
+```
+
+```{r plotBayenv,fig.cap="Manhattan plots of the Bayenv XTX statistic and the log of the Bayes factors associated with salinity. Shown are only loci that mapped to regions on chromosomes. Grey points represent loci that are not outlier in any analyses. Colored points represent outliers in both the Bayenv analyses and the other outlier analyses."}
+knitr::include_graphics('../figs/BayenvOutliers.png')
 ```
 
 
@@ -2295,13 +2299,13 @@ write.table(bayenv_noFL,"bayenv/bayenv_output_noFL.txt",sep="\t",
 ```
 
 
-```{r plotBayenvNoFL,fig.cap="Manhattan plots of the Bayenv XTX statistic and the log of the Bayes factors associated with salinity from the analysis without the Florida populations. Shown are only loci that mapped to regions on chromosomes. Grey points represent loci that are not outlier in any analyses. Colored points represent outliers in both the Bayenv analyses and the other outlier analyses."}
+```{r makePlotBayenvNoFL}
 library(scales)
 bayenv_noFL<-read.delim("bayenv/bayenv_output_noFL.txt",header=TRUE)
 
 cols<-c(perm=alpha('#e41a1c',0.75),sal=alpha('#377eb8',0.75),pc=alpha('#a65628',0.75),
         stacks=alpha('#f781bf',0.75),xtx=alpha('#ff7f00',0.75))
-#png("../figs/BayenvOutliers.png",height=5,width=8.5,units="in",res=300,pointsize=12)
+png("../figs/BayenvOutliersNoFL.png",height=5,width=8.5,units="in",res=300,pointsize=12)
 par(mfrow=c(2,1),oma=c(1,2,1,1),mar=c(2,2,1,1),xpd=TRUE)
 # plot XtX
 plot_dat<-fst.plot(bayenv_noFL,scaffs.to.plot = lgs,fst.name = "XtX_noFL",
@@ -2346,7 +2350,11 @@ legend("top",c(expression(italic("X")^T~italic("X")),"Salinity BF"),
        col = cols[c("xtx","sal")],
        pt.bg=cols[c("xtx","sal")],
        pch=c(3,2),bty='n',ncol=5)
-#dev.off()
+dev.off()
+```
+
+```{r plotBayenvNoFL,fig.cap="Manhattan plots of the Bayenv XTX statistic and the log of the Bayes factors associated with salinity from the analysis without the Florida populations. Shown are only loci that mapped to regions on chromosomes. Grey points represent loci that are not outlier in any analyses. Colored points represent outliers in both the Bayenv analyses and the other outlier analyses."}
+knitr::include_graphics('../figs/BayenvOutliersNoFL.png')
 ```
 
 
