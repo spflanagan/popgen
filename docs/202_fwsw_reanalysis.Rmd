@@ -2151,22 +2151,22 @@ But if we only care about salinity ones, there are `r nrow(sal.bf.sig)` outliers
 
 ```{r MakePlotBayenv}
 library(scales)
+ptlwd<-3
 fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
-cols<-c(perm=alpha('#e41a1c',0.75),sal=alpha('#377eb8',0.75),pc=alpha('#a65628',0.75),
-        stacks=alpha('#f781bf',0.75),xtx=alpha('#ff7f00',0.75))
+
 png("../figs/BayenvOutliers.png",height=5,width=8.5,units="in",res=300,pointsize=12)
 par(mfrow=c(2,1),oma=c(1,2,1,1),mar=c(2,2,1,1),xpd=TRUE)
 # plot XtX
 plot_dat<-fst.plot(fw_SNPinfo,scaffs.to.plot = lgs,fst.name = "XtX",
-                   chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19)
+                   chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19,pt.cex=2)
 points(plot_dat$plot.pos[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
        plot_dat$XtX[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
-       col=cols["xtx"],cex=0.75,pch=3)
+       col=cols["xtx"],cex=2,pch=pchs["xtx"],lwd=ptlwd)
 points(plot_dat$plot.pos[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
        plot_dat$XtX[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
-       col=cols["sal"],cex=0.85,pch=2)
+       col=cols["sal"],cex=2,pch=pchs["sal"],lwd=ptlwd)
 points(plot_dat$plot.pos[
-  rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+  rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
        plot_dat$XtX[
          rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
        col=cols["perm"],cex=1,pch=4,lwd=2)
@@ -2187,26 +2187,26 @@ text(x=midpts[lgs],y=0)
 
 # plot Bayes Factors
 plot_dat<-fst.plot(plot_dat,scaffs.to.plot = lgs,fst.name = "logSalBF",
-                   chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19)
+                   chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19,pt.cex = 2)
 points(plot_dat$plot.pos[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
        plot_dat$logSalBF[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
-       col=cols["sal"],cex=0.85,pch=2)
+       col=cols["sal"],cex=2,pch=pchs["sal"],lwd=ptlwd)
 points(plot_dat$plot.pos[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
        plot_dat$logSalBF[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
-       col=cols["xtx"],cex=0.75,pch=3)
+       col=cols["xtx"],cex=2,pch=pchs["xtx"],lwd=ptlwd)
 points(plot_dat$plot.pos[
-  rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+  rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
        plot_dat$logSalBF[
-         rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
-       col=cols["perm"],cex=1,pch=4,lwd=2)
+         rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
+       col=cols["perm"],cex=2,pch=pchs["perm"],lwd=2)
 points(plot_dat$plot.pos[plot_dat$stacks_AL < 0.05 & plot_dat$stacks_LA < 0.05 &
-                           plot_dat$stacks_TX < 0.05 & plot_dat$stacks_FL < 0.05],
+                           plot_dat$stacks_TX < 0.05 ],
        plot_dat$logSalBF[plot_dat$stacks_AL < 0.05 & plot_dat$stacks_LA < 0.05 &
-                           plot_dat$stacks_TX < 0.05 & plot_dat$stacks_FL < 0.05],
-       col=cols["stacks"],cex=1,pch=5,lwd=2)
-points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.01],
-       plot_dat$logSalBF[plot_dat$pcadaptQ<0.01],
-       col=cols["pc"],cex=1,pch=0,lwd=2)
+                           plot_dat$stacks_TX < 0.05 ],
+       col=cols["stacks"],cex=2,pch=pchs["stacks"],lwd=ptlwd)
+points(plot_dat$plot.pos[plot_dat$pcadaptOut],
+       plot_dat$logSalBF[plot_dat$pcadaptOut],
+       col=cols["pc"],cex=2,pch=pchs["pc"],lwd=ptlwd)
 axis(2,las=1)
 mtext("log(Salinity Bayes Factors)",2,line=2)
 
@@ -2226,7 +2226,8 @@ legend("top",c(expression("Permutation"~italic("F")["ST"]),
        xjust = 0.5,x.intersp = 0.5,
        col = cols[c("perm","stacks","pc","xtx","sal")],
        pt.bg=cols[c("perm","stacks","pc","xtx","sal")],
-       pch=c(4,5,0,3,2),bty='n',ncol=5)
+       pch=pchs[c("perm","stacks","pc","xtx","sal")],
+       bty='n',ncol=5,pt.lwd=ptlwd)
 dev.off()
 ```
 
