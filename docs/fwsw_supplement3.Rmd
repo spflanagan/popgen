@@ -750,6 +750,113 @@ xtx.sig<-bayenv.dat[bayenv.dat$XtX > quantile(bayenv.dat$XtX,0.99,na.rm=TRUE),]
 
 We ran Bayenv2.0 to identify environmental correlations for each SNP (represented by the resulting Bayes Factors) and to estimate population differentiation statistics (represented by the $X^TX$ value for each SNP). To analyze the output of the Bayenv2.0 environmental correlation runs, we identified loci that had extreme Bayes Factors and extreme $X^TX$ statistics as those in the 99th quantile. We found `r nrow(temp.bf.sig[temp.bf.sig$locus %in% sal.bf.sig$locus & temp.bf.sig$locus %in% grass.bf.sig,])` overlapping outliers between temperature-, salinity-, and seagrass-associated loci. However, because we are interested in shared signatures of adaptation to freshwater, we focused our attention to the salinity-associated loci, of which we found `r nrow(sal.bf.sig)`. Of those, `r nrow(xtx.sig[xtx.sig$locus %in% sal.bf.sig$locus,])` were also outliers in the distribuion of the population differentiation statistics, $X^TX$. Neither the set of outliers associated with associated or population differentiation showed spatial clustering genome-wide (see figure 4 in the main text).
 
+### Bayenv without Florida
+
+We also ran Bayenv without the Florida populations as a point of comparison, because the Florida freshwater-saltwater Fst comparisons showed such subtantial divergence. We followed all of the same steps as with the full Bayenv analysis, including checking that the matrices converged (Figure \@ref(fig:BayenvMatricesNoFL)). We visualized the output using Manhattan plots (Figure \@ref(fig:plotBayenvNoFL)), and observed similar patterns to the analysis with all four pairwise combinations (Figure 4 in the main text). The analysis without Florida had somewhat less noise in the dataset.
+
+```{r BayenvMatricesNoFL,out.width='90%',out.height='50%',fig.cap="Heatmap plots of each of the ten replicate Bayenv covariance matrices. Darker colors represent higher covariances. Populations are in the order: ALFW, ALST, LAFW, TXCC, TXFW"}
+knitr::include_graphics('../fwsw_results/bayenv/noFL/fwsw75_noFL.png')
+```
+
+
+
+```{r plotBayenvNoFL,fig.cap="Manhattan plots of the Bayenv XTX statistic and the log of the Bayes factors associated with salinity from the analysis without the Florida populations. Shown are only loci that mapped to regions on chromosomes. Grey points represent loci that are not outlier in any analyses. Colored points represent outliers in both the Bayenv analyses and the other outlier analyses."}
+library(scales)
+bayenv_noFL<-read.delim("bayenv/bayenv_output_noFL.txt",header=TRUE)
+
+cols<-c(perm=alpha('#e41a1c',0.75),sal=alpha('#377eb8',0.75),pc=alpha('#a65628',0.75),
+        stacks=alpha('#f781bf',0.75),xtx=alpha('#ff7f00',0.75))
+#png("../figs/BayenvOutliers.png",height=5,width=8.5,units="in",res=300,pointsize=12)
+par(mfrow=c(2,1),oma=c(1,2,1,1),mar=c(2,2,1,1),xpd=TRUE)
+# plot XtX
+plot_dat<-fst.plot(bayenv_noFL,scaffs.to.plot = lgs,fst.name = "XtX_noFL",
+                   chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19)
+points(plot_dat$plot.pos[plot_dat$XtX_noFL>=quantile(plot_dat$XtX_noFL,0.99)],
+       plot_dat$XtX_noFL[plot_dat$XtX_noFL>=quantile(plot_dat$XtX_noFL,0.99)],
+       col=cols["xtx"],cex=0.75,pch=3)
+points(plot_dat$plot.pos[plot_dat$logSalBF_noFL>=quantile(plot_dat$logSalBF_noFL,0.99)],
+       plot_dat$XtX_noFL[plot_dat$logSalBF_noFL>=quantile(plot_dat$logSalBF_noFL,0.99)],
+       col=cols["sal"],cex=0.85,pch=2)
+axis(2,las=1)
+mtext(expression(italic("X")^"T"~italic("X")),2,line=2)
+
+# add the LG labels
+midpts<-tapply(plot_dat$plot.pos,plot_dat$Chrom,median)
+text(x=midpts[lgs],y=0)
+
+# plot Bayes Factors
+plot_dat<-fst.plot(plot_dat,scaffs.to.plot = lgs,fst.name = "logSalBF_noFL",
+                   chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19)
+points(plot_dat$plot.pos[plot_dat$logSalBF_noFL>=quantile(plot_dat$logSalBF_noFL,0.99)],
+       plot_dat$logSalBF_noFL[plot_dat$logSalBF_noFL>=quantile(plot_dat$logSalBF_noFL,0.99)],
+       col=cols["sal"],cex=0.85,pch=2)
+points(plot_dat$plot.pos[plot_dat$XtX_noFL>=quantile(plot_dat$XtX_noFL,0.99)],
+       plot_dat$logSalBF_noFL[plot_dat$XtX_noFL>=quantile(plot_dat$XtX_noFL,0.99)],
+       col=cols["xtx"],cex=0.75,pch=3)
+axis(2,las=1)
+mtext("log(Salinity Bayes Factors)",2,line=2)
+
+# add the LG labels
+midpts<-tapply(plot_dat$plot.pos,plot_dat$Chrom,median)
+text(x=midpts[lgs],y=-5)
+
+# add outside legend
+
+opar <- par(fig=c(0, 1, 0, 1), oma=c(0, 0, 0, 0),
+            mar=c(0, 0, 0, 0), new=TRUE)
+on.exit(par(opar))
+plot(0, 0, type='n', bty='n', xaxt='n', yaxt='n')
+legend("top",c(expression(italic("X")^T~italic("X")),"Salinity BF"),
+       xjust = 0.5,x.intersp = 0.5,
+       col = cols[c("xtx","sal")],
+       pt.bg=cols[c("xtx","sal")],
+       pch=c(3,2),bty='n',ncol=5)
+#dev.off()
+```
+
+
+To quantify the similarity between the analysis with the Florida populations and without, we calculated correlation coefficients between the statistics. As supported by the presence of few overlapping outliers, the correlations between variables were low, but the correlation coefficients were > 0.5 between the same statistics calculated with and without the Florida populations (Table \@ref(tab:BayenvCompareFL)). The salinity-associated loci, in particular, were fairly highly correlated (Table \@ref(tab:BayenvCompareFL); Figure \@ref(fig:BayenvCompareFLPlots)).
+
+```{r BayenvCompareFL}
+bayenv_cor<-cor(bayenv_noFL[,c("XtX_noFL",
+                   "logSalBF_noFL",
+                   "logTemBF_noFL",
+                   "logSegBF_noFL",
+                   "XtX_FL","logSalBF_FL","logTemBF_FL","logSegBF_FL")])
+kable(bayenv_cor[grep("_FL",rownames(bayenv_cor)),grep("_noFL",colnames(bayenv_cor))],
+      "latex",booktabs=TRUE,
+      caption="Correlations between the Bayenv analyses without the Florida populations ('noFL') and with the Florida popualtions ('FL'). The comparison of each statistic with itself in each analysis is on the diagonal.")
+```
+```{r BayenvCompareFLPlots,fig.height=6,fig.width=6,fig.cap="Plots of the Bayenv statistics in the analysis with the Florida populations (x-axis) vs without the Florida populations (y-axis)."}
+par(mfrow=c(2,2))
+plot(bayenv_noFL$XtX_FL, bayenv_noFL$XtX_noFL,
+     xlab="XtX with Florida",ylab="XtX without Florida",
+     pch=19,cex=1.5,col=alpha("dark grey",0.75))
+plot(bayenv_noFL$logSalBF_FL, bayenv_noFL$logSalBF_noFL,
+     xlab="log of Salinity BF with Florida",
+     ylab="log of Salinity BF without Florida",
+     pch=19,cex=1.5,col=alpha("dark grey",0.75))
+plot(bayenv_noFL$logTemBF_FL, bayenv_noFL$logTemBF_noFL,
+     xlab="log of Temp BF with Florida",
+     ylab="log of Temp BF without Florida",
+     pch=19,cex=1.5,col=alpha("dark grey",0.75))
+plot(bayenv_noFL$logSegBF_FL, bayenv_noFL$logSegBF_noFL,
+     xlab="log of Seagrass BF with Florida",
+     ylab="log of Seagrass BF without Florida",
+     pch=19,cex=1.5,col=alpha("dark grey",0.75))
+```
+
+
+
+```{r BayenvCompareOutliers}
+bothXtX<-bayenv_noFL$ID[bayenv_noFL$XtX_FL>=quantile(plot_dat$XtX_FL,0.99) &
+                 bayenv_noFL$XtX_noFL>=quantile(plot_dat$XtX_noFL,0.99)]
+bothSal<-bayenv_noFL$ID[bayenv_noFL$logSalBF_FL>=quantile(plot_dat$logSalBF_FL,0.99) &
+                 bayenv_noFL$logSalBF_noFL>=quantile(plot_dat$logSalBF_noFL,0.99)]
+```
+
+The two analyses produced `r length(bothXtX)` SNPs that are XtX outliers in both Bayenv analyses and `r length(bothSal)` salinity-associated outliers in both.
+
 ## Summarizing outliers
 
 To summarize the results of the outliers
