@@ -977,8 +977,10 @@ grp5colors<-c('#762a83','#c2a5cf','#a6dba0','#5aae61','#1b7837')
 
 ```{r NewPopStructurePrep,eval=TRUE,results='hide'}
 #admixture 
-admixK5<-read.delim("admixture/admixK5.txt",header = TRUE)
-admixK7<-read.delim("admixture/admixK7.txt",header = TRUE)
+admixK5<-read.delim("admixture/admixK5.txt",header = TRUE,stringsAsFactors = FALSE)
+admixK5$Pop[admixK5$Pop=="FLLG"]<-"FLFW"
+admixK7<-read.delim("admixture/admixK7.txt",header = TRUE,stringsAsFactors = FALSE)
+admixK7$Pop[admixK7$Pop=="FLLG"]<-"FLFW"
 #pcadapt
 pa<-readRDS("fwsw_all_pcadapt.RDS")
 pa.props<-round((pa$singular.values/sum(pa$singular.values))*100,2)
@@ -1041,6 +1043,8 @@ t2<-plot_tree("treemix/migrations/fwsw_FLAB_m1",scale=T,mbar=T,cex = 1.5,
 text(x = 0.035,y=0.9,"B",cex = 2,font =2)
 #STRUCTURE
 par(mar=c(1,0,0,0))
+poporder<-as.character(poporder)
+poporder[poporder=="FLLG"]<-"FLFW"
 plotting.structure(admixK5,5,pop.order = poporder, pop.list, make.file=FALSE, 
                    xlabcol = all.colors,plot.new=FALSE,
                    colors=grp5colors[c(3,5,4,1,2)],xlabel=FALSE,
