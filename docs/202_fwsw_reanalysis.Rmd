@@ -2352,7 +2352,7 @@ write.table(bayenv_noFL,"bayenv/bayenv_output_noFL.txt",sep="\t",
 ```
 
 
-```{r makePlotBayenvNoFL}
+```{r makePlotBayenvNoFL, eval=FALSE}
 library(scales)
 bayenv_noFL<-read.delim("bayenv/bayenv_output_noFL.txt",header=TRUE)
 ptlwd<-3
