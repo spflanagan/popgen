@@ -317,7 +317,7 @@ kable(cbind(nrow(fwsw.al),nrow(fwsw.la),nrow(fwsw.tx),nrow(fwsw.fl)),
 These datasets do not contain the full 12103 SNPs (\@ref(tab:readStacksFsts)) because some of those SNPs are fixed in the populations or do not pass coverage or minimum allele frequency thresholds.
 
 
-```{r plotStacksFsts,fig.height=9,fig.width=7,fig.cap="Manhattan plot of pairwise AMOVA-corrected Fst values from Stacks for each freshwater - nearest saltwater population pair. The x-axis corresponds to genomic locations, with chromosomes labelled. To the right are loci that mapped to unanchored scaffolds."}
+```{r plotStacksFsts,fig.height=7,fig.width=7,fig.cap="Manhattan plot of pairwise AMOVA-corrected Fst values from Stacks for each freshwater - nearest saltwater population pair. The x-axis corresponds to genomic locations, with chromosomes labelled. To the right are loci that mapped to unanchored scaffolds."}
 source("../R/205_popgenPlotting.R")
 fst_dat<-list(fwsw.al,fwsw.la,fwsw.tx,fwsw.fl)
 fsts<-plot_multiple_LGs(list_fsts = fst_dat,fst_name = "Corrected.AMOVA.Fst",
@@ -348,7 +348,7 @@ There are `r length(unique(all.shared))` outliers (as determined by Fisher's P f
 
 As a point of comparison, we repeated this analysis with the similar pairwise saltwater-saltwater population pairs. We expect that if substantially more outlier loci were shared in the freshwater-saltwater comparisons than in the saltwater-saltwtaer comparisons that the shared outliers are likely a signature of adaptation to freshwater as opposed to random chance due to population structure.  
 
-```{r plotStacksfstsSWSW,fig.height=9,fig.width=6,fig.cap="Manhattan plot of pairwise AMOVA-corrected Fst values from Stacks for the saltwater populations nearest to freshwater populations compared to their nearest saltwater neightbor. The x-axis corresponds to genomic locations, with chromosomes labelled. To the right are loci that mapped to unanchored scaffolds."}
+```{r plotStacksfstsSWSW,fig.height=6,fig.width=6,fig.cap="Manhattan plot of pairwise AMOVA-corrected Fst values from Stacks for the saltwater populations nearest to freshwater populations compared to their nearest saltwater neightbor. The x-axis corresponds to genomic locations, with chromosomes labelled. To the right are loci that mapped to unanchored scaffolds."}
 swsw.fl<-read.delim("stacks/converted.fst_TXCB-TXCC.txt")
 swsw.tx<-read.delim("stacks/converted.fst_ALST-FLSG.txt")
 swsw.al<-read.delim("stacks/converted.fst_FLCC-FLHB.txt")
@@ -551,7 +551,7 @@ knitr::include_graphics('../figs/permuted_fsts.png')
 
 We can also look at the genome-wide patterns of the permutations vs the actual Fsts, and we can see that the permuted Fsts have much smaller average Fsts and virtually no outliers (Figure \@ref(fig:permFstGenomewide)), unlike the actual pairwise Fst values (Figure \@ref(fig:permActualFstGenomewide)). The actual Fsts (Figure \@ref(fig:permActualFstGenomewide)) show similar patterns to the Stacks Fst analysis (Figure \@ref(fig:plotStacksFsts)) in the actual fsts , where the Florida pairwise comparison has much higher overall Fst values. These are not identical to the Stacks analysis because these Fsts are calculated without any corrections using the 
 
-```{r permFstGenomewide,fig.height=9,fig.width=7,fig.cap="Manhattan plot of pairwise average Fst values from the permutation of population IDs for each freshwater - nearest saltwater population pair. The x-axis corresponds to genomic locations, with chromosomes labelled. To the right are loci that mapped to unanchored scaffolds."}
+```{r permFstGenomewide,fig.height=7,fig.width=7,fig.cap="Manhattan plot of pairwise average Fst values from the permutation of population IDs for each freshwater - nearest saltwater population pair. The x-axis corresponds to genomic locations, with chromosomes labelled. To the right are loci that mapped to unanchored scaffolds."}
 perm_dat<-list(permuted_fsts[[1]],permuted_fsts[[4]],permuted_fsts[[3]],permuted_fsts[[2]])
 fsts<-plot_multiple_LGs(list_fsts = perm_dat,fst_name = "mean_perm",
                         bp_name="Pos",chr_name="Chrom",lgs=lgs,
@@ -565,7 +565,7 @@ fsts<-plot_multiple_LGs(list_fsts = perm_dat,fst_name = "mean_perm",
                         pt.cex=1,axis.size = 1)
 ```
 
-```{r permActualFstGenomewide,fig.height=9,fig.width=7,fig.cap="Manhattan plot of pairwise Fst values calculated for each freshwater - nearest saltwater population pair. The x-axis corresponds to genomic locations, with chromosomes labelled. To the right are loci that mapped to unanchored scaffolds."}
+```{r permActualFstGenomewide,fig.height=7,fig.width=7,fig.cap="Manhattan plot of pairwise Fst values calculated for each freshwater - nearest saltwater population pair. The x-axis corresponds to genomic locations, with chromosomes labelled. To the right are loci that mapped to unanchored scaffolds."}
 perm_dat<-list(permuted_fsts[[1]],permuted_fsts[[4]],permuted_fsts[[3]],permuted_fsts[[2]])
 fsts<-plot_multiple_LGs(list_fsts = perm_dat,fst_name = "Fst",
                         bp_name="Pos",chr_name="Chrom",lgs=lgs,
