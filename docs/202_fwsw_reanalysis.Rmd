@@ -2168,16 +2168,13 @@ points(plot_dat$plot.pos[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
 points(plot_dat$plot.pos[
   rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
        plot_dat$XtX[
-         rowSums(plot_dat[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
-       col=cols["perm"],cex=1,pch=4,lwd=2)
-points(plot_dat$plot.pos[plot_dat$stacks_AL < 0.05 & plot_dat$stacks_LA < 0.05 &
-                           plot_dat$stacks_TX < 0.05 & plot_dat$stacks_FL < 0.05],
-       plot_dat$XtX[plot_dat$stacks_AL < 0.05 & plot_dat$stacks_LA < 0.05 &
-                           plot_dat$stacks_TX < 0.05 & plot_dat$stacks_FL < 0.05],
-       col=cols["stacks"],cex=1,pch=5,lwd=2)
-points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.01],
-       plot_dat$XtX[plot_dat$pcadaptQ<0.01],
-       col=cols["pc"],cex=1,pch=0,lwd=2)
+         rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
+       col=cols["perm"],cex=2,pch=pchs["perm"],lwd=ptlwd)
+points(plot_dat$plot.pos[which(plot_dat$stacks_AL_P < 0.05 & plot_dat$stacks_LA_P < 0.05 &
+                           plot_dat$stacks_TX_P < 0.05)],
+       plot_dat$XtX[which(plot_dat$stacks_AL_P < 0.05 & plot_dat$stacks_LA_P < 0.05 &
+                           plot_dat$stacks_TX_P < 0.05)],
+       col=cols["stacks"],cex=2,pch=pchs["stacks"],lwd=ptlwd)
 axis(2,las=1)
 mtext(expression(italic("X")^"T"~italic("X")),2,line=2)
 
@@ -2199,10 +2196,10 @@ points(plot_dat$plot.pos[
        plot_dat$logSalBF[
          rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
        col=cols["perm"],cex=2,pch=pchs["perm"],lwd=2)
-points(plot_dat$plot.pos[plot_dat$stacks_AL < 0.05 & plot_dat$stacks_LA < 0.05 &
-                           plot_dat$stacks_TX < 0.05 ],
-       plot_dat$logSalBF[plot_dat$stacks_AL < 0.05 & plot_dat$stacks_LA < 0.05 &
-                           plot_dat$stacks_TX < 0.05 ],
+points(plot_dat$plot.pos[plot_dat$stacks_AL_P < 0.05 & plot_dat$stacks_LA_P < 0.05 &
+                           plot_dat$stacks_TX_P < 0.05 ],
+       plot_dat$logSalBF[plot_dat$stacks_AL_P < 0.05 & plot_dat$stacks_LA_P < 0.05 &
+                           plot_dat$stacks_TX_P < 0.05 ],
        col=cols["stacks"],cex=2,pch=pchs["stacks"],lwd=ptlwd)
 points(plot_dat$plot.pos[plot_dat$pcadaptOut],
        plot_dat$logSalBF[plot_dat$pcadaptOut],
