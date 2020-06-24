@@ -1035,7 +1035,7 @@ kable(outdat[,c("ID","Chrom","BP","REF","ALT","region","abbr","SSCID","analysis"
   column_spec(9,width="5em")
 ```
 
-
+The outliers on LG6 span `r (max(outdat$Pos)-min(outdat$Pos))/1000000` Mb, include SNPs in `r nrow(outdat[outdat$region=="gene",])` genes, `r nrow(outdat[outdat$region=="regulatory",])` regulatory regions, and `r nrow(outdat[outdat$region=="non-coding",])` non-coding regions.
 
 
 ```{r putativeGenesTable}
