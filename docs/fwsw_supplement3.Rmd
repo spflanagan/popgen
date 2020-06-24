@@ -808,7 +808,7 @@ We ran Bayenv2.0 to identify environmental correlations for each SNP (represente
 knitr::include_graphics('../figs/BayenvOutliers.png')
 ```
 
-```{r BayenvFLUpset,fig.cap="Upset plot showing overlap between the Bayenv analysis with Florida in it and the other analyses."}
+```{r BayenvFLUpset,fig.height=6,fig.cap="Upset plot showing overlap between the Bayenv analysis with Florida in it and the other analyses."}
 library(UpSetR);library(scales);library(ggplot2)
 library(grid);library(gwscaR);library(gridGraphics)
 source("../R/upset_hacked.R")
