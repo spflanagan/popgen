@@ -1019,6 +1019,7 @@ outdat$analysis[outdat$ID %in% outliers$salBF & !is.na(outdat$analysis)]<-"stack
 outdat$analysis[outdat$ID %in% outliers$salBF & is.na(outdat$analysis)]<-"salinity"
 outdat$analysis[outdat$ID %in% outliers$xtx]<-paste0(outdat$analysis[outdat$ID %in% outliers$xtx],"; XtX")
 outdat$analysis[outdat$ID %in% outliers$pcadapt]<-paste0(outdat$analysis[outdat$ID %in% outliers$pcadapt],"; PCAdapt")
+outdat$analysis[outdat$ID %in% outliers$permutations]<-paste0(outdat$analysis[outdat$ID %in% outliers$permutations],"; Permutations")
 
 outdat<-outdat[order(outdat$Pos),]
 
