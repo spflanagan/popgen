@@ -622,6 +622,7 @@ fst_out_dat$region[fst_out_dat$region %in% "contig"]<-"non-coding"
 fst_out_dat$region[fst_out_dat$region %in% "scaffNotFound"]<-"unkown"
 fst_out_dat$SSCID<-gsub(";","; ",fst_out_dat$SSCID)
 fst_out_dat$Chrom<-gsub("_"," ",fst_out_dat$Chrom)
+fst_out_dat<-fst_out_dat[order(fst_out_dat$Chrom,fst_out_dat$BP),]
 kable(fst_out_dat,"latex",booktabs=TRUE,row.names=FALSE,
       caption="SNPs that were Fst outliers in all pairwise Texas, Alabama, and Louisiana Stacks and permutation analyses. Shown are the SNP ID in this dataset, the ID of the gene it is mapped to in the S. scovelli genome, its location and reference and alternative alleles. The final two columns show the type of genomic region the SNP is in and the gene description (if relevant).") %>%
   kable_styling(latex_options="HOLD_position")%>%
