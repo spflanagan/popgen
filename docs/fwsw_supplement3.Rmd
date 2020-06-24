@@ -901,12 +901,12 @@ outdat$region[outdat$region %in% "scaffNotFound"]<-"unkown"
 outdat$region[is.na(outdat$region)]<-"gene"
 
 outdat$analysis<-NA
-outdat$analysis[outdat$ID %in% outliers$sharedStacks]<-"stacks"
-outdat$analysis[outdat$ID %in% outliers$salBF & !is.na(outdat$analysis)]<-"stacks; salinity"
-outdat$analysis[outdat$ID %in% outliers$salBF & is.na(outdat$analysis)]<-"salinity"
-outdat$analysis[outdat$ID %in% outliers$xtx]<-paste0(outdat$analysis[outdat$ID %in% outliers$xtx],"; XtX")
-outdat$analysis[outdat$ID %in% outliers$pcadapt]<-paste0(outdat$analysis[outdat$ID %in% outliers$pcadapt],"; PCAdapt")
-outdat$analysis[outdat$ID %in% outliers$permutations]<-paste0(outdat$analysis[outdat$ID %in% outliers$permutations],"; Permutations")
+outdat$analysis[outdat$ID %in% FL_outliers$sharedStacks]<-"stacks"
+outdat$analysis[outdat$ID %in% FL_outliers$salBF & !is.na(outdat$analysis)]<-"stacks; salinity"
+outdat$analysis[outdat$ID %in% FL_outliers$salBF & is.na(outdat$analysis)]<-"salinity"
+outdat$analysis[outdat$ID %in% FL_outliers$xtx]<-paste0(outdat$analysis[outdat$ID %in% FL_outliers$xtx],"; XtX")
+outdat$analysis[outdat$ID %in% FL_outliers$pcadapt]<-paste0(outdat$analysis[outdat$ID %in% FL_outliers$pcadapt],"; PCAdapt")
+outdat$analysis[outdat$ID %in% FL_outliers$permutations]<-paste0(outdat$analysis[outdat$ID %in% FL_outliers$permutations],"; Permutations")
 
 outdat<-outdat[order(outdat$Pos),]
 
