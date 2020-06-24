@@ -1020,7 +1020,9 @@ outdat$analysis[outdat$ID %in% outliers$salBF & is.na(outdat$analysis)]<-"salini
 outdat$analysis[outdat$ID %in% outliers$xtx]<-paste0(outdat$analysis[outdat$ID %in% outliers$xtx],"; XtX")
 outdat$analysis[outdat$ID %in% outliers$pcadapt]<-paste0(outdat$analysis[outdat$ID %in% outliers$pcadapt],"; PCAdapt")
 
-kable(outdat[,c("ID","Chrom","BP","REF","ALT","region","abbr","SSCID","analysis")],
+outdat<-outdat[order(outdat$Pos),]
+
+kable(outdat[,c("ID","Chrom","BP","REF","ALT","region","description","SSCID","analysis")],
       "latex",booktabs=TRUE,row.names=FALSE,
       caption="Outliers on LG6 that were shared among Stacks Texas, Alabama, and Louisiana freshwater-saltwater pairwise AMOVA-corrected Fst analyses and also outliers in the salinity-association analysis from Bayenv2, and any other analyses they were outliers in.")%>%
   kable_styling(latex_options=c("HOLD_position","repeat_header")) %>%
