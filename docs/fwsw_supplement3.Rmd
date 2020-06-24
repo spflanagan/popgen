@@ -1023,8 +1023,8 @@ outdat<-unique(outdat)
 # # outdat$abbr<-c("WRNIP1","uncharacterised protein ",NA,
 # #                "PTPRF6","LRRCC1",NA,"RP1","LAMA3",NA,NA,NA)
 # 
-# outdat$abbr<-c("WRNIP1","uncharacterised protein ",NA,
-#                "PTPRF6","LRRCC1",NA,"RP1",NA, NA, NA,"PPP1R9A","RIOK1",NA)
+outdat$abbr<-c("WRNIP1","uncharacterised protein ",NA,
+               "PTPRF6","LRRCC1",NA,"RP1",NA, NA, NA,"PPP1R9A","RIOK1",NA)
 
 
 ```
