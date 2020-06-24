@@ -1081,8 +1081,8 @@ kable(outdat[,c("ID","Chrom","BP","REF","ALT","region","description","SSCID","an
   column_spec(3,width="4em") %>%
   column_spec(4,width="1em") %>%
   column_spec(5,width="1em") %>%
-  column_spec(6,width="4em") %>%
-  column_spec(7,width="10em") %>%
+  column_spec(6,width="3.5em") %>%
+  column_spec(7,width="10.5em") %>%
   column_spec(8,width="8em")%>%
   column_spec(9,width="5em")
 ```
