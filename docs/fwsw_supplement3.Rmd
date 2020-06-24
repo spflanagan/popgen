@@ -999,7 +999,7 @@ ft<-fisher.test(table(annInfo$outlier,annInfo$salgene))
 
 We investigated whether the outlier SNPs from our above analyses were in these putative gene regions more frequently than expected (Table \@ref(tab:putativeGeneAnns)), but these putative salinity genes do not appear to be enriched with outliers in our dataset (Fisher's exact test, odds ratio $=$ `r ft$estimate`, $p=$ `r ft$p.value`).
 
-In both the Bayenv and the Stacks analyses, a few loci on LG6 were consistently identified as outliers. We therefore investigated those loci specifically, and found 
+In both the Bayenv and the Stacks analyses, a few loci on LG6 were consistently identified as outliers. We therefore investigated those loci specifically.
 
 ```{r LG6annotate}
 lg6<-fw_SNPinfo[fw_SNPinfo$Chrom=="LG6",]
