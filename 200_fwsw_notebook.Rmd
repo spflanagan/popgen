@@ -79,6 +79,8 @@ genome.blast[genome.blast$sscv4_gene_ID %in% nearby_genes,]
 
 None of those are putative fw genes, so I'll just move on. 
 
+In the supplement there are inconsistencies around how many SNPs are outliers in the stacks analysis, so i need to fix that. 
+
 # 23 June 2020
 
 The pemutations are still running this morning but hopefully they'll be done by the afternoon so I can dig into it. They seem to have finished, whoot...but I screwed up and they didn't save properly. facepalm. 
