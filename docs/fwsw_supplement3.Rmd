@@ -938,11 +938,6 @@ kable(outlierSumm,"latex",booktabs=TRUE,
 
 
 
-```{r ann2outlier,eval=TRUE}
-fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
-out_snps<-fw_SNPinfo[fw_SNPinfo$ID %in% unlist(outliers),]
-```
-
 ````{r summarizeAnnotations, eval=TRUE}
 annInfo<-fw_SNPinfo[,c("ID","region")]
 annInfo$region<-as.character(annInfo$region)
