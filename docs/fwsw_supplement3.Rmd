@@ -1002,7 +1002,7 @@ We investigated whether the outlier SNPs from our above analyses were in these p
 In both the Bayenv and the Stacks analyses, a few loci on LG6 were consistently identified as outliers. We therefore investigated those loci specifically.
 
 ```{r LG6annotate}
-lg6<-fw_SNPinfo[fw_SNPinfo$Chrom=="LG6",]
+
 gff.name<-"ssc_2016_12_20_chromlevel.gff.gz"
 if(length(grep("gz",gff.name))>0){
   gff<-read.delim(gzfile(paste("../../scovelli_genome/",gff.name,sep="")),header=F)
@@ -1013,6 +1013,7 @@ colnames(gff)<-c("seqname","source","feature","start","end","score",
                  "strand","frame","attribute")
 gff6<-gff[gff$seqname=="LG6",]
 
+lg6<-fw_SNPinfo[fw_SNPinfo$Chrom=="LG6",]
 outdat<-data.frame(rbind(lg6[which(lg6$ID %in% outliers$sharedStacks),],
                          lg6[which(lg6$ID %in% outliers$salBF),]),
                    stringsAsFactors = FALSE)
