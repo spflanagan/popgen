@@ -756,7 +756,21 @@ points(plot_dat$plot.pos[plot_dat$stacks_AL < 0.05 & plot_dat$stacks_LA < 0.05 &
 points(plot_dat$plot.pos[plot_dat$pcadaptOut],
        plot_dat$Stat[plot_dat$pcadaptOut],
        col=cols["pc"],cex=2,pch=pchs["pc"],lwd=2)
-
+axis(2,las=1,pos=-1500000,cex.axis=1)
+mtext("PCAdapt Statistic",2,line=1.2,cex=1)
+# add the LG labels
+midpts<-tapply(plot_dat$plot.pos,plot_dat$Chrom,median)
+text(x=midpts[lgs],y=-0.15,cex=1)
+legend("top",
+       c(expression("Permutation"~italic("F")["ST"]),
+         expression("Stacks"~italic("F")["ST"]),
+         "PCAdapt", expression(italic("X")^T~italic("X")),"Salinity BF"),
+       #xjust = 0.5,x.intersp = 0.5,
+       col = cols[c("perm","stacks","pc","xtx","sal")],
+       pt.bg=cols[c("perm","stacks","pc","xtx","sal")],
+       #pch=c(4,5,0,3,2),
+       pch=pchs[c("perm","stacks","pc","xtx","sal")],pt.lwd =2,pt.cex=2,cex=1.25,
+       bty='n',ncol=2)
 ```
 
 
