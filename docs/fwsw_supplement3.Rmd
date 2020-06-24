@@ -107,7 +107,37 @@ ppi<-data.frame(Pop=pop.labs,cols = col_vector,
                 pch=rep(c(15,16,17,18),4))
 ppi$pch[grep("FW",ppi$Pop)]<-c(15,16,17,18)
 ```
+```{r OutlierPlotSetup}
+pop.list<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
+	"FLFD","FLSI","FLAB","FLPB","FLHB","FLCC","FLLG")
+pop.labs<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
+            "FLFD","FLSI","FLAB","FLPB","FLHB","FLCC","FLFW")
+lgs<-c("LG1","LG2","LG3","LG4","LG5","LG6","LG7","LG8","LG9","LG10","LG11",
+	"LG12","LG13","LG14","LG15","LG16","LG17","LG18","LG19","LG20","LG21",
+	"LG22")
+lgn<-seq(1,22)
+cols<-c(perm=alpha('#e41a1c',0.75),sal=alpha('#377eb8',0.75),pc=alpha('#a65628',0.75),
+        stacks=alpha('#f781bf',0.75),xtx=alpha('#ff7f00',0.75))
+pchs<-c(perm=5,sal=2,pc=0,stacks=8,xtx=3)
+grp7colors<-c('#762a83','#9970ab','#c2a5cf','#d9f0d3','#a6dba0','#5aae61','#1b7837')
+```
 
+```{r getOutliers}
+fw_SNPinfo<-readRDS("fw_SNPinfo_noFL.RDS")
+outliers<-list(xtx=fw_SNPinfo$ID[which(fw_SNPinfo$XtX_noFL >= quantile(fw_SNPinfo$XtX_noFL,0.99,na.rm = TRUE))],
+               salBF=fw_SNPinfo$ID[which(fw_SNPinfo$logSalBF_noFL>=
+                                     quantile(fw_SNPinfo$logSalBF_noFL,0.99,na.rm = TRUE))],
+               permutations=fw_SNPinfo$ID[
+                 rowSums(fw_SNPinfo[,c("perm_TX","perm_AL","perm_LA")])==3],
+               pcadapt=fw_SNPinfo$ID[which(fw_SNPinfo$pcadaptQ<0.01)],
+               Alabama=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05)], 
+               Louisiana=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_LA_P < 0.05)],
+               Texas=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_TX_P < 0.05)],
+               Florida=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_FL_P < 0.05)],
+               sharedStacks=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05 & 
+                                                  fw_SNPinfo$stacks_LA_P < 0.05 &
+                                                  fw_SNPinfo$stacks_TX_P < 0.05)])
+```
 
 # Outliers: Fsts from Stacks, permutations, PCadapt  {-}
 
@@ -581,20 +611,6 @@ fsts<-plot_multiple_LGs(list_fsts = perm_dat,fst_name = "Fst",
 
 
 ```{r fstOutlierSummary}
-fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
-outliers<-list(xtx=fw_SNPinfo$ID[fw_SNPinfo$XtX >= quantile(fw_SNPinfo$XtX,0.99,na.rm = TRUE)],
-               salBF=fw_SNPinfo$ID[fw_SNPinfo$logSalBF>=
-                                     quantile(fw_SNPinfo$logSalBF,0.99,na.rm = TRUE)],
-               permutations=fw_SNPinfo$ID[
-                 rowSums(fw_SNPinfo[,c("perm_TX","perm_AL","perm_LA")])==3],
-               pcadapt=fw_SNPinfo$ID[which(fw_SNPinfo$pcadaptQ<0.01)],
-               Alabama=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05)], 
-               Louisiana=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_LA_P < 0.05)],
-               Texas=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_TX_P < 0.05)],
-               Florida=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_FL_P < 0.05)],
-               sharedStacks=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05 & 
-                                                  fw_SNPinfo$stacks_LA_P < 0.05 &
-                 fw_SNPinfo$stacks_TX_P < 0.05)])
 fst_outs<-outliers$permutations[outliers$permutations %in% outliers$sharedStacks]
 fst_out_dat<-fw_SNPinfo[fw_SNPinfo$ID %in% fst_outs,
            c("ID","SSCID","Chrom","BP","REF","ALT","region","description")]
@@ -824,22 +840,6 @@ The two analyses produced `r length(bothXtX)` SNPs that are XtX outliers in both
 Adaptation to freshwater might involve changes in coding regions of the genome or changes in regulatory regions, so we used the *S. scovelli* genome (including the Dec 2016 blastp annotations, https://creskolab.uoregon.edu/pipefish/) to identify the genomic locations of the outlier loci identified by our various analyses (Stacks $F_{ST}$s, permutations, PCAdapt outliers, Bayenv population differentiation, and Bayenv salinity correlations). We were able to identify whether outlier SNPs were located in coding regions, 3' or 5' untranslated regions ('regulatory regions'), or un-annotated regions of the genome. This last category we consider to be 'non-coding' as the *S. scovelli* genome was annotated using RNA-sequencing data from embryonic head tissue and brood pouch tissue, as well as other fish species such as *Danio rerio*, so un-annotated regions are likely to be non-coding. One of the SNPs in the dataset could not be mapped to a location in the genome. Overall, these outlier analyses demonstrate that there does not seem to be a single region of the genome with high densities of outlier SNPs (Table \@ref(tab:outChroms)). 
 
 
-```{r getOutliers}
-fw_SNPinfo<-readRDS("fw_SNPinfo_noFL.RDS")
-outliers<-list(xtx=fw_SNPinfo$ID[which(fw_SNPinfo$XtX_noFL >= quantile(fw_SNPinfo$XtX_noFL,0.99,na.rm = TRUE))],
-               salBF=fw_SNPinfo$ID[which(fw_SNPinfo$logSalBF_noFL>=
-                                     quantile(fw_SNPinfo$logSalBF_noFL,0.99,na.rm = TRUE))],
-               permutations=fw_SNPinfo$ID[
-                 rowSums(fw_SNPinfo[,c("perm_TX","perm_AL","perm_LA")])==3],
-               pcadapt=fw_SNPinfo$ID[which(fw_SNPinfo$pcadaptQ<0.01)],
-               Alabama=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05)], 
-               Louisiana=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_LA_P < 0.05)],
-               Texas=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_TX_P < 0.05)],
-               Florida=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_FL_P < 0.05)],
-               sharedStacks=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05 & 
-                                                  fw_SNPinfo$stacks_LA_P < 0.05 &
-                 fw_SNPinfo$stacks_TX_P < 0.05)])
-```
 ```{r outChroms}
 outlierSumm<-do.call(rbind,lapply(outliers,function(outs){
 
