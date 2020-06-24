@@ -808,6 +808,39 @@ We ran Bayenv2.0 to identify environmental correlations for each SNP (represente
 knitr::include_graphics('../figs/BayenvOutliers.png')
 ```
 
+```{r BayenvFLUpset,fig.cap="Upset plot showing overlap between the Bayenv analysis with Florida in it and the other analyses."}
+library(UpSetR);library(scales);library(ggplot2)
+library(grid);library(gwscaR);library(gridGraphics)
+source("../R/upset_hacked.R")
+source("../R/205_popgenPlotting.R")
+FL_outliers<-list(xtx=fw_SNPinfo$ID[fw_SNPinfo$XtX >= quantile(fw_SNPinfo$XtX,0.99,na.rm=TRUE)],
+               salBF=fw_SNPinfo$ID[fw_SNPinfo$logSalBF>=
+                                     quantile(fw_SNPinfo$logSalBF,0.99,na.rm=TRUE)],
+               permutations=fw_SNPinfo$ID[
+                 rowSums(fw_SNPinfo[,c("perm_TX","perm_AL","perm_LA")])==3],
+               pcadapt=fw_SNPinfo$ID[which(fw_SNPinfo$pcadaptQ<0.01)],
+               Alabama=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05)], 
+               Louisiana=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_LA_P < 0.05)],
+               Texas=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_TX_P < 0.05)],
+               Florida=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_FL_P < 0.05)],
+               sharedStacks=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05 & 
+                                                  fw_SNPinfo$stacks_LA_P < 0.05 &
+                 fw_SNPinfo$stacks_TX_P < 0.05)])
+upsetcols<-c(permutations='#e41a1c',salBF='#377eb8',pcadapt='#a65628',
+        xtx='#ff7f00',sharedStacks='#f781bf',
+        Alabama='#e7d4e8',Louisiana='#af8dc3',Texas='#762a83',Florida='#1b7837')
+
+upset(fromList(FL_outliers),sets=c("pcadapt","permutations","sharedStacks","xtx","salBF"),
+      point.size=7,line.size=2,mainbar.y.label = "Shared Outliers",
+      sets.x.label = "# Outliers",text.scale=rep(3,6),
+      sets.bar.color =upsetcols[c("pcadapt","permutations","sharedStacks","xtx","salBF")],
+      margin1scale = 0.2,matrix.dot.alpha =0,
+      sets.pt.color=upsetcols[c("pcadapt","permutations","sharedStacks","xtx","salBF")],
+      keep.order = TRUE)
+
+
+```
+
 
 ### Bayenv without Florida
 
