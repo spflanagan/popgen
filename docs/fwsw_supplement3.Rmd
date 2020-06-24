@@ -371,11 +371,16 @@ la.sig<-fwsw.la[fwsw.la$Fisher.s.P<0.05,"Locus.ID"]
 al.sig<-fwsw.al[fwsw.al$Fisher.s.P<0.05,"Locus.ID"]
 fl.sig<-fwsw.fl[fwsw.fl$Fisher.s.P<0.05,"Locus.ID"]
 
-all.shared<-fl.sig[which(fl.sig %in% la.sig & fl.sig %in% al.sig & fl.sig %in% tx.sig)]
-gulf_shared<-tx.sig[which(tx.sig %in% la.sig & tx.sig %in% al.sig)]
+all.shared<-fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P<0.05 &
+                              fw_SNPinfo$stacks_LA_P<0.05 &
+                               fw_SNPinfo$stacks_TX_P<0.05 &
+                               fw_SNPinfo$stacks_FL_P<0.05)]
+gulf_shared<-fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P<0.05 &
+                              fw_SNPinfo$stacks_LA_P<0.05 &
+                               fw_SNPinfo$stacks_TX_P<0.05)]
 ```
 
-There are `r length(unique(all.shared))` outliers (as determined by Fisher's P from stacks < 0.05). But because of the large pairwise Fsts between the Florida populations (Figure \@ref(fig:plotStacksFsts)), we'll focus on the shared SNPs in the Texas, Alabama, and Louisiana analyeses, in which we have `r length(unique(gulf_shared))`. 
+There are `r length(unique(all.shared))` outliers (as determined by Fisher's P from stacks < 0.05). But because of the large pairwise Fsts between the Florida populations (Figure \@ref(fig:plotStacksFsts)), we'll focus on the `r length(unique(gulf_shared))` shared SNPs in the Texas, Alabama, and Louisiana analyeses.
 
 As a point of comparison, we repeated this analysis with the similar pairwise saltwater-saltwater population pairs. We expect that if substantially more outlier loci were shared in the freshwater-saltwater comparisons than in the saltwater-saltwtaer comparisons that the shared outliers are likely a signature of adaptation to freshwater as opposed to random chance due to population structure.  
 
