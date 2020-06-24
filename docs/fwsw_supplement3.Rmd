@@ -841,6 +841,90 @@ upset(fromList(FL_outliers),sets=c("pcadapt","permutations","sharedStacks","xtx"
 
 ```
 
+Looking into the shared outliers on LG6 with the Bayenv run with Florida, we can see several of the same SNPs coming up as in the analysis presented in the main text.
+
+```{r LG6annotateFL}
+
+gff.name<-"ssc_2016_12_20_chromlevel.gff.gz"
+if(length(grep("gz",gff.name))>0){
+  gff<-read.delim(gzfile(paste("../../scovelli_genome/",gff.name,sep="")),header=F)
+} else{
+  gff<-read.delim(paste("../../scovelli_genome/",gff.name,sep=""),header=F)
+}
+colnames(gff)<-c("seqname","source","feature","start","end","score",
+                 "strand","frame","attribute")
+gff6<-gff[gff$seqname=="LG6",]
+
+lg6<-fw_SNPinfo[fw_SNPinfo$Chrom=="LG6",]
+outdat<-data.frame(rbind(lg6[which(lg6$ID %in% FL_outliers$sharedStacks),],
+                         lg6[which(lg6$ID %in% FL_outliers$salBF),]),
+                   stringsAsFactors = FALSE)
+outdat<-unique(outdat)
+
+outdat$abbr<-c("WRNIP1","uncharacterised protein ",NA,
+               "PTPRF6","LRRCC1",NA,"RP1","LAMA3",NA,NA,NA)
+
+
+```
+
+
+```{r LG6plotFL,fig.cap="Plot of the outliers in their positions in LG6. Gene regions are shown in grey, the salinity-associated outliers are shown in the blue dashed lines, and the shared Stacks outliers (TX, AL, and LA only) are shown as pink lines. Outliers in gene regions have their gene abbreviation printed above the lines."}
+cols<-c(perm=alpha('#e41a1c',0.75),sal=alpha('#377eb8',0.75),pc=alpha('#a65628',0.75),
+        stacks=alpha('#f781bf',0.75),xtx=alpha('#ff7f00',0.75))
+pchs<-c(perm=5,sal=2,pc=0,stacks=8,xtx=3)
+
+plot(x=c(min(gff6$start),max(gff6$end)),
+     y=c(0,1),type='n', axes=FALSE,
+     xlab="",ylab="")
+abline(h=0.5)
+rect(gff6$start[gff6$feature=="gene"],0.25,
+     gff6$end[gff6$feature=="gene"],0.75,col = "grey",border="grey")
+
+stacksout<-lg6$Pos[which(lg6$stacks_AL_P < 0.05 &
+                         lg6$stacks_LA_P < 0.05 &
+                         lg6$stacks_TX_P < 0.05 )]
+abline(v=stacksout,col=cols["stacks"],lwd=2)
+abline(v=lg6$Pos[lg6$ID %in% FL_outliers$salBF],
+       col=cols["sal"],lty=2,lwd=2)
+text(x =outdat$Pos[!is.na(outdat$abbr)],y=rep(1.1,nrow(outdat[!is.na(outdat$abbr),])),
+     outdat$abbr[!is.na(outdat$abbr)],xpd=TRUE,srt=90, pos=3)
+```
+
+
+```{r LG6TableFL}
+
+outdat$region<-as.character(outdat$region)
+outdat$region[grep("UTR",outdat$region)]<-"regulatory"
+outdat$region[grep("gene",outdat$region)]<-"gene"
+outdat$region[outdat$region %in% "contig"]<-"non-coding"
+outdat$region[outdat$region %in% "scaffNotFound"]<-"unkown"
+outdat$region[is.na(outdat$region)]<-"gene"
+
+outdat$analysis<-NA
+outdat$analysis[outdat$ID %in% outliers$sharedStacks]<-"stacks"
+outdat$analysis[outdat$ID %in% outliers$salBF & !is.na(outdat$analysis)]<-"stacks; salinity"
+outdat$analysis[outdat$ID %in% outliers$salBF & is.na(outdat$analysis)]<-"salinity"
+outdat$analysis[outdat$ID %in% outliers$xtx]<-paste0(outdat$analysis[outdat$ID %in% outliers$xtx],"; XtX")
+outdat$analysis[outdat$ID %in% outliers$pcadapt]<-paste0(outdat$analysis[outdat$ID %in% outliers$pcadapt],"; PCAdapt")
+outdat$analysis[outdat$ID %in% outliers$permutations]<-paste0(outdat$analysis[outdat$ID %in% outliers$permutations],"; Permutations")
+
+outdat<-outdat[order(outdat$Pos),]
+
+kable(outdat[,c("ID","Chrom","BP","REF","ALT","region","description","SSCID","analysis")],
+      "latex",booktabs=TRUE,row.names=FALSE,
+      caption="Outliers on LG6 that were shared among Stacks Texas, Alabama, and Louisiana freshwater-saltwater pairwise AMOVA-corrected Fst analyses and also outliers in the salinity-association analysis from Bayenv2 WITH Florida, and any other analyses they were outliers in.")%>%
+  kable_styling(latex_options=c("HOLD_position","repeat_header")) %>%
+  column_spec(1,width="2em") %>%
+  column_spec(2,width="2em") %>%
+  column_spec(3,width="4em") %>%
+  column_spec(4,width="1em") %>%
+  column_spec(5,width="1em") %>%
+  column_spec(6,width="3.5em") %>%
+  column_spec(7,width="10.5em") %>%
+  column_spec(8,width="8em")%>%
+  column_spec(9,width="5em")
+```
+
 
 ### Bayenv without Florida
 
