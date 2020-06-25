@@ -23,6 +23,23 @@ library(knitr)
 pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 ```
 
+# 25 June 2020
+
+FLCC_ALFW #13 finally done on abacus, so I moved it.
+The permutations are also finished so I can look into that.
+
+```{r}
+perms<-readRDS("permuted_fsts_22062020.RDS")
+sigPerm<-lapply(perms,function(dat){
+  
+  return(dat[which(dat$adjP<0.05),])
+})
+```
+
+I think one of the issues with the permutations is that there are many/several loci with Fst=0 with the correct labels but when the labels are permuted they end up with Fst >0 all the time, so those ones end up being outliers. I could re-vamp the permutations again to only go for loci with actual Fst > the distribution of permutations, but I'm not sure it's worth the effort. 
+
+Are any other loci in the dataset in that 6-bp region? Yes, >200.
+
 # 24 June 2020
 
 One of the papers I read says that LRRCC1 is tightly linked to CA2 in zebrafish, and CA2 is one of the putative freshwater genes
