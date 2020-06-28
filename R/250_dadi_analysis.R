@@ -9,19 +9,23 @@ parse_dadi_opt<-function(opt.file){
   
   return(model.opt)
 }
-dadi.optimal<-function(opt.file){
+dadi.optimal<-function(opt.file,last){
   model.opt<-parse_dadi_opt(opt.file)
-  # only keep the ones with the funn set of replicates
-  if(model.opt$Replicate[nrow(model.opt)]=="Round_4_Replicate_40"){
-    opt<-model.opt[which.max(as.numeric(as.character(model.opt$log.likelihood))),]
-    return(opt)
+    # only keep the ones with the full set of replicates
+    if(model.opt$Replicate[nrow(model.opt)]=="Round_4_Replicate_40"){
+      if(isTRUE(last)){
+        opt<-model.opt[nrow(model.opt),]  
+      }else{
+        opt<-model.opt[which.max(as.numeric(as.character(model.opt$log.likelihood))),]  
+      }
+      return(opt)
   }
 }
 
-dadi.modelcomp<-function(path,pattern,id){
+dadi.modelcomp<-function(path,pattern,id,last){
   opt.files<-list.files(path = path,pattern = pattern,full.names = TRUE)
   #find the best parameter set for each model using maximum log likelihood
-  opts<-do.call(rbind,lapply(opt.files,dadi.optimal))
+  opts<-do.call(rbind,lapply(opt.files,dadi.optimal,last=last))
   #rank them by AIC
   opts$rank<-rank(opts$AIC)
   opts$id<-id
