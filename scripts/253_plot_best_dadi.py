@@ -24,7 +24,7 @@ dd = dadi.Misc.make_data_dict ( "fwsw75.dadi.snps" )
 
 # create a spectrum
 pops = ['FLLG', 'FLCC', 'ALFW', 'ALST', 'LAFW', 'TXFW','TXCC' ]
-projs = [  70, 60 , 72, 70, 72, 46, 61 ]
+projs = [  70, 60 , 72, 70, 72, 46, 60 ]
 pts = [ 220,240 ]
 vmin_val=float(0.0001)
 
