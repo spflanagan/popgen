@@ -11,6 +11,7 @@ parse_dadi_opt<-function(opt.file){
 }
 dadi.optimal<-function(opt.file,last){
   model.opt<-parse_dadi_opt(opt.file)
+  if(nrow(model.opt)>0){
     # only keep the ones with the full set of replicates
     if(model.opt$Replicate[nrow(model.opt)]=="Round_4_Replicate_40"){
       if(isTRUE(last)){
@@ -19,6 +20,7 @@ dadi.optimal<-function(opt.file,last){
         opt<-model.opt[which.max(as.numeric(as.character(model.opt$log.likelihood))),]  
       }
       return(opt)
+    }
   }
 }
 
