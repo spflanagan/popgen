@@ -27,9 +27,11 @@ pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 
 I moved some sets of results from rccuser and abacus even though they aren't totally finished, mainly because I want to check in on the dadi results.
 
-I also realized that maybe I should be using the very final round/replicate from each run, and that maybe that will solve some of my issues with the dadi plots...this ended up changing some of the results (FLFW and FLCC are now "SI" model!) and we'll see what the output looks like in the end. Maybe this will be the best solution in the end. 
+I also realized that maybe I should be using the very final round/replicate from each run, and that maybe that will solve some of my issues with the dadi plots...this ended up changing some of the results (FLFW and FLCC are now "SI" model!) and we'll see what the output looks like in the end. 
 
 UGH No, now it's FLFW_ALST and FLFW_TXCC with problems (rather than FLFW_TXFW and FLFW_TXCC). but the model running on C001KR is done! So I can install updates and restart, FINALLY.
+
+Ok, so I'm an idiot, and I hadn't actually been using the median model for any other than FLFW_FLCC. So I'll do that and go back to not using the final replicate and see how that goes. - that solved the problem!
 
 # 25 June 2020
 
