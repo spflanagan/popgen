@@ -47,13 +47,15 @@ editor_options:
 
 # Overview of the study {-}
 
-The initial analyses are in `200_fwsw_analysis.Rmd` and conducted the analyses on a dataset generated from comparing lumped 'freshwater' and 'saltwater' populations, containing SNPs found in 50% of individuals and with a minor allele frequency of at least 5%. The revised paper will instead focus on two datasets:
+
+As described in the main manuscript, we analyzed the resulting RAD loci to create two sets of single nucleotide polymorphisms (SNPs):
 
 1. A dataset with all 16 populations, generated from all pairwise comparisons of populations, containing SNPs found in every population, in 75% of individuals, and with a minor allele frequency of at least 5%.
 
 2. A dataset containing only the 4 freshwater populations (TXFW, LAFW, ALFW, FLFW) and their nearest saltwater populations (TXCC, ALST, FLCC -- note ALST is the nearest neighbor to both ALFW and LAFW). This dataset also contains SNPs found in 75% of individuals with a minor allele frequency of at least 5%. 
 
-This supplement focuses on the analysis of dataset #2, focused on the investigation of outliers and potential targets of selection. 
+This supplement focuses on providing supplementary methods and results of the analysis of dataset #2, focusing on the analysis of the outliers in pairwise freshwater-saltwater comparisons. The analysis of dataset #1 is found in supplement 1 and the analysis of demographic histories using this dataset (dataset #2) is found in supplement 2.
+
 
 
 ```{r setup, include=FALSE}
