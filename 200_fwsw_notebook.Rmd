@@ -23,6 +23,10 @@ library(knitr)
 pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 ```
 
+# 30 June 2020
+
+I've done a final update of the dadi runs, scp-ing all of the ones from abacus and rccuser so that I've got as complete a set as possible.
+
 # 29 June 2020
 
 I moved some sets of results from rccuser and abacus even though they aren't totally finished, mainly because I want to check in on the dadi results.
