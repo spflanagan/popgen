@@ -23,6 +23,23 @@ library(knitr)
 pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 ```
 
+# 3 August 2020
+
+I installed stacks v1.40 on C001KR and copied Stacks data to BigData/ so that I can re-filter data for dadi.
+Then ran populations with the following command:
+
+```
+populations -b 2 -P ./stacks -M ./stacks/fwsw_sub_strat.txt -t 5 --min_maf 0 --vcf
+```
+
+I also downloaded all the results from abacus and rccuser, stopped the runs on rccuser, and archived all of the files (saved in tar.gz and deleted the un-zipped ones).
+
+I downloaded the code from Rougemont for the folded models.
+
+TODO: update code to make it a bit easier to run (maybe)
+Once populations is done, re-filter for dadi. 
+
+
 # 30 June 2020
 
 I've done a final update of the dadi runs, scp-ing all of the ones from abacus and rccuser so that I've got as complete a set as possible.
