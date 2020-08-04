@@ -23,54 +23,32 @@ outend=".optimized.txt"
 
 
 ############ CREATE POP COMBOS TO RUN ############
-if [ "$ARG1" == "nofile" ]; then
-	combos=()
-	for ((i=0; i<(${#pops[@]}-1); ++i)); do
-		for ((j=(i+1); j<${#pops[@]}; ++j)); do
-			combos+=("${pops[$i]}_${pops[$j]}")
-		done
+tasks=()
+for ((i=0; i<(${#fw_pops[@]}); ++i)); do
+	for ((mod=0; mod<(${#models[@]}); ++mod)); do		
+		tasks+=("${fw_pops[$i]}_${sw_pops[$i]}_${models[$mod]}")
 	done
-	
-	############ RUN THE ANALYSIS ############
-	# The scripts take rangeX and rangeY and pass them on to the python file
-	for ((x=${rangeX}; x<${rangeY}; x++)); do
-		y=$(( x+1 ))
-		for ((i=0; i<(${#combos[@]}); ++i)); do
-			for ((mod=0; mod<(${#models[@]}); ++mod)); do
-				outfile="${outdir}${combos[$i]}/${combos[$i]}_${x}.${models[$mod]}${outend}"
-				if [[ ! -f $outfile ]]; then
-					echo "sem -j -4 ./dadi_scripts/${combos[$i]}_${models[$mod]}.sh ${x} ${y}"
-					#sem -j -4 --bg ./dadi_scripts/${combos[$i]}_${models[$mod]}.sh ${x} ${y}
-				else
-					echo "${outfile} already exists"
-				fi 
-			done
-		done
+done
+
+len=${#tasks[@]}
+
+############ RUN WITH SANITY CHECKS! ############
+if [[ "$len" -gt "$taskEnd" ]]; then
+	for ((x=${taskStart}; x<=${taskEnd}; x++)); do
+		
+		outfile="${outdir}${tasks[$x]}${outend}"
+		if [[ ! -f $outfile ]]; then
+			echo "sem -j -4 ./dadi_scripts/${tasks[$x]}.sh ${rangeX} ${rangeY}"
+			sem -j -4 --bg ./dadi_scripts/${tasks[$x]}.sh ${rangeX} ${rangeY}
+		else
+			echo "${outfile} already exists"
+		fi 	
+
 	done
 else
-	file="../fwsw_results/$ARG1"
-	pops=()
-	mod=()
-	while read -r value1 value2
-	do
-		pops+=($value1)
-		mod+=($value2)
-	done <"$file"
-	
-	for ((x=${rangeX}; x<${rangeY}; x++)); do
-		y=$(( x+1 ))
-		for ((i=0; i<(${#pops[@]}); ++i)); do
-			outfile="${outdir}${pops[$i]}/${pops[$i]}_${x}.${mod[$i]}${outend}"
-			if [[ ! -f $outfile ]]; then
-				echo "sem -j -4 ./dadi_scripts/${pops[$i]}_${mod[$i]}.sh ${x} ${y}"
-				sem -j -4 --bg ./dadi_scripts/${pops[$i]}_${mod[$i]}.sh ${x} ${y}
-			else
-				echo "${outfile} already exists"
-			fi 	
-		done
-	done
-
-
+	echo "Ending taskID (${taskEnd}) greater than number of tasks (${len}): change the range and start qsub from 1" 1>&2
 fi
+
+	
 
 
