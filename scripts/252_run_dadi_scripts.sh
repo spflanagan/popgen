@@ -7,7 +7,8 @@
 
 cd "${0%/*}" # move to location of script
 
-ARG1=${1:-nofile}
+taskStart=${1} 
+taskEnd=${2}
 
 ############ SET THESE PARAMS ############
 pops=('FLLG' 'FLCC' 'ALFW' 'ALST' 'LAFW' 'TXFW' 'TXCC')
