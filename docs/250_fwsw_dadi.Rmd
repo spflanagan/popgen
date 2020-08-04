@@ -84,72 +84,26 @@ write.table(vcf2,"dadi_results/filtered.vcf",col.names = TRUE,row.names = FALSE,
 ```
 
 ```{r create_dadi, eval=FALSE}
-vcf<-parse.vcf("stacks/populations_subset75/batch_2.vcf")
-dadi<-vcf2dadiSNPs(vcf,pop.list = pop.list,filename = "dadi_analysis/fwsw.dadi.snps")
-dadi<-read.delim("dadi_analysis/fwsw.dadi.snps")
+# ID SNPs with high coverage (low missingness) in each population
+keep_snps<-lapply(pop.list,function(pop,vcf){
+  pop_vcf<-vcf[,c(1:9,grep(pop,colnames(vcf)))]
+  pop_prop<-apply(pop_vcf[,10:ncol(pop_vcf)],1,function(x){ return(length(grep("\\.\\/\\.",x))/length(x)) })
+  return(pop_vcf$ID[which(pop_prop<=0.1)])
+},vcf=vcf2)
+names(keep_snps)<-pop.list
+
+pop_vcfs<-list()
+for(i in 1:length(fw_pops)){
+  keep_ids<-keep_snps[[fw_pops[i]]][keep_snps[[fw_pops[i]]] %in% keep_snps[[sw_pops[i]]]]
+  pop_vcfs[[i]]<-vcf2[which(vcf2$ID %in% keep_ids),c(1:9,grep(fw_pops[i],colnames(vcf2)),grep(sw_pops[i],colnames(vcf2)))]
+  pop_dadi<-vcf2dadiSNPs(vcf=pop_vcfs[[i]],pop.list=c(fw_pops[i],sw_pops[i]),filename=paste0("dadi_results/",fw_pops[i],"_",sw_pops[i],".dadi.snps"))
+}
+names(pop_vcfs)<-paste0(fw_pops,"_",sw_pops)
+
 projections<-unlist(lapply(pop.list,function(pop){ 
-  n<-length(grep(pop,colnames(vcf)))
+  n<-length(grep(pop,colnames(vcf2)))
 }))*2
 
-
-names(projections)<-pop.list
-best.pops<-c("TXFW","TXCB","LAFW","ALST","ALFW","FLLG","FLCC",
-             "TXFW ","TXCB ","LAFW ","ALST ","ALFW ","FLLG ","FLCC ")
-best.pops<-c("TXFW","TXCB","LAFW","ALST","ALFW","FLLG","FLCC",
-             "TXFW.1","TXCB.1","LAFW.1","ALST.1","ALFW.1","FLLG.1","FLCC.1")
-dadi<-dadi[,c("Ingroup","Outgroup","Allele1",best.pops[1:7],
-              "Allele2",best.pops[8:14],"GeneID","Position")]
-dim(dadi[rowSums(dadi[,colnames(dadi) %in% best.pops])==
-           sum(projections[best.pops[1:7]]),])
-
-#transform this and remove everything but population info for ease of operations
-dd<-as.data.frame(cbind(colnames(dadi)[colnames(dadi) %in% best.pops],
-                        t(dadi[,colnames(dadi) %in% best.pops])),
-                  row.names = 0,stringsAsFactors = FALSE)
-#rename the pops to be factors, essentially
-dd$V1<-gsub("\\.1","",dd$V1)
-#calculate sums per locus for each population
-ns<-data.frame(do.call(rbind,lapply(2:ncol(dd),function(c){ 
-  tapply(dd[,c],dd$V1,function(x){ sum(as.numeric(x)) }) })))
-rownames(ns)<-dadi$GeneID
-nozeros<-ns[!(apply(ns, 1, function(y) any(y == 0))),] #512 had zeroes
-props<-apply(nozeros,2,function(x) { p<-x/max(x) } )
-keepers<-props[apply(props, 1, function(y) any(y >=0.75)),]
-
-#now save these in the dadi format
-write.table(dadi[dadi$GeneID %in% rownames(keepers),],
-            "dadi_analysis/fwsw.dadi.pruned.snps",
-            quote=FALSE,row.names = FALSE,
-            col.names = c("Ingroup","Outgroup","Allele1",
-                          "TXFW","TXCB","LAFW","ALST","ALFW","FLLG","FLCC",
-                          "Allele2","TXFW","TXCB","LAFW","ALST","ALFW",
-                          "FLLG","FLCC","GeneID","Position"))
-```
-
-```{r check_dadis, eval=FALSE}
-vcf.files<-c("stacks/populations_subset50/batch_2.vcf",
-             "stacks/populations_subset75/batch_2.vcf",
-             #"stacks/populations_subset85/batch_2.vcf",
-             #"stacks/populations_subset90/batch_2.vcf",
-             #"stacks/populations_subset95/batch_2.vcf",
-             "stacks/populations_subset100/batch_2.vcf")
-
-dadis<-lapply(vcf.files,function(file){
-  full.vcf<-parse.vcf(file)
-  vcf<-choose.one.snp(full.vcf)
-  vcf.out.name<-gsub("batch_2.vcf","batch_2.pruned.vcf",file)
-  write.table(x = vcf,file = vcf.out.name,quote = FALSE,
-              sep='\t',row.names = FALSE,col.names = TRUE)
-  dadi.out<-paste("dadi_analysis/fwsw",
-                  gsub(".*populations_subset(\\d+).*","\\1",file),
-                  ".dadi.snps",sep="")
-  pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
-  dadi<-vcf2dadiSNPs(vcf,pop.list = pop.list,filename = dadi.out)
-  return(dadi)
-})
-
-#compare
-kable(cbind(file=vcf.files,numer_snps=unlist(lapply(dadis,nrow))))
 ```
 
 ```{r compareSNPs}
