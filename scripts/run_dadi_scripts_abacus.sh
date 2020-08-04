@@ -36,7 +36,7 @@ len=${#tasks[@]}
 
 ############ RUN WITH SANITY CHECKS! ############
 if [[ "$len" -gt "$taskID" ]]; then
-	./dadi_scripts_abacus/${tasks[$taskID]}.sh ${rangeX} ${rangeY}
+	${dir}/dadi_scripts_abacus/${tasks[$taskID]}.sh ${rangeX} ${rangeY}
 else
 	echo "taskID (${taskID}) greater than number of tasks (${len}): change the range and start qsub from 1" 1>&2
 fi
