@@ -11,11 +11,12 @@ taskStart=${1}
 taskEnd=${2}
 
 ############ SET THESE PARAMS ############
-pops=('FLLG' 'FLCC' 'ALFW' 'ALST' 'LAFW' 'TXFW' 'TXCC')
-models=('SI' 'IM' 'AM' 'SC' 'SI2N' 'SIG' 'SI2NG' 'IMG' 'IM2N' 'IM2m' 'IM2NG' 'AM2N' 'AMG' 'AM2m' 'AM2NG' 'AM2N2m' 'AM2mG' 'AM2N2mG' 'SCG' 'SC2N' 'SC2m' 'SC2NG' 'SC2N2m' 'SC2mG' 'SC2N2mG')
-
-rangeX=5
-rangeY=10
+fw_pops=('TXFW' 'LAFW' 'ALFW' 'FLLG')
+sw_pops=('TXCC' 'ALST' 'ALST' 'FLCC')
+models=('SI' 'IM' 'AM' 'SC' 'SI2N' 'SIG' 'SI2NG' 'IMG' 'IM2N' 'IM2m' 'IM2NG' 'IM2mG' 'AM2N' 'AMG' 'AM2m' 'AM2NG' 'AM2N2m' 'AM2mG' 'AM2N2mG' 'SCG' 'SC2N' 'SC2m' 'SC2NG' 'SC2N2m' 'SC2mG' 'SC2N2mG')
+ 
+rangeX=11
+rangeY=12
 
 outdir="../fwsw_results/dadi_results/"
 outend=".optimized.txt"
