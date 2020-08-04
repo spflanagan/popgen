@@ -3,4 +3,4 @@ cd "${0%/*}"
 cd ../../fwsw_results/dadi_results/
 rangeX=$1
 rangeY=$2
-python ../../scripts/252_pairwise_dadi.py fwsw75.dadi.snps 'FLLG' 70 'FLCC' 60 $rangeX $rangeY AM2mG 2>&1 > FLLG_FLCC/FLLG-FLCC_AM2mG_${rangeX}_${rangeY}.log
+python ../../scripts/252_pairwise_dadi.py FLLG_FLCC.dadi.snps 'FLLG' 30 'FLCC' 30 $rangeX $rangeY AM2mG 2>&1 > FLLG_FLCC/FLLG_FLCC_AM2mG_${rangeX}_${rangeY}.log
