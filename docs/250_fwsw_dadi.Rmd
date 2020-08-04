@@ -199,8 +199,8 @@ for(i in 1:(length(fw_pops))){
     tasks<-c(tasks,paste(fw_pops[i],sw_pops[i],models[mod],sep="_"))
   }
 }
-
-write.csv(tasks,"model_list_dadi_Aug2020.csv",row.names = TRUE,quote=FALSE)
+tasks<-data.frame(tasks,0:(length(tasks)-1))
+write.csv(tasks,"model_list_dadi_Aug2020.csv",row.names = FALSE,col.names = FALSE,quote=FALSE)
 ```
 
 ```{r dadiParamsTable}
