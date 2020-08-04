@@ -39,6 +39,8 @@ capsize: normalsize
 csl: molecular-ecology.csl
 documentclass: article
 spacing: singlespacing
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
