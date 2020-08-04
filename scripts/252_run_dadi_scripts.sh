@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # This uses GNU parallel
-# Simply run this script - there is no need for nohup or &
+# Run this script in the background and save output to a log to avoid disruptions
 # It may take a while to complete though
-# Note: a number of messages from GNU parallel will pop up
+# Note: task IDs start from 0
 
 cd "${0%/*}" # move to location of script
 
