@@ -182,7 +182,8 @@ To run the models I saved all of the population-pair-model combinations to a fil
 
 
 ```{r modelCombos,eval=FALSE}
-pops=c('FLLG', 'FLCC', 'ALFW', 'ALST', 'LAFW', 'TXFW', 'TXCC')   #
+fw_pops=c('TXFW', 'LAFW', 'ALFW', 'FLLG')
+sw_pops=c('TXCC', 'ALST', 'ALST', 'FLCC')
 models=c('SI', 'IM', 'AM', 'SC', 'SI2N', 'SIG', 'SI2NG', 'IMG', 
          'IM2N', 'IM2m', 'IM2NG', 'IM2mG', 'AM2N', 'AMG', 'AM2m', 
          'AM2NG', 'AM2N2m', 'AM2mG', 'AM2N2mG', 'SCG' ,'SC2N', 
@@ -193,15 +194,13 @@ models=c('SI', 'IM', 'AM', 'SC', 'SI2N', 'SIG', 'SI2NG', 'IMG',
 
 ############ CREATE POP COMBOS TO RUN ############
 tasks=NULL
-for(i in 1:(length(pops)-1)){
-  for(j in (i+1):length(pops)){
-    for(mod in 1:length(models)){
-      tasks<-c(tasks,paste(pops[i],pops[j],models[mod],sep="_"))
-    }
+for(i in 1:(length(fw_pops))){
+  for(mod in 1:length(models)){
+    tasks<-c(tasks,paste(fw_pops[i],sw_pops[i],models[mod],sep="_"))
   }
 }
 
-write.csv(tasks,"model_list_dadi.csv",row.names = TRUE,quote=FALSE)
+write.csv(tasks,"model_list_dadi_Aug2020.csv",row.names = TRUE,quote=FALSE)
 ```
 
 ```{r dadiParamsTable}
