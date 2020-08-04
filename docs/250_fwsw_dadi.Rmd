@@ -68,6 +68,21 @@ sw_pops<-c("TXCC","ALST","ALST","FLCC")
 
 # Create a dadi SNPs file from the vcf {-}
 
+
+First I am filtering the full dataset, which has 540066 SNPs at 111391 RAD loci. First I'll choose a single SNP per locus (so I have 111391 SNPs), and then I'll filter to minimize missingness by keeping SNPs 
+
+```{r filterLowCovInds,eval=FALSE}
+vcf<-parse.vcf("stacks/batch_2.vcf")
+# choose one SNP per locus
+vcf1<-choose.one.snp(vcf)
+rownames(vcf1)<-NULL
+# remove any indivdiuals with > 75% missingness
+ind_cov<-apply(vcf1[,10:ncol(vcf1)],2,function(x){ return(length(grep("\\.\\/\\.",x))/length(x)) })
+ind_rem<-which(ind_cov>=0.55)
+vcf2<-vcf1[,!(colnames(vcf1) %in% names(ind_rem))]
+write.table(vcf2,"dadi_results/filtered.vcf",col.names = TRUE,row.names = FALSE,quote=FALSE,sep='\t')
+```
+
 ```{r create_dadi, eval=FALSE}
 vcf<-parse.vcf("stacks/populations_subset75/batch_2.vcf")
 dadi<-vcf2dadiSNPs(vcf,pop.list = pop.list,filename = "dadi_analysis/fwsw.dadi.snps")
