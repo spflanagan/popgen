@@ -4,7 +4,7 @@
 # This script is for running on abacus using qsub
 # Usage, where S is the starting ID and N is ending ID:
 # qsub -t S-N -cwd -S /bin/bash run_dadi_scripts_abacus.sh
-cd "${0%/*}" # move to location of script
+dir=$(pwd) # get current dir
 taskID=$SGE_TASK_ID 
 
 ### --- SGE SETTINGS --- ###
