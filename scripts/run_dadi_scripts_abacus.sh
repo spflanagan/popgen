@@ -16,7 +16,8 @@ taskID=$SGE_TASK_ID
 #$ -e /home/spf50/jobs/
 
 ############ SET THESE PARAMS ############
-pops=('FLLG' 'FLCC' 'ALFW' 'ALST' 'LAFW' 'TXFW' 'TXCC')   #
+fw_pops=('TXFW' 'LAFW' 'ALFW' 'FLLG')
+sw_pops=('TXCC' 'ALST' 'ALST' 'FLCC')
 models=('SI' 'IM' 'AM' 'SC' 'SI2N' 'SIG' 'SI2NG' 'IMG' 'IM2N' 'IM2m' 'IM2NG' 'IM2mG' 'AM2N' 'AMG' 'AM2m' 'AM2NG' 'AM2N2m' 'AM2mG' 'AM2N2mG' 'SCG' 'SC2N' 'SC2m' 'SC2NG' 'SC2N2m' 'SC2mG' 'SC2N2mG')
  
 rangeX=12
@@ -25,11 +26,9 @@ rangeY=13
 
 ############ CREATE POP COMBOS TO RUN ############
 tasks=()
-for ((i=0; i<(${#pops[@]}-1); ++i)); do
-	for ((j=(i+1); j<${#pops[@]}; ++j)); do
-		for ((mod=0; mod<(${#models[@]}); ++mod)); do		
-			tasks+=("${pops[$i]}_${pops[$j]}_${models[$mod]}")
-		done
+for ((i=0; i<(${#fw_pops[@]}); ++i)); do
+	for ((mod=0; mod<(${#models[@]}); ++mod)); do		
+		tasks+=("${fw_pops[$i]}_${sw_pops[$i]}_${models[$mod]}")
 	done
 done
 
