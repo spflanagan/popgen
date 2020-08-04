@@ -106,21 +106,25 @@ projections<-unlist(lapply(pop.list,function(pop){
 
 ```
 
-```{r compareSNPs}
-files<-list.files(pattern="dadi.snps",path="dadi_analysis",full.names = TRUE)
+
+```{r comparePopPairs}
+files<-list.files(pattern="dadi.snps",path="dadi_results",full.names = TRUE)
+projections<-c(TXFW=54,LAFW=52,ALFW=60,FLLG=76,TXCC=86,ALST=62,FLCC=72)
 
 dadis<-lapply(files,read.delim)
-dadiSum<-data.frame(Coverage=as.numeric(gsub("dadi_analysis/fwsw(\\d+).*","\\1",files)),
-               NumberSnps=do.call(rbind,lapply(dadis,nrow)))
+dadiSum<-data.frame(PopPair=gsub("dadi_results/(\\w+_\\w+).dadi.snps","\\1",files),
+                    Pop1=projections[gsub("dadi_results/(\\w+)_(\\w+).dadi.snps","\\1",files)]/2,
+                    Pop2=projections[gsub("dadi_results/(\\w+)_(\\w+).dadi.snps","\\2",files)]/2,
+                    NumberSnps=do.call(rbind,lapply(dadis,nrow)))
 #compare
 kable(dadiSum,"latex",booktabs=TRUE,
-      col.names = c("Percentage of individuals","Number of SNPs"),
-      caption = "The relationship between the percentage of individuals required to be genotyped for each SNP and the total number of SNPs in the resulting dataset, once one SNP per RAD locus was removed.")%>%
+      col.names = c("Population Pair","Number of Individuals in Pop 1","Number of Individuals in Pop 2","Number of SNPs"),
+      caption = "For each analysis of the freshwater-saltwater pairs, the retained number of individuals (the values in this table were multiplied by 2 for the projections used in dadi) in each population and the number of SNPs retained in each analysis.")%>%
   kable_styling(latex_options=c("HOLD_position"))
 ```
 
 
-I'm going to use the 75% of individuals dataset, which contains 12103 individuals (Table \@ref(tab:compareSNPs)) and was also used in the outlier analyses.
+Each pairwise population comparison used a slightly different set of SNPs (Table \@ref(tab:compareSNPs)) to minimise missingness and allow for the inclusion of SNPs that were singletons and without a minor allele frequency cutoff.
 
 ## Running dadi {-}
 
