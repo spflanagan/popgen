@@ -60,6 +60,8 @@ library(knitr); library(kableExtra)
 library(png)
 library(scales)
 pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
+fw_pops<-c("TXFW","LAFW","ALFW","FLLG")
+sw_pops<-c("TXCC","ALST","ALST","FLCC")
 ```
 
 
