@@ -314,7 +314,7 @@ best_mod<-sumTab$Model[which.max(sumTab$model_score)]
 
 The model with the highest model score was `r best_mod`, with SC2mG having the second-best model score (Figre \@ref(fig:fllgOpts), Table \@ref(tab:fffwTable)). We compared the parameter estimates for these two models, visualizing the parameter estimates for each (Figure \@ref(fig:fllgCompareMods)). This figure demonstrates that the model replicate with the maximum log likelihood tended to have extreme estimates of the b1 parameter, reinforcing our choice to choose the best model runs based on model score. 
 
-```{r fllgBestMods}
+```{r fllgBestMods, eval=FALSE}
 flcc_fllg_sc2mg<-do.call(rbind,
                          extract_dadi_params(fllg_flcc[[1]][fllg_flcc[[1]]$Model==
                                                               "SC2mG",]))
@@ -323,7 +323,7 @@ flcc_fllg_im2mg<-do.call(rbind,
                                                               "IM2mG",]))
 ```
 
-```{r fllgCompareMods,fig.width=8, fig.cap="Boxplot showing the parameter estimates from the replicates of the SC2mG model (left) and the IM2mG model (right) for the FLFW vs FLCC pairwise comparison. The red stars represent the model parameters from the run with the highest log likelihood."}
+```{r fllgCompareMods,fig.width=8, fig.cap="Boxplot showing the parameter estimates from the replicates of the SC2mG model (left) and the IM2mG model (right) for the FLFW vs FLCC pairwise comparison. The red stars represent the model parameters from the run with the highest log likelihood.", eval=FALSE}
 par(mfrow=c(1,2))
 boxplot(flcc_fllg_sc2mg[,11:22],main="SC2mG")
 points(1:12,
@@ -513,7 +513,7 @@ landscape(kable(outTable,"latex",booktabs=TRUE,
                 caption="Table of all of the parameters for the best models for each population pair."))  %>%
   kable_styling(latex_options=c("scale_down","repeat_header","HOLD_position"))
 ```
-```{r saveBestTable}
+```{r saveBestTable, eval=FALSE}
 poporder<-c('TXFW_TXCC','ALST_LAFW','ALFW_ALST','FLLG_FLCC', 
             'LAFW_TXFW','ALFW_TXFW','FLLG_TXFW','ALFW_LAFW','FLLG_LAFW','FLLG_ALFW',
             'ALST_TXCC','FLCC_ALST','FLCC_TXCC',
@@ -528,7 +528,7 @@ write.csv(savTab,"dadi_summary.csv",col.names = TRUE,row.names = FALSE,quote=FAL
 ```
 
 
-```{r paramsOrder}
+```{r paramsOrder, eval=FALSE}
 params_order<-list(SI=c("nu1", "nu2", "Ts", "O"),
                     SI2N=c("nu1", "nu2", "Ts", "nr", "bf", "O"),
                     SIG=c("nu1", "nu2", "b1", "b2", "Ts", "O" ),
@@ -559,7 +559,7 @@ params_order<-list(SI=c("nu1", "nu2", "Ts", "O"),
 )
 ```
 
-```{r writePythonScript}
+```{r writePythonScript, eval=FALSE}
 write.table("#!/bin/bash","../scripts/make_best_plots_dadi.sh",
             quote=FALSE,row.names = FALSE,col.names = FALSE)
 write.table("cd \"${0%/*}\"","../scripts/make_best_plots_dadi.sh",
