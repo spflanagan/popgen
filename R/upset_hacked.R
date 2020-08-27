@@ -283,7 +283,7 @@ upset<-function(data, nsets = 5, nintersects = 40, sets = NULL, keep.order = F, 
                 scale.sets = "identity", text.scale = 1, set_size.angles = 0 , set_size.show = FALSE, set_size.numbers_size = NULL, set_size.scale_max = NULL,
                 margin1scale=0.65){
   requireNamespace("UpSetR")
-  #browser()
+  browser()
   startend <- UpSetR:::FindStartEnd(data)
   first.col <- startend[1]
   last.col <- startend[2]
@@ -321,7 +321,8 @@ upset<-function(data, nsets = 5, nintersects = 40, sets = NULL, keep.order = F, 
                                   order.by, group.by, cutoff, empty.intersections, decreasing)
   }
   
-  Matrix_setup <- UpSetR:::Create_matrix(All_Freqs)
+  # changed this from UpSetR:::Create_matrix(All_Freqs) because that function added spaces to the name
+  Matrix_setup <- as.matrix(t(All_Freqs[, 1:(length(All_Freqs) - 3)]))
   labels <- UpSetR:::Make_labels(Matrix_setup)
   #Chose NA to represent NULL case as result of NA being inserted when at least one contained both x and y
   #i.e. if one custom plot had both x and y, and others had only x, the y's for the other plots were NA
