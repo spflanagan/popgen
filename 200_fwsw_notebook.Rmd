@@ -23,6 +23,36 @@ library(knitr)
 pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 ```
 
+# 27 August 2020
+
+For LAFW_ALFW, FLLG_FLFW, and ALFW_ALST, it took 2-3 days to run 1 round of each of the more complex models, so I'll start rounds 2-11 now. 
+
+# 25 August 2020
+
+The TX simple models were finished running but I realized that some of them had not ever completed (didn't have all the way through 40 reps) and some of them hadn't run. So I'm re-running some of each of those models on abacus. The one extra LA run that I started yesterday is complete, so after these runs from today are finished I'll have 20 reps of AM, IM, SC, and SI for each pairwise comparison. From there I'll choose which complex models to run for TX.
+
+The complex runs from yesterday are still running but are almost done.
+
+# 24 August 2020
+
+The AL and LA comparisons are done running (just that SC, SI, AM, and IM models) for all 20 reps. Taking a look at the updated 250_fwsw_dadi doc, I first observed that one of the LA AM runs was apparently incomplete -- it's run #1, and I'm going to re-start that on abacus. 
+
+Other things to note: 
+- the FLFW-FLCC simple models are all quite similar to each other, but the best one is the IM model -- it has both the highest median log likelihood and the highest log likelihood recorded. 
+- IM is also the best of the four simple models for ALFW-ALST.
+- SC is the best of the four simple models for LAFW-ALST. 
+- TX is still running but it looks like IM will be the winner there.
+
+So now I need to run the more complex models. I've started one run of each of the complex models for the FL, AL, and LA combinations mainly to get a sense for how long this might take. I've got lots of time -- the deadline for resubmission has been pushed to 30 Nov (of course I would prefer to be done sooner than that). 
+
+# 13 August 2020
+
+Rounds 1-10 are done for the simple models (SI, SC, AM, and IM) for all four comparisons, and I've copied them to C001KR from abacus. I deleted the FLLG_FLCC ones but not the others. 
+I started rounds 10-21 for the simple models for the pour pairwise comparisons on abacus.
+The runs on rccuser are still going (which was all models for all comparisons).
+
+Re-knit the document and it's looking like there was clearly migration in all population pairs, but the SI model is pretty high up there for the FL comparisons (not the best though).
+
 # 3 August 2020
 
 I installed stacks v1.40 on C001KR and copied Stacks data to BigData/ so that I can re-filter data for dadi.
