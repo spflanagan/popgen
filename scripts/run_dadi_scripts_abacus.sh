@@ -6,7 +6,7 @@
 # qsub -t S-N -cwd -S /bin/bash run_dadi_scripts_abacus.sh
 dir=$(pwd) # get current dir
 taskID=$SGE_TASK_ID 
-
+taskID=$(( $taskID - 1 )) #adjust to run the first task too
 ### --- SGE SETTINGS --- ###
 
 #$ -M sarah.flanagan@canterbury.ac.nz
