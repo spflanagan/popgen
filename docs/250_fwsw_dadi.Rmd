@@ -455,7 +455,7 @@ txfw_txcc_best<-do.call(rbind,
                         txfw_txcc[[1]][txfw_txcc[[1]]$Model==best_mod,]))
 ```
 The model with the highest model score was `r best_mod`.
-```{r saveBest21}
+```{r saveBest21, eval=FALSE}
 
 outTable[21,]<-sumTab[sumTab$Model==best_mod,colnames(outTable)]
 
@@ -470,7 +470,7 @@ if(file.exists(multiname)){
 
 ## Summarizing output for best models
 
-```{r dadiSummaryPlot,fig.width=8,fig.height=8, fig.cap="The best models for each population pair, color-coded by baseline demographic scenario (grey = strict isolation; green = ancestral migration; light blue = secondary contact; dark blue = isolation with migration). The abbreviation 2N refers to linked selection and 2m refers to heterogeneous migration/introgression, both of which are indicative of covariance among some genomic regions. The letter G indicates that the best model supports changes in population size since the population split." }
+```{r dadiSummaryPlot,fig.width=8,fig.height=8, fig.cap="The best models for each population pair, color-coded by baseline demographic scenario (grey = strict isolation; green = ancestral migration; light blue = secondary contact; dark blue = isolation with migration). The abbreviation 2N refers to linked selection and 2m refers to heterogeneous migration/introgression, both of which are indicative of covariance among some genomic regions. The letter G indicates that the best model supports changes in population size since the population split." , eval=FALSE}
 pop.list<-c(unique(bestModels[,1]),"TXCC")
 colors<-c(SI="gray66",IM="#1f78b4",AM="#b2df8a",SC="#a6cee3")
 lbcols<-c("#2166ac",'#1b7837',
