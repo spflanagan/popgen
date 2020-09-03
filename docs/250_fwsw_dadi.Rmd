@@ -294,8 +294,8 @@ To compare the $\delta_A\delta_I$ results for each population pair, we used cust
 ### FLFW vs FLCC
 
 
-```{r fllgOpts, fig.cap="Comparison of log likelihoods for FLFW-FLCC models"}
-fllg_flcc<-dadi_initialCompare("FLLG_FLCC",modSel="median")
+```{r fllgOptsSimple, fig.cap="Comparison of log likelihoods for FLFW-FLCC models"}
+fllg_flcc<-dadi_initialCompare("FLLG_FLCC",opt_pattern = "\\.\\w\\w.optimized.txt",modSel="median")
 ```
 
 
