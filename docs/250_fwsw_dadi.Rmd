@@ -412,9 +412,34 @@ alfw_alst_best<-do.call(rbind,
 
 The model with the highest model score was `r best_mod` (Figure \@ref(fig:afasOptsSimple), Table \@ref(tab:sumTab2Simple)).
 
-bestModels[12,]<-c("ALFW","ALST",Model=best_mod)
+```{r afasOpts, fig.cap="Comparison of log likelihoods for the simple ALFW-ALST models"}
+alfw_alst<-dadi_initialCompare("ALFW_ALST",opt_pattern = paste0(".*",best_mod,".*.optimized.txt"),modSel="median")
 ```
-```{r dadiPlots12,out.width="90%",fig.cap="Summary plot of the joint site frequency spectrum of the data for the ALFW vs ALST comparison (left) and the best-fitting model (right), plus their residuals (bottom row)."}
+
+```{r sumTab2}
+sumTab<-dadi_pairSummary(alfw_alst)
+
+landscape(kable(sumTab,"latex",booktabs=TRUE,
+      caption = "Table showing the results of the run with the median log likelihood for each model for the ALFW vs ALST comparison. The parameters are not converted to biologically realistic values, and their meanings are presented in Table S2.2.",
+      row.names = FALSE)) %>%
+  kable_styling(latex_options=c("scale_down","HOLD_position"))
+```
+```{r BestMods2}
+best_mod<-sumTab$Model[which.max(sumTab$model_score)]
+alfw_alst_best<-do.call(rbind,
+                      extract_dadi_params(
+                        alfw_alst[[1]][alfw_alst[[1]]$Model==best_mod,]))
+```
+
+The overall best model for this comparison is therefore `r best_mod` (Figure \@ref(fig:afasOptsSimple), Table \@ref(tab:sumTab2Simple)).
+
+```{r saveBest2}
+
+outTable[2,]<-sumTab[sumTab$Model==best_mod,colnames(outTable)]
+
+bestModels[2,]<-c("ALFW","ALST",Model=best_mod)
+```
+```{r dadiPlots2,out.width="90%",fig.cap="Summary plot of the joint site frequency spectrum of the data for the ALFW vs ALST comparison (left) and the best-fitting model (right), plus their residuals (bottom row)."}
 multiname<-paste0("../figs/dadi/ALFW_ALST_",best_mod,"multinom.png")
 if(file.exists(multiname)){
   knitr::include_graphics(multiname)
