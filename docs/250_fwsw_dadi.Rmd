@@ -527,10 +527,10 @@ txfw_txcc_best<-do.call(rbind,
 The model with the highest model score was `r best_mod`  (Figure \@ref(fig:tftsOptsSimple), Table \@ref(tab:sumTab4Simple)).
 
 ```{r tftsOpts, fig.cap="Comparison of log likelihoods for TXFW-TXCC models"}
-txfw_txcc<-dadi_initialCompare("TXFW_TXCC",modSel="median")
+txfw_txcc<-dadi_initialCompare("TXFW_TXCC",opt_pattern = paste0(".*",best_mod,".*.optimized.txt"),modSel="median")
 ```
 
-```{r sumTab21}
+```{r sumTab4}
 sumTab<-dadi_pairSummary(txfw_txcc)
 
 landscape(kable(sumTab,"latex",booktabs=TRUE,
@@ -538,18 +538,20 @@ landscape(kable(sumTab,"latex",booktabs=TRUE,
       row.names = FALSE)) %>%
   kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
-```{r BestMods21}
+```{r BestMods4}
 best_mod<-sumTab$Model[which.max(sumTab$model_score)]
 txfw_txcc_best<-do.call(rbind,
                       extract_dadi_params(
                         txfw_txcc[[1]][txfw_txcc[[1]]$Model==best_mod,]))
 ```
-The model with the highest model score was `r best_mod`.
-```{r saveBest21, eval=FALSE}
+The model with the highest model score was `r best_mod`  (Figure \@ref(fig:tftsOpts), Table \@ref(tab:sumTab4)).
 
-outTable[21,]<-sumTab[sumTab$Model==best_mod,colnames(outTable)]
 
-bestModels[21,]<-c("TXFW","TXCC",Model=best_mod)
+```{r saveBest4}
+
+outTable[4,]<-sumTab[sumTab$Model==best_mod,colnames(outTable)]
+
+bestModels[4,]<-c("TXFW","TXCC",Model=best_mod)
 ```
 ```{r dadiPlots21,out.width="90%",fig.cap="Summary plot of the joint site frequency spectrum of the data for the TXFW vs TXCC comparison (left) and the best-fitting model (right), plus their residuals (bottom row)."}
 multiname<-paste0("../figs/dadi/TXFW_TXCC_",best_mod,"multinom.png")
