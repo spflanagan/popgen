@@ -299,7 +299,7 @@ fllg_flcc<-dadi_initialCompare("FLLG_FLCC",opt_pattern = "\\.\\w\\w.optimized.tx
 ```
 
 
-```{r fffwTable}
+```{r fffwTableSimple}
 sumTab<-dadi_pairSummary(fllg_flcc)
 
 landscape(kable(sumTab,"latex",booktabs=TRUE,
