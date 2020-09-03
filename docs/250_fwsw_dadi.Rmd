@@ -254,9 +254,9 @@ kable(paramsMeanings,"latex",booktabs=TRUE,longtable=TRUE,
 ## Analyzing dadi output {-}
 
 ```{r dadi_InitialCompare}
-dadi_initialCompare<-function(comparison,modSel="max"){
+dadi_initialCompare<-function(comparison,opt_pattern="*optimized.*",modSel="max"){
   opts<-dadi.modelcomp(path = paste0("dadi_results/",comparison,"/"),
-                               pattern="*optimized.*",id=comparison,last=FALSE)
+                               pattern=opt_pattern,id=comparison,last=FALSE)
   comp<-modelComparison(opts,modSel)
   Ns<-tapply(opts$log.likelihood,opts$Model,length)
   plot(as.numeric(opts$log.likelihood)~
