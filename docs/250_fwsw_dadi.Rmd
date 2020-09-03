@@ -312,27 +312,30 @@ best_mod<-sumTab$Model[which.max(sumTab$model_score)]
 ```
 
 
-The model with the highest model score was `r best_mod`, with SC2mG having the second-best model score (Figre \@ref(fig:fllgOpts), Table \@ref(tab:fffwTable)). We compared the parameter estimates for these two models, visualizing the parameter estimates for each (Figure \@ref(fig:fllgCompareMods)). This figure demonstrates that the model replicate with the maximum log likelihood tended to have extreme estimates of the b1 parameter, reinforcing our choice to choose the best model runs based on model score. 
+The model with the highest model score was `r best_mod` (Figure \@ref(fig:fllgOptsSimple), Table \@ref(tab:fffwTableSimple)). 
+
+
+We compared the parameter estimates for the SI and IM models because the SI estimates were so consistent (Figure \@ref(fig:fllgCompareMods)). This figure demonstrates that the model replicate with the maximum log likelihood tended to have extreme estimates of the nu2 parameter, reinforcing our choice to choose the best model runs based on median log likelihood, and to compare models based on the highest model score. 
 
 ```{r fllgBestMods, eval=FALSE}
-flcc_fllg_sc2mg<-do.call(rbind,
+flcc_fllg_im<-do.call(rbind,
                          extract_dadi_params(fllg_flcc[[1]][fllg_flcc[[1]]$Model==
-                                                              "SC2mG",]))
-flcc_fllg_im2mg<-do.call(rbind,
+                                                              "IM",]))
+flcc_fllg_si<-do.call(rbind,
                          extract_dadi_params(fllg_flcc[[1]][fllg_flcc[[1]]$Model==
-                                                              "IM2mG",]))
+                                                              "SI",]))
 ```
 
-```{r fllgCompareMods,fig.width=8, fig.cap="Boxplot showing the parameter estimates from the replicates of the SC2mG model (left) and the IM2mG model (right) for the FLFW vs FLCC pairwise comparison. The red stars represent the model parameters from the run with the highest log likelihood.", eval=FALSE}
+```{r fllgCompareMods,fig.width=8, fig.cap="Boxplot showing the parameter estimates from the replicates of the SI model (left) and the IM model (right) for the FLFW vs FLCC pairwise comparison. The red stars represent the model parameters from the run with the highest log likelihood.", eval=FALSE}
 par(mfrow=c(1,2))
-boxplot(flcc_fllg_sc2mg[,11:22],main="SC2mG")
-points(1:12,
-       flcc_fllg_sc2mg[which.max(flcc_fllg_sc2mg$log.likelihood),11:22],
+boxplot(flcc_fllg_si[,11:13],main="SI")
+points(1:3,
+       flcc_fllg_si[which.max(flcc_fllg_si$log.likelihood),11:13],
        pch=8,col="red",lwd=2)
 
-boxplot(flcc_fllg_im2mg[,11:21],main="IM2mG")
-points(1:11,
-       flcc_fllg_im2mg[which.max(flcc_fllg_im2mg$log.likelihood),11:21],
+boxplot(flcc_fllg_im[,11:15],main="IM")
+points(1:5,
+       flcc_fllg_im[which.max(flcc_fllg_im$log.likelihood),11:15],
        pch=8,col="red",lwd=2)
 ```
 ```{r setupOutTable}
