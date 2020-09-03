@@ -449,11 +449,31 @@ if(file.exists(multiname)){
 
 ### LAFW vs ALST
 
-```{r aslfOpts, fig.cap="Comparison of log likelihoods for ALST-LAFW models"}
-lafw_alst<-dadi_initialCompare("LAFW_ALST",modSel="median")
+```{r aslfOptsSimple, fig.cap="Comparison of log likelihoods for ALST-LAFW models"}
+lafw_alst<-dadi_initialCompare("LAFW_ALST",opt_pattern = "\\.\\w\\w.optimized.txt",modSel="median")
 ```
 
-```{r sumTab16}
+```{r sumTab3Simple}
+sumTab<-dadi_pairSummary(lafw_alst)
+
+landscape(kable(sumTab,"latex",booktabs=TRUE,
+      caption = "Table showing the results of the run with the median log likelihood for each model for the ALST vs LAFW comparison. The parameters are not converted to biologically realistic values, and their meanings are presented in Table S2.2.",
+      row.names = FALSE)) %>%
+  kable_styling(latex_options=c("scale_down","HOLD_position"))
+```
+```{r BestMods3Simple}
+best_mod<-sumTab$Model[which.max(sumTab$model_score)]
+lafw_alst_best<-do.call(rbind,
+                      extract_dadi_params(
+                        lafw_alst[[1]][lafw_alst[[1]]$Model==best_mod,]))
+```
+The model with the highest model score was `r best_mod` (Figure \@ref(fig:aslfOptsSimple), Table \@ref(tab:sumTab3Simple)).
+
+```{r aslfOpts, fig.cap="Comparison of log likelihoods for ALST-LAFW models"}
+lafw_alst<-dadi_initialCompare("LAFW_ALST",opt_pattern = paste0(".*",best_mod,".*.optimized.txt"),modSel="median")
+```
+
+```{r sumTab3}
 sumTab<-dadi_pairSummary(lafw_alst)
 
 landscape(kable(sumTab,"latex",booktabs=TRUE,
