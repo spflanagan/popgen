@@ -481,18 +481,20 @@ landscape(kable(sumTab,"latex",booktabs=TRUE,
       row.names = FALSE)) %>%
   kable_styling(latex_options=c("scale_down","HOLD_position"))
 ```
-```{r BestMods16}
+```{r BestMods3}
 best_mod<-sumTab$Model[which.max(sumTab$model_score)]
 lafw_alst_best<-do.call(rbind,
                       extract_dadi_params(
                         lafw_alst[[1]][lafw_alst[[1]]$Model==best_mod,]))
 ```
-The model with the highest model score was `r best_mod`.
-```{r saveBest16}
+The model with the highest model score was `r best_mod` (Figure \@ref(fig:aslfOpts), Table \@ref(tab:sumTab3)).
 
-outTable[16,]<-sumTab[sumTab$Model==best_mod,colnames(outTable)]
 
-bestModels[16,]<-c("ALST","LAFW",Model=best_mod)
+```{r saveBest16,eval=FALSE}
+
+outTable[3,]<-sumTab[sumTab$Model==best_mod,colnames(outTable)]
+
+bestModels[3,]<-c("ALST","LAFW",Model=best_mod)
 ```
 ```{r dadiPlots16,out.width="90%",fig.cap="Summary plot of the joint site frequency spectrum of the data for the ALST vs LAFW comparison (left) and the best-fitting model (right), plus their residuals (bottom row)."}
 multiname<-paste0("../figs/dadi/LAFW_ALST_",best_mod,"multinom.png")
