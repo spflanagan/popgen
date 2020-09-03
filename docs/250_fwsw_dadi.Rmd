@@ -338,6 +338,28 @@ points(1:5,
        flcc_fllg_im[which.max(flcc_fllg_im$log.likelihood),11:15],
        pch=8,col="red",lwd=2)
 ```
+
+Once we had chosen the 'simple' model to move forward with (`r best_mod`), we then ran variations of that model and revisited the above analyses with those models. 
+
+```{r fllgOpts, fig.cap="Comparison of log likelihoods for FLFW-FLCC models"}
+fllg_flcc<-dadi_initialCompare("FLLG_FLCC",opt_pattern = paste0(".*",best_mod,".*.optimized.txt"),modSel="median")
+```
+
+
+```{r fffwTable}
+sumTab<-dadi_pairSummary(fllg_flcc)
+
+landscape(kable(sumTab,"latex",booktabs=TRUE,
+      caption = "Table showing the results of the run with the median log likelihood for each model for the FLFW vs FLCC comparison. The parameters are not converted to biologically realistic values, and their meanings are presented in Table S2.2.",
+      row.names = FALSE)) %>%
+  kable_styling(latex_options=c("scale_down","HOLD_position"))
+
+best_mod<-sumTab$Model[which.max(sumTab$model_score)]
+
+```
+
+The model with the highest model score was `r best_mod` (Figure \@ref(fig:fllgOpts), Table \@ref(tab:fffwTable)). 
+
 ```{r setupOutTable}
 
 outNames<-colnames(sumTab)
