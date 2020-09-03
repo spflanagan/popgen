@@ -506,6 +506,26 @@ if(file.exists(multiname)){
 
 ### TXFW vs TXCC
 
+```{r tftsOptsSimple, fig.cap="Comparison of log likelihoods for TXFW-TXCC models"}
+txfw_txcc<-dadi_initialCompare("TXFW_TXCC",opt_pattern = "\\.\\w\\w.optimized.txt",modSel="median")
+```
+
+```{r sumTab4Simple}
+sumTab<-dadi_pairSummary(txfw_txcc)
+
+landscape(kable(sumTab,"latex",booktabs=TRUE,
+      caption = "Table showing the results of the run with the median log likelihood for each model for the TXFW vs TXCC comparison. The parameters are not converted to biologically realistic values, and their meanings are presented in Table S2.2.",
+      row.names = FALSE)) %>%
+  kable_styling(latex_options=c("scale_down","HOLD_position"))
+```
+```{r BestMods4Simple}
+best_mod<-sumTab$Model[which.max(sumTab$model_score)]
+txfw_txcc_best<-do.call(rbind,
+                      extract_dadi_params(
+                        txfw_txcc[[1]][txfw_txcc[[1]]$Model==best_mod,]))
+```
+The model with the highest model score was `r best_mod`  (Figure \@ref(fig:tftsOptsSimple), Table \@ref(tab:sumTab4Simple)).
+
 ```{r tftsOpts, fig.cap="Comparison of log likelihoods for TXFW-TXCC models"}
 txfw_txcc<-dadi_initialCompare("TXFW_TXCC",modSel="median")
 ```
