@@ -120,7 +120,7 @@ dadiSum<-data.frame(PopPair=gsub("dadi_results/(\\w+_\\w+).dadi.snps","\\1",file
 kable(dadiSum,"latex",booktabs=TRUE,
       col.names = c("Population Pair","Number of Individuals in Pop 1","Number of Individuals in Pop 2","Number of SNPs"),
       caption = "For each analysis of the freshwater-saltwater pairs, the retained number of individuals (the values in this table were multiplied by 2 for the projections used in dadi) in each population and the number of SNPs retained in each analysis.")%>%
-  kable_styling(latex_options=c("HOLD_position"))
+  kable_styling(latex_options=c("HOLD_position", "scale_down"))
 ```
 
 
