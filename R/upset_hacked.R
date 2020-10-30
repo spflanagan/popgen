@@ -283,7 +283,6 @@ upset<-function(data, nsets = 5, nintersects = 40, sets = NULL, keep.order = F, 
                 scale.sets = "identity", text.scale = 1, set_size.angles = 0 , set_size.show = FALSE, set_size.numbers_size = NULL, set_size.scale_max = NULL,
                 margin1scale=0.65){
   requireNamespace("UpSetR")
-  browser()
   startend <- UpSetR:::FindStartEnd(data)
   first.col <- startend[1]
   last.col <- startend[2]
