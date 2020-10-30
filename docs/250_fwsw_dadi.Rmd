@@ -412,7 +412,7 @@ alfw_alst_best<-do.call(rbind,
 
 The model with the highest model score was `r best_mod` (Figure \@ref(fig:afasOptsSimple), Table \@ref(tab:sumTab2Simple)).
 
-```{r afasOpts, fig.cap="Comparison of log likelihoods for the simple ALFW-ALST models"}
+```{r afasOpts, fig.cap="Comparison of log likelihoods for the complex best ALFW-ALST models"}
 alfw_alst<-dadi_initialCompare("ALFW_ALST",opt_pattern = paste0(".*",best_mod,".*.optimized.txt"),modSel="median")
 ```
 
