@@ -23,6 +23,21 @@ library(knitr)
 pop.list<-c("ALFW","ALST","FLCC","FLLG","LAFW","TXCC","TXFW")
 ```
 
+# 30 October 2020
+A few runs are still going but I'm moving the ones that are done to move forward a bit. Here is what is remaining on abacus:
+- ALFW_ALST_SC2mG 1-10 (9 is still running)
+- LAFW_ALST_SC2mG 11-21 (15 is still running)
+- LAFW_ALST_SC2NG 11-21 (17 is still running)
+- FLLG_FLFW_IM2m 11-20 (20 is still running)
+- FLLG_FLFW_IM2mG 11-20 (20 is still running)
+- FLLG_FLFW_IM2NG 11-20 (16 is still running)
+- TXFW_TXCC_IM2mG 1-20 (18 is still running)
+- TXFW_TXCC_IM2NG 1-20 (12 is still running)
+
+But for the TX ones I scp'ed everything anyway so that I'll have at least reps 1-10.
+
+Now I've updated dadi doc. Intriguingly, the AL and LA pops are best modeled by SC (with 2mG or 2N2mG). TX and FL best are both IM2m.
+
 # 3 September 2020
 
 A number of models had finished running so I moved them to C001KR and re-analyzed the results. I've found that ALFW-ALST simple comparisons for both IM and SC have dAIC <10, so I'm going to run the SC complex models as well (#1-20). 
