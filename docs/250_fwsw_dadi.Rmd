@@ -415,8 +415,18 @@ The model with the highest model score was `r best_mod` (Figure \@ref(fig:afasOp
 ```{r afasOpts, fig.cap="Comparison of log likelihoods for the complex best ALFW-ALST models"}
 alfw_alst<-dadi_initialCompare("ALFW_ALST",opt_pattern = paste0(".*",best_mod,".*.optimized.txt"),modSel="median")
 ```
+```{r alSC, fig.cap="Comparison of log likelihoods for the complex SC models for ALFW-ALST "}
+alfw_alst_sc<-dadi_initialCompare("ALFW_ALST",opt_pattern = paste0(".*","SC",".*.optimized.txt"),modSel="median")
+
+```
+
+```{r,include=FALSE}
+alfw_alst<-dadi_initialCompare("ALFW_ALST",opt_pattern = c(paste0(".*","SC",".*.optimized.txt"),paste0(".*",best_mod,".*.optimized.txt")),modSel="median")
+
+```
 
 ```{r sumTab2}
+
 sumTab<-dadi_pairSummary(alfw_alst)
 
 landscape(kable(sumTab,"latex",booktabs=TRUE,
