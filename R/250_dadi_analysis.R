@@ -25,7 +25,7 @@ dadi.optimal<-function(opt.file,last){
 }
 
 dadi.modelcomp<-function(path,pattern,id,last){
-  opt.files<-list.files(path = path,pattern = pattern,full.names = TRUE)
+  opt.files<-unlist(lapply(pattern,list.files,path=path,full.names=TRUE)) # allows pattern to be a list
   #find the best parameter set for each model using maximum log likelihood
   opts<-do.call(rbind,lapply(opt.files,dadi.optimal,last=last))
   #rank them by AIC
