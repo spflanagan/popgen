@@ -662,7 +662,7 @@ params_order<-list(SI=c("nu1", "nu2", "Ts"),
 )
 ```
 
-```{r writePythonScript, eval=FALSE}
+```{r writePythonScript, eval=TRUE}
 write.table("#!/bin/bash","../scripts/make_best_plots_dadi.sh",
             quote=FALSE,row.names = FALSE,col.names = FALSE)
 write.table("cd \"${0%/*}\"","../scripts/make_best_plots_dadi.sh",
