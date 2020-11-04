@@ -501,13 +501,13 @@ lafw_alst_best<-do.call(rbind,
 The model with the highest model score was `r best_mod` (Figure \@ref(fig:aslfOpts), Table \@ref(tab:sumTab3)).
 
 
-```{r saveBest16,eval=FALSE}
+```{r saveBest3}
 
 outTable[3,]<-sumTab[sumTab$Model==best_mod,colnames(outTable)]
 
 bestModels[3,]<-c("ALST","LAFW",Model=best_mod)
 ```
-```{r dadiPlots16,out.width="90%",fig.cap="Summary plot of the joint site frequency spectrum of the data for the ALST vs LAFW comparison (left) and the best-fitting model (right), plus their residuals (bottom row)."}
+```{r dadiPlots3,out.width="90%",fig.cap="Summary plot of the joint site frequency spectrum of the data for the ALST vs LAFW comparison (left) and the best-fitting model (right), plus their residuals (bottom row)."}
 multiname<-paste0("../figs/dadi/LAFW_ALST_",best_mod,"multinom.png")
 if(file.exists(multiname)){
   knitr::include_graphics(multiname)
