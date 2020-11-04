@@ -124,7 +124,8 @@ kable(dadiSum,"latex",booktabs=TRUE,
 ```
 
 
-Each pairwise population comparison used a slightly different set of SNPs (Table \@ref(tab:compareSNPs)) to minimise missingness and allow for the inclusion of SNPs that were singletons and without a minor allele frequency cutoff.
+Each pairwise population comparison used a slightly different set of SNPs (Table \@ref(tab:comparePopPairs)) to minimise missingness and allow for the inclusion of SNPs that were singletons and without a minor allele frequency cutoff.
+
 
 ## Running dadi {-}
 
