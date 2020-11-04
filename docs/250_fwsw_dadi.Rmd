@@ -318,7 +318,7 @@ The model with the highest model score was `r best_mod` (Figure \@ref(fig:fllgOp
 
 We compared the parameter estimates for the SI and IM models because the SI estimates were so consistent (Figure \@ref(fig:fllgCompareMods)). This figure demonstrates that the model replicate with the maximum log likelihood tended to have extreme estimates of the nu2 parameter, reinforcing our choice to choose the best model runs based on median log likelihood, and to compare models based on the highest model score. 
 
-```{r fllgBestMods, eval=FALSE}
+```{r fllgBestMods, eval=TRUE}
 flcc_fllg_im<-do.call(rbind,
                          extract_dadi_params(fllg_flcc[[1]][fllg_flcc[[1]]$Model==
                                                               "IM",]))
@@ -327,7 +327,7 @@ flcc_fllg_si<-do.call(rbind,
                                                               "SI",]))
 ```
 
-```{r fllgCompareMods,fig.width=8, fig.cap="Boxplot showing the parameter estimates from the replicates of the SI model (left) and the IM model (right) for the FLFW vs FLCC pairwise comparison. The red stars represent the model parameters from the run with the highest log likelihood.", eval=FALSE}
+```{r fllgCompareMods,fig.width=8, fig.cap="Boxplot showing the parameter estimates from the replicates of the SI model (left) and the IM model (right) for the FLFW vs FLCC pairwise comparison. The red stars represent the model parameters from the run with the highest log likelihood.", eval=TRUE}
 par(mfrow=c(1,2))
 boxplot(flcc_fllg_si[,11:13],main="SI")
 points(1:3,
