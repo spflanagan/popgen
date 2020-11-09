@@ -394,7 +394,7 @@ The model with the highest model score was `r best_mod` (Figure \@ref(fig:fllgOp
 
 ```{r setupOutTable}
 
-outNames<-colnames(sumTab)
+outNames<-unique(c(colnames(sumTab),unlist(params_order)))
 
 outTable<-data.frame(matrix(nrow = 1,ncol=length(outNames),
                             dimnames = list("",outNames)))
@@ -403,7 +403,7 @@ outTable<-data.frame(matrix(nrow = 1,ncol=length(outNames),
 
 
 ```{r saveBest1}
-outTable[1,]<-sumTab[sumTab$Model==best_mod, colnames(outTable)]
+outTable[1,colnames(outTable)[colnames(outTable) %in% colnames(sumTab)]]<-sumTab[sumTab$Model==best_mod, colnames(outTable)[colnames(outTable) %in% colnames(sumTab)]]
 
 bestModels<-data.frame(Pop1="FLFW",
                        Pop2="FLCC",
@@ -477,7 +477,7 @@ The overall best model for this comparison is therefore `r best_mod` (Figure \@r
 
 ```{r saveBest2}
 
-outTable[2,]<-sumTab[sumTab$Model==best_mod,colnames(outTable)]
+outTable[2,colnames(outTable)[colnames(outTable) %in% colnames(sumTab)]]<-sumTab[sumTab$Model==best_mod, colnames(outTable)[colnames(outTable) %in% colnames(sumTab)]]
 
 bestModels[2,]<-c("ALFW","ALST",Model=best_mod)
 ```
@@ -534,7 +534,7 @@ The model with the highest model score was `r best_mod` (Figure \@ref(fig:aslfOp
 
 ```{r saveBest3}
 
-outTable[3,]<-sumTab[sumTab$Model==best_mod,colnames(outTable)]
+outTable[3,colnames(outTable)[colnames(outTable) %in% colnames(sumTab)]]<-sumTab[sumTab$Model==best_mod, colnames(outTable)[colnames(outTable) %in% colnames(sumTab)]]
 
 bestModels[3,]<-c("ALST","LAFW",Model=best_mod)
 ```
@@ -591,7 +591,7 @@ The model with the highest model score was `r best_mod`  (Figure \@ref(fig:tftsO
 
 ```{r saveBest4}
 
-outTable[4,]<-sumTab[sumTab$Model==best_mod,colnames(outTable)]
+outTable[4,colnames(outTable)[colnames(outTable) %in% colnames(sumTab)]]<-sumTab[sumTab$Model==best_mod, colnames(outTable)[colnames(outTable) %in% colnames(sumTab)]]
 
 bestModels[4,]<-c("TXFW","TXCC",Model=best_mod)
 ```
