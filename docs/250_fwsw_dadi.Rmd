@@ -250,6 +250,37 @@ kable(paramsMeanings,"latex",booktabs=TRUE,longtable=TRUE,
   column_spec(3,width="17.5em")
 ```
 
+```{r paramsOrder, eval=TRUE}
+params_order<-list(SI=c("nu1", "nu2", "Ts"),
+                    SI2N=c("nu1", "nu2", "Ts", "nr", "bf"),
+                    SIG=c("nu1", "nu2", "b1", "b2", "Ts" ),
+                    SI2NG=c("nu1", "nu2", "b1", "b2", "hrf", "Ts", "Q"),
+                    IM=c("nu1", "nu2", "m12", "m21", "Ts" ),
+                    IMG=c("nu1", "nu2", "b1", "b2", "m12", "m21", "Ts"),
+                    IM2N=c("nu1", "nu2", "hrf", "m12", "m21", "Ts", "Q"),
+                    IM2NG=c("nu1", "nu2", "b1", "b2", "hrf", "m12", "m21", "Ts", "Q"),
+                    IM2m=c("nu1", "nu2", "m12", "m21", "me12", "me21", "Ts", "P"),
+                    IM2mG=c("nu1", "nu2", "b1", "b2", "m12", "m21", "me12", "me21", "Ts", "P"),
+                    AM=c("nu1", "nu2", "m12", "m21", "Tam", "Ts"),
+                    AMG=c("nu1", "nu2", "b1", "b2", "m12", "m21", "Tam", "Ts"),
+                    AM2N=c( "nu1", "nu2", "hrf", "m12", "m21", "Tam", "Ts", "Q"),
+                    AM2N2m=c("nu1", "nu2", "hrf", "m12", "m21", "me12", "me21", "Tam", "Ts", "P", "Q"),
+                   AM2NG=c("nu1", "nu2", "b1", "b2", "hrf", "m12", "m21", "Tam", "Ts", "Q"),
+                   AM2m=c("nu1", "nu2", "m12", "m21", "me12", "me21", "Ts", "Tam", "P"),
+                   AM2mG=c( "nu1", "nu2", "b1", "b2", "m12", "m21", "me12", "me21", "Tam", "Ts", "P"),
+                   AM2N2mG=c("nu1", "nu2", "b1", "b2", "hrf", "m12", "m21", "me12", "me21", "Tam", "Ts", "P", "Q"),
+                   SC=c("nu1", "nu2", "m12", "m21", "Ts", "Tsc"),
+                   SC2N=c("nu1", "nu2", "hrf", "m12", "m21", "Ts", "Tsc", "Q"),
+                   SCG=c("nu1", "nu2", "b1", "b2", "m12", "m21", "Ts", "Tsc"),
+                   SC2N2m=c("nu1", "nu2", "hrf", "m12", "m21", "me12", "me21", "Ts", "Tsc", "P", "Q" ),
+                   SC2NG=c("nu1", "nu2", "b1", "b2", "hrf", "m12", "m21", "Ts", "Tsc", "Q"),
+                   SC2m=c("nu1", "nu2", "m12", "m21", "me12", "me21", "Ts", "Tsc", "P"),
+                   SC2mG=c("nu1", "nu2", "b1", "b2", "m12", "m21", "me12", "me21", "Ts", "Tsc", "P"),
+                   SC2N2mG=c("nu1", "nu2", "b1", "b2", "hrf", "m12", "m21", "me12", "me21", "Ts", "Tsc", "P", "Q")
+                   
+)
+```
+
 
 
 ## Analyzing dadi output {-}
@@ -630,37 +661,6 @@ write.csv(savTab,"dadi_summary.csv",col.names = TRUE,row.names = FALSE,quote=FAL
 
 ```
 
-
-```{r paramsOrder, eval=TRUE}
-params_order<-list(SI=c("nu1", "nu2", "Ts"),
-                    SI2N=c("nu1", "nu2", "Ts", "nr", "bf"),
-                    SIG=c("nu1", "nu2", "b1", "b2", "Ts" ),
-                    SI2NG=c("nu1", "nu2", "b1", "b2", "hrf", "Ts", "Q"),
-                    IM=c("nu1", "nu2", "m12", "m21", "Ts" ),
-                    IMG=c("nu1", "nu2", "b1", "b2", "m12", "m21", "Ts"),
-                    IM2N=c("nu1", "nu2", "hrf", "m12", "m21", "Ts", "Q"),
-                    IM2NG=c("nu1", "nu2", "b1", "b2", "hrf", "m12", "m21", "Ts", "Q"),
-                    IM2m=c("nu1", "nu2", "m12", "m21", "me12", "me21", "Ts", "P"),
-                    IM2mG=c("nu1", "nu2", "b1", "b2", "m12", "m21", "me12", "me21", "Ts", "P"),
-                    AM=c("nu1", "nu2", "m12", "m21", "Ts", "Tam"),
-                    AMG=c("nu1", "nu2", "b1", "b2", "m12", "m21", "Tam", "Ts"),
-                    AM2N=c( "nu1", "nu2", "hrf", "m12", "m21", "Tam", "Ts", "Q"),
-                    AM2N2m=c("nu1", "nu2", "hrf", "m12", "m21", "me12", "me21", "Tam", "Ts", "P", "Q"),
-                   AM2NG=c("nu1", "nu2", "b1", "b2", "hrf", "m12", "m21", "Tam", "Ts", "Q"),
-                   AM2m=c("nu1", "nu2", "m12", "m21", "me12", "me21", "Ts", "Tam", "P"),
-                   AM2mG=c( "nu1", "nu2", "b1", "b2", "m12", "m21", "me12", "me21", "Tam", "Ts", "P"),
-                   AM2N2mG=c("nu1", "nu2", "b1", "b2", "hrf", "m12", "m21", "me12", "me21", "Tam", "Ts", "P", "Q"),
-                   SC=c("nu1", "nu2", "m12", "m21", "Ts", "Tsc"),
-                   SC2N=c("nu1", "nu2", "hrf", "m12", "m21", "Ts", "Tsc", "Q"),
-                   SCG=c("nu1", "nu2", "b1", "b2", "m12", "m21", "Ts", "Tsc"),
-                   SC2N2m=c("nu1", "nu2", "hrf", "m12", "m21", "me12", "me21", "Ts", "Tsc", "P", "Q" ),
-                   SC2NG=c("nu1", "nu2", "b1", "b2", "hrf", "m12", "m21", "Ts", "Tsc", "Q"),
-                   SC2m=c("nu1", "nu2", "m12", "m21", "me12", "me21", "Ts", "Tsc", "P"),
-                   SC2mG=c("nu1", "nu2", "b1", "b2", "m12", "m21", "me12", "me21", "Ts", "Tsc", "P"),
-                   SC2N2mG=c("nu1", "nu2", "b1", "b2", "hrf", "m12", "m21", "me12", "me21", "Ts", "Tsc", "P", "Q")
-                   
-)
-```
 
 ```{r writePythonScript, eval=TRUE}
 write.table("#!/bin/bash","../scripts/make_best_plots_dadi.sh",
