@@ -604,40 +604,46 @@ if(file.exists(multiname)){
 
 ## Summarizing output for best models
 
-```{r dadiSummaryPlot,fig.width=8,fig.height=8, fig.cap="The best models for each population pair, color-coded by baseline demographic scenario (grey = strict isolation; green = ancestral migration; light blue = secondary contact; dark blue = isolation with migration). The abbreviation 2N refers to linked selection and 2m refers to heterogeneous migration/introgression, both of which are indicative of covariance among some genomic regions. The letter G indicates that the best model supports changes in population size since the population split." , eval=FALSE}
-pop.list<-c(unique(bestModels[,1]),"TXCC")
-colors<-c(SI="gray66",IM="#1f78b4",AM="#b2df8a",SC="#a6cee3")
-lbcols<-c("#2166ac",'#1b7837',
-          "#2166ac",'#af8dc3',"#2166ac",
-          "#2166ac",'#762a83')
-par(mfrow=c(length(pop.list),length(pop.list)),mar=c(0,0,0,0),oma=c(3,0,3,0))
-for(i in 1:length(pop.list)){
-  for(j in 1:length(pop.list)){
-    
-    exists<-nrow(bestModels[which(bestModels[,1] %in% pop.list[i] & 
-                                    bestModels[,2] %in% pop.list[j]),])
-    if(exists>0){
-      
-      model<-bestModels[which(bestModels[,1] %in% pop.list[i] &
-                              bestModels[,2] %in% pop.list[j]),"Model"]
-      col<-colors[names(colors) %in% gsub("(\\w\\w).*","\\1",model)]
-      plot(c(0,1),c(0,1),type='n',axes=FALSE,xlab="",ylab="",bty='n')
-      rect(0,0,1,1,col=alpha(col,0.75),border=col,lwd=5)
-      legend("center",model,cex=1.5,bg='transparent',bty='n',
-             adj=0.1,xjust=0,text.font = 2)
-    } else{
-      plot(c(0,1),c(0,1),type='n',axes=FALSE,xlab="",ylab="",bty='n')
-    }
-    if(i==1){
-      mtext(pop.list[j],3,font = 2,outer = FALSE,cex=1.25,col=lbcols[j])
-    }
-    if(j==1){
-      mtext(pop.list[i],2,font = 2,outer = FALSE,line=-1.6,
-            cex=1.25,xpd=TRUE,col=lbcols[i])
-    }
+
+
+```{r dadiSummaryPlot,eval=TRUE}
+library(magick);library(multipanelfigure)
+
+image_files <- paste0("../figs/dadi/",outTable$PopPair,"_",outTable$Model,"multinom.png")
+model_files <- paste0("../figs/dadi_models/",outTable$Model,".PNG")
+
+
+figure <- multi_panel_figure(
+  width=c(90,50,90,50),
+  height=c(90,90),
+  row_spacing = 5,
+  column_spacing = 5
+)
+
+for(i in 1:length(image_files)){
+  lab<-gsub("../figs/dadi/(\\w{4})_(\\w{4})_(\\w.*)multinom.png","\\1 vs. \\2: \\3",image_files[i])
+  lab<-gsub("FLLG","FLFW",lab)
+  if(i%%2==0){
+    (figure %<>% fill_panel(image_files[i],column=3,row=i/2,scaling="fit",
+                          label="") )  
+    (figure %<>% fill_panel(model_files[i],column=4,row = i/2,scaling="fit",
+                            label=lab))  
+  }else{
+    (figure %<>% fill_panel(image_files[i],column=1,row=(i+1)/2,scaling="fit",
+                          label="") )  
+    (figure %<>% fill_panel(model_files[i],column=2,row = (i+1)/2,scaling="fit",
+                            label=lab))
   }
+  
 }
-write.csv(outTable,"dadi_outTable.csv",col.names = TRUE,row.names = FALSE,quote=FALSE)
+
+figure %>% save_multi_panel_figure(filename="../figs/dadiSummaryPlot.png",dpi=300)
+```
+
+
+
+```{r ShowdadiSummaryPlot, fig.cap="The best models for each population pair, showing the joint site frequency spectrum for the data and the best fitting model. Also shown are the residuals and the schematic for the best-fitting model for each population pair. This is Figure 4 in the main text.",out.width="7in",out.height="5in"}
+knitr::include_graphics("../figs/dadiSummaryPlot.png")
 ```
 
 The summary table will tell show all of the parameters for the best models. 
