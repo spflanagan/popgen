@@ -646,7 +646,6 @@ figure %>% save_multi_panel_figure(filename="../figs/dadiSummaryPlot.png",dpi=30
 knitr::include_graphics("../figs/dadiSummaryPlot.png")
 ```
 
-The summary table will tell show all of the parameters for the best models. 
 
 ```{r showBestTable}
 landscape(kable(outTable,"latex",booktabs=TRUE,
