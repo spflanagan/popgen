@@ -1028,6 +1028,14 @@ outliers01<-list(xtx=fw_SNPinfo$ID[which(fw_SNPinfo$XtX_noFL >= quantile(fw_SNPi
                                                   fw_SNPinfo$stacks_LA_P < 0.01 &
                                                   fw_SNPinfo$stacks_TX_P < 0.01)])
 ```
+```{r outliersTable01}
+outComp<-data.frame(rbind(unlist(lapply(outliers,length)),
+                          unlist(lapply(outliers01,length))))
+rownames(outComp)<-c("p=0.05","p=0.01")
+kable(outComp,"latex",booktabs=TRUE,
+      caption="Table summarizing the number of outliers found in the Stacks analysis when the significance threshold is set to 0.01 versus 0.05.")           
+      
+```
 
 # Annotations {-}
 
