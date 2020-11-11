@@ -1036,6 +1036,20 @@ kable(outComp,"latex",booktabs=TRUE,
       caption="Table summarizing the number of outliers found in the Stacks analysis when the significance threshold is set to 0.01 versus 0.05.")           
       
 ```
+```{r upsetOutliers01}
+upsetcols<-c(permutations='#e41a1c',salBF='#377eb8',pcadapt='#a65628',
+        xtx='#ff7f00',sharedStacks='#f781bf',
+        Alabama='#e7d4e8',Louisiana='#af8dc3',Texas='#762a83',Florida='#1b7837')
+#png("../figs/upsetOutliers_noFL_p01.png",res=300,height=8,width=8.5,,units="in",pointsize = 20)
+upset(fromList(outliers),sets=c("pcadapt","permutations","sharedStacks","xtx","salBF"),
+      point.size=7,line.size=2,mainbar.y.label = "Shared Outliers",
+      sets.x.label = "# Outliers",text.scale=rep(3,6),
+      sets.bar.color =upsetcols[c("pcadapt","permutations","sharedStacks","xtx","salBF")],
+      margin1scale = 0.2,matrix.dot.alpha =0,
+      sets.pt.color=upsetcols[c("pcadapt","permutations","sharedStacks","xtx","salBF")],
+      keep.order = TRUE)
+#dev.off()
+```
 
 # Annotations {-}
 
