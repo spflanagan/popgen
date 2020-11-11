@@ -1010,6 +1010,7 @@ bothSal<-bayenv_noFL$ID[bayenv_noFL$logSalBF_FL>=quantile(bayenv_noFL$logSalBF_F
 
 The two analyses produced `r length(bothXtX)` SNPs that are XtX outliers in both Bayenv analyses and `r length(bothSal)` salinity-associated outliers in both.
 
+## Lower threshold for Stacks
 
 
 
