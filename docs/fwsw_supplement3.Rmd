@@ -152,6 +152,8 @@ outliers<-list(xtx=fw_SNPinfo$ID[which(fw_SNPinfo$XtX_noFL >= quantile(fw_SNPinf
 
 The alignments were done with a preliminary genome assembly from March 2016 that had a different linkage map than the genome that was published in [@smallGenomeGulfPipefish2016]. The only differences were the final orientation and position of the scaffolds in the linkage groups, so we corrected the position information in the Stacks output (including vcf files) using the agp files for the preliminary genome and the published genome. This correction was important for considering the genomic positions of the SNPs but not for the global parameter estimates such as those in Supplement 1.
 
+## Correcting location information {-}
+
 
 ```{r convert_agp}
 
