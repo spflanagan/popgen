@@ -1013,6 +1013,21 @@ The two analyses produced `r length(bothXtX)` SNPs that are XtX outliers in both
 ## Lower threshold for Stacks
 
 
+```{r getOutliers01}
+outliers01<-list(xtx=fw_SNPinfo$ID[which(fw_SNPinfo$XtX_noFL >= quantile(fw_SNPinfo$XtX_noFL,0.99,na.rm = TRUE))],
+               salBF=fw_SNPinfo$ID[which(fw_SNPinfo$logSalBF_noFL>=
+                                     quantile(fw_SNPinfo$logSalBF_noFL,0.99,na.rm = TRUE))],
+               permutations=fw_SNPinfo$ID[
+                 rowSums(fw_SNPinfo[,c("perm_TX","perm_AL","perm_LA")])==3],
+               pcadapt=fw_SNPinfo$ID[which(fw_SNPinfo$pcadaptQ<0.01)],
+               Alabama=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.01)], 
+               Louisiana=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_LA_P < 0.01)],
+               Texas=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_TX_P < 0.01)],
+               Florida=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_FL_P < 0.01)],
+               sharedStacks=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.01 & 
+                                                  fw_SNPinfo$stacks_LA_P < 0.01 &
+                                                  fw_SNPinfo$stacks_TX_P < 0.01)])
+```
 
 # Annotations {-}
 
