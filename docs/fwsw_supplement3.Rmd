@@ -64,6 +64,8 @@ knitr::opts_chunk$set(echo = FALSE,out.extra='',fig.pos="H",
                       dev='png',dpi=300)
 knitr::opts_knit$set(root.dir='../fwsw_results/')
 ```
+library(UpSetR);library(scales);library(ggplot2)
+library(grid);library(gridGraphics)
 ```{r source}
 source("../../gwscaR/R/gwscaR.R")
 source("../../gwscaR/R/gwscaR_plot.R")
@@ -76,6 +78,9 @@ library(knitr)
 library(scales)
 library(kableExtra)
 library(vegan)
+source("../R/upset_hacked.R")
+source("../R/205_popgenPlotting.R")
+
 ```
 
 ```{r popSetup}
