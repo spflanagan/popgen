@@ -648,22 +648,13 @@ knitr::include_graphics("../figs/dadiSummaryPlot.png")
 
 
 ```{r showBestTable}
+outTable$PopPair<-gsub("FLLG","FLFW",outTable$PopPair)
 landscape(kable(outTable,"latex",booktabs=TRUE,
                 caption="Table of all of the parameters for the best models for each population pair."))  %>%
   kable_styling(latex_options=c("scale_down","repeat_header","HOLD_position"))
 ```
-```{r saveBestTable, eval=FALSE}
-poporder<-c('TXFW_TXCC','ALST_LAFW','ALFW_ALST','FLLG_FLCC', 
-            'LAFW_TXFW','ALFW_TXFW','FLLG_TXFW','ALFW_LAFW','FLLG_LAFW','FLLG_ALFW',
-            'ALST_TXCC','FLCC_ALST','FLCC_TXCC',
-            'ALST_TXFW','FLCC_TXFW',
-            'LAFW_TXCC','FLCC_LAFW',
-            'ALFW_TXCC','FLCC_ALFW',
-            'FLLG_ALST','FLLG_TXCC')   
-savTab<-outTable[match(poporder,outTable$PopPair),1:6]
-savTab$PopPair<-gsub("FLLG","FLFW",savTab$PopPair)
-write.csv(savTab,"dadi_summary.csv",col.names = TRUE,row.names = FALSE,quote=FALSE)
-
+```{r saveBestTable}
+write.csv(outTable,"dadi_summary.csv",col.names = TRUE,row.names = FALSE,quote=FALSE)
 ```
 
 
