@@ -65,7 +65,7 @@ This document contains analyses of data from all 16 populations, generated from 
 
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE,out.extra='',fig.pos="H",
+knitr::opts_chunk$set(echo = FALSE,out.extra='',fig.pos="H",
                       warning = FALSE,message = FALSE,
                       dev='png',dpi=300)
 knitr::opts_knit$set(root.dir='../fwsw_results/')
