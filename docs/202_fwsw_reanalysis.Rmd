@@ -806,7 +806,7 @@ knitr::include_graphics('../figs/treemix_unrooted_consense.png')
 
 ### Choosing the optimal number of migration edges
 
-To choose the optimal number of migration edges, we used the R package optM [@fitak_optm:_2019].
+To choose the optimal number of migration edges, we used the R package optM [@fitakOptMPackageOptimize2019].
 
 
 ```{r plotOptM,message=FALSE,fig.show='true',fig.cap="Plot showing the comparison of Treemix number of migration edges using the Evanno method."}
