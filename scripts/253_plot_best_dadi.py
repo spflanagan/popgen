@@ -12,6 +12,7 @@ import numpy
 import dadi
 import matplotlib
 matplotlib.use('Agg')
+matplotlib.rcParams.update({'font.size': 20})
 import pylab
 from datetime import datetime
 
@@ -52,15 +53,16 @@ dd = dadi.Misc.make_data_dict ( prefix+".dadi.snps" )
 fs=dadi.Spectrum.from_data_dict(dd , pop_ids = [ pop1, pop2 ],projections = [ projs[pop1_index], projs[pop2_index] ],polarized = False )  
 model_fit = Fit_Empirical(fs, pts, prefix, model, globals()[model], emp_params, fs_folded=True)
 
+matplotlib.pyplot.subplots_adjust(left=0.1,bottom=0.1,right=0.9,top=0.9,wspace=0.2,hspace=0.51)
 
 # plot multinomial
-dadi.Plotting.plot_2d_comp_multinom(data=fs,model=model_fit,vmin=vmin_val,show=False)
+dadi.Plotting.plot_2d_comp_multinom(data=fs,model=model_fit,vmin=vmin_val,show=False,adjust=False)
 name = "../../figs/dadi/"+pop1+"_"+pop2+"_"+model+"multinom.png"
 pylab.savefig(name)
 pylab.close()
 
 # plot poisson
-dadi.Plotting.plot_2d_comp_Poisson(data=fs,model=model_fit,vmin=vmin_val,show=False)
+dadi.Plotting.plot_2d_comp_Poisson(data=fs,model=model_fit,vmin=vmin_val,show=False,adjust=False)
 name = "../../figs/dadi/"+pop1+"_"+pop2+"_"+model+"_pois.png"
 pylab.savefig(name)
 pylab.close()
