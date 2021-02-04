@@ -1088,7 +1088,6 @@ legend("bottom", legend=ppi$Pop, pch=as.numeric(ppi$pch), pt.cex=3,cex=1.5,
 dev.off()
 ```
 
-![Population Structure summary plot (Figure 1 in main document)](../figs/NewPopStructure_v1.jpeg)
 
 
 ## Make table
