@@ -622,8 +622,10 @@ write.table(pap,"pcadapt_colp.txt",col.names=TRUE,sep='\t',quote=F)
 
 ```
 
+(ref:plotPcadaptInitial) Principal components analysis of genotypes in S. scovelli reveals population structure due to geographic distance and habitat type. The top set of panels show the results of the PCA with all 16 populations, color-coded by populations and point shape. The bottom set of panels show the same PCA results, but with different x- and y-axis scaling and without the saltwater populations plotted, to facilitate visualizing the differences among saltwater populations. The left panels show the first and second PC axes, whcih together account for 53.5% of the variation, the middle panels show the 3rd and 4th PC axes (another 26.8% of the variation), and the right panels the fifth and sixth axes (another % of variation).
 
-```{r plotPcadaptInitial, fig.height=8,fig.width=10.5,dev='png',fig.dim="in",fig.cap="Principal components analysis of genotypes in S. scovelli reveals population structure due to geographic distance and habitat type. The top set of panels show the results of the PCA with all 16 populations, color-coded by populations and point shape. The bottom set of panels show the same PCA results, but with different x- and y-axis scaling and without the saltwater populations plotted, to facilitate visualizing the differences among saltwater populations. The left panels show the first and second PC axes, whcih together account for 53.5% of the varation, the middle panels show the 3rd and 4th PC axes (another 26.8% of the variation), and the right panels the fifth and sixth axes (another % of variation)."}
+
+```{r plotPcadaptInitial, fig.height=8,fig.width=10.5,dev='png',fig.dim="in",fig.cap='(ref:plotPcadaptInitial)'}
 
 #plot
 par(mfrow=c(2,3),oma=c(2,2,2,2),mar=c(2,2,2,2))
