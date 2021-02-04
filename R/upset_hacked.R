@@ -39,7 +39,7 @@ Make_matrix_plot <- function(Mat_data,Set_size_data, Main_bar_data, point_size, 
 }
 
 Make_main_bar<-function (Main_bar_data, Q, show_num, ratios, customQ, number_angles, 
-          ebar, ylabel, ymax, scale_intersections, text_scale, attribute_plots,margin1scale) {
+          ebar, ylabel, ymax, scale_intersections, text_scale, attribute_plots,margin1scale,yvjust) {
   bottom_margin <- (-1) * margin1scale
   if (is.null(attribute_plots) == FALSE) {
     bottom_margin <- (-1) * 0.45
@@ -107,7 +107,7 @@ Make_main_bar<-function (Main_bar_data, Q, show_num, ratios, customQ, number_ang
                       theme(panel.background = element_rect(fill = "transparent"), 
                             plot.margin = unit(c(0.5, 0.5, bottom_margin, 0.5), "lines"), 
                             panel.border = element_blank(), 
-                            axis.title.y = element_text(vjust = -0.8, size = 8.3 * y_axis_title_scale), 
+                            axis.title.y = element_text(vjust = yvjust, size = 8.3 * y_axis_title_scale), 
                             axis.text.y = element_text(vjust = 0.3, size = 7 * y_axis_tick_label_scale)))
   if ((show_num == "yes") || (show_num == "Yes")) {
     Main_bar_plot <- (Main_bar_plot + geom_text(aes_string(label = "freq"), 
@@ -281,7 +281,7 @@ upset<-function(data, nsets = 5, nintersects = 40, sets = NULL, keep.order = F, 
                 queries = NULL, query.legend = "none", shade.color = "gray88", shade.alpha = 0.25, matrix.dot.alpha =0.5,
                 empty.intersections = NULL, color.pal = 1, boxplot.summary = NULL, attribute.plots = NULL, scale.intersections = "identity",
                 scale.sets = "identity", text.scale = 1, set_size.angles = 0 , set_size.show = FALSE, set_size.numbers_size = NULL, set_size.scale_max = NULL,
-                margin1scale=0.65){
+                margin1scale=0.65,yvjust=-0.8){
   requireNamespace("UpSetR")
   startend <- UpSetR:::FindStartEnd(data)
   first.col <- startend[1]
@@ -435,7 +435,7 @@ upset<-function(data, nsets = 5, nintersects = 40, sets = NULL, keep.order = F, 
   
   
   Main_bar <- suppressMessages(Make_main_bar(All_Freqs, Bar_Q, show.numbers, mb.ratio, customQBar, number.angles, EBar_data, mainbar.y.label,
-                                                      mainbar.y.max, scale.intersections, text.scale, attribute.plots,margin1scale=margin1scale))
+                                                      mainbar.y.max, scale.intersections, text.scale, attribute.plots,margin1scale=margin1scale,yvjust))
   Matrix <- Make_matrix_plot(Matrix_layout, Set_sizes, All_Freqs, point.size, line.size,
                              text.scale, labels, ShadingData, shade.alpha)
   Sizes <- Make_size_plot(Set_sizes, sets.bar.color, mb.ratio, sets.x.label, scale.sets, text.scale, set_size.angles,set_size.show,
