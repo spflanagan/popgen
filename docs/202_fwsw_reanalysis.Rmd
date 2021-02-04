@@ -1,50 +1,53 @@
 ---
-title: Supplemental Material for "Multiple colonizations of freshwater by the Gulf pipefish reveal a shared genomic signature of adaptation"
-preprint: false
-author: 
-  - name: Sarah P. Flanagan
-    affilnum: 1
-    corresponding: true
-    email: spflanagan.phd@gmail.com
-  - name: Emily Rose
-    affilnum: 2
-  - name: Adam Jones
-    affilnum: 3
-affiliation:
-  - affilnum: 1
-    affil: School of Biological Sciences, University of Canterbury, 4800 Private Bag, Christchurch 8140 New Zealand
-  - affilnum: 2
-    affil: Department of Biology, The University of Tampa, Tampa, FL 33606 USA
-  - affilnum: 3
-    affil: Department of Biological Sciences, University of Idaho, Moscow, ID 83844 USA
-abstract: >
-  This document includes supplementary material for the paper. 
-  In this document, we walk through the generation of each of the figures in the manuscript, including all of the additional analyses that were used to decide on the final presentation of results.
-  This document shows the population structure analyses (Fsts, PCAdapt, Admixture, and Treemix), which were used to generate Figure 1.
-  The second major section of this document deals with the identification of outliers and the interpretation of outliers from multiple analyses.
-  These analyses combined to create Figure 2 and Figure 3. 
-header-includes: >
-  \usepackage{lipsum}
-  \usepackage{float}
-  \floatplacement{figure}{H}
-bibliography: programs.bib
+title: Supplemental Material 1 for "Multiple colonizations of freshwater by the Gulf
+  pipefish reveal a shared genomic signature of adaptation"
+author:
+- affilnum: 1
+  corresponding: yes
+  email: spflanagan.phd@gmail.com
+  name: Sarah P. Flanagan
+- affilnum: 2
+  name: Emily Rose
+- affilnum: 3
+  name: Adam Jones
 output:
   bookdown::pdf_document2:
-    toc: true
-    toc_depth: 2
     fig_caption: yes
     keep_tex: yes
     number_sections: no
     template: manuscript.latex
+    toc: yes
+    toc_depth: 2
   html_document: null
+  pdf_document:
+    toc: yes
+    toc_depth: '2'
   word_document: null
-fontsize: 11pt
+bibliography: programs.bib
 capsize: normalsize
 csl: molecular-ecology.csl
 documentclass: article
-spacing: singlespacing
-editor_options: 
+editor_options:
   chunk_output_type: console
+fontsize: 11pt
+header-includes: |
+  \usepackage{lipsum} \usepackage{float} \floatplacement{figure}{H}
+affiliation:
+- affil: School of Biological Sciences, University of Canterbury, 4800 Private Bag,
+    Christchurch 8140 New Zealand
+  affilnum: 1
+- affil: Department of Biology, The University of Tampa, Tampa, FL 33606 USA
+  affilnum: 2
+- affil: Department of Biological Sciences, University of Idaho, Moscow, ID 83844
+    USA
+  affilnum: 3
+preprint: no
+spacing: singlespacing
+abstract: "This document includes supplementary material for the paper.  In this document,
+  we walk through the analysis of all 16 populations, including
+  all of the additional analyses that were used to decide on the final presentation
+  of results. This document shows the population structure analyses (Fsts, PCAdapt,
+  Admixture, and Treemix), which were used to generate Figure 1. \n"
 ---
 
 # Overview of the study {-}
