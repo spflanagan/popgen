@@ -1181,8 +1181,12 @@ fw_SNPinfo<-data.frame(ID=vcf$ID,Chrom=vcf$`#CHROM`,Pos=vcf$POS,BP=vcf$POS-1,
 ```
 
 
-
 ```{r add2SnpInfo, eval=FALSE}
+fwsw.al<-read.delim("stacks/populations_subset75/converted.fst_ALFW-ALST.txt")
+fwsw.la<-read.delim("stacks/populations_subset75/converted.fst_ALST-LAFW.txt")
+fwsw.tx<-read.delim("stacks/populations_subset75/converted.fst_TXCC-TXFW.txt")
+fwsw.fl<-read.delim("stacks/populations_subset75/converted.fst_FLCC-FLFW.txt")
+
 # add Fsts
 fw_SNPinfo<-merge(fw_SNPinfo,fwsw.al,by.x=c("Chrom","BP"),by.y=c("Chr","BP"),
                   all.x=TRUE,all.y = FALSE)[,c(colnames(fw_SNPinfo),
