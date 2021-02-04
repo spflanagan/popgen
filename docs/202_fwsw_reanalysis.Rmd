@@ -1,3 +1,78 @@
+outliers<-list( permutations=fw_SNPinfo$ID[
+                 rowSums(fw_SNPinfo[,c("perm_TX","perm_AL","perm_LA")])==3],
+               
+               Alabama=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05)], 
+               Louisiana=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_LA_P < 0.05)],
+               Texas=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_TX_P < 0.05)],
+               Florida=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_FL_P < 0.05)],
+               sharedStacks=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05 & 
+                                                  fw_SNPinfo$stacks_LA_P < 0.05 &
+                 fw_SNPinfo$stacks_TX_P < 0.05)])
+upsetcols<-c(permutations='#e41a1c',salBF='#377eb8',pcadapt='#a65628',
+        xtx='#ff7f00',sharedStacks='#f781bf',
+        Alabama='#e7d4e8',Louisiana='#af8dc3',Texas='#762a83',Florida='#1b7837')
+
+png("../figs/sharedStacks.png",res=300,height=8,width=7.5,units="in",pointsize = 20)
+upset(fromList(outliers),sets=c("Texas","Louisiana","Alabama","Florida"),
+      point.size=7,line.size=2,mainbar.y.label = "Shared Stacks Outliers",
+      sets.x.label = "# Outliers",text.scale=rep(3,6),
+      sets.bar.color =upsetcols[c("Texas","Louisiana","Alabama","Florida")],
+      margin1scale = 0.2,matrix.dot.alpha =0,
+      sets.pt.color=upsetcols[c("Texas","Louisiana","Alabama","Florida")],
+      keep.order = TRUE)
+dev.off()
+
+```
+
+```{r permsUpset, eval=FALSE}
+outliers<-list(permutations=fw_SNPinfo$ID[
+                 rowSums(fw_SNPinfo[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+               Alabama=fw_SNPinfo$ID[which(fw_SNPinfo$perm_AL==1)], 
+               Louisiana=fw_SNPinfo$ID[which(fw_SNPinfo$perm_LA ==1)],
+               Texas=fw_SNPinfo$ID[which(fw_SNPinfo$perm_TX==1)],
+               Florida=fw_SNPinfo$ID[which(fw_SNPinfo$perm_FL==1)],
+               sharedStacks=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05 & 
+                                                  fw_SNPinfo$stacks_LA_P < 0.05 &
+                                                  fw_SNPinfo$stacks_TX_P < 0.05)])
+upsetcols<-c(permutations='#e41a1c',salBF='#377eb8',pcadapt='#a65628',
+        xtx='#ff7f00',sharedStacks='#f781bf',
+        Alabama='#e7d4e8',Louisiana='#af8dc3',Texas='#762a83',Florida='#1b7837')
+png("../figs/sharedPerms.png",res=300,height=8,width=9,units="in",pointsize = 20)
+upset(fromList(outliers),sets=c("Texas","Louisiana","Alabama","Florida","sharedStacks"),
+      point.size=7,line.size=2,mainbar.y.label = "Shared Permutation Outliers",
+      sets.x.label = "# Outliers",text.scale=rep(3,6),
+      sets.bar.color =upsetcols[c("Texas","Louisiana","Alabama","Florida","sharedStacks")],
+      margin1scale = 0.2,matrix.dot.alpha =0,
+      sets.pt.color=upsetcols[c("Texas","Louisiana","Alabama","Florida","sharedStacks")],
+      keep.order = TRUE)
+dev.off()
+```
+
+
+```{r CreateFstsFig, eval=TRUE}
+library(magick);library(multipanelfigure)
+                                     quantile(fw_SNPinfo$logSalBF_noFL,0.99,na.rm=TRUE)],
+               permutations=fw_SNPinfo$ID[
+                 rowSums(fw_SNPinfo[,c("perm_TX","perm_AL","perm_LA")])==3],
+               pcadapt=fw_SNPinfo$ID[which(fw_SNPinfo$pcadaptQ<0.01)],
+               Alabama=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05)], 
+               Louisiana=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_LA_P < 0.05)],
+               Texas=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_TX_P < 0.05)],
+               Florida=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_FL_P < 0.05)],
+               sharedStacks=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05 & 
+                                                  fw_SNPinfo$stacks_LA_P < 0.05 &
+                 fw_SNPinfo$stacks_TX_P < 0.05)])
+upsetcols<-c(permutations='#e41a1c',salBF='#377eb8',pcadapt='#a65628',
+        xtx='#ff7f00',sharedStacks='#f781bf',
+        Alabama='#e7d4e8',Louisiana='#af8dc3',Texas='#762a83',Florida='#1b7837')
+png("../figs/upsetOutliers_noFL.png",res=300,height=8,width=8.5,,units="in",pointsize = 20)
+upset(fromList(outliers),sets=c("pcadapt","permutations","sharedStacks","xtx","salBF"),
+      point.size=7,line.size=2,mainbar.y.label = "Shared Outliers",
+      sets.x.label = "# Outliers",text.scale=rep(3,6),
+      sets.bar.color =upsetcols[c("pcadapt","permutations","sharedStacks","xtx","salBF")],
+      margin1scale = 0.2,matrix.dot.alpha =0,
+      sets.pt.color=upsetcols[c("pcadapt","permutations","sharedStacks","xtx","salBF")],
+      keep.order = TRUE)
 ---
 title: Supplemental Material for "Multiple colonizations of freshwater by the Gulf pipefish reveal a shared genomic signature of adaptation"
 preprint: false
@@ -43,6 +118,8 @@ capsize: normalsize
 csl: molecular-ecology.csl
 documentclass: article
 spacing: singlespacing
+editor_options: 
+  chunk_output_type: console
 ---
 
 # Overview of the study {-}
@@ -1802,57 +1879,6 @@ legend("top",
 dev.off()
 ```
 
-```{r stacksUpset, eval=FALSE}
-fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
-outliers<-list( permutations=fw_SNPinfo$ID[
-                 rowSums(fw_SNPinfo[,c("perm_TX","perm_AL","perm_LA")])==3],
-               
-               Alabama=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05)], 
-               Louisiana=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_LA_P < 0.05)],
-               Texas=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_TX_P < 0.05)],
-               Florida=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_FL_P < 0.05)],
-               sharedStacks=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05 & 
-                                                  fw_SNPinfo$stacks_LA_P < 0.05 &
-                 fw_SNPinfo$stacks_TX_P < 0.05)])
-upsetcols<-c(permutations='#e41a1c',salBF='#377eb8',pcadapt='#a65628',
-        xtx='#ff7f00',sharedStacks='#f781bf',
-        Alabama='#e7d4e8',Louisiana='#af8dc3',Texas='#762a83',Florida='#1b7837')
-
-png("../figs/sharedStacks.png",res=300,height=8,width=7.5,units="in",pointsize = 20)
-upset(fromList(outliers),sets=c("Texas","Louisiana","Alabama","Florida"),
-      point.size=7,line.size=2,mainbar.y.label = "Shared Stacks Outliers",
-      sets.x.label = "# Outliers",text.scale=rep(3,6),
-      sets.bar.color =upsetcols[c("Texas","Louisiana","Alabama","Florida")],
-      margin1scale = 0.2,matrix.dot.alpha =0,
-      sets.pt.color=upsetcols[c("Texas","Louisiana","Alabama","Florida")],
-      keep.order = TRUE)
-dev.off()
-
-```
-
-```{r permsUpset, eval=FALSE}
-outliers<-list(permutations=fw_SNPinfo$ID[
-                 rowSums(fw_SNPinfo[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
-               Alabama=fw_SNPinfo$ID[which(fw_SNPinfo$perm_AL==1)], 
-               Louisiana=fw_SNPinfo$ID[which(fw_SNPinfo$perm_LA ==1)],
-               Texas=fw_SNPinfo$ID[which(fw_SNPinfo$perm_TX==1)],
-               Florida=fw_SNPinfo$ID[which(fw_SNPinfo$perm_FL==1)],
-               sharedStacks=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05 & 
-                                                  fw_SNPinfo$stacks_LA_P < 0.05 &
-                                                  fw_SNPinfo$stacks_TX_P < 0.05)])
-upsetcols<-c(permutations='#e41a1c',salBF='#377eb8',pcadapt='#a65628',
-        xtx='#ff7f00',sharedStacks='#f781bf',
-        Alabama='#e7d4e8',Louisiana='#af8dc3',Texas='#762a83',Florida='#1b7837')
-png("../figs/sharedPerms.png",res=300,height=8,width=9,units="in",pointsize = 20)
-upset(fromList(outliers),sets=c("Texas","Louisiana","Alabama","Florida","sharedStacks"),
-      point.size=7,line.size=2,mainbar.y.label = "Shared Permutation Outliers",
-      sets.x.label = "# Outliers",text.scale=rep(3,6),
-      sets.bar.color =upsetcols[c("Texas","Louisiana","Alabama","Florida","sharedStacks")],
-      margin1scale = 0.2,matrix.dot.alpha =0,
-      sets.pt.color=upsetcols[c("Texas","Louisiana","Alabama","Florida","sharedStacks")],
-      keep.order = TRUE)
-dev.off()
-```
 
 
 ```{r CreateFstsFig, eval=TRUE}
@@ -1869,7 +1895,7 @@ figure <- multi_panel_figure(
   height = c(1.8,1.8),
   unit = "inches",
   row_spacing = 0.0,
-  column_spacing = 0,
+  column_spacing = 0
     
 )
 (figure %<>% fill_panel(image_files[1],row = 1:2,scaling="fit",
@@ -2468,38 +2494,12 @@ library(UpSetR);library(scales);library(ggplot2)
 library(grid);library(gwscaR);library(gridGraphics)
 source("../R/upset_hacked.R")
 source("../R/205_popgenPlotting.R")
-fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
-
+fw_SNPinfo<-readRDS("fw_SNPinfo_noFL.RDS")
 ```
 
 
 We can create upset plots to show overlap between pairwise Stacks comparisons and between all outlier methods.
 
-```{r createUpsetPlots, eval=FALSE}
-outliers<-list(xtx=fw_SNPinfo$ID[fw_SNPinfo$XtX_noFL >= quantile(fw_SNPinfo$XtX_noFL,0.99,na.rm=TRUE)],
-               salBF=fw_SNPinfo$ID[fw_SNPinfo$logSalBF_noFL>=
-                                     quantile(fw_SNPinfo$logSalBF_noFL,0.99,na.rm=TRUE)],
-               permutations=fw_SNPinfo$ID[
-                 rowSums(fw_SNPinfo[,c("perm_TX","perm_AL","perm_LA")])==3],
-               pcadapt=fw_SNPinfo$ID[which(fw_SNPinfo$pcadaptQ<0.01)],
-               Alabama=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05)], 
-               Louisiana=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_LA_P < 0.05)],
-               Texas=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_TX_P < 0.05)],
-               Florida=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_FL_P < 0.05)],
-               sharedStacks=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05 & 
-                                                  fw_SNPinfo$stacks_LA_P < 0.05 &
-                 fw_SNPinfo$stacks_TX_P < 0.05)])
-upsetcols<-c(permutations='#e41a1c',salBF='#377eb8',pcadapt='#a65628',
-        xtx='#ff7f00',sharedStacks='#f781bf',
-        Alabama='#e7d4e8',Louisiana='#af8dc3',Texas='#762a83',Florida='#1b7837')
-png("../figs/upsetOutliers_noFL.png",res=300,height=8,width=8.5,,units="in",pointsize = 20)
-upset(fromList(outliers),sets=c("pcadapt","permutations","sharedStacks","xtx","salBF"),
-      point.size=7,line.size=2,mainbar.y.label = "Shared Outliers",
-      sets.x.label = "# Outliers",text.scale=rep(3,6),
-      sets.bar.color =upsetcols[c("pcadapt","permutations","sharedStacks","xtx","salBF")],
-      margin1scale = 0.2,matrix.dot.alpha =0,
-      sets.pt.color=upsetcols[c("pcadapt","permutations","sharedStacks","xtx","salBF")],
-      keep.order = TRUE)
 dev.off()
 
 ```
