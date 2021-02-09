@@ -346,6 +346,7 @@ legend("top", legend=ppi$Pop,
 
 
 ```{r readVCFs1, eval=FALSE}
+## Table of summary statistics
 pop_map<-read.delim("../fwsw_pops_map.txt",header = FALSE,stringsAsFactors = FALSE)
 ful_vcf<-parse.vcf(
   "filter_rad_20191014@1654/14_filtered/radiator_data_20191014@1710.vcf")
@@ -499,8 +500,10 @@ knitr::include_graphics("../figs/minorAFplot-1.png")
 
 A straightforward way to summary population structure is through pairwise comparisons of differentiation. We plotted the pairwise $F_{ST}$ values for all 16 populations calculated by Stacks (Figure \@ref(fig:fstHeatmaps), also in Table 2 in main text), and clustering of nearby populations is obvious. The most differentiated populations are FLFW and TXFW. A similar pattern is seen using the covariances estimated by Treemix (an analysis described further below). The Treemix (co)variances also show that the FLFW population has a much larger within-population variance than the other populations (Figure \@ref(fig:fstHeatmaps)).
 
+
 ```{r pairwiseFstsCalc, eval=FALSE}
 #This will calculate the pairwise $F_{ST}$s (but it's slow)
+
 pop_map<-read.delim("../fwsw_pops_map.txt",header = FALSE,stringsAsFactors = FALSE)
 fst_mat<-matrix(NA,
                 nrow=length(unique(pop_map$V2)),ncol=length(unique(pop_map$V2)),
