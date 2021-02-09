@@ -1103,6 +1103,7 @@ dev.off()
 
 ## Make table
 
+The main document also contains a color-coded table that summarizes the pairwise Fst values from Stacks as well as the covariances estimated by Treemix (the unrooted model). See Table 2 in the main text for those results.
 
 ```{r fstMatrix}
 full_fsts<-read.delim("stacks/populations_whitelist/batch_2.fst_summary.tsv",
