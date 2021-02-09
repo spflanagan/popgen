@@ -119,11 +119,8 @@ ppi$pch[grep("FW",ppi$Pop)]<-c(15,16,17,18)
 
 
 
-## Map of the populations
-
-First, we'll plot these populations on a map
-
 ```{r map_setup, eval=FALSE}
+#First, we'll plot these populations on a map
 library(maps);library(gplots);library(mapdata)
 mar.coor<-read.csv("marine_coordinates_revised.csv", header=T)
 fw.coor<-read.csv("fw_coordinates.csv", header=T)
@@ -344,7 +341,7 @@ legend("top", legend=ppi$Pop,
 	pt.cex=ptCex,bty='n',pch=ppi$pch, ncol=8)
 ```
 
-## Table of summary statistics
+
 
 
 ```{r readVCFs1, eval=FALSE}
@@ -400,8 +397,9 @@ pop_summaries<-do.call(rbind,lapply(pop.list,function(pop,ful,sub){
 write.csv(pop_summaries,"population_summaries.csv",row.names = FALSE,quote=FALSE)
 ```
 
-We can merge the genetic info with the environmental info. 
+ 
 ```{r pop_env_summaries}
+#We can merge the genetic info with the environmental info.
 pop_summaries<-read.csv("population_summaries.csv")
 env.data<-data.frame(t(read.csv("bayenv/env_data_raw.csv",row.names = 1)))
 env.data$pop<-rownames(env.data)
@@ -495,9 +493,9 @@ mtext("Number of SNPs (x 1000)",2,outer = TRUE,cex=1.75*0.75,line=1)
 
 ## FSTs
 
-This will calculate the pairwise $F_{ST}$s (but it's slow)
 
 ```{r pairwiseFstsCalc, eval=FALSE}
+#This will calculate the pairwise $F_{ST}$s (but it's slow)
 pop_map<-read.delim("../fwsw_pops_map.txt",header = FALSE,stringsAsFactors = FALSE)
 fst_mat<-matrix(NA,
                 nrow=length(unique(pop_map$V2)),ncol=length(unique(pop_map$V2)),

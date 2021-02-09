@@ -1,47 +1,65 @@
 ---
-title: Supplemental Material \# 2 for "Multiple colonizations of freshwater by the Gulf pipefish reveal a shared genomic signature of adaptation"
-preprint: false
-author: 
-  - name: Sarah P. Flanagan
-    affilnum: 1
-    corresponding: true
-    email: spflanagan.phd@gmail.com
-  - name: Emily Rose
-    affilnum: 2
-  - name: Adam Jones
-    affilnum: 3
-affiliation:
-  - affilnum: 1
-    affil: School of Biological Sciences, University of Canterbury, 4800 Private Bag, Christchurch 8140 New Zealand
-  - affilnum: 2
-    affil: Department of Biology, The University of Tampa, Tampa, FL 33606 USA
-  - affilnum: 3
-    affil: Department of Biological Sciences, University of Idaho, Moscow, ID 83844 USA
-abstract: >
-  This document includes supplementary material for the paper, showing expanded methods and results from the diffusion approximations.
-header-includes: >
-  \usepackage{lipsum}
-  \usepackage{float}
-  \floatplacement{figure}{H}
-bibliography: programs.bib
+title: Supplemental Material 2 for "Multiple colonizations of freshwater by the Gulf
+  pipefish reveal a shared genomic signature of adaptation"
+author:
+- affilnum: 1
+  corresponding: yes
+  email: spflanagan.phd@gmail.com
+  name: Sarah P. Flanagan
+- affilnum: 2
+  name: Emily Rose
+- affilnum: 3
+  name: Adam Jones
 output:
   bookdown::pdf_document2:
     fig_caption: yes
     keep_tex: yes
     number_sections: no
-    toc: true
-    toc_depth: 2
     template: manuscript.latex
+    toc: yes
+    toc_depth: 2
   html_document: null
+  pdf_document:
+    toc: yes
+    toc_depth: '2'
   word_document: null
-fontsize: 11pt
+bibliography: programs.bib
 capsize: normalsize
 csl: molecular-ecology.csl
 documentclass: article
-spacing: singlespacing
-editor_options: 
+editor_options:
   chunk_output_type: console
+fontsize: 11pt
+header-includes: |
+  \usepackage{lipsum} \usepackage{float} \floatplacement{figure}{H}
+affiliation:
+- affil: School of Biological Sciences, University of Canterbury, 4800 Private Bag,
+    Christchurch 8140 New Zealand
+  affilnum: 1
+- affil: Department of Biology, The University of Tampa, Tampa, FL 33606 USA
+  affilnum: 2
+- affil: Department of Biological Sciences, University of Idaho, Moscow, ID 83844
+    USA
+  affilnum: 3
+preprint: no
+spacing: singlespacing
+abstract: "This document includes supplementary material for the paper, showing expanded methods and results from the diffusion approximations. In this document, we walk through the creation of the various datasets analysed using dadi, the analysis of the initial runs with the four simple demographic scenarios, and the choice of best models. The analyses here focus only on the pairwise freshwater-saltwater population pairs. The analyses contained in this document support Figure 2 in the main text.\n"
 ---
+
+
+
+# Overview of the study {-}
+
+In this study, we have population genomic data (ddRAD-seq) from 16 populations of Gulf pipefish (*Syngnathus scovelli*), including samples from four freshwater sites. We performed three primary categories of analyses: 
+
+1. Population structure (Supplement 1)
+
+2. Demographic inference (contained in this document)
+
+3. Outlier analyses (Supplement 3)
+
+This document focuses on the 4 freshwater populations (TXFW, LAFW, ALFW, FLFW) and their nearest saltwater populations (TXCC, ALST, FLCC -- note ALST is the nearest neighbor to both ALFW and LAFW). For these analyses, the complete SNP dataset was re-filtered for each population pair to reduce missingness in each pairwise analysis.  
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE,out.extra='',fig.pos="H",
@@ -444,10 +462,12 @@ alfw_alst_best<-do.call(rbind,
 
 The model with the highest model score was `r best_mod` (Figure \@ref(fig:afasOptsSimple), Table \@ref(tab:sumTab2Simple)).
 
-```{r afasOpts, fig.cap="Comparison of log likelihoods for the complex best ALFW-ALST models"}
+```{r afasOpts, fig.cap="Comparison of log likelihoods for the complex IM models for ALFW-ALST."}
 alfw_alst<-dadi_initialCompare("ALFW_ALST",opt_pattern = paste0(".*",best_mod,".*.optimized.txt"),modSel="median")
 ```
-```{r alSC, fig.cap="Comparison of log likelihoods for the complex SC models for ALFW-ALST "}
+
+
+```{r alSC, fig.cap="Comparison of log likelihoods for the complex SC models for ALFW-ALST."}
 alfw_alst_sc<-dadi_initialCompare("ALFW_ALST",opt_pattern = paste0(".*","SC",".*.optimized.txt"),modSel="median")
 
 ```
@@ -605,6 +625,8 @@ if(file.exists(multiname)){
 ## Summarizing output for best models
 
 
+FLFW vs FLCC is best-fit by the isolation-with-migration model (IM) and TXFW vs TXCC is best fit by the IM model that includes the heterogeneous migration rates across the genome parameter (2m). Both ALFW vs ALST and LAFW vs ALST are best fit by the model of secondary contact with population growth and heterogeneous migration rates across the genome (SC2mG).
+
 
 ```{r dadiSummaryPlot,eval=TRUE}
 library(magick);library(multipanelfigure)
@@ -642,7 +664,7 @@ figure %>% save_multi_panel_figure(filename="../figs/dadiSummaryPlot.png",dpi=30
 
 
 
-```{r ShowdadiSummaryPlot, fig.cap="The best models for each population pair, showing the joint site frequency spectrum for the data and the best fitting model. Also shown are the residuals and the schematic for the best-fitting model for each population pair. This is Figure 4 in the main text.",out.width="7in",out.height="5in"}
+```{r ShowdadiSummaryPlot, fig.cap="The best models for each population pair, showing the joint site frequency spectrum for the data and the best fitting model. Also shown are the residuals and the schematic for the best-fitting model for each population pair. This is Figure 4 in the main text.",out.width="7in",out.height="5in", include=FALSE}
 knitr::include_graphics("../figs/dadiSummaryPlot.png")
 ```
 

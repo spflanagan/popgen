@@ -1,5 +1,5 @@
 ---
-title: Supplemental Material \# 3 for "Multiple colonizations of freshwater by the Gulf pipefish reveal a shared genomic signature of adaptation"
+title: Supplemental Material 3 for "Multiple colonizations of freshwater by the Gulf pipefish reveal a shared genomic signature of adaptation"
 preprint: false
 author: 
   - name: Sarah P. Flanagan
@@ -17,10 +17,7 @@ affiliation:
     affil: Department of Biology, The University of Tampa, Tampa, FL 33606 USA
   - affilnum: 3
     affil: Department of Biological Sciences, University of Idaho, Moscow, ID 83844 USA
-abstract: >
-  This document includes supplementary material for the paper. 
-  In this document, we provide additional methods and results associated with the identification of outliers and the interpretation of outliers from multiple analyses.
-  These analyses combined to create Figure 2 and Figure 3. 
+abstract: "In this document, we provide additional methods and results associated with the identification of outliers and the interpretation of outliers from multiple analyses. \n"
 header-includes: >
   \usepackage{lipsum}
   \usepackage{float}
@@ -36,6 +33,7 @@ output:
     template: manuscript.latex
   html_document: null
   word_document: null
+always_allow_html: true
 fontsize: 11pt
 capsize: normalsize
 csl: molecular-ecology.csl
@@ -47,15 +45,15 @@ editor_options:
 
 # Overview of the study {-}
 
+In this study, we have population genomic data (ddRAD-seq) from 16 populations of Gulf pipefish (*Syngnathus scovelli*), including samples from four freshwater sites. We performed three primary categories of analyses: 
 
-As described in the main manuscript, we analyzed the resulting RAD loci to create two sets of single nucleotide polymorphisms (SNPs):
+1. Population structure (Supplement 1)
 
-1. A dataset with all 16 populations, generated from all pairwise comparisons of populations, containing SNPs found in every population, in 75% of individuals, and with a minor allele frequency of at least 5%.
+2. Demographic inference (Supplement 2)
 
-2. A dataset containing only the 4 freshwater populations (TXFW, LAFW, ALFW, FLFW) and their nearest saltwater populations (TXCC, ALST, FLCC -- note ALST is the nearest neighbor to both ALFW and LAFW). This dataset also contains SNPs found in 75% of individuals with a minor allele frequency of at least 5%. 
+3. Outlier analyses (contained in this document)
 
-This supplement focuses on providing supplementary methods and results of the analysis of dataset #2, focusing on the analysis of the outliers in pairwise freshwater-saltwater comparisons. The analysis of dataset #1 is found in supplement 1 and the analysis of demographic histories using this dataset (dataset #2) is found in supplement 2.
-
+This document focuses on pairwise freshwater-saltwater population pairs (i.e., 7 of the 16 populations), containing SNPs found in 75% of individuals, and with a minor allele frequency of at least 5%. The populations we focus on here are the 4 freshwater populations (TXFW, LAFW, ALFW, FLFW) and their nearest saltwater populations (TXCC, ALST, FLCC -- note ALST is the nearest neighbor to both ALFW and LAFW). 
 
 
 ```{r setup, include=FALSE}
@@ -277,7 +275,8 @@ convert.stacks<-function(stacks.fst,outname,lgs,ssc.agp,sscf.agp,chr.agp,scf.agp
 }
 ```
 
-```{r gen_agp_lgs}
+
+```{r genAgpLGs}
 # old agps
 ssc.agp<-read.delim("../../scovelli_genome/SSC_genome.agp",
                     comment.char="#",header=FALSE)
@@ -298,7 +297,7 @@ colnames(chr.agp)<-c("object","object_beg","object_end","part_number","W",
                      "component_id","component_beg","component_end","orientation")
 ```
 
-```{r convert_vcf,eval=FALSE}
+```{r convertVcf,eval=FALSE}
 vcf<-parse.vcf("stacks/populations_subset75/batch_2.pruned.vcf")
 converted<-data.frame(Locus=integer(),OrigChr=character(),OrigBP=integer(),
                       NewChr=character(),NewBP=integer(),
@@ -317,7 +316,7 @@ lgs<-c("LG1","LG2","LG3","LG4","LG5","LG6","LG7","LG8","LG9","LG10","LG11",
 ```
 
 
-```{r replace_vcf,eval=FALSE}
+```{r replaceVcf,eval=FALSE}
 new.vcf<-as.data.frame(vcf,stringsAsFactor=FALSE)
 for(i in 1:nrow(vcf)){
   new.vcf$POS[i]<-converted$NewBP[i]
@@ -326,6 +325,32 @@ for(i in 1:nrow(vcf)){
 write.table(new.vcf,"converted_subset.vcf",sep='\t',
             quote=FALSE,col.names = TRUE,row.names = FALSE)
 ```
+```{r convertFWSW,eval=FALSE}
+snps<-read.delim("stacks/populations_subset75/pruned_snps.txt")
+
+fwsw.fl<-read.delim("stacks/populations_subset75/batch_2.fst_FLCC-FLFW.tsv")
+fwsw.tx<-read.delim("stacks/populations_subset75/batch_2.fst_TXCC-TXFW.tsv")
+fwsw.al<-read.delim("stacks/populations_subset75/batch_2.fst_ALFW-ALST.tsv")
+fwsw.la<-read.delim("stacks/populations_subset75/batch_2.fst_ALST-LAFW.tsv")
+
+
+fwsw.tx<-fwsw.tx[paste(fwsw.tx$Locus.ID,fwsw.tx$BP) %in% paste(snps$V1,snps$V2),]
+fwsw.fl<-fwsw.fl[paste(fwsw.fl$Locus.ID,fwsw.fl$BP) %in% paste(snps$V1,snps$V2),]
+fwsw.al<-fwsw.al[paste(fwsw.al$Locus.ID,fwsw.al$BP) %in% paste(snps$V1,snps$V2),]
+fwsw.la<-fwsw.la[paste(fwsw.la$Locus.ID,fwsw.la$BP) %in% paste(snps$V1,snps$V2),]
+
+
+upd.tx<-convert.stacks(fwsw.tx,"stacks/populations_subset75/converted.fst_TXCC-TXFW.txt",
+                       lgs,ssc.agp,sscf.agp,chr.agp,scf.agp)
+upd.al<-convert.stacks(fwsw.al,"stacks/populations_subset75/converted.fst_ALFW-ALST.txt",
+                       lgs,ssc.agp,sscf.agp,chr.agp,scf.agp)
+upd.la<-convert.stacks(fwsw.al,"stacks/populations_subset75/converted.fst_ALST-LAFW.txt",
+                       lgs,ssc.agp,sscf.agp,chr.agp,scf.agp)
+upd.fl<-convert.stacks(fwsw.fl,"stacks/populations_subset75/converted.fst_FLCC-FLFW.txt",
+                       lgs,ssc.agp,sscf.agp,chr.agp,scf.agp)
+
+```
+
 ```{r convertSWSW, eval=FALSE}
 swsw.fl<-read.delim("stacks/populations_whitelist/batch_2.fst_FLCC-FLHB.tsv")
 swsw.tx<-read.delim("stacks/populations_whitelist/batch_2.fst_TXCB-TXCC.tsv")
@@ -339,11 +364,10 @@ upd.sf<-convert.stacks(swsw.fl,"stacks/converted.fst_FLCC-FLHB.txt",
                        lgs,ssc.agp,sscf.agp,chr.agp,scf.agp)
 ```
 
+## Stacks {-}
 
-## Stacks{-}
 
-
-We used the AMOVA-corrected $F_{ST}$ values calculated by the populations module in Stacks to investigate the patterns of fixation between each pair of freshwater and nearest saltwater populations. In each pairwise comparison, we identified SNPs that were outliers using the Fisher's $P$-value in the Stacks output, using an $\alpha=0.01$. We then identified those SNPs that were shared among all four pairwise comparisons as genomic regions with a potentially parallel response to selection from the freshwater habitats.
+We used the AMOVA-corrected $F_{ST}$ values calculated by the populations module in Stacks to investigate the patterns of fixation between each pair of freshwater and nearest saltwater populations. In each pairwise comparison, we identified SNPs that were outliers using the Fisher's $P$-value in the Stacks output, using an $\alpha=0.05$. We then identified those SNPs that were shared among all four pairwise comparisons as genomic regions with a potentially parallel response to selection from the freshwater habitats.
 
 ```{r readStacksFsts}
 fwsw.al<-read.delim("stacks/populations_subset75/converted.fst_ALFW-ALST.txt")
@@ -352,11 +376,11 @@ fwsw.tx<-read.delim("stacks/populations_subset75/converted.fst_TXCC-TXFW.txt")
 fwsw.fl<-read.delim("stacks/populations_subset75/converted.fst_FLCC-FLFW.txt")
 kable(cbind(nrow(fwsw.al),nrow(fwsw.la),nrow(fwsw.tx),nrow(fwsw.fl)),
       col.names=c("Alabama","Louisiana","Texas","Florida"),
-      caption="The number of SNPs in each dataset") %>%
+      caption="The number of SNPs in each pairwise Fst comparisons in Stacks.") %>%
   kable_styling(latex_options = "HOLD_position")
 ```
 
-These datasets do not contain the full 12103 SNPs (\@ref(tab:readStacksFsts)) because some of those SNPs are fixed in the populations or do not pass coverage or minimum allele frequency thresholds.
+These datasets do not contain the full 12103 SNPs (Fig. \@ref(tab:readStacksFsts)) because some of those SNPs are fixed in the populations or do not pass coverage or minimum allele frequency thresholds.
 
 
 ```{r plotStacksFsts,fig.height=7,fig.width=7,fig.cap="Manhattan plot of pairwise AMOVA-corrected Fst values from Stacks for each freshwater - nearest saltwater population pair. The x-axis corresponds to genomic locations, with chromosomes labelled. To the right are loci that mapped to unanchored scaffolds."}
@@ -395,7 +419,7 @@ There are `r length(unique(all.shared))` outliers (as determined by Fisher's P f
 
 As a point of comparison, we repeated this analysis with the similar pairwise saltwater-saltwater population pairs. We expect that if substantially more outlier loci were shared in the freshwater-saltwater comparisons than in the saltwater-saltwtaer comparisons that the shared outliers are likely a signature of adaptation to freshwater as opposed to random chance due to population structure.  
 
-```{r plotStacksfstsSWSW,fig.height=6,fig.width=6,fig.cap="Manhattan plot of pairwise AMOVA-corrected Fst values from Stacks for the saltwater populations nearest to freshwater populations compared to their nearest saltwater neightbor. The x-axis corresponds to genomic locations, with chromosomes labelled. To the right are loci that mapped to unanchored scaffolds."}
+```{r plotStacksfstsSWSW,fig.height=6,fig.width=6,fig.cap="Manhattan plot of pairwise AMOVA-corrected Fst values from Stacks for the saltwater populations nearest to freshwater populations compared to their nearest saltwater neighbor. The x-axis corresponds to genomic locations, with chromosomes labelled. To the right are loci that mapped to unanchored scaffolds."}
 swsw.fl<-read.delim("stacks/converted.fst_TXCB-TXCC.txt")
 swsw.tx<-read.delim("stacks/converted.fst_ALST-FLSG.txt")
 swsw.al<-read.delim("stacks/converted.fst_FLCC-FLHB.txt")
@@ -469,7 +493,7 @@ plot_fst_hists<-function(perms,plot_lab=NULL,cols=NULL,permlab="mean_perm",
 
 ```
 
-```{r StacksFstsHists,dpi=300,fig.width=8,fig.height=7,fig.cap="Distributions of the Stacks AMOVA-Corrected Fst values for the pairwise comparisons of each freshwater population and its nearest saltwater neighbor (main plots) and the pairwise comparisons of those saltwater popuulations and their nearset saltwater population (insests)."}
+```{r StacksFstsHists,dpi=300,fig.width=8,fig.height=7,fig.cap="Distributions of the Stacks AMOVA-Corrected Fst values for the pairwise comparisons of each freshwater population and its nearest saltwater neighbor (main plots) and the pairwise comparisons of those saltwater populations and their nearset saltwater population (insets)."}
 fwsw_list<-list(fwsw.tx,fwsw.la,fwsw.al,fwsw.fl)
 swsw_list<-list(swsw.tx,swsw.al,swsw.al,swsw.fl)
 
@@ -489,6 +513,225 @@ ipars<-mapply(plot_fst_hists,perms=swsw_list,plot_lab=plot_labs,
 
 ```
 
+### Lower threshold for Stacks {-}
+
+We adjusted the threshold for identifying shared Stacks outliers to $\alpha = 0.01$ to ensure that a less stringent threshold was not causing spurious conclusions. We found that lowering the threshold nearly halved the number of shared SNPs (Table \@ref(tab:outliersTable01)), but the shared Stacks outliers had similar overlap with other analyses (Figure \@ref(fig:upsetOutliers01)) and patterns of sharing were still found genome-wide (Figure \@ref(fig:plotStacksOutliers01)).
+
+```{r getOutliers01}
+outliers<-list(xtx=fw_SNPinfo$ID[which(fw_SNPinfo$XtX_noFL >= quantile(fw_SNPinfo$XtX_noFL,0.99,na.rm = TRUE))],
+               salBF=fw_SNPinfo$ID[which(fw_SNPinfo$logSalBF_noFL>=
+                                     quantile(fw_SNPinfo$logSalBF_noFL,0.99,na.rm = TRUE))],
+               permutations=fw_SNPinfo$ID[
+                 rowSums(fw_SNPinfo[,c("perm_TX","perm_AL","perm_LA")])==3],
+               pcadapt=fw_SNPinfo$ID[which(fw_SNPinfo$pcadaptQ<0.01)],
+               Alabama=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05)], 
+               Louisiana=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_LA_P < 0.05)],
+               Texas=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_TX_P < 0.05)],
+               Florida=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_FL_P < 0.05)],
+               sharedStacks=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05 & 
+                                                  fw_SNPinfo$stacks_LA_P < 0.05 &
+                                                  fw_SNPinfo$stacks_TX_P < 0.05)])
+outliers01<-list(xtx=fw_SNPinfo$ID[which(fw_SNPinfo$XtX_noFL >= quantile(fw_SNPinfo$XtX_noFL,0.99,na.rm = TRUE))],
+               salBF=fw_SNPinfo$ID[which(fw_SNPinfo$logSalBF_noFL>=
+                                     quantile(fw_SNPinfo$logSalBF_noFL,0.99,na.rm = TRUE))],
+               permutations=fw_SNPinfo$ID[
+                 rowSums(fw_SNPinfo[,c("perm_TX","perm_AL","perm_LA")])==3],
+               pcadapt=fw_SNPinfo$ID[which(fw_SNPinfo$pcadaptQ<0.01)],
+               Alabama=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.01)], 
+               Louisiana=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_LA_P < 0.01)],
+               Texas=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_TX_P < 0.01)],
+               Florida=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_FL_P < 0.01)],
+               sharedStacks=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.01 & 
+                                                  fw_SNPinfo$stacks_LA_P < 0.01 &
+                                                  fw_SNPinfo$stacks_TX_P < 0.01)])
+```
+```{r outliersTable01}
+outComp<-data.frame(rbind(unlist(lapply(outliers,length)),
+                          unlist(lapply(outliers01,length))))
+rownames(outComp)<-c("p=0.05","p=0.01")
+kable(outComp[,5:9],"latex",booktabs=TRUE,
+      caption="Table summarizing the number of outliers found in the Stacks analysis when the significance threshold is set to 0.01 versus 0.05.") %>%
+  kable_styling(latex_options = "HOLD_position")
+      
+```
+
+```{r upsetStacksOutliers01,fig.cap="Upset plot with shared Stacks outliers identified using a cutoff of p=0.01. 'sharedStacks' refers to outliers shared in the Alabama, Louisiana, and Texas pairwise Fst comparisons from Stacks (at 0.01 threshold).",fig.height=7.5,fig.width=8,dpi=300}
+upsetcols<-c(permutations='#e41a1c',salBF='#377eb8',pcadapt='#a65628',
+        xtx='#ff7f00',sharedStacks='#f781bf',
+        Alabama='#e7d4e8',Louisiana='#af8dc3',Texas='#762a83',Florida='#1b7837')
+#png("../figs/upsetOutliers_noFL_p01.png",res=300,height=8,width=8.5,,units="in",pointsize = 20)
+upset(fromList(outliers01),sets=c("sharedStacks","Alabama","Louisiana","Texas","Florida"),
+      point.size=7,line.size=2,mainbar.y.label = "Shared Outliers",
+      sets.x.label = "# Outliers",text.scale=rep(3,6),
+      sets.bar.color =upsetcols[c("sharedStacks","Alabama","Louisiana","Texas","Florida")],
+      margin1scale = 0.2,matrix.dot.alpha =0,
+      sets.pt.color=upsetcols[c("sharedStacks","Alabama","Louisiana","Texas","Florida")],
+      keep.order = TRUE)
+#dev.off()
+```
+
+```{r upsetOutliers01,fig.cap="Upset plot with shared Stacks outliers shared with other outlier analyses (which are described below) identified using a cutoff of p=0.01. 'pcadapt' refers to the outliers identified using principal components analysis, 'permutations' refers to outliers from a permuted Fst distribution, 'sharedStacks' are those shared in the Alabama, Louisiana, and Texas pairwise Fst comparisons from Stacks (at 0.01 threshold), 'xtx' refers to the population-structure-corrected Fst analog calculated by Bayenv2, and 'salBF' are loci that are significantly correlated with salinity measurements (from Bayenv2).",fig.height=7.5,fig.width=8,dpi=300}
+upsetcols<-c(permutations='#e41a1c',salBF='#377eb8',pcadapt='#a65628',
+        xtx='#ff7f00',sharedStacks='#f781bf',
+        Alabama='#e7d4e8',Louisiana='#af8dc3',Texas='#762a83',Florida='#1b7837')
+#png("../figs/upsetOutliers_noFL_p01.png",res=300,height=8,width=8.5,,units="in",pointsize = 20)
+upset(fromList(outliers01),sets=c("pcadapt","permutations","sharedStacks","xtx","salBF"),
+      point.size=7,line.size=2,mainbar.y.label = "Shared Outliers",
+      sets.x.label = "# Outliers",text.scale=rep(3,6),
+      sets.bar.color =upsetcols[c("pcadapt","permutations","sharedStacks","xtx","salBF")],
+      margin1scale = 0.2,matrix.dot.alpha =0,
+      sets.pt.color=upsetcols[c("pcadapt","permutations","sharedStacks","xtx","salBF")],
+      keep.order = TRUE)
+#dev.off()
+```
+
+
+```{r plotStacksOutliers01, fig.cap="Manhattan plot of pairwise Fst values. Data are the same as Figure 3 in the main text but the outliers plotted are the shared Stacks outliers with a threshold of 0.01 instead of 0.05."}
+ptsize<-3
+
+par(mfrow=c(4,1),oma=c(1,1,0.5,1),mar=c(2,2,1,1),xpd=TRUE)
+# plot TX
+plot_dat<-fst.plot(fw_SNPinfo,scaffs.to.plot = lgs,fst.name = "stacks_TX",
+                   chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,
+                   pch=19,pt.cols = c(grp7colors[1],grp7colors[2]),pt.cex = 2)
+#points(plot_dat$plot.pos[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+#       plot_dat$stacks_TX[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+#       col=cols["sal"],cex=1,pch=2)
+#points(plot_dat$plot.pos[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+#       plot_dat$stacks_TX[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+#       col=cols["xtx"],cex=1,pch=3,lwd=2)
+points(plot_dat$plot.pos[
+  rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
+       plot_dat$stacks_TX[
+         rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
+       col=cols["perm"],cex=2,pch=pchs["perm"],lwd=ptsize)
+# points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.01],
+#       plot_dat$stacks_TX[plot_dat$pcadaptQ<0.01],
+#       col=cols["pc"],cex=1,pch=pchs["pc"],lwd=ptsize)
+points(plot_dat$plot.pos[which(plot_dat$stacks_AL_P < 0.01 & 
+                                 plot_dat$stacks_LA_P < 0.01 &
+                           plot_dat$stacks_TX_P < 0.01 )],
+       plot_dat$stacks_TX[which(plot_dat$stacks_AL_P < 0.01 & 
+                                  plot_dat$stacks_LA_P < 0.01 &
+                           plot_dat$stacks_TX_P < 0.01)],
+       col=cols["stacks"],cex=2,pch=pchs["stacks"],lwd=ptsize)
+axis(2,las=1,pos=-1500000,cex.axis=1)
+mtext("Texas",2,line=1.2,cex=1)
+# add the LG labels
+midpts<-tapply(plot_dat$plot.pos,plot_dat$Chrom,median)
+text(x=midpts[lgs],y=-0.15,cex=1)
+
+# add legend
+legend("topright",
+       c(expression("Permutation"~italic("F")["ST"]),
+         expression("Stacks"~italic("F")["ST"])),
+         #"PCAdapt"), #expression(italic("X")^T~italic("X")),"Salinity BF"
+       #xjust = 0.5,x.intersp = 0.5,
+       col = cols[c("perm","stacks")],
+       pt.bg=cols[c("perm","stacks")],
+       #pch=c(4,5,0,3,2),
+       pch=pchs[c("perm","stacks")],pt.lwd =ptsize,pt.cex=2,cex=1.25,
+       bty='n',ncol=2)
+
+# plot AL
+plot_dat<-fst.plot(fw_SNPinfo,scaffs.to.plot = lgs,fst.name = "stacks_AL",
+                   chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,
+                   pch=19,pt.cols = c(grp7colors[3],"lightgrey"),pt.cex = 2)
+# points(plot_dat$plot.pos[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+#        plot_dat$stacks_AL[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+#        col=cols["xtx"],cex=1,pch=3,lwd=2)
+# points(plot_dat$plot.pos[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+#        plot_dat$stacks_AL[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+#        col=cols["sal"],cex=1,pch=2)
+points(plot_dat$plot.pos[
+  rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
+       plot_dat$stacks_AL[
+         rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
+       col=cols["perm"],cex=2,pch=pchs["perm"],lwd=3)
+# points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.01],
+#        plot_dat$stacks_AL[plot_dat$pcadaptQ<0.01],
+#        col=cols["pc"],cex=1,pch=pchs["pc"],lwd=ptsize)
+points(plot_dat$plot.pos[which(plot_dat$stacks_AL_P < 0.01 & 
+                                 plot_dat$stacks_LA_P < 0.01 &
+                           plot_dat$stacks_TX_P < 0.01)],
+       plot_dat$stacks_AL[which(plot_dat$stacks_AL_P < 0.01 & 
+                                  plot_dat$stacks_LA_P < 0.01 &
+                           plot_dat$stacks_TX_P < 0.01)],
+       col=cols["stacks"],cex=2,pch=pchs["stacks"],lwd=ptsize)
+axis(2,las=1,pos=-1500000,cex.axis=1)
+mtext("Alabama",2,line=1.2,cex=1)
+# add the LG labels
+midpts<-tapply(plot_dat$plot.pos,plot_dat$Chrom,median)
+text(x=midpts[lgs],y=-0.15,cex=1)
+
+# plot LA
+plot_dat<-fst.plot(fw_SNPinfo,scaffs.to.plot = lgs,fst.name = "stacks_LA",
+                   chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19,
+                   pt.cols = c("lightgrey",grp7colors[3]),pt.cex = 2)
+# points(plot_dat$plot.pos[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+#        plot_dat$stacks_LA[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+#        col=cols["sal"],cex=1,pch=2)
+# points(plot_dat$plot.pos[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+#        plot_dat$stacks_LA[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+#        col=cols["xtx"],cex=1,pch=3,lwd=2)
+# points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.01],
+#        plot_dat$stacks_LA[plot_dat$pcadaptQ<0.01],
+#        col=cols["pc"],cex=1,pch=pchs["pc"],lwd=ptsize)
+points(plot_dat$plot.pos[
+  rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
+       plot_dat$stacks_LA[
+         rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
+       col=cols["perm"],cex=2,pch=pchs["perm"],lwd=ptsize)
+
+points(plot_dat$plot.pos[which(plot_dat$stacks_AL_P < 0.01 & 
+                                 plot_dat$stacks_LA_P < 0.01 &
+                           plot_dat$stacks_TX_P < 0.01)],
+       plot_dat$stacks_LA[which(plot_dat$stacks_AL_P < 0.01 & 
+                                  plot_dat$stacks_LA_P < 0.01 &
+                           plot_dat$stacks_TX_P < 0.01 )],
+       col=cols["stacks"],cex=2,pch=pchs["stacks"],lwd=ptsize)
+axis(2,las=1,pos=-1500000,cex.axis=1)
+mtext("Louisiana",2,line=1.2,cex=1)
+# add the LG labels
+midpts<-tapply(plot_dat$plot.pos,plot_dat$Chrom,median)
+text(x=midpts[lgs],y=-0.15,cex=1)
+
+
+# FL
+plot_dat<-fst.plot(fw_SNPinfo,scaffs.to.plot = lgs,fst.name = "stacks_FL",
+                   chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19,
+                   pt.cols = c(grp7colors[6],grp7colors[7]),pt.cex = 2)
+# points(plot_dat$plot.pos[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+#        plot_dat$stacks_FL[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+#        col=cols["sal"],cex=1,pch=2)
+# points(plot_dat$plot.pos[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+#        plot_dat$stacks_FL[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+#        col=cols["xtx"],cex=1,pch=3,lwd=2)
+# points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.01],
+#        plot_dat$stacks_FL[plot_dat$pcadaptQ<0.01],
+#        col=cols["pc"],cex=1,pch=pchs["pc"],lwd=ptsize)
+points(plot_dat$plot.pos[
+  rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
+       plot_dat$stacks_FL[
+         rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
+       col=cols["perm"],cex=2,pch=pchs["perm"],lwd=ptsize)
+points(plot_dat$plot.pos[which(plot_dat$stacks_AL_P < 0.01 & 
+                                 plot_dat$stacks_LA_P < 0.01 &
+                           plot_dat$stacks_TX_P < 0.01)],
+       plot_dat$stacks_FL[which(plot_dat$stacks_AL_P < 0.01 & 
+                                  plot_dat$stacks_LA_P < 0.01 &
+                           plot_dat$stacks_TX_P < 0.01)],
+       col=cols["stacks"],cex=2,pch=pchs["stacks"],lwd=ptsize)
+axis(2,las=1,pos=-1500000,cex.axis=1)
+mtext("Florida",2,line=1.2,cex=1)
+# add the LG labels
+midpts<-tapply(plot_dat$plot.pos,plot_dat$Chrom,median)
+text(x=midpts[lgs],y=-0.15,cex=1)
+
+
+```
+
+For the main analysis we decided to use the original threshold of $\alpha = 0.05$.
 
 ## Permutations {-}
 
@@ -573,6 +816,7 @@ permOut<-data.frame(perm_TX=permuted_fsts[[1]]$act_in_perm,
 ```
 
 
+
 The permutations resulted in substantially lower $F_{ST}$ values than the actual $F_{ST}$ values (Table \@ref(tab:permTable)), and the permuted $F_{ST}$s were very close to zero (Table \@ref(tab:permTable); Figure (\@ref(fig:plotPermutations))) whereas the actual $F_{ST}$ values had a larger tail. The increase in the overall number of outliers in the ALFW vs ALST and LAFW vs ALST comparisons likely reflects the fact that those permuted $F_{ST}$ values were much closer to zero with smaller permuted standard errors of the mean than the other two comparisons, likely due to the admixture in those populations. A total of `r nrow(permOut[which(rowSums(permOut)==4),])` SNPs were identified as outliers in all four permutation analyses and `r nrow(permOut[which(rowSums(permOut[,c(1,3,4)])==3),])` were shared among Texas, Alabama, and Louisiana pairwise comparisons.   
 
 
@@ -595,6 +839,7 @@ dev.off()
 ```{r plotPermutations,out.width='85%', fig.cap="Histograms of pairwise Fst values generated by the permutations (in grey) and the actual Fst values (in color in insets). Only loci with Fst values larger than zero are shown in the histograms."}
 knitr::include_graphics('../figs/permuted_fsts.png')
 ```
+
 
 We can also look at the genome-wide patterns of the permutations vs the actual Fsts, and we can see that the permuted Fsts have much smaller average Fsts and virtually no outliers (Figure \@ref(fig:permFstGenomewide)), unlike the actual pairwise Fst values (Figure \@ref(fig:permActualFstGenomewide)). The actual Fsts (Figure \@ref(fig:permActualFstGenomewide)) show similar patterns to the Stacks Fst analysis (Figure \@ref(fig:plotStacksFsts)) in the actual fsts , where the Florida pairwise comparison has much higher overall Fst values. These are not identical to the Stacks analysis because these Fsts are calculated without any corrections using the 
 
@@ -652,7 +897,254 @@ kable(fst_out_dat,"latex",booktabs=TRUE,row.names=FALSE,
   column_spec(8,width="15em")
 ```
 
-We can also take a look at the SNPs shared in both the Stacks and permutation analyses (focusing on the outliers in all pairwise Texas, Louisiana, and Alabama comparisons but not the Florida analyses). We found `r nrow(fst_out_dat)` shared SNPs, (`r nrow(fst_out_dat[grep("SSCG",fst_out_dat$SSCID),])`) of which matched annotated regions in the *S. scovelli* genome. One of these (Tripartite motif-containing protein 7, or TRIM7) is in the list of genes previously found to be involved in freshwater adaptation (Table \@ref(tab:putativeGeneAnns)). 
+We can also take a look at the SNPs shared in both the Stacks and permutation analyses (focusing on the outliers in all pairwise Texas, Louisiana, and Alabama comparisons but not the Florida analyses). We found `r nrow(fst_out_dat)` shared SNPs, `r nrow(fst_out_dat[grep("SSCG",fst_out_dat$SSCID),])`Tab of which matched annotated regions in the *S. scovelli* genome. One of these (Tripartite motif-containing protein 7, or TRIM7) is in the list of genes previously found to be involved in freshwater adaptation (Table \@ref(tab:putativeGeneAnns)). 
+
+## Creating Figure 3
+
+In the main text, Figure 3 summarizes the overlap between the four pairwise Stacks comparisons and the analysis of the permuted Fsts. It includes Manhattan plots of the Stacks Fst values and upset plots comparing shared outliers.
+
+```{r plottingSetup}
+library(UpSetR);library(scales);library(ggplot2)
+library(grid);library(gwscaR);library(gridGraphics)
+source("../R/upset_hacked.R")
+source("../R/205_popgenPlotting.R")
+fw_SNPinfo<-readRDS("fw_SNPinfo_noFL.RDS")
+
+```
+
+
+```{r plotStacksOutliers2, eval=FALSE, message=FALSE}
+ptsize<-3
+png("../figs/FstOutliers_NoBayenv.png",height=8,width=8.5,units="in",res=300,pointsize=20)
+par(mfrow=c(4,1),oma=c(1,1,0.5,1),mar=c(2,2,1,1),xpd=TRUE)
+# plot TX
+plot_dat<-fst.plot(fw_SNPinfo,scaffs.to.plot = lgs,fst.name = "stacks_TX",
+                   chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,
+                   pch=19,pt.cols = c(grp7colors[1],grp7colors[2]),pt.cex = 2)
+#points(plot_dat$plot.pos[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+#       plot_dat$stacks_TX[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+#       col=cols["sal"],cex=1,pch=2)
+#points(plot_dat$plot.pos[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+#       plot_dat$stacks_TX[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+#       col=cols["xtx"],cex=1,pch=3,lwd=2)
+points(plot_dat$plot.pos[
+  rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
+       plot_dat$stacks_TX[
+         rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
+       col=cols["perm"],cex=2,pch=pchs["perm"],lwd=ptsize)
+# points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.01],
+#       plot_dat$stacks_TX[plot_dat$pcadaptQ<0.01],
+#       col=cols["pc"],cex=1,pch=pchs["pc"],lwd=ptsize)
+points(plot_dat$plot.pos[which(plot_dat$stacks_AL_P < 0.05 & 
+                                 plot_dat$stacks_LA_P < 0.05 &
+                           plot_dat$stacks_TX_P < 0.05 )],
+       plot_dat$stacks_TX[which(plot_dat$stacks_AL_P < 0.05 & 
+                                  plot_dat$stacks_LA_P < 0.05 &
+                           plot_dat$stacks_TX_P < 0.05)],
+       col=cols["stacks"],cex=2,pch=pchs["stacks"],lwd=ptsize)
+axis(2,las=1,pos=-1500000,cex.axis=1)
+mtext("Texas",2,line=1.2,cex=1)
+# add the LG labels
+midpts<-tapply(plot_dat$plot.pos,plot_dat$Chrom,median)
+text(x=midpts[lgs],y=-0.15,cex=1)
+
+# plot AL
+plot_dat<-fst.plot(fw_SNPinfo,scaffs.to.plot = lgs,fst.name = "stacks_AL",
+                   chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,
+                   pch=19,pt.cols = c(grp7colors[3],"lightgrey"),pt.cex = 2)
+# points(plot_dat$plot.pos[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+#        plot_dat$stacks_AL[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+#        col=cols["xtx"],cex=1,pch=3,lwd=2)
+# points(plot_dat$plot.pos[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+#        plot_dat$stacks_AL[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+#        col=cols["sal"],cex=1,pch=2)
+points(plot_dat$plot.pos[
+  rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
+       plot_dat$stacks_AL[
+         rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
+       col=cols["perm"],cex=2,pch=pchs["perm"],lwd=3)
+# points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.01],
+#        plot_dat$stacks_AL[plot_dat$pcadaptQ<0.01],
+#        col=cols["pc"],cex=1,pch=pchs["pc"],lwd=ptsize)
+points(plot_dat$plot.pos[which(plot_dat$stacks_AL_P < 0.05 & 
+                                 plot_dat$stacks_LA_P < 0.05 &
+                           plot_dat$stacks_TX_P < 0.05)],
+       plot_dat$stacks_AL[which(plot_dat$stacks_AL_P < 0.05 & 
+                                  plot_dat$stacks_LA_P < 0.05 &
+                           plot_dat$stacks_TX_P < 0.05)],
+       col=cols["stacks"],cex=2,pch=pchs["stacks"],lwd=ptsize)
+axis(2,las=1,pos=-1500000,cex.axis=1)
+mtext("Alabama",2,line=1.2,cex=1)
+# add the LG labels
+midpts<-tapply(plot_dat$plot.pos,plot_dat$Chrom,median)
+text(x=midpts[lgs],y=-0.15,cex=1)
+
+# plot LA
+plot_dat<-fst.plot(fw_SNPinfo,scaffs.to.plot = lgs,fst.name = "stacks_LA",
+                   chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19,
+                   pt.cols = c("lightgrey",grp7colors[3]),pt.cex = 2)
+# points(plot_dat$plot.pos[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+#        plot_dat$stacks_LA[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+#        col=cols["sal"],cex=1,pch=2)
+# points(plot_dat$plot.pos[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+#        plot_dat$stacks_LA[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+#        col=cols["xtx"],cex=1,pch=3,lwd=2)
+# points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.01],
+#        plot_dat$stacks_LA[plot_dat$pcadaptQ<0.01],
+#        col=cols["pc"],cex=1,pch=pchs["pc"],lwd=ptsize)
+points(plot_dat$plot.pos[
+  rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
+       plot_dat$stacks_LA[
+         rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
+       col=cols["perm"],cex=2,pch=pchs["perm"],lwd=ptsize)
+
+points(plot_dat$plot.pos[which(plot_dat$stacks_AL_P < 0.05 & 
+                                 plot_dat$stacks_LA_P < 0.05 &
+                           plot_dat$stacks_TX_P < 0.05)],
+       plot_dat$stacks_LA[which(plot_dat$stacks_AL_P < 0.05 & 
+                                  plot_dat$stacks_LA_P < 0.05 &
+                           plot_dat$stacks_TX_P < 0.05 )],
+       col=cols["stacks"],cex=2,pch=pchs["stacks"],lwd=ptsize)
+axis(2,las=1,pos=-1500000,cex.axis=1)
+mtext("Louisiana",2,line=1.2,cex=1)
+# add the LG labels
+midpts<-tapply(plot_dat$plot.pos,plot_dat$Chrom,median)
+text(x=midpts[lgs],y=-0.15,cex=1)
+
+
+# FL
+plot_dat<-fst.plot(fw_SNPinfo,scaffs.to.plot = lgs,fst.name = "stacks_FL",
+                   chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19,
+                   pt.cols = c(grp7colors[6],grp7colors[7]),pt.cex = 2)
+# points(plot_dat$plot.pos[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+#        plot_dat$stacks_FL[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+#        col=cols["sal"],cex=1,pch=2)
+# points(plot_dat$plot.pos[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+#        plot_dat$stacks_FL[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+#        col=cols["xtx"],cex=1,pch=3,lwd=2)
+# points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.01],
+#        plot_dat$stacks_FL[plot_dat$pcadaptQ<0.01],
+#        col=cols["pc"],cex=1,pch=pchs["pc"],lwd=ptsize)
+points(plot_dat$plot.pos[
+  rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
+       plot_dat$stacks_FL[
+         rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
+       col=cols["perm"],cex=2,pch=pchs["perm"],lwd=ptsize)
+points(plot_dat$plot.pos[which(plot_dat$stacks_AL_P < 0.05 & 
+                                 plot_dat$stacks_LA_P < 0.05 &
+                           plot_dat$stacks_TX_P < 0.05)],
+       plot_dat$stacks_FL[which(plot_dat$stacks_AL_P < 0.05 & 
+                                  plot_dat$stacks_LA_P < 0.05 &
+                           plot_dat$stacks_TX_P < 0.05)],
+       col=cols["stacks"],cex=2,pch=pchs["stacks"],lwd=ptsize)
+axis(2,las=1,pos=-1500000,cex.axis=1)
+mtext("Florida",2,line=1.2,cex=1)
+# add the LG labels
+midpts<-tapply(plot_dat$plot.pos,plot_dat$Chrom,median)
+text(x=midpts[lgs],y=-0.15,cex=1)
+
+# add outside legend
+
+opar <- par(fig=c(0, 1, 0, 1), oma=c(0, 0, 0, 0),
+            mar=c(0, 0, 0, 0), new=TRUE)
+on.exit(par(opar))
+plot(0, 0, type='n', bty='n', xaxt='n', yaxt='n')
+legend("top",
+       c(expression("Permutation"~italic("F")["ST"]),
+         expression("Stacks"~italic("F")["ST"])),
+         #"PCAdapt"), #expression(italic("X")^T~italic("X")),"Salinity BF"
+       #xjust = 0.5,x.intersp = 0.5,
+       col = cols[c("perm","stacks")],
+       pt.bg=cols[c("perm","stacks")],
+       #pch=c(4,5,0,3,2),
+       pch=pchs[c("perm","stacks")],pt.lwd =ptsize,pt.cex=2,cex=1.25,
+       bty='n',ncol=2)
+dev.off()
+```
+
+```{r stacksUpset, eval=FALSE, include=FALSE}
+fw_SNPinfo<-readRDS("fw_SNPinfo_noFL.RDS")
+outliers<-list( permutations=fw_SNPinfo$ID[
+                 rowSums(fw_SNPinfo[,c("perm_TX","perm_AL","perm_LA")])==3],
+               
+               AL=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05)], 
+               LA=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_LA_P < 0.05)],
+               TX=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_TX_P < 0.05)],
+               FL=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_FL_P < 0.05)],
+               Shared=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05 & 
+                                                  fw_SNPinfo$stacks_LA_P < 0.05 &
+                 fw_SNPinfo$stacks_TX_P < 0.05)])
+upsetcols<-c(permutations='#e41a1c',salBF='#377eb8',pcadapt='#a65628',
+        xtx='#ff7f00',Shared='#f781bf',
+        AL='#e7d4e8',LA='#af8dc3',TX='#762a83',FL='#1b7837')
+
+png("../figs/sharedStacks.png",res=300,height=8,width=7.5,units="in",pointsize = 20)
+upset(fromList(outliers),sets=c("TX","LA","AL","FL"),
+      point.size=10,line.size=4,mainbar.y.label = "Stacks Outliers",
+      sets.x.label = "Total #",text.scale=c(4.5,4.5,4.5,2.5,4.5,4.5),
+      sets.bar.color =upsetcols[c("TX","LA","AL","FL")],
+      margin1scale = 0.2,matrix.dot.alpha =0,
+      sets.pt.color=upsetcols[c("TX","LA","AL","FL")],
+      show.numbers=FALSE,
+      keep.order = TRUE,yvjust=3.5)
+dev.off()
+
+```
+
+```{r permsUpset, eval=FALSE, include=FALSE}
+outliers<-list(permutations=fw_SNPinfo$ID[
+                 rowSums(fw_SNPinfo[,c("perm_TX","perm_FL","perm_AL","perm_LA")])==4],
+               AL=fw_SNPinfo$ID[which(fw_SNPinfo$perm_AL==1)], 
+               LA=fw_SNPinfo$ID[which(fw_SNPinfo$perm_LA ==1)],
+               TX=fw_SNPinfo$ID[which(fw_SNPinfo$perm_TX==1)],
+               FL=fw_SNPinfo$ID[which(fw_SNPinfo$perm_FL==1)],
+               Stacks=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05 & 
+                                                  fw_SNPinfo$stacks_LA_P < 0.05 &
+                                                  fw_SNPinfo$stacks_TX_P < 0.05)])
+upsetcols<-c(permutations='#e41a1c',salBF='#377eb8',pcadapt='#a65628',
+        xtx='#ff7f00',Stacks='#f781bf',
+        AL='#e7d4e8',LA='#af8dc3',TX='#762a83',FL='#1b7837')
+png("../figs/sharedPerms.png",res=300,height=9,width=9,units="in",pointsize = 20)
+upset(fromList(outliers),sets=c("TX","LA","AL","FL","Stacks"),
+      point.size=10,line.size=4,mainbar.y.label = "Stacks Outliers",
+      sets.x.label = "Total #",text.scale=c(4.5,4.5,4.5,2.5,4.5,4.5),
+      sets.bar.color =upsetcols[c("TX","LA","AL","FL","Stacks")],
+      margin1scale = 0.2,matrix.dot.alpha =0,
+      show.numbers=FALSE,
+      sets.pt.color=upsetcols[c("TX","LA","AL","FL","Stacks")],
+      keep.order = TRUE,yvjust=3.5)
+dev.off()
+```
+
+
+```{r CreateFstsFig, eval=TRUE, include=FALSE}
+library(magick);library(multipanelfigure)
+
+image_files <- c("../figs/FstOutliers_NoBayenv.png",
+                 "../figs/sharedStacks.png",
+                 "../figs/sharedPerms.png")
+
+
+png("../figs/fstPlots.png",height=4,width=6.5,units="in",res=300,pointsize = 20)
+figure <- multi_panel_figure(
+  width = c(4, 2),
+  height = c(1.8,1.8),
+  unit = "inches",
+  row_spacing = 0.0,
+  column_spacing = 0
+    
+)
+(figure %<>% fill_panel(image_files[1],row = 1:2,scaling="fit",
+                        allow_panel_overwriting = TRUE) )
+#(figure %<>% fill_panel(image_files[2],column=2,row=1:2,scaling="fit"))
+(figure %<>% fill_panel(image_files[2], column=2, row=1,scaling="fit",
+                        allow_panel_overwriting = TRUE) )
+(figure %<>% fill_panel(image_files[3],column=2,row=2,scaling="fit",
+                        allow_panel_overwriting = TRUE) )
+dev.off()
+```
+
+
 
 ## PCAdapt {-}
 
@@ -784,225 +1276,6 @@ legend("top",
        bty='n',ncol=2)
 ```
 
-## Lower threshold for Stacks {-}
-
-We adjusted the threshold for identifying shared Stacks outliers to 0.01 to ensure that a less stringent threshold was not causing spurious conclusions. We found that lowering the threshold nearly halved the number of shared SNPs (Table \@ref(tab:outliersTable01)), but the shared Stacks outliers had similar overlap with other analyses (Figure \@ref(fig:upsetOutliers01)) and patterns of sharing were still found genome-wide (Figure \@ref(fig:plotStacksOutliers01)).
-
-```{r getOutliers01}
-outliers<-list(xtx=fw_SNPinfo$ID[which(fw_SNPinfo$XtX_noFL >= quantile(fw_SNPinfo$XtX_noFL,0.99,na.rm = TRUE))],
-               salBF=fw_SNPinfo$ID[which(fw_SNPinfo$logSalBF_noFL>=
-                                     quantile(fw_SNPinfo$logSalBF_noFL,0.99,na.rm = TRUE))],
-               permutations=fw_SNPinfo$ID[
-                 rowSums(fw_SNPinfo[,c("perm_TX","perm_AL","perm_LA")])==3],
-               pcadapt=fw_SNPinfo$ID[which(fw_SNPinfo$pcadaptQ<0.01)],
-               Alabama=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05)], 
-               Louisiana=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_LA_P < 0.05)],
-               Texas=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_TX_P < 0.05)],
-               Florida=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_FL_P < 0.05)],
-               sharedStacks=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05 & 
-                                                  fw_SNPinfo$stacks_LA_P < 0.05 &
-                                                  fw_SNPinfo$stacks_TX_P < 0.05)])
-outliers01<-list(xtx=fw_SNPinfo$ID[which(fw_SNPinfo$XtX_noFL >= quantile(fw_SNPinfo$XtX_noFL,0.99,na.rm = TRUE))],
-               salBF=fw_SNPinfo$ID[which(fw_SNPinfo$logSalBF_noFL>=
-                                     quantile(fw_SNPinfo$logSalBF_noFL,0.99,na.rm = TRUE))],
-               permutations=fw_SNPinfo$ID[
-                 rowSums(fw_SNPinfo[,c("perm_TX","perm_AL","perm_LA")])==3],
-               pcadapt=fw_SNPinfo$ID[which(fw_SNPinfo$pcadaptQ<0.01)],
-               Alabama=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.01)], 
-               Louisiana=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_LA_P < 0.01)],
-               Texas=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_TX_P < 0.01)],
-               Florida=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_FL_P < 0.01)],
-               sharedStacks=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.01 & 
-                                                  fw_SNPinfo$stacks_LA_P < 0.01 &
-                                                  fw_SNPinfo$stacks_TX_P < 0.01)])
-```
-```{r outliersTable01}
-outComp<-data.frame(rbind(unlist(lapply(outliers,length)),
-                          unlist(lapply(outliers01,length))))
-rownames(outComp)<-c("p=0.05","p=0.01")
-kable(outComp,"latex",booktabs=TRUE,
-      caption="Table summarizing the number of outliers found in the Stacks analysis when the significance threshold is set to 0.01 versus 0.05.")           
-      
-```
-```{r upsetOutliers01,fig.cap="Upset plot with shared Stacks outliers identified using a cutoff of p=0.01.",fig.height=7.5,fig.width=8,dpi=300}
-upsetcols<-c(permutations='#e41a1c',salBF='#377eb8',pcadapt='#a65628',
-        xtx='#ff7f00',sharedStacks='#f781bf',
-        Alabama='#e7d4e8',Louisiana='#af8dc3',Texas='#762a83',Florida='#1b7837')
-#png("../figs/upsetOutliers_noFL_p01.png",res=300,height=8,width=8.5,,units="in",pointsize = 20)
-upset(fromList(outliers01),sets=c("pcadapt","permutations","sharedStacks","xtx","salBF"),
-      point.size=7,line.size=2,mainbar.y.label = "Shared Outliers",
-      sets.x.label = "# Outliers",text.scale=rep(3,6),
-      sets.bar.color =upsetcols[c("pcadapt","permutations","sharedStacks","xtx","salBF")],
-      margin1scale = 0.2,matrix.dot.alpha =0,
-      sets.pt.color=upsetcols[c("pcadapt","permutations","sharedStacks","xtx","salBF")],
-      keep.order = TRUE)
-#dev.off()
-```
-
-```{r OutlierPlotSetup01}
-pop.list<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
-	"FLFD","FLSI","FLAB","FLPB","FLHB","FLCC","FLLG")
-pop.labs<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST","ALFW","FLSG","FLKB",
-            "FLFD","FLSI","FLAB","FLPB","FLHB","FLCC","FLFW")
-lgs<-c("LG1","LG2","LG3","LG4","LG5","LG6","LG7","LG8","LG9","LG10","LG11",
-	"LG12","LG13","LG14","LG15","LG16","LG17","LG18","LG19","LG20","LG21",
-	"LG22")
-lgn<-seq(1,22)
-cols<-c(perm=alpha('#e41a1c',0.75),sal=alpha('#377eb8',0.75),pc=alpha('#a65628',0.75),
-        stacks=alpha('#f781bf',0.75),xtx=alpha('#ff7f00',0.75))
-pchs<-c(perm=5,sal=2,pc=0,stacks=8,xtx=3)
-grp7colors<-c('#762a83','#9970ab','#c2a5cf','#d9f0d3','#a6dba0','#5aae61','#1b7837')
-```
-
-```{r plotStacksOutliers01, fig.cap="Manhattan plot of pairwise Fst values. Data are the same as Figure 3 in the main text but the outliers plotted are the shared Stacks outliers with a threshold of 0.01 instead of 0.05."}
-ptsize<-3
-
-par(mfrow=c(4,1),oma=c(1,1,0.5,1),mar=c(2,2,1,1),xpd=TRUE)
-# plot TX
-plot_dat<-fst.plot(fw_SNPinfo,scaffs.to.plot = lgs,fst.name = "stacks_TX",
-                   chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,
-                   pch=19,pt.cols = c(grp7colors[1],grp7colors[2]),pt.cex = 2)
-#points(plot_dat$plot.pos[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
-#       plot_dat$stacks_TX[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
-#       col=cols["sal"],cex=1,pch=2)
-#points(plot_dat$plot.pos[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
-#       plot_dat$stacks_TX[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
-#       col=cols["xtx"],cex=1,pch=3,lwd=2)
-points(plot_dat$plot.pos[
-  rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
-       plot_dat$stacks_TX[
-         rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
-       col=cols["perm"],cex=2,pch=pchs["perm"],lwd=ptsize)
-# points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.01],
-#       plot_dat$stacks_TX[plot_dat$pcadaptQ<0.01],
-#       col=cols["pc"],cex=1,pch=pchs["pc"],lwd=ptsize)
-points(plot_dat$plot.pos[which(plot_dat$stacks_AL_P < 0.01 & 
-                                 plot_dat$stacks_LA_P < 0.01 &
-                           plot_dat$stacks_TX_P < 0.01 )],
-       plot_dat$stacks_TX[which(plot_dat$stacks_AL_P < 0.01 & 
-                                  plot_dat$stacks_LA_P < 0.01 &
-                           plot_dat$stacks_TX_P < 0.01)],
-       col=cols["stacks"],cex=2,pch=pchs["stacks"],lwd=ptsize)
-axis(2,las=1,pos=-1500000,cex.axis=1)
-mtext("Texas",2,line=1.2,cex=1)
-# add the LG labels
-midpts<-tapply(plot_dat$plot.pos,plot_dat$Chrom,median)
-text(x=midpts[lgs],y=-0.15,cex=1)
-
-# plot AL
-plot_dat<-fst.plot(fw_SNPinfo,scaffs.to.plot = lgs,fst.name = "stacks_AL",
-                   chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,
-                   pch=19,pt.cols = c(grp7colors[3],"lightgrey"),pt.cex = 2)
-# points(plot_dat$plot.pos[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
-#        plot_dat$stacks_AL[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
-#        col=cols["xtx"],cex=1,pch=3,lwd=2)
-# points(plot_dat$plot.pos[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
-#        plot_dat$stacks_AL[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
-#        col=cols["sal"],cex=1,pch=2)
-points(plot_dat$plot.pos[
-  rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
-       plot_dat$stacks_AL[
-         rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
-       col=cols["perm"],cex=2,pch=pchs["perm"],lwd=3)
-# points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.01],
-#        plot_dat$stacks_AL[plot_dat$pcadaptQ<0.01],
-#        col=cols["pc"],cex=1,pch=pchs["pc"],lwd=ptsize)
-points(plot_dat$plot.pos[which(plot_dat$stacks_AL_P < 0.01 & 
-                                 plot_dat$stacks_LA_P < 0.01 &
-                           plot_dat$stacks_TX_P < 0.01)],
-       plot_dat$stacks_AL[which(plot_dat$stacks_AL_P < 0.01 & 
-                                  plot_dat$stacks_LA_P < 0.01 &
-                           plot_dat$stacks_TX_P < 0.01)],
-       col=cols["stacks"],cex=2,pch=pchs["stacks"],lwd=ptsize)
-axis(2,las=1,pos=-1500000,cex.axis=1)
-mtext("Alabama",2,line=1.2,cex=1)
-# add the LG labels
-midpts<-tapply(plot_dat$plot.pos,plot_dat$Chrom,median)
-text(x=midpts[lgs],y=-0.15,cex=1)
-
-# plot LA
-plot_dat<-fst.plot(fw_SNPinfo,scaffs.to.plot = lgs,fst.name = "stacks_LA",
-                   chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19,
-                   pt.cols = c("lightgrey",grp7colors[3]),pt.cex = 2)
-# points(plot_dat$plot.pos[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
-#        plot_dat$stacks_LA[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
-#        col=cols["sal"],cex=1,pch=2)
-# points(plot_dat$plot.pos[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
-#        plot_dat$stacks_LA[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
-#        col=cols["xtx"],cex=1,pch=3,lwd=2)
-# points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.01],
-#        plot_dat$stacks_LA[plot_dat$pcadaptQ<0.01],
-#        col=cols["pc"],cex=1,pch=pchs["pc"],lwd=ptsize)
-points(plot_dat$plot.pos[
-  rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
-       plot_dat$stacks_LA[
-         rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
-       col=cols["perm"],cex=2,pch=pchs["perm"],lwd=ptsize)
-
-points(plot_dat$plot.pos[which(plot_dat$stacks_AL_P < 0.01 & 
-                                 plot_dat$stacks_LA_P < 0.01 &
-                           plot_dat$stacks_TX_P < 0.01)],
-       plot_dat$stacks_LA[which(plot_dat$stacks_AL_P < 0.01 & 
-                                  plot_dat$stacks_LA_P < 0.01 &
-                           plot_dat$stacks_TX_P < 0.01 )],
-       col=cols["stacks"],cex=2,pch=pchs["stacks"],lwd=ptsize)
-axis(2,las=1,pos=-1500000,cex.axis=1)
-mtext("Louisiana",2,line=1.2,cex=1)
-# add the LG labels
-midpts<-tapply(plot_dat$plot.pos,plot_dat$Chrom,median)
-text(x=midpts[lgs],y=-0.15,cex=1)
-
-
-# FL
-plot_dat<-fst.plot(fw_SNPinfo,scaffs.to.plot = lgs,fst.name = "stacks_FL",
-                   chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19,
-                   pt.cols = c(grp7colors[6],grp7colors[7]),pt.cex = 2)
-# points(plot_dat$plot.pos[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
-#        plot_dat$stacks_FL[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
-#        col=cols["sal"],cex=1,pch=2)
-# points(plot_dat$plot.pos[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
-#        plot_dat$stacks_FL[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
-#        col=cols["xtx"],cex=1,pch=3,lwd=2)
-# points(plot_dat$plot.pos[plot_dat$pcadaptQ<0.01],
-#        plot_dat$stacks_FL[plot_dat$pcadaptQ<0.01],
-#        col=cols["pc"],cex=1,pch=pchs["pc"],lwd=ptsize)
-points(plot_dat$plot.pos[
-  rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
-       plot_dat$stacks_FL[
-         rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
-       col=cols["perm"],cex=2,pch=pchs["perm"],lwd=ptsize)
-points(plot_dat$plot.pos[which(plot_dat$stacks_AL_P < 0.01 & 
-                                 plot_dat$stacks_LA_P < 0.01 &
-                           plot_dat$stacks_TX_P < 0.01)],
-       plot_dat$stacks_FL[which(plot_dat$stacks_AL_P < 0.01 & 
-                                  plot_dat$stacks_LA_P < 0.01 &
-                           plot_dat$stacks_TX_P < 0.01)],
-       col=cols["stacks"],cex=2,pch=pchs["stacks"],lwd=ptsize)
-axis(2,las=1,pos=-1500000,cex.axis=1)
-mtext("Florida",2,line=1.2,cex=1)
-# add the LG labels
-midpts<-tapply(plot_dat$plot.pos,plot_dat$Chrom,median)
-text(x=midpts[lgs],y=-0.15,cex=1)
-
-# add outside legend
-
-opar <- par(fig=c(0, 1, 0, 1), oma=c(0, 0, 0, 0),
-            mar=c(0, 0, 0, 0), new=TRUE)
-on.exit(par(opar))
-plot(0, 0, type='n', bty='n', xaxt='n', yaxt='n')
-legend("top",
-       c(expression("Permutation"~italic("F")["ST"]),
-         expression("Stacks"~italic("F")["ST"])),
-         #"PCAdapt"), #expression(italic("X")^T~italic("X")),"Salinity BF"
-       #xjust = 0.5,x.intersp = 0.5,
-       col = cols[c("perm","stacks")],
-       pt.bg=cols[c("perm","stacks")],
-       #pch=c(4,5,0,3,2),
-       pch=pchs[c("perm","stacks")],pt.lwd =ptsize,pt.cex=2,cex=1.25,
-       bty='n',ncol=2)
-
-```
-
 
 
 
@@ -1023,10 +1296,96 @@ We used Bayenv2.0 [@guntherRobustIdentificationLocal2013] to use correlations be
 
 We began by estimating the covariance matrices in ten independent runs. The matrices from each run were compared visually (Figure \@ref(fig:BayenvMatrices)) and determined to follow similar patterns, suggesting that the matrix is well estimated. Given that all matrices were similar in pattern, we randomly selected one of the 10 matrices to use in the subsequent analyses.
 
-```{r BayenvMatrices,out.width='90%',out.height='50%',fig.cap="Heatmap plots of each of the ten replicate Bayenv covariance matrices. Darker colors represent higher covariances. Populations are in the order: ALFW, ALST, FLCC, FLFW, LAFW, TXCC, TXFW"}
+```{bash, eval=FALSE, include=FALSE}
+# run with run_bayenv2_matrix_general.sh
+# set up correct file formats
+../../scripts/run_bayenv2_matrix_general.sh FILEMANIP \
+bayenv/sub75.pruned.clust stacks/populations_subset75/batch_2.pruned.ped \
+stacks/populations_subset75/batch_2.pruned.map bayenv ~/Programs/bayenv 7
+# estimate matrices
+../../scripts/run_bayenv2_matrix_general.sh MATRIX bayenv ~/Programs/bayenv/ 7
+```
+
+```{r BayenvMatrices,out.width='90%',out.height='50%',fig.cap="Heatmap plots of each of the ten replicate Bayenv covariance matrices. Darker colors represent higher covariances. Populations are in the order: ALFW, ALST, FLCC, FLFW, LAFW, TXCC, TXFW."}
 knitr::include_graphics('../fwsw_results/bayenv/fwsw75_pruned.png')
 ```
 
+```{bash, eval=FALSE, include=FALSE}
+# Create the SNPFILES
+../../scripts/run_bayenv2_matrix_general.sh SNPFILES SNPSFILE SNPFILES
+# Run bayenv
+nohup ../../scripts/run_bayenv2_matrix_general.sh BAYENV \
+~/Programs/bayenv/ matrix env_data_sub75.txt 7 3 SNPFILES > bayenv.log &
+```
+
+```{r getBayenvResults}
+get_bayenv_results<-function(dir,env_vars){
+  # process the variable names
+  var_names<-unlist(lapply(env_vars,function(var){
+    nms<-c(paste0(var,"_BF"),paste0(var,"_rho"),paste0(var,"_rs"))
+    return(nms)
+  }))
+  # list all the files
+  bf.files<-list.files(pattern="bf",path = dir,full.names = TRUE)
+  xtx.files<-list.files(pattern="xtx",path=dir,full.names = TRUE)
+  # get the bf files
+  bf.dat<-do.call(rbind,lapply(bf.files,function(filename){
+    bf<-read.table(filename,header = FALSE)
+  }))
+  colnames(bf.dat)<-c("locus", var_names)
+  
+  # xtx files
+  xtx.files<-list.files(pattern="xtx",path=dir,full.names = TRUE)
+  xtx.dat<-do.call(rbind,lapply(xtx.files,function(filename){
+    xtx<-read.table(filename,header = FALSE,stringsAsFactors = FALSE)
+  }))
+  colnames(xtx.dat)<-c("locus","XtX")
+  
+  # combine the two
+  bayenv.dat<-merge(xtx.dat,bf.dat,by="locus")
+  return(bayenv.dat)
+}
+```
+
+```{r snpnames4bayenv, eval=FALSE}
+bayenv_dat<-get_bayenv_results(dir="bayenv/SNPFILES",
+                               env_vars=c("temp","salinity","seagrass"))
+
+freq<-read.table("bayenv/bayenv.frq.strat",header=T, stringsAsFactors=F)
+#want to get $MAC for every snp at every pop 
+#and NCHROBS-MAC for every stnp at every pop
+freq<-cbind(freq,freq$NCHROBS-freq$MAC)
+colnames(freq)[ncol(freq)]<-"NAC"
+snp.names<-split(freq$SNP,freq$CLST)[[1]]
+snp.names<-gsub("(\\d+)_\\d+","\\1",snp.names)
+
+snp_dat<-data.frame(ID=snp.names,loc=seq(1,length(snp.names)*2,2))
+bayenv_dat$locus<-as.numeric(gsub("SNPFILES\\/(\\d+)","\\1",bayenv_dat$locus))
+bayenv_dat<-bayenv_dat[order(bayenv_dat$locus),]
+bayenv_dat<-merge(snp_dat,bayenv_dat,by.x="loc",by.y="locus")
+colnames(bayenv_dat)[1:2]<-c("index","SNPID")
+
+pmap<-read.delim("stacks/populations_subset75/batch_2.pruned.map",header = FALSE) 
+# the position location is wrong in this ^ file
+pmap$locus<-gsub("(\\d+)_\\d+","\\1",pmap[,2])
+
+bayenv_dat<-merge(pmap[,c(1,4,5)],bayenv_dat,by.x="locus",by.y="SNPID")
+colnames(bayenv_dat)[2:3]<-c("Chrom","SNPID")
+write.table(bayenv_dat,"bayenv/bayenv_output.txt",sep="\t",
+            col.names = TRUE,row.names = FALSE,quote = FALSE)
+```
+
+```{r bayenv2snpinfo, eval=FALSE}
+bayenv_dat<-read.delim("bayenv/bayenv_output.txt",header = TRUE)
+bayenv_dat$logSalBF<-log(bayenv_dat$salinity_BF)
+bayenv_dat$logTemBF<-log(bayenv_dat$temp_BF)
+bayenv_dat$logSegBF<-log(bayenv_dat$seagrass_BF)
+fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
+fw_SNPinfo<-merge(fw_SNPinfo,
+                  bayenv_dat[,c("SNPID","XtX","logSalBF","logTemBF","logSegBF")],
+                  by.x="ID",by.y="SNPID",all.x=TRUE)
+saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
+```
 
 ```{r bayenv}
 #taken directly from fwsw_analysis.R
@@ -1048,6 +1407,92 @@ xtx.sig<-bayenv.dat[bayenv.dat$XtX > quantile(bayenv.dat$XtX,0.99,na.rm=TRUE),]
 
 We ran Bayenv2.0 to identify environmental correlations for each SNP (represented by the resulting Bayes Factors) and to estimate population differentiation statistics (represented by the $X^TX$ value for each SNP). To analyze the output of the Bayenv2.0 environmental correlation runs, we identified loci that had extreme Bayes Factors and extreme $X^TX$ statistics as those in the 99th quantile. We found `r nrow(temp.bf.sig[which(temp.bf.sig$ID %in% sal.bf.sig$ID & temp.bf.sig$ID %in% grass.bf.sig$ID),])` overlapping outliers between temperature-, salinity-, and seagrass-associated loci. However, because we are interested in shared signatures of adaptation to freshwater, we focused our attention to the salinity-associated loci, of which we found `r nrow(sal.bf.sig)`. Of those, `r nrow(xtx.sig[which(xtx.sig$ID %in% sal.bf.sig$ID),])` were also outliers in the distribuion of the population differentiation statistics, $X^TX$. Neither the set of outliers associated with associated or population differentiation showed spatial clustering genome-wide (Figure \@ref(fig:plotBayenv)).
 
+
+
+```{r MakePlotBayenv,eval=FALSE}
+library(scales)
+ptlwd<-3
+fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
+
+png("../figs/BayenvOutliers.png",height=5,width=8.5,units="in",res=300,pointsize=12)
+par(mfrow=c(2,1),oma=c(1,2,1,1),mar=c(2,2,1,1),xpd=TRUE)
+# plot XtX
+plot_dat<-fst.plot(fw_SNPinfo,scaffs.to.plot = lgs,fst.name = "XtX",
+                   chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19,pt.cex=2)
+points(plot_dat$plot.pos[plot_dat$pcadaptOut],
+       plot_dat$XtX[plot_dat$pcadaptOut],
+       col=cols["pc"],cex=2,pch=pchs["pc"],lwd=ptlwd)
+points(plot_dat$plot.pos[
+  rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
+       plot_dat$XtX[
+         rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
+       col=cols["perm"],cex=2,pch=pchs["perm"],lwd=ptlwd)
+points(plot_dat$plot.pos[which(plot_dat$stacks_AL_P < 0.05 & plot_dat$stacks_LA_P < 0.05 &
+                           plot_dat$stacks_TX_P < 0.05)],
+       plot_dat$XtX[which(plot_dat$stacks_AL_P < 0.05 & plot_dat$stacks_LA_P < 0.05 &
+                           plot_dat$stacks_TX_P < 0.05)],
+       col=cols["stacks"],cex=2,pch=pchs["stacks"],lwd=ptlwd)
+points(plot_dat$plot.pos[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+       plot_dat$XtX[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+       col=cols["xtx"],cex=2,pch=pchs["xtx"],lwd=ptlwd)
+points(plot_dat$plot.pos[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+       plot_dat$XtX[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+       col=cols["sal"],cex=2,pch=pchs["sal"],lwd=ptlwd)
+
+axis(2,las=1)
+mtext(expression(italic("X")^"T"~italic("X")),2,line=2)
+
+# add the LG labels
+midpts<-tapply(plot_dat$plot.pos,plot_dat$Chrom,median)
+text(x=midpts[lgs],y=0)
+
+# plot Bayes Factors
+plot_dat<-fst.plot(plot_dat,scaffs.to.plot = lgs,fst.name = "logSalBF",
+                   chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19,pt.cex = 2)
+points(plot_dat$plot.pos[plot_dat$pcadaptOut],
+       plot_dat$logSalBF[plot_dat$pcadaptOut],
+       col=cols["pc"],cex=2,pch=pchs["pc"],lwd=ptlwd)
+points(plot_dat$plot.pos[
+  rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
+       plot_dat$logSalBF[
+         rowSums(plot_dat[,c("perm_TX","perm_AL","perm_LA")])==3],
+       col=cols["perm"],cex=2,pch=pchs["perm"],lwd=2)
+points(plot_dat$plot.pos[plot_dat$stacks_AL_P < 0.05 & plot_dat$stacks_LA_P < 0.05 &
+                           plot_dat$stacks_TX_P < 0.05 ],
+       plot_dat$logSalBF[plot_dat$stacks_AL_P < 0.05 & plot_dat$stacks_LA_P < 0.05 &
+                           plot_dat$stacks_TX_P < 0.05 ],
+       col=cols["stacks"],cex=2,pch=pchs["stacks"],lwd=ptlwd)
+
+points(plot_dat$plot.pos[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+       plot_dat$logSalBF[plot_dat$logSalBF>=quantile(plot_dat$logSalBF,0.99)],
+       col=cols["sal"],cex=2,pch=pchs["sal"],lwd=ptlwd)
+points(plot_dat$plot.pos[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+       plot_dat$logSalBF[plot_dat$XtX>=quantile(plot_dat$XtX,0.99)],
+       col=cols["xtx"],cex=2,pch=pchs["xtx"],lwd=ptlwd)
+
+axis(2,las=1)
+mtext("log(Salinity Bayes Factors)",2,line=2)
+
+# add the LG labels
+midpts<-tapply(plot_dat$plot.pos,plot_dat$Chrom,median)
+text(x=midpts[lgs],y=-5)
+
+# add outside legend
+
+opar <- par(fig=c(0, 1, 0, 1), oma=c(0, 0, 0, 0),
+            mar=c(0, 0, 0, 0), new=TRUE)
+on.exit(par(opar))
+plot(0, 0, type='n', bty='n', xaxt='n', yaxt='n')
+legend("top",c(expression("Permutation"~italic("F")["ST"]),
+         expression("Stacks"~italic("F")["ST"]),
+         "PCAdapt",expression(italic("X")^T~italic("X")),"Salinity BF"),
+       xjust = 0.5,x.intersp = 0.5,
+       col = cols[c("perm","stacks","pc","xtx","sal")],
+       pt.bg=cols[c("perm","stacks","pc","xtx","sal")],
+       pch=pchs[c("perm","stacks","pc","xtx","sal")],
+       bty='n',ncol=5,pt.lwd=ptlwd)
+dev.off()
+```
 
 ```{r plotBayenv,out.width='90%',fig.cap="Manhattan plots of the Bayenv XTX statistic and the log of the Bayes factors associated with salinity. Shown are only loci that mapped to regions on chromosomes. Grey points represent loci that are not outlier in any analyses. Colored points represent outliers in both the Bayenv analyses and the other outlier analyses."}
 knitr::include_graphics('../figs/BayenvOutliers.png')
@@ -1175,8 +1620,149 @@ kable(outdat[,c("ID","Chrom","BP","REF","ALT","region","description","SSCID","an
 
 We also ran Bayenv without the Florida populations as a point of comparison, because the Florida freshwater-saltwater Fst comparisons showed such subtantial divergence. We followed all of the same steps as with the full Bayenv analysis, including checking that the matrices converged (Figure \@ref(fig:BayenvMatricesNoFL)). We visualized the output using Manhattan plots (Figure \@ref(fig:plotBayenvNoFL)), and observed similar patterns to the analysis with all four pairwise combinations (Figure \@ref(fig:plotBayenv)). The analysis without Florida had somewhat less noise in the dataset.
 
-```{r BayenvMatricesNoFL,out.width='90%',out.height='50%',fig.cap="Heatmap plots of each of the ten replicate Bayenv covariance matrices. Darker colors represent higher covariances. Populations are in the order: ALFW, ALST, LAFW, TXCC, TXFW"}
+```{r noFLped,eval=FALSE}
+ped<-read.delim("stacks/populations_subset75/batch_2.pruned.ped",header=FALSE,sep=' ')
+keep_ped<-ped[grep("FL",ped$V2,invert=TRUE),]
+keep_ped$V1<-as.numeric(as.factor(gsub("sample_(\\w{4}).*","\\1",keep_ped$V2)))
+write.table(keep_ped,"stacks/populations_subset75/noFL_subset75.ped",col.names=FALSE,row.names=FALSE,quote=FALSE)
+# create cluster file
+clust<-keep_ped[,1:2]
+clust$clust<-gsub("sample_(\\w{4}).*","\\1",clust$V2)
+write.table(clust,"bayenv/noFL/sub75.noFL.clust",col.names = FALSE,row.names = FALSE,quote=FALSE)
+```
+
+```{bash, eval=FALSE, include=FALSE}
+# use `run_bayenv2_matrix_general.sh` to run the matrices.
+# set up correct file formats creating a clust file - run from bayenv/ dir
+../../scripts/run_bayenv2_matrix_general.sh FILEMANIP \
+noFL/sub75.noFL.clust ../stacks/populations_subset75/noFL_subset75.ped \
+../stacks/populations_subset75/batch_2.pruned.map noFL/ ~/Programs/bayenv 5
+# estimate matrices
+../../scripts/run_bayenv2_matrix_general.sh MATRIX noFL ~/Programs/bayenv/ 5
+# evaluate the matrices
+
+# Create the SNPFILES
+../../scripts/run_bayenv2_matrix_general.sh SNPFILES noFL/SNPSFILE noFL/SNPFILES
+```
+
+```{r BayenvMatricesNoFL,out.width='90%',out.height='50%',fig.cap="Heatmap plots of each of the ten replicate Bayenv covariance matrices when Florida was excluded from the analysis. Darker colors represent higher covariances. Populations are in the order: ALFW, ALST, LAFW, TXCC, TXFW. A randomly-chosen one of these matrices (matrix number 9) was chosen for the remaining analyses."}
 knitr::include_graphics('../fwsw_results/bayenv/noFL/fwsw75_noFL.png')
+```
+
+```{r extractFLenv, eval=FALSE}
+env_dat<-read.csv("bayenv/env_data_sub75.csv",row.names=1)
+
+# make sure it's in the same order as the plinkfile
+freq<-read.table("bayenv/noFL/bayenv.frq.strat",header=T, stringsAsFactors=F)
+freq<-cbind(freq,freq$NCHROBS-freq$MAC)
+colnames(freq)[ncol(freq)]<-"NAC"
+pop.order<-levels(as.factor(freq$CLST))
+snp.names<-split(freq$SNP,freq$CLST)[[1]]
+
+env_dat<-env_dat[,pop.order]
+std_dat<-t(apply(env_dat,1,function(x){
+  stands<-(x-mean(x))/sd(x)
+  return(stands)
+}))
+
+write.table(std_dat[,pop.order],
+            "bayenv/noFL/env_data_noFL.txt",sep='\t',col.names = FALSE,row.names = FALSE)
+
+```
+
+
+```{bash, eval=FALSE, include=FALSE}
+# Run bayenv
+nohup ../../scripts/run_bayenv2_matrix_general.sh BAYENV \
+~/Programs/bayenv/ noFL/matrix noFL/env_data_noFL.txt 5 3 noFL/SNPFILES > ../../logs/bayenv_noFL.log 2>&1 &
+```
+
+```{r bayenvDat_NoFL, eval=FALSE}
+bayenv_noFL<-get_bayenv_results(dir="bayenv/noFL/SNPFILES/",
+                               env_vars=c("temp","salinity","seagrass"))
+# match up SNP names and IDS
+snp_names<-read.delim("bayenv/noFL/SNPFILES_names.txt",header=FALSE)
+snpsfile<-read.delim("bayenv/noFL/SNPSFILE",header = FALSE)
+
+snp_names$BayenvID<-as.numeric(rownames(snpsfile)[seq(1,(nrow(snpsfile)-1),2)])
+colnames(snp_names)[1]<-"SNP_name"
+snp_names$ID<-as.numeric(gsub("(\\d+)_\\d+","\\1",snp_names$SNP_name))
+snp_names$Column<-as.numeric(gsub("(\\d+)_(\\d+)","\\2",snp_names$SNP_name))
+
+bayenv_noFL$BayenvID<-as.numeric(gsub(".*/(\\d+)","\\1",bayenv_noFL$locus))
+bayenv_noFL<-merge(bayenv_noFL,snp_names)
+
+# get positional info from the master information file
+fw_SNPinfo<-readRDS("fw_SNPinfo.RDS")
+bayenv_noFL<-merge(bayenv_noFL,fw_SNPinfo[,c(1:4,21:24)],by="ID")
+colnames(bayenv_noFL)[4:13]<-paste0(colnames(bayenv_noFL[,4:13]),"_noFL")
+colnames(bayenv_noFL)[19:22]<-paste0(colnames(bayenv_noFL[,19:22]),"_FL")
+colnames(bayenv_noFL)<-gsub("\\.\\w","",colnames(bayenv_noFL))
+
+# calculate logs of Bayes factors
+bayenv_noFL$logSalBF_noFL<-log(bayenv_noFL$salinity_BF_noFL)
+bayenv_noFL$logTemBF_noFL<-log(bayenv_noFL$temp_BF_noFL)
+bayenv_noFL$logSegBF_noFL<-log(bayenv_noFL$seagrass_BF_noFL)
+
+# save to file
+write.table(bayenv_noFL,"bayenv/bayenv_output_noFL.txt",sep="\t",
+            col.names = TRUE,row.names = FALSE,quote = FALSE)
+```
+
+
+```{r makePlotBayenvNoFL, eval=FALSE}
+library(scales)
+bayenv_noFL<-read.delim("bayenv/bayenv_output_noFL.txt",header=TRUE)
+ptlwd<-3
+
+png("../figs/BayenvOutliersNoFL.png",height=5,width=8.5,units="in",res=300,pointsize=12)
+par(mfrow=c(2,1),oma=c(1,2,1,1),mar=c(2,2,1,1),xpd=TRUE)
+# plot XtX
+plot_dat<-fst.plot(bayenv_noFL,scaffs.to.plot = lgs,fst.name = "XtX_noFL",
+                   chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19,pt.cex = 2)
+points(plot_dat$plot.pos[plot_dat$logSalBF_noFL>=quantile(plot_dat$logSalBF_noFL,0.99)],
+       plot_dat$XtX_noFL[plot_dat$logSalBF_noFL>=quantile(plot_dat$logSalBF_noFL,0.99)],
+       col=cols["sal"],cex=2,pch=pchs["sal"],lwd=ptlwd)
+points(plot_dat$plot.pos[plot_dat$XtX_noFL>=quantile(plot_dat$XtX_noFL,0.99)],
+       plot_dat$XtX_noFL[plot_dat$XtX_noFL>=quantile(plot_dat$XtX_noFL,0.99)],
+       col=cols["xtx"],cex=2,pch=pchs["xtx"],lwd=ptlwd)
+
+axis(2,las=1)
+mtext(expression(italic("X")^"T"~italic("X")),2,line=2)
+
+# add the LG labels
+midpts<-tapply(plot_dat$plot.pos,plot_dat$Chrom,median)
+text(x=midpts[lgs],y=0)
+
+# plot Bayes Factors
+plot_dat<-fst.plot(plot_dat,scaffs.to.plot = lgs,fst.name = "logSalBF_noFL",
+                   chrom.name = "Chrom",bp.name = "Pos",axis.size = 0,pch=19)
+points(plot_dat$plot.pos[plot_dat$XtX_noFL>=quantile(plot_dat$XtX_noFL,0.99)],
+       plot_dat$logSalBF_noFL[plot_dat$XtX_noFL>=quantile(plot_dat$XtX_noFL,0.99)],
+       col=cols["xtx"],cex=2,pch=pchs["xtx"],lwd=ptlwd)
+points(plot_dat$plot.pos[plot_dat$logSalBF_noFL>=quantile(plot_dat$logSalBF_noFL,0.99)],
+       plot_dat$logSalBF_noFL[plot_dat$logSalBF_noFL>=quantile(plot_dat$logSalBF_noFL,0.99)],
+       col=cols["sal"],cex=2,pch=pchs["sal"],lwd=ptlwd)
+
+axis(2,las=1)
+mtext("log(Salinity Bayes Factors)",2,line=2)
+
+# add the LG labels
+midpts<-tapply(plot_dat$plot.pos,plot_dat$Chrom,median)
+text(x=midpts[lgs],y=-5)
+
+# add outside legend
+
+opar <- par(fig=c(0, 1, 0, 1), oma=c(0, 0, 0, 0),
+             mar=c(0, 0, 0, 0), new=TRUE)
+on.exit(par(opar))
+plot(0, 0, type='n', bty='n', xaxt='n', yaxt='n')
+legend("top",c(expression(italic("X")^T~italic("X")),"Salinity BF"),
+       xjust = 0.5,x.intersp = 0.5,cex=1.5,
+       col = cols[c("xtx","sal")],
+       pt.bg=cols[c("xtx","sal")],
+       pch=c(3,2),bty='n',ncol=2)
+dev.off()
 ```
 
 
@@ -1198,7 +1784,7 @@ bayenv_cor<-cor(bayenv_noFL[,c("XtX_noFL",
                    "XtX_FL","logSalBF_FL","logTemBF_FL","logSegBF_FL")])
 kable(bayenv_cor[grep("_FL",rownames(bayenv_cor)),grep("_noFL",colnames(bayenv_cor))],
       "latex",booktabs=TRUE,
-      caption="Correlations between the Bayenv analyses without the Florida populations ('noFL') and with the Florida popualtions ('FL'). The comparison of each statistic with itself in each analysis is on the diagonal.")
+      caption="Correlations between the Bayenv analyses without the Florida populations ('noFL') and with the Florida populations ('FL'). The comparison of each statistic with itself in each analysis is on the diagonal.")
 ```
 ```{r BayenvCompareFLPlots,fig.height=6,fig.width=6,fig.cap="Plots of the Bayenv statistics in the analysis with the Florida populations (x-axis) vs without the Florida populations (y-axis)."}
 par(mfrow=c(2,2))
@@ -1219,8 +1805,6 @@ plot(bayenv_noFL$logSegBF_FL, bayenv_noFL$logSegBF_noFL,
      pch=19,cex=1.5,col=alpha("dark grey",0.75))
 ```
 
-
-
 ```{r BayenvCompareOutliers}
 bothXtX<-bayenv_noFL$ID[bayenv_noFL$XtX_FL>=quantile(bayenv_noFL$XtX_FL,0.99) &
                  bayenv_noFL$XtX_noFL>=quantile(bayenv_noFL$XtX_noFL,0.99)]
@@ -1230,6 +1814,67 @@ bothSal<-bayenv_noFL$ID[bayenv_noFL$logSalBF_FL>=quantile(bayenv_noFL$logSalBF_F
 
 The two analyses produced `r length(bothXtX)` SNPs that are XtX outliers in both Bayenv analyses and `r length(bothSal)` salinity-associated outliers in both.
 
+## Creating Figure 4
+
+We decided to present the results from the analysis without Florida in the main text. To summarize the overlap between the Bayenv analysis and the other outlier analyses, we created upset plots to show overlap between pairwise Stacks comparisons and between all outlier methods, and presented those overlaps alongside a Manhattan plot of the Bayenv outliers.
+
+```{r getUpsetInfo, eval=FALSE}
+library(UpSetR);library(scales);library(ggplot2)
+library(grid);library(gwscaR);library(gridGraphics)
+source("../R/upset_hacked.R")
+source("../R/205_popgenPlotting.R")
+fw_SNPinfo<-readRDS("fw_SNPinfo_noFL.RDS")
+```
+
+```{r createUpsetPlots, eval=FALSE}
+outliers<-list(xtx=fw_SNPinfo$ID[fw_SNPinfo$XtX_noFL >= quantile(fw_SNPinfo$XtX_noFL,0.99,na.rm=TRUE)],
+               salBF=fw_SNPinfo$ID[fw_SNPinfo$logSalBF_noFL>=
+                                     quantile(fw_SNPinfo$logSalBF_noFL,0.99,na.rm=TRUE)],
+               perm=fw_SNPinfo$ID[
+                 rowSums(fw_SNPinfo[,c("perm_TX","perm_AL","perm_LA")])==3],
+               pcadapt=fw_SNPinfo$ID[which(fw_SNPinfo$pcadaptQ<0.01)],
+               stacks=fw_SNPinfo$ID[which(fw_SNPinfo$stacks_AL_P < 0.05 & 
+                                                  fw_SNPinfo$stacks_LA_P < 0.05 &
+                 fw_SNPinfo$stacks_TX_P < 0.05)])
+upsetcols<-c(perm='#e41a1c',salBF='#377eb8',pcadapt='#a65628',
+        xtx='#ff7f00',stacks='#f781bf')
+png("../figs/upsetOutliers_noFL.png",res=300,height=8,width=8.5,,units="in",pointsize = 20)
+upset(fromList(outliers[c("pcadapt","perm","stacks","xtx","salBF")]),
+      sets=c("pcadapt","perm","stacks","xtx","salBF"),
+      point.size=10,line.size=4,mainbar.y.label = "Shared Outliers",
+      sets.x.label = "Total #",text.scale=c(4.5,4.5,4.5,2.5,4.5,4.5),
+      show.numbers=FALSE,
+      keep.order = TRUE,yvjust=3.5,
+      margin1scale = 0.2,matrix.dot.alpha =0,
+      sets.bar.color =upsetcols[c("pcadapt","perm","stacks","xtx","salBF")],
+      sets.pt.color=upsetcols[c("pcadapt","perm","stacks","xtx","salBF")])
+dev.off()
+
+```
+
+
+```{r CreateOutliersImage, eval=TRUE,message=FALSE, include=FALSE}
+library(magick);library(multipanelfigure)
+
+image_files <- c("../figs/BayenvOutliersNoFL.png",
+                 "../figs/upsetOutliers_noFL.png")
+
+
+png("../figs/BayenvPlots_noFL.png",height=2.5,width=6.5,units="in",res=300,pointsize = 11)
+figure <- multi_panel_figure(
+  width = c(4, 2),
+  height = c(1,1),
+  unit = "inches",
+  row_spacing = 0.0,column_spacing = 0
+)
+(figure %<>% fill_panel(image_files[1],row = 1:2,scaling="fit",
+                        allow_panel_overwriting = TRUE) )
+(figure %<>% fill_panel(image_files[2],column=2,row=1:2,scaling="fit"))
+dev.off()
+
+```
+
+
 
 # Annotations {-}
 
@@ -1237,6 +1882,7 @@ Adaptation to freshwater might involve changes in coding regions of the genome o
 
 
 ```{r outChroms}
+fw_SNPinfo<-readRDS("fw_SNPinfo_noFL.RDS")
 outliers<-list(xtx=fw_SNPinfo$ID[which(fw_SNPinfo$XtX_noFL >= quantile(fw_SNPinfo$XtX_noFL,0.99,na.rm = TRUE))],
                salBF=fw_SNPinfo$ID[which(fw_SNPinfo$logSalBF_noFL>=
                                      quantile(fw_SNPinfo$logSalBF_noFL,0.99,na.rm = TRUE))],
@@ -1292,24 +1938,6 @@ We did not find that the outliers in the analysis (in aggregate) were found in a
 put_genes<-read.delim("putative_genes.txt",stringsAsFactors = FALSE)
 ```
 
-```{r rearrangePutatives,eval=FALSE}
-s<-strsplit(put_genes$Scovelli_geneID,",")
-genes<-data.frame(Gene=rep(put_genes$Gene,sapply(s,length)),
-                  SSCID=unlist(s),stringsAsFactors = FALSE)
-dat<-do.call(rbind,apply(genes,1,function(gene,snpinfo){
-  if(length(grep(gene["SSCID"],snpinfo$SSCID))>0){
-    ID<-cbind(snpinfo$ID[grep(gene["SSCID"],snpinfo$SSCID)])
-    out<-data.frame(ID,rbind(gene),row.names = NULL)
-    return(out)
-  }
-},snpinfo=fw_SNPinfo))
-
-info<-merge(fw_SNPinfo,dat,by="ID",all.x=TRUE)
-fw_SNPinfo<-info[unique(info$ID),]
-colnames(fw_SNPinfo)[colnames(fw_SNPinfo)=="SSCID.x"]<-"SSCID"
-saveRDS(fw_SNPinfo,"fw_SNPinfo.RDS")
-```
-
 
 We also compiled a list of genes previously implicated in adaptation to freshwater in previous studies. We identified a total of `r length(unique(put_genes$Gene))` candidate genes, all of which fall into the general categories of osmoregulation, temperature acclimation, and bone or other morphological development (Table \@ref(tab:putativeGenesTable)). Other studies have identified many of the same genes as putative targets of freshwater adaptation, in particular *aquaporin-3* (*AQP3*), *Na+/K+ transporting ATPase alpha 1* (*ATP1A*), *carbonic anhydrases* (*CA*), *ectodysplasin A* (*Eda*), *insulin-like growth factor-binding* (*IGFBP*) genes, and *Wnt* family member 7B (*WNT7B*). Not every gene was matched exactly in the *S. scovelli* genome (e.g., we could match all *aquaporin* genes, but not specifically *aquaporin-3*), and some matched multiple times (e.g., the candidate gene ID *apolipoprotein*, *APOL*, is a gene family and has many members throughout the genome), so we had a total of `r nrow(put_genes)` gene annotations for the `r length(unique(put_genes$Gene))` candidate genes. 
 
@@ -1329,7 +1957,7 @@ We investigated whether the outlier SNPs from our above analyses were in these p
 In both the Bayenv and the Stacks analyses, a few loci on LG6 were consistently identified as outliers. We therefore investigated those loci specifically.
 
 ```{r LG6annotate}
-# gff info was loaded above
+
 lg6<-fw_SNPinfo[fw_SNPinfo$Chrom=="LG6",]
 outdat<-data.frame(rbind(lg6[which(lg6$ID %in% outliers$sharedStacks),],
                          lg6[which(lg6$ID %in% outliers$salBF),]),
