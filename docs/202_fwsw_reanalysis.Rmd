@@ -687,7 +687,7 @@ legend("top", legend=ppi$Pop, pch=as.numeric(ppi$pch), pt.cex=1.5,cex=0.85,
 
 
 
-## Admixture scree plots {-}
+## Admixture {-}
 
 
 ```{r admixScree,fig.cap="Admixture screeplot for K=1 through K=16. The coefficient of variation (CV) is shown on the y-axis."}
