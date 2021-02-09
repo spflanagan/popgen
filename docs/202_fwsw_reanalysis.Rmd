@@ -763,6 +763,7 @@ write.table(admixK7,"admixture/admixK7.txt",sep = '\t',quote = FALSE,col.names =
 
 ## Treemix analysis {-}
 
+Treemix infers patterns of population splits and mixtures in the history of populations and uses tree-based graphs with a variety of migration edges to describe these patterns [@pickrellInferencePopulationSplits2012]. We used this analysis to investigate the structure of the 16 pipefish populations. 
 
 ```{r treemixPoporder}
 poporder<-c("TXSP","TXCC","TXFW","TXCB","LAFW","ALST",
@@ -780,7 +781,7 @@ write.table(cbind(poporder,colors),"poporder",quote=F,sep='\t')
 
 ### Tree with no migration edges and no root
 
-It's informative to plot the treemix tree that does not have any migration edges added for comparison later.
+First, we visualized the population tree without including any migration edges and without specifying a root (Figure \@ref(fig:treemixUnrooted)), which is useful in identifying a population we can use as the root and for comparisions down the line. 
 
 ```{r treemixPrep, eval=FALSE}
 # unrooted tree
@@ -797,9 +798,7 @@ knitr::include_graphics('../figs/treemix_unrooted_consense.png')
 ```
 
 
-### Tree with FLAB as root
-
-We ran Treemix assuming the FLAB was the root with 100 bootstrap replicates. We then used PHYLIP's consense program to build a consensus tree, assuming that it was a rooted tree. We also re-saved it to file so it would be in one line and thus compatible with treemix. 
+Based on the unrooted tree, we chose FLAB as the root and ran Treemix with 100 bootstrap replicates. We then used PHYLIP's consense program to build a consensus tree, assuming that it was a rooted tree (Figure \@ref(fig:treemixRooted)), re-saving it to file so it would be in one line and thus compatible with treemix. 
 
 ```{r rootedConsensus, eval=FALSE}
 # rooted tree
@@ -818,7 +817,7 @@ knitr::include_graphics('../figs/treemix_unrooted_consense.png')
 
 ### Choosing the optimal number of migration edges
 
-To choose the optimal number of migration edges, we used the R package optM [@fitakOptMPackageOptimize2019].
+We also ran treemix to test the fit of the model with 0 through 5 migration edges (and with 100 bootstrap replicates). To choose the optimal number of migration edges, we used the R package optM [@fitakOptMPackageOptimize2019]. Comparing the likelihoods of the models using OptM clearly demonstrated that one migration edge was the appropriate number to use (Figures \@ref(fig:plotOptM), \@ref(fig:treemixLlik)). Provided in the Table (\@ref(tab:M1Starts)) are all of the nodes with possible migration edge starting locations and the number of bootstrap replicates in which that edge was supported. 
 
 
 ```{r plotOptM,message=FALSE,fig.show='true',fig.cap="Plot showing the comparison of Treemix number of migration edges using the Evanno method."}
@@ -886,7 +885,7 @@ kable(summary(as.factor(stops)),"latex",booktabs=TRUE,
   kable_styling(latex_options=c("HOLD_position"))
 ```
 
-The overwhelming majority of bootstrapped trees with one migration edge have that edge leading from the main branch of the tree to FLPB (see the above tables for the common start and end points).
+The overwhelming majority of bootstrapped trees with one migration edge have that edge leading from the main branch of the tree to FLPB (Table \@ref(tab:M1Stops)). In the best-fitting tree (the one with the maximum log-likelihood), the migration edge is from FLAB to FLPB (Figure \@ref(fig:treemixCompare)).
 
 
 
@@ -914,7 +913,7 @@ knitr::include_graphics('../figs/treemix_comparison.png')
 
 ### Threepop and fourpop analysis
  
-We investigated the two migration edges that are in the best Treemix model using threepop and fourpop analyses. In the threepop analysis, significantly negative f3 statistics mean that the first pop in the list (A in A;B,C) is admixed [@pickrellInferencePopulationSplits2012; @reichReconstructingIndianPopulation2009]. Therefore, with the threepop analysis we want to look for the tree (A;B,C) where A corresponds to the end of an arrow and (B,C) corresponds to where an arrow begins. In the fourpop analysis, a significantly non-zero value indicates gene flow in the tree [@pickrellInferencePopulationSplits2012; @reichReconstructingIndianPopulation2009]. 
+We investigated the migration edge in the best Treemix model using threepop and fourpop analyses. In the threepop analysis, significantly negative f3 statistics mean that the first pop in the list (A in A;B,C) is admixed [@pickrellInferencePopulationSplits2012; @reichReconstructingIndianPopulation2009]. Therefore, with the threepop analysis we want to look for the tree (A;B,C) where A corresponds to the end of an arrow and (B,C) corresponds to where an arrow begins. In the fourpop analysis, a significantly non-zero value indicates gene flow in the tree [@pickrellInferencePopulationSplits2012; @reichReconstructingIndianPopulation2009]. 
 
 ```{r readf3f4}
 threepop<-data.frame(do.call(rbind,
@@ -934,7 +933,7 @@ colnames(fourpop)<-c("pops","f4_stat","f4_se","f4_z")
 ```
 
 
-The migration edge we investigated indicated potential migration from the ancestral Florida branch to the FLPB branch. We first investigated all of the three-population trees with FLPB and FLAB and found that the majority of these trees are positive, which suggests that FLPB is not admixed with the other Florida populations. Several trees are negative, but their standard errors overlap with zero, which suggests that FLPB may experience some admixtre with those populations. Unsurprisingly, given the admixture and pcadapt results, these trees are those with other Atlantic Florida populations (FLHB, FLCC, and FLLG/FLFW). 
+The migration edge we investigated indicated potential migration from the ancestral Florida branch to the FLPB branch. We first investigated all of the three-population trees with FLPB and FLAB and found that the majority of these trees are positive, which suggests that FLPB is not admixed with the other Florida populations. Several trees are negative, but their standard errors overlap with zero (Figure \@ref(fig:f3Edge1)), which suggests that FLPB may experience some admixtre with those populations. Unsurprisingly, given the admixture and pcadapt results, these trees are those with other Atlantic Florida populations (FLHB, FLCC, and FLLG/FLFW). 
 
 ```{r f3Edge1,fig.pos='H',fig.width=9,fig.height=6,fig.cap="Plot of the f3 statistic for three-population trees including both FLPB and FLAB. Error bars show the standard errors generated from block jackknifes. Trees indicative of admixture in FLPB are those with significantly negative f3 statistics."}
 FLPB_edge<-threepop[grep("FLPB;.*FLAB.*",threepop$pops),]
@@ -960,7 +959,7 @@ axis(1,pos=-0.01,at=1:nrow(FLPB_edge),
 
 ```
 
-To investigate the results of the fourpop analysis for this migration edge, we focused on four-population trees including both FLAB and FLPB and other Florida populations. All of these four population trees show evidence of admixture, which is unsurprising given that these trees include populations that are in the same population clusters in the admixture and pcadapt results.
+To investigate the results of the fourpop analysis for this migration edge, we focused on four-population trees including both FLAB and FLPB and other Florida populations. All of these four population trees show evidence of admixture (Table \@ref(tab:f4Edge1), Figure \@ref(fig:f4Edge1Fig)), which is unsurprising given that these trees include populations that are in the same population clusters in the admixture and pcadapt results.
 
 ```{r f4Edge1,fig.pos='H'}
 f4s<-fourpop[c(grep("FLPB,FL.*;FLAB,FL.*",fourpop$pops),
