@@ -166,6 +166,7 @@ dev.off()
 
 ## Phenotypic variation
 
+Although our study is focused on genetic variation associated with an environmental variable, we also measured some meristic characters of the fish to identify whether the populations vary systematically in any phenotypic way. We found no substantial clustering in body traits (SVL, tail length, trunk depth, head length, snout length, snout depth) and no clear patterns in female ornaments (Figure \@ref(fig:plotPCA)). 
 
 ```{r organizeData, eval=FALSE}
 raw.pheno<-read.table("../sw_results/popgen.pheno.txt", sep="\t", header=T)
