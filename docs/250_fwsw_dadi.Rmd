@@ -46,21 +46,6 @@ spacing: singlespacing
 abstract: "This document includes supplementary material for the paper, showing expanded methods and results from the diffusion approximations. In this document, we walk through the creation of the various datasets analysed using dadi, the analysis of the initial runs with the four simple demographic scenarios, and the choice of best models. The analyses here focus only on the pairwise freshwater-saltwater population pairs. The analyses contained in this document support Figure 2 in the main text.\n"
 ---
 
-
-
-# Overview of the study {-}
-
-In this study, we have population genomic data (ddRAD-seq) from 16 populations of Gulf pipefish (*Syngnathus scovelli*), including samples from four freshwater sites. We performed three primary categories of analyses: 
-
-1. Population structure (Supplement 1)
-
-2. Demographic inference (contained in this document)
-
-3. Outlier analyses (Supplement 3)
-
-This document focuses on the 4 freshwater populations (TXFW, LAFW, ALFW, FLFW) and their nearest saltwater populations (TXCC, ALST, FLCC -- note ALST is the nearest neighbor to both ALFW and LAFW). For these analyses, the complete SNP dataset was re-filtered for each population pair to reduce missingness in each pairwise analysis.  
-
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE,out.extra='',fig.pos="H",
                       warning=FALSE,message=FALSE)
@@ -82,6 +67,16 @@ fw_pops<-c("TXFW","LAFW","ALFW","FLLG")
 sw_pops<-c("TXCC","ALST","ALST","FLCC")
 ```
 
+# Overview of the study {-}
+In this study, we have population genomic data (ddRAD-seq) from 16 populations of Gulf pipefish (*Syngnathus scovelli*), including samples from four freshwater sites. We performed three primary categories of analyses: 
+
+1. Population structure (Supplement 1)
+
+2. Demographic inference (contained in this document)
+
+3. Outlier analyses (Supplement 3)
+
+This document focuses on the 4 freshwater populations (TXFW, LAFW, ALFW, FLFW) and their nearest saltwater populations (TXCC, ALST, FLCC -- note ALST is the nearest neighbor to both ALFW and LAFW). For these analyses, the complete SNP dataset was re-filtered for each population pair to reduce missingness in each pairwise analysis.  
 
 
 # Create a dadi SNPs file from the vcf {-}
@@ -465,8 +460,6 @@ The model with the highest model score was `r best_mod` (Figure \@ref(fig:afasOp
 ```{r afasOpts, fig.cap="Comparison of log likelihoods for the complex IM models for ALFW-ALST."}
 alfw_alst<-dadi_initialCompare("ALFW_ALST",opt_pattern = paste0(".*",best_mod,".*.optimized.txt"),modSel="median")
 ```
-
-
 ```{r alSC, fig.cap="Comparison of log likelihoods for the complex SC models for ALFW-ALST."}
 alfw_alst_sc<-dadi_initialCompare("ALFW_ALST",opt_pattern = paste0(".*","SC",".*.optimized.txt"),modSel="median")
 
@@ -626,7 +619,6 @@ if(file.exists(multiname)){
 
 
 FLFW vs FLCC is best-fit by the isolation-with-migration model (IM) and TXFW vs TXCC is best fit by the IM model that includes the heterogeneous migration rates across the genome parameter (2m). Both ALFW vs ALST and LAFW vs ALST are best fit by the model of secondary contact with population growth and heterogeneous migration rates across the genome (SC2mG).
-
 
 ```{r dadiSummaryPlot,eval=TRUE}
 library(magick);library(multipanelfigure)
