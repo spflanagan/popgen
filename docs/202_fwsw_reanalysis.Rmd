@@ -487,6 +487,7 @@ mtext("Number of SNPs (x 1000)",2,outer = TRUE,cex=1.75*0.75,line=1)
 
 ```
 
+A useful summary of genetic variation within each population is the distribution of minor allele frequencies. We pruned the dataset to remove loci with a minor allele frequency less than 0.05, but the majority of these minor allele frequencies were still < 0.1 (Figure \@ref(fig:MAF)), with populations differing in the thickness of the tail of the distribution above 0.1. The freshwater population in Florida, FLFW, had the most extreme distribution, with almost no loci above 0.1.
 
 ```{r MAF, fig.cap="Minor allele frequency distributions of the full dataset (7433 SNPs) for each population. Freshwater populations are plotted in blue. The histograms show the number of SNPs with various frequencies of the reference alleles. All populations are skewed towards having small minor allele frequencies, but the TXFW and FLFW have additional reductions in genetic variation.", out.width="85%"}
 knitr::include_graphics("../figs/minorAFplot-1.png")
