@@ -588,6 +588,7 @@ knitr::include_graphics("../figs/fst_heatmaps.png")
 
 ## PCAdapt {-}
 
+Principal comopnents analysis reduces many dimensions of variation to a few dimensions that preserve the majority of the variation, and has been shown to be useful in analyzing genomic data. We used PCAdapt [@luuPcadaptPackagePerform2017] to explore the axes of variation that best describe the genomic data from our 16 pipefish populations. 
 
 ```{r loadPCAdapt}
 library(pcadapt)
