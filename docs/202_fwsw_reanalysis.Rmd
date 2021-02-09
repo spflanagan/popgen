@@ -608,6 +608,10 @@ pa.props<-round((pa$singular.values/sum(pa$singular.values))*100,2)
 kable(pa.props,booktabs=TRUE,col.names = FALSE, row.names = FALSE,caption="Proportion of variation explained by all 7 of the retained PC axes in PCAdapt") %>%
   kable_styling(latex_options = "HOLD_position")
 ```
+
+In our analysis, we decided to run PCAdapt specifying $K=7$ populations (Figure \@ref(fig:pcadaptChoose)), which results in 7 axes each explaining more than 5% of the variation (Table \@ref(tab:pcadaptAnalyze)). Visualizing the first six of the axes, we can see that the major axes of variation correspond to geographic distances first and foremost followed by within-region variation between freshwater and saltwater habitats (Figure \@ref(fig:plotPcadaptInitial)).
+
+
 ```{r pcadaptSummarize}
 ind_dat<-read.table(
   "filter_rad_20191014@1654/14_filtered/individuals.qc.stats_20191014@1654.tsv",
