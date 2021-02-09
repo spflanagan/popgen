@@ -992,6 +992,8 @@ axis(1,pos=-0.01,at=1:nrow(f4s),
 
 ## Make figure
 
+For the main text, we summarized these results in a multi-panel figure (Figure 1), where we put together the geographic data, ordination results, ADMIXTURE results, and the best-fitting Treemix model. See the main text for these combined results.
+
 ```{r defineColors}
 #grp.colors<-c('#762a83','#af8dc3','#e7d4e8','#d9f0d3','#7fbf7b','#1b7837') 
 grp7colors<-c('#762a83','#9970ab','#c2a5cf','#d9f0d3','#a6dba0','#5aae61','#1b7837')
