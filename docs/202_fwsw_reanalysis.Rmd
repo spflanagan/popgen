@@ -536,7 +536,7 @@ fst_mat<-as.matrix(full_fsts)
 ```
 
 
-```{r fstHeatmaps,fig.width=8,fig.height=5,eval=FALSE}
+```{r makefstHeatmaps,fig.width=8,fig.height=5,eval=FALSE}
 library(lattice); library(grid); library(RColorBrewer)
 poporder<-read.delim("treemix/poporder")
 colors<-poporder$colors
@@ -580,7 +580,10 @@ dev.off()
 
 ```
 
-![Heatmaps depicting population structure. In all graphs, dark colors depict similarity between populations and light grey and blue depict populations with high differentiation. The left panel shows pairwise FST values calculated by the populations module in Stacks (Catchen et al. 2013). The right panel shows covariances between populations as calculated by TreeMix (Pickrell and Pritchard 2012).](../figs/fst_heatmaps.png)
+
+```{r fstHeatmaps, fig.cap="Heatmaps depicting population structure. In all graphs, dark colors depict similarity between populations and light grey and blue depict populations with high differentiation. The left panel shows pairwise FST values calculated by the populations module in Stacks (Catchen et al. 2013). The right panel shows covariances between populations as calculated by TreeMix (Pickrell and Pritchard 2012).", out.width="85%"}
+knitr::include_graphics("../figs/fst_heatmaps.png")
+```
 
 
 ## PCAdapt {-}
