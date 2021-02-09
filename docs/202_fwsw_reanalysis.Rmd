@@ -605,7 +605,8 @@ plot(x,option="screeplot") #K=7
 pa<-pcadapt(filename,K=7)
 saveRDS(pa,"fwsw_all_pcadapt.RDS")
 pa.props<-round((pa$singular.values/sum(pa$singular.values))*100,2)
-kable(pa.props,caption="Proportion of variation explained by all 7 of the retained PC axes in PCAdapt")
+kable(pa.props,booktabs=TRUE,col.names = FALSE, row.names = FALSE,caption="Proportion of variation explained by all 7 of the retained PC axes in PCAdapt") %>%
+  kable_styling(latex_options = "HOLD_position")
 ```
 ```{r pcadaptSummarize}
 ind_dat<-read.table(
