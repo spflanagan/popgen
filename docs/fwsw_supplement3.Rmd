@@ -419,7 +419,7 @@ There are `r length(unique(all.shared))` outliers (as determined by Fisher's P f
 
 As a point of comparison, we repeated this analysis with the similar pairwise saltwater-saltwater population pairs. We expect that if substantially more outlier loci were shared in the freshwater-saltwater comparisons than in the saltwater-saltwtaer comparisons that the shared outliers are likely a signature of adaptation to freshwater as opposed to random chance due to population structure.  
 
-```{r plotStacksfstsSWSW,fig.height=6,fig.width=6,fig.cap="Manhattan plot of pairwise AMOVA-corrected Fst values from Stacks for the saltwater populations nearest to freshwater populations compared to their nearest saltwater neightbor. The x-axis corresponds to genomic locations, with chromosomes labelled. To the right are loci that mapped to unanchored scaffolds."}
+```{r plotStacksfstsSWSW,fig.height=6,fig.width=6,fig.cap="Manhattan plot of pairwise AMOVA-corrected Fst values from Stacks for the saltwater populations nearest to freshwater populations compared to their nearest saltwater neighbor. The x-axis corresponds to genomic locations, with chromosomes labelled. To the right are loci that mapped to unanchored scaffolds."}
 swsw.fl<-read.delim("stacks/converted.fst_TXCB-TXCC.txt")
 swsw.tx<-read.delim("stacks/converted.fst_ALST-FLSG.txt")
 swsw.al<-read.delim("stacks/converted.fst_FLCC-FLHB.txt")
@@ -493,7 +493,7 @@ plot_fst_hists<-function(perms,plot_lab=NULL,cols=NULL,permlab="mean_perm",
 
 ```
 
-```{r StacksFstsHists,dpi=300,fig.width=8,fig.height=7,fig.cap="Distributions of the Stacks AMOVA-Corrected Fst values for the pairwise comparisons of each freshwater population and its nearest saltwater neighbor (main plots) and the pairwise comparisons of those saltwater popuulations and their nearset saltwater population (insests)."}
+```{r StacksFstsHists,dpi=300,fig.width=8,fig.height=7,fig.cap="Distributions of the Stacks AMOVA-Corrected Fst values for the pairwise comparisons of each freshwater population and its nearest saltwater neighbor (main plots) and the pairwise comparisons of those saltwater popuulations and their nearset saltwater population (insets)."}
 fwsw_list<-list(fwsw.tx,fwsw.la,fwsw.al,fwsw.fl)
 swsw_list<-list(swsw.tx,swsw.al,swsw.al,swsw.fl)
 
