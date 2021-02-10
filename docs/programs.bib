@@ -21,6 +21,26 @@
   options = {useprefix=true}
 }
 
+@article{alexanderFastModelbasedEstimation2009,
+  title = {Fast Model-Based Estimation of Ancestry in Unrelated Individuals},
+  author = {Alexander, David H. and Novembre, John and Lange, Kenneth},
+  date = {2009-09-01},
+  journaltitle = {Genome Research},
+  shortjournal = {Genome Res.},
+  volume = {19},
+  pages = {1655--1664},
+  issn = {1088-9051, 1549-5469},
+  doi = {10.1101/gr.094052.109},
+  url = {http://genome.cshlp.org/content/19/9/1655},
+  urldate = {2019-10-20},
+  abstract = {Population stratification has long been recognized as a confounding factor in genetic association studies. Estimated ancestries, derived from multi-locus genotype data, can be used to perform a statistical correction for population stratification. One popular technique for estimation of ancestry is the model-based approach embodied by the widely applied program structure. Another approach, implemented in the program EIGENSTRAT, relies on Principal Component Analysis rather than model-based estimation and does not directly deliver admixture fractions. EIGENSTRAT has gained in popularity in part owing to its remarkable speed in comparison to structure. We present a new algorithm and a program, ADMIXTURE, for model-based estimation of ancestry in unrelated individuals. ADMIXTURE adopts the likelihood model embedded in structure. However, ADMIXTURE runs considerably faster, solving problems in minutes that take structure hours. In many of our experiments, we have found that ADMIXTURE is almost as fast as EIGENSTRAT. The runtime improvements of ADMIXTURE rely on a fast block relaxation scheme using sequential quadratic programming for block updates, coupled with a novel quasi-Newton acceleration of convergence. Our algorithm also runs faster and with greater accuracy than the implementation of an Expectation-Maximization (EM) algorithm incorporated in the program FRAPPE. Our simulations show that ADMIXTURE's maximum likelihood estimates of the underlying admixture coefficients and ancestral allele frequencies are as accurate as structure's Bayesian estimates. On real-world data sets, ADMIXTURE's estimates are directly comparable to those from structure and EIGENSTRAT. Taken together, our results show that ADMIXTURE's computational speed opens up the possibility of using a much larger set of markers in model-based ancestry estimation and that its estimates are suitable for use in correcting for population stratification in association studies.},
+  eprint = {19648217},
+  eprinttype = {pmid},
+  file = {C\:\\Users\\spf50\\Zotero\\storage\\T9TST35Y\\Alexander et al. - 2009 - Fast model-based estimation of ancestry in unrelat.pdf;C\:\\Users\\spf50\\Zotero\\storage\\ZWU7WFNJ\\1655.html},
+  langid = {english},
+  number = {9}
+}
+
 @article{azizRASTServerRapid2008,
   title = {The {{RAST Server}}: {{Rapid Annotations}} Using {{Subsystems Technology}}},
   shorttitle = {The {{RAST Server}}},
@@ -98,9 +118,7 @@
   doi = {10.1093/bioinformatics/btu170},
   url = {https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4103590/},
   urldate = {2019-11-25},
-  abstract = {Motivation: Although many next-generation sequencing (NGS) read preprocessing tools already existed, we could not find any tool or combination of tools that met our requirements in terms of flexibility, correct handling of paired-end data and high performance. We have developed Trimmomatic as a more flexible and efficient preprocessing tool, which could correctly handle paired-end data., Results: The value of NGS read preprocessing is demonstrated for both reference-based and reference-free tasks. Trimmomatic is shown to produce output that is at least competitive with, and in many cases superior to, that produced by other tools, in all scenarios tested., Availability and implementation: Trimmomatic is licensed under GPL V3. It is cross-platform (Java 1.5+ required) and available at http://www.usadellab.org/cms/index.php?page=trimmomatic, Contact:
-usadel@bio1.rwth-aachen.de, Supplementary information:
-Supplementary data are available at Bioinformatics online.},
+  abstract = {Motivation: Although many next-generation sequencing (NGS) read preprocessing tools already existed, we could not find any tool or combination of tools that met our requirements in terms of flexibility, correct handling of paired-end data and high performance. We have developed Trimmomatic as a more flexible and efficient preprocessing tool, which could correctly handle paired-end data., Results: The value of NGS read preprocessing is demonstrated for both reference-based and reference-free tasks. Trimmomatic is shown to produce output that is at least competitive with, and in many cases superior to, that produced by other tools, in all scenarios tested., Availability and implementation: Trimmomatic is licensed under GPL V3. It is cross-platform (Java 1.5+ required) and available at http://www.usadellab.org/cms/index.php?page=trimmomatic, Contact: usadel@bio1.rwth-aachen.de, Supplementary information: Supplementary data are available at Bioinformatics online.},
   eprint = {24695404},
   eprinttype = {pmid},
   file = {C\:\\Users\\spf50\\Zotero\\storage\\NK466B7K\\Bolger et al. - 2014 - Trimmomatic a flexible trimmer for Illumina seque.pdf},
@@ -128,15 +146,20 @@ Supplementary data are available at Bioinformatics online.},
   pages = {421},
   issn = {1471-2105},
   doi = {10.1186/1471-2105-10-421},
-  abstract = {BACKGROUND: Sequence similarity searching is a very important bioinformatics task. While Basic Local Alignment Search Tool (BLAST) outperforms exact methods through its use of heuristics, the speed of the current BLAST software is suboptimal for very long queries or database sequences. There are also some shortcomings in the user-interface of the current command-line applications.
-RESULTS: We describe features and improvements of rewritten BLAST software and introduce new command-line applications. Long query sequences are broken into chunks for processing, in some cases leading to dramatically shorter run times. For long database sequences, it is possible to retrieve only the relevant parts of the sequence, reducing CPU time and memory usage for searches of short queries against databases of contigs or chromosomes. The program can now retrieve masking information for database sequences from the BLAST databases. A new modular software library can now access subject sequence data from arbitrary data sources. We introduce several new features, including strategy files that allow a user to save and reuse their favorite set of options. The strategy files can be uploaded to and downloaded from the NCBI BLAST web site.
-CONCLUSION: The new BLAST command-line applications, compared to the current BLAST tools, demonstrate substantial speed improvements for long queries as well as chromosome length database sequences. We have also improved the user interface of the command-line applications.},
+  abstract = {BACKGROUND: Sequence similarity searching is a very important bioinformatics task. While Basic Local Alignment Search Tool (BLAST) outperforms exact methods through its use of heuristics, the speed of the current BLAST software is suboptimal for very long queries or database sequences. There are also some shortcomings in the user-interface of the current command-line applications. RESULTS: We describe features and improvements of rewritten BLAST software and introduce new command-line applications. Long query sequences are broken into chunks for processing, in some cases leading to dramatically shorter run times. For long database sequences, it is possible to retrieve only the relevant parts of the sequence, reducing CPU time and memory usage for searches of short queries against databases of contigs or chromosomes. The program can now retrieve masking information for database sequences from the BLAST databases. A new modular software library can now access subject sequence data from arbitrary data sources. We introduce several new features, including strategy files that allow a user to save and reuse their favorite set of options. The strategy files can be uploaded to and downloaded from the NCBI BLAST web site. CONCLUSION: The new BLAST command-line applications, compared to the current BLAST tools, demonstrate substantial speed improvements for long queries as well as chromosome length database sequences. We have also improved the user interface of the command-line applications.},
   eprint = {20003500},
   eprinttype = {pmid},
   file = {C\:\\Users\\spf50\\Zotero\\storage\\PWGPN6Y9\\Camacho et al. - 2009 - BLAST+ architecture and applications.pdf},
   keywords = {Computational Biology,Databases; Genetic,Sequence Alignment,Software},
   langid = {english},
   pmcid = {PMC2803857}
+}
+
+@software{cantyBootBootstrapSPlus2020,
+  title = {Boot: {{Bootstrap R}} ({{S}}-{{Plus}}) {{Functions}}},
+  author = {Canty, Angelo and Ripley, B. D.},
+  date = {2020},
+  version = {R package version 1.3-25}
 }
 
 @article{catchenStacksAnalysisTool2013,
@@ -196,6 +219,16 @@ CONCLUSION: The new BLAST command-line applications, compared to the current BLA
   journaltitle = {Methods Ecol Evol},
   volume = {3},
   doi = {10.1111/j.2041-210X.2011.00179.x}
+}
+
+@book{davisonBootstrapMethodsTheir1997,
+  title = {Bootstrap {{Methods}} and {{Their Applications}}},
+  author = {Davison, A. C. and Hinkley, D. V.},
+  date = {1997},
+  publisher = {{Cambridge University Press}},
+  location = {{Cambridge, United Kingdom}},
+  url = {http://statwww.epfl.ch/davison/BMA/},
+  isbn = {0-521-57391-2}
 }
 
 @article{drayAde4PackageImplementing2007,
@@ -593,6 +626,26 @@ CONCLUSION: The new BLAST command-line applications, compared to the current BLA
   number = {5}
 }
 
+@article{kosakovskypondHyPhyCustomizablePlatform2020,
+  title = {{{HyPhy}} 2.5—{{A Customizable Platform}} for {{Evolutionary Hypothesis Testing Using Phylogenies}}},
+  author = {Kosakovsky Pond, Sergei L. and Poon, Art F. Y. and Velazquez, Ryan and Weaver, Steven and Hepler, N. Lance and Murrell, Ben and Shank, Stephen D. and Magalis, Brittany Rife and Bouvier, Dave and Nekrutenko, Anton and Wisotsky, Sadie and Spielman, Stephanie J. and Frost, Simon D. W. and Muse, Spencer V.},
+  date = {2020-01-01},
+  journaltitle = {Molecular Biology and Evolution},
+  shortjournal = {Mol Biol Evol},
+  volume = {37},
+  pages = {295--299},
+  publisher = {{Oxford Academic}},
+  issn = {0737-4038},
+  doi = {10.1093/molbev/msz197},
+  url = {https://academic.oup.com/mbe/article/37/1/295/5555420},
+  urldate = {2020-08-10},
+  abstract = {Abstract.  HYpothesis testing using PHYlogenies (HyPhy) is a scriptable, open-source package for fitting a broad range of evolutionary models to multiple sequen},
+  file = {C\:\\Users\\spf50\\Zotero\\storage\\MDHYADMJ\\Kosakovsky Pond et al. - 2020 - HyPhy 2.5—A Customizable Platform for Evolutionary.pdf;C\:\\Users\\spf50\\Zotero\\storage\\D6PGAZZL\\5555420.html},
+  keywords = {molecular evolution,ovary analysis,phylogenetics},
+  langid = {english},
+  number = {1}
+}
+
 @software{lengEBSeqPackageGene2019,
   title = {{{EBSeq}}: {{An R}} Package for Gene and Isoform Differential Expression Analysis of {{RNA}}-Seq Data},
   shorttitle = {{{EBSeq}}},
@@ -639,9 +692,7 @@ CONCLUSION: The new BLAST command-line applications, compared to the current BLA
   pages = {323},
   issn = {1471-2105},
   doi = {10.1186/1471-2105-12-323},
-  abstract = {BACKGROUND: RNA-Seq is revolutionizing the way transcript abundances are measured. A key challenge in transcript quantification from RNA-Seq data is the handling of reads that map to multiple genes or isoforms. This issue is particularly important for quantification with de novo transcriptome assemblies in the absence of sequenced genomes, as it is difficult to determine which transcripts are isoforms of the same gene. A second significant issue is the design of RNA-Seq experiments, in terms of the number of reads, read length, and whether reads come from one or both ends of cDNA fragments.
-RESULTS: We present RSEM, an user-friendly software package for quantifying gene and isoform abundances from single-end or paired-end RNA-Seq data. RSEM outputs abundance estimates, 95\% credibility intervals, and visualization files and can also simulate RNA-Seq data. In contrast to other existing tools, the software does not require a reference genome. Thus, in combination with a de novo transcriptome assembler, RSEM enables accurate transcript quantification for species without sequenced genomes. On simulated and real data sets, RSEM has superior or comparable performance to quantification methods that rely on a reference genome. Taking advantage of RSEM's ability to effectively use ambiguously-mapping reads, we show that accurate gene-level abundance estimates are best obtained with large numbers of short single-end reads. On the other hand, estimates of the relative frequencies of isoforms within single genes may be improved through the use of paired-end reads, depending on the number of possible splice forms for each gene.
-CONCLUSIONS: RSEM is an accurate and user-friendly software tool for quantifying transcript abundances from RNA-Seq data. As it does not rely on the existence of a reference genome, it is particularly useful for quantification with de novo transcriptome assemblies. In addition, RSEM has enabled valuable guidance for cost-efficient design of quantification experiments with RNA-Seq, which is currently relatively expensive.},
+  abstract = {BACKGROUND: RNA-Seq is revolutionizing the way transcript abundances are measured. A key challenge in transcript quantification from RNA-Seq data is the handling of reads that map to multiple genes or isoforms. This issue is particularly important for quantification with de novo transcriptome assemblies in the absence of sequenced genomes, as it is difficult to determine which transcripts are isoforms of the same gene. A second significant issue is the design of RNA-Seq experiments, in terms of the number of reads, read length, and whether reads come from one or both ends of cDNA fragments. RESULTS: We present RSEM, an user-friendly software package for quantifying gene and isoform abundances from single-end or paired-end RNA-Seq data. RSEM outputs abundance estimates, 95\% credibility intervals, and visualization files and can also simulate RNA-Seq data. In contrast to other existing tools, the software does not require a reference genome. Thus, in combination with a de novo transcriptome assembler, RSEM enables accurate transcript quantification for species without sequenced genomes. On simulated and real data sets, RSEM has superior or comparable performance to quantification methods that rely on a reference genome. Taking advantage of RSEM's ability to effectively use ambiguously-mapping reads, we show that accurate gene-level abundance estimates are best obtained with large numbers of short single-end reads. On the other hand, estimates of the relative frequencies of isoforms within single genes may be improved through the use of paired-end reads, depending on the number of possible splice forms for each gene. CONCLUSIONS: RSEM is an accurate and user-friendly software tool for quantifying transcript abundances from RNA-Seq data. As it does not rely on the existence of a reference genome, it is particularly useful for quantification with de novo transcriptome assemblies. In addition, RSEM has enabled valuable guidance for cost-efficient design of quantification experiments with RNA-Seq, which is currently relatively expensive.},
   eprint = {21816040},
   eprinttype = {pmid},
   file = {C\:\\Users\\spf50\\Zotero\\storage\\444E2VFN\\Li and Dewey - 2011 - RSEM accurate transcript quantification from RNA-.pdf},
@@ -660,8 +711,7 @@ CONCLUSIONS: RSEM is an accurate and user-friendly software tool for quantifying
   pages = {2078--2079},
   issn = {1367-4811},
   doi = {10.1093/bioinformatics/btp352},
-  abstract = {SUMMARY: The Sequence Alignment/Map (SAM) format is a generic alignment format for storing read alignments against reference sequences, supporting short and long reads (up to 128 Mbp) produced by different sequencing platforms. It is flexible in style, compact in size, efficient in random access and is the format in which alignments from the 1000 Genomes Project are released. SAMtools implements various utilities for post-processing alignments in the SAM format, such as indexing, variant caller and alignment viewer, and thus provides universal tools for processing read alignments.
-AVAILABILITY: http://samtools.sourceforge.net.},
+  abstract = {SUMMARY: The Sequence Alignment/Map (SAM) format is a generic alignment format for storing read alignments against reference sequences, supporting short and long reads (up to 128 Mbp) produced by different sequencing platforms. It is flexible in style, compact in size, efficient in random access and is the format in which alignments from the 1000 Genomes Project are released. SAMtools implements various utilities for post-processing alignments in the SAM format, such as indexing, variant caller and alignment viewer, and thus provides universal tools for processing read alignments. AVAILABILITY: http://samtools.sourceforge.net.},
   eprint = {19505943},
   eprinttype = {pmid},
   file = {C\:\\Users\\spf50\\Zotero\\storage\\TTLRC4JU\\Li et al. - 2009 - The Sequence AlignmentMap format and SAMtools.pdf},
@@ -724,6 +774,31 @@ AVAILABILITY: http://samtools.sourceforge.net.},
   file = {C\:\\Users\\spf50\\Zotero\\storage\\D5V9A79F\\Magoc and Salzberg - 2011 - FLASH fast length adjustment of short reads to im.pdf}
 }
 
+@article{marionExtendingConceptDiversity2015,
+  title = {Extending the {{Concept}} of {{Diversity Partitioning}} to {{Characterize Phenotypic Complexity}}},
+  author = {Marion, Zachary H. and Fordyce, James A. and Fitzpatrick, Benjamin M.},
+  date = {2015-09},
+  journaltitle = {The American Naturalist},
+  shortjournal = {The American Naturalist},
+  volume = {186},
+  pages = {348--361},
+  issn = {0003-0147, 1537-5323},
+  doi = {10.1086/682369},
+  url = {https://www.journals.uchicago.edu/doi/10.1086/682369},
+  urldate = {2020-08-13},
+  abstract = {Most components of an organism’s phenotype can be viewed as the expression of multiple traits. Many of these traits operate as complexes, where multiple subsidiary parts function and evolve together. As trait complexity increases, so does the challenge of describing complexity in intuitive, biologically meaningful ways. Traditional multivariate analyses ignore the phenomenon of individual complexity and provide relatively abstract representations of variation among individuals. We suggest adopting well-known diversity indices from community ecology to describe phenotypic complexity as the diversity of distinct subsidiary components of a trait. Using a hierarchical framework, we illustrate how total trait diversity can be partitioned into within-individual complexity (a diversity) and between-individual components (b diversity). This approach complements traditional multivariate analyses. The key innovations are (i) addition of individual complexity within the same framework as between-individual variation and (ii) a group-wise partitioning approach that complements traditional level-wise partitioning of diversity. The complexity-as-diversity approach has potential application in many fields, including physiological ecology, ecological and community genomics, and transcriptomics. We demonstrate the utility of this complexity-as-diversity approach with examples from chemical and microbial ecology. The examples illustrate biologically significant differences in complexity and diversity that standard analyses would not reveal.},
+  file = {C\:\\Users\\spf50\\Zotero\\storage\\A9APEPHF\\Marion et al. - 2015 - Extending the Concept of Diversity Partitioning to.pdf},
+  langid = {english},
+  number = {3}
+}
+
+@software{marionHierDiversityHierarchicalMultiplicative2015,
+  title = {{{HierDiversity}}: Hierarchical Multiplicative Partitioning of Complex Phenotypes},
+  author = {Marion, Zachary Harrison and Fordyce, James and Fitzpatrick, Benjamin},
+  date = {2015},
+  version = {0.1}
+}
+
 @article{meffertNonadditiveGeneticEffects2002,
   title = {Nonadditive {{Genetic Effects}} in {{Animal Behavior}}},
   author = {Meffert, Lisa and {xa} and M and Hicks, Sara and {xa} and K and Regan, Jennifer and {xa} and L},
@@ -754,6 +829,26 @@ AVAILABILITY: http://samtools.sourceforge.net.},
   langid = {english}
 }
 
+@article{miProtocolUpdateLargescale2019,
+  title = {Protocol {{Update}} for Large-Scale Genome and Gene Function Analysis with the {{PANTHER}} Classification System (v.14.0)},
+  author = {Mi, Huaiyu and Muruganujan, Anushya and Huang, Xiaosong and Ebert, Dustin and Mills, Caitlin and Guo, Xinyu and Thomas, Paul D.},
+  date = {2019-03},
+  journaltitle = {Nature Protocols},
+  volume = {14},
+  pages = {703--721},
+  publisher = {{Nature Publishing Group}},
+  issn = {1750-2799},
+  doi = {10.1038/s41596-019-0128-8},
+  url = {https://www.nature.com/articles/s41596-019-0128-8},
+  urldate = {2020-08-13},
+  abstract = {The PANTHER classification system (http://www.pantherdb.org) is a comprehensive system that combines genomes, gene function classifications, pathways and statistical analysis tools to enable biologists to analyze large-scale genome-wide experimental data. The current system (PANTHER v.14.0) covers 131 complete genomes organized into gene families and subfamilies; evolutionary relationships between genes are represented in phylogenetic trees, multiple sequence alignments and statistical models (hidden Markov models (HMMs)). The families and subfamilies are annotated with Gene Ontology (GO) terms, and sequences are assigned to PANTHER pathways. A suite of tools has been built to allow users to browse and query gene functions and analyze large-scale experimental data with a number of statistical tests. PANTHER is widely used by bench scientists, bioinformaticians, computer scientists and systems biologists. Since the protocol for using this tool (v.8.0) was originally published in 2013, there have been substantial improvements and updates in the areas of data quality, data coverage, statistical algorithms and user experience. This Protocol Update provides detailed instructions on how to analyze genome-wide experimental data in the PANTHER classification system.},
+  file = {C\:\\Users\\spf50\\Zotero\\storage\\MS62LKMV\\Mi et al. - 2019 - Protocol Update for large-scale genome and gene fu.pdf;C\:\\Users\\spf50\\Zotero\\storage\\493R58KC\\s41596-019-0128-8.html},
+  issue = {3},
+  keywords = {classification,gene ontology,ovary analysis},
+  langid = {english},
+  number = {3}
+}
+
 @article{mora-marquezDdradseqtoolsSoftwarePackage2017,
   title = {Ddradseqtools: A Software Package for in Silico Simulation and Testing of Double-Digest {{RADseq}} Experiments},
   shorttitle = {Ddradseqtools},
@@ -771,6 +866,26 @@ AVAILABILITY: http://samtools.sourceforge.net.},
   keywords = {allele dropout,coverage,double-digested RADseq,in silico simulation,PCR duplicates},
   langid = {english},
   number = {2}
+}
+
+@article{murrellGeneWideIdentificationEpisodic2015,
+  title = {Gene-{{Wide Identification}} of {{Episodic Selection}}},
+  author = {Murrell, Ben and Weaver, Steven and Smith, Martin D. and Wertheim, Joel O. and Murrell, Sasha and Aylward, Anthony and Eren, Kemal and Pollner, Tristan and Martin, Darren P. and Smith, Davey M. and Scheffler, Konrad and Kosakovsky Pond, Sergei L.},
+  date = {2015-05-01},
+  journaltitle = {Molecular Biology and Evolution},
+  shortjournal = {Mol Biol Evol},
+  volume = {32},
+  pages = {1365--1371},
+  publisher = {{Oxford Academic}},
+  issn = {0737-4038},
+  doi = {10.1093/molbev/msv035},
+  url = {https://academic.oup.com/mbe/article/32/5/1365/1134918},
+  urldate = {2020-07-29},
+  abstract = {Abstract.  We present BUSTED, a new approach to identifying gene-wide evidence of episodic positive selection, where the non-synonymous substitution rate is tra},
+  file = {C\:\\Users\\spf50\\Zotero\\storage\\CY97VERA\\Murrell et al. - 2015 - Gene-Wide Identification of Episodic Selection.pdf;C\:\\Users\\spf50\\Zotero\\storage\\LPC5NQA9\\1134918.html},
+  keywords = {dN/dS,molecular evolution,ovary transcriptome},
+  langid = {english},
+  number = {5}
 }
 
 @software{neuwirthRColorBrewerColorBrewerPalettes2014,
@@ -857,14 +972,7 @@ AVAILABILITY: http://samtools.sourceforge.net.},
   doi = {10.1186/1748-7188-9-4},
   url = {https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4015676/},
   urldate = {2019-12-11},
-  abstract = {Background
-Multiple sequence alignment (MSA) is an extremely useful tool for molecular and evolutionary biology and there are several programs and algorithms available for this purpose. Although previous studies have compared the alignment accuracy of different MSA programs, their computational time and memory usage have not been systematically evaluated. Given the unprecedented amount of data produced by next generation deep sequencing platforms, and increasing demand for large-scale data analysis, it is imperative to optimize the application of software. Therefore, a balance between alignment accuracy and computational cost has become a critical indicator of the most suitable MSA program. We compared both accuracy and cost of nine popular MSA programs, namely CLUSTALW, CLUSTAL OMEGA, DIALIGN-TX, MAFFT, MUSCLE, POA, Probalign, Probcons and T-Coffee, against the benchmark alignment dataset BAliBASE and discuss the relevance of some implementations embedded in each program’s algorithm. Accuracy of alignment was calculated with the two standard scoring functions provided by BAliBASE, the sum-of-pairs and total-column scores, and computational costs were determined by collecting peak memory usage and time of execution.
-
-Results
-Our results indicate that mostly the consistency-based programs Probcons, T-Coffee, Probalign and MAFFT outperformed the other programs in accuracy. Whenever sequences with large N/C terminal extensions were present in the BAliBASE suite, Probalign, MAFFT and also CLUSTAL OMEGA outperformed Probcons and T-Coffee. The drawback of these programs is that they are more memory-greedy and slower than POA, CLUSTALW, DIALIGN-TX, and MUSCLE. CLUSTALW and MUSCLE were the fastest programs, being CLUSTALW the least RAM memory demanding program.
-
-Conclusions
-Based on the results presented herein, all four programs Probcons, T-Coffee, Probalign and MAFFT are well recommended for better accuracy of multiple sequence alignments. T-Coffee and recent versions of MAFFT can deliver faster and reliable alignments, which are specially suited for larger datasets than those encountered in the BAliBASE suite, if multi-core computers are available. In fact, parallelization of alignments for multi-core computers should probably be addressed by more programs in a near future, which will certainly improve performance significantly.},
+  abstract = {Background Multiple sequence alignment (MSA) is an extremely useful tool for molecular and evolutionary biology and there are several programs and algorithms available for this purpose. Although previous studies have compared the alignment accuracy of different MSA programs, their computational time and memory usage have not been systematically evaluated. Given the unprecedented amount of data produced by next generation deep sequencing platforms, and increasing demand for large-scale data analysis, it is imperative to optimize the application of software. Therefore, a balance between alignment accuracy and computational cost has become a critical indicator of the most suitable MSA program. We compared both accuracy and cost of nine popular MSA programs, namely CLUSTALW, CLUSTAL OMEGA, DIALIGN-TX, MAFFT, MUSCLE, POA, Probalign, Probcons and T-Coffee, against the benchmark alignment dataset BAliBASE and discuss the relevance of some implementations embedded in each program’s algorithm. Accuracy of alignment was calculated with the two standard scoring functions provided by BAliBASE, the sum-of-pairs and total-column scores, and computational costs were determined by collecting peak memory usage and time of execution. Results Our results indicate that mostly the consistency-based programs Probcons, T-Coffee, Probalign and MAFFT outperformed the other programs in accuracy. Whenever sequences with large N/C terminal extensions were present in the BAliBASE suite, Probalign, MAFFT and also CLUSTAL OMEGA outperformed Probcons and T-Coffee. The drawback of these programs is that they are more memory-greedy and slower than POA, CLUSTALW, DIALIGN-TX, and MUSCLE. CLUSTALW and MUSCLE were the fastest programs, being CLUSTALW the least RAM memory demanding program. Conclusions Based on the results presented herein, all four programs Probcons, T-Coffee, Probalign and MAFFT are well recommended for better accuracy of multiple sequence alignments. T-Coffee and recent versions of MAFFT can deliver faster and reliable alignments, which are specially suited for larger datasets than those encountered in the BAliBASE suite, if multi-core computers are available. In fact, parallelization of alignments for multi-core computers should probably be addressed by more programs in a near future, which will certainly improve performance significantly.},
   eprint = {24602402},
   eprinttype = {pmid},
   file = {C\:\\Users\\spf50\\Zotero\\storage\\EUXMUT59\\Pais et al. - 2014 - Assessing the efficiency of multiple sequence alig.pdf},
@@ -945,6 +1053,13 @@ Based on the results presented herein, all four programs Probcons, T-Coffee, Pro
   title = {Nlme: {{Linear}} and Nonlinear Mixed Effects Models},
   author = {Pinheiro, Jose and Bates, Douglas and DebRoy, Saikat and Sarkar, Deepayan},
   date = {2016}
+}
+
+@software{rcoreteamLanguageEnvironmentStatistical2017,
+  title = {R: {{A Language}} and {{Environment}} for {{Statistical Computing}}},
+  author = {R Core Team},
+  date = {2017},
+  location = {{Vienna, Austria}}
 }
 
 @article{reichReconstructingIndianPopulation2009,
@@ -1067,6 +1182,48 @@ Based on the results presented herein, all four programs Probcons, T-Coffee, Pro
   issn = {1474-760X},
   doi = {10.1186/s13059-016-1126-6},
   abstract = {Evolutionary origins of derived morphologies ultimately stem from changes in protein structure, gene regulation, and gene content. A well-assembled, annotated reference genome is a central resource for pursuing these molecular phenomena underlying phenotypic evolution. We explored the genome of the Gulf pipefish (Syngnathus scovelli), which belongs to family Syngnathidae (pipefishes, seahorses, and seadragons). These fishes have dramatically derived bodies and a remarkable novelty among vertebrates, the male brood pouch.},
+  number = {1}
+}
+
+@article{smithLessMoreAdaptive2015,
+  title = {Less {{Is More}}: {{An Adaptive Branch}}-{{Site Random Effects Model}} for {{Efficient Detection}} of {{Episodic Diversifying Selection}}},
+  shorttitle = {Less {{Is More}}},
+  author = {Smith, Martin D. and Wertheim, Joel O. and Weaver, Steven and Murrell, Ben and Scheffler, Konrad and Kosakovsky Pond, Sergei L.},
+  date = {2015-05-01},
+  journaltitle = {Molecular Biology and Evolution},
+  shortjournal = {Mol Biol Evol},
+  volume = {32},
+  pages = {1342--1353},
+  publisher = {{Oxford Academic}},
+  issn = {0737-4038},
+  doi = {10.1093/molbev/msv022},
+  url = {https://academic.oup.com/mbe/article/32/5/1342/1130440},
+  urldate = {2020-08-13},
+  abstract = {Abstract.  Over the past two decades, comparative sequence analysis using codon-substitution models has been honed into a powerful and popular approach for dete},
+  file = {C\:\\Users\\spf50\\Zotero\\storage\\DJ93ZDW3\\Smith et al. - 2015 - Less Is More An Adaptive Branch-Site Random Effec.pdf;C\:\\Users\\spf50\\Zotero\\storage\\FWKWGA8S\\1130440.html},
+  keywords = {aBSREL,dN/dS,hyphy,molecular evolution},
+  langid = {english},
+  number = {5}
+}
+
+@article{souzaEfficiencyDdRADTarget2017,
+  title = {Efficiency of {{ddRAD}} Target Enriched Sequencing across Spiny Rock Lobster Species ({{Palinuridae}}: {{Jasus}} )},
+  shorttitle = {Efficiency of {{ddRAD}} Target Enriched Sequencing across Spiny Rock Lobster Species ({{Palinuridae}}},
+  author = {Souza, Carla A. and Murphy, Nicholas and Villacorta-Rath, Cecilia and Woodings, Laura N. and Ilyushkina, Irina and Hernandez, Cristian E. and Green, Bridget S. and Bell, James J. and Strugnell, Jan M.},
+  date = {2017-07-28},
+  journaltitle = {Scientific Reports},
+  volume = {7},
+  pages = {6781},
+  publisher = {{Nature Publishing Group}},
+  issn = {2045-2322},
+  doi = {10.1038/s41598-017-06582-5},
+  url = {https://www.nature.com/articles/s41598-017-06582-5},
+  urldate = {2020-07-19},
+  abstract = {Double digest restriction site-associated DNA sequencing (ddRADseq) and target capture sequencing methods are used to explore population and phylogenetic questions in non-model organisms. ddRADseq offers a simple and reliable protocol for population genomic studies, however it can result in a large amount of missing data due to allelic dropout. Target capture sequencing offers an opportunity to increase sequencing coverage with little missing data and consistent orthologous loci across samples, although this approach has generally been applied to conserved markers for deeper evolutionary questions. Here, we combine both methods to generate high quality sequencing data for population genomic studies of all marine lobster species from the genus Jasus. We designed probes based on ddRADseq libraries of two lobster species (Jasus edwardsii and Sagmariasus verreauxi) and evaluated the captured sequencing data in five other Jasus species. We validated 4,465 polymorphic loci amongst these species using a cost effective sequencing protocol, of which 1,730 were recovered from all species, and 4,026 were present in at least three~species. The method was also successfully applied to DNA samples obtained from museum specimens. This data will be further used to assess spatial-temporal genetic variation in Jasus species found in the Southern Hemisphere.},
+  file = {C\:\\Users\\spf50\\Zotero\\storage\\3MDCKG6H\\Souza et al. - 2017 - Efficiency of ddRAD target enriched sequencing acr.pdf;C\:\\Users\\spf50\\Zotero\\storage\\QP6VBSNT\\s41598-017-06582-5.html},
+  issue = {1},
+  keywords = {ddRAD,target enriched},
+  langid = {english},
   number = {1}
 }
 
@@ -1200,6 +1357,27 @@ Based on the results presented herein, all four programs Probcons, T-Coffee, Pro
   number = {6}
 }
 
+@article{wisotskySynonymousSitetoSiteSubstitution2020,
+  title = {Synonymous {{Site}}-to-{{Site Substitution Rate Variation Dramatically Inflates False Positive Rates}} of {{Selection Analyses}}: {{Ignore}} at {{Your Own Peril}}},
+  shorttitle = {Synonymous {{Site}}-to-{{Site Substitution Rate Variation Dramatically Inflates False Positive Rates}} of {{Selection Analyses}}},
+  author = {Wisotsky, Sadie R. and Kosakovsky Pond, Sergei L. and Shank, Stephen D. and Muse, Spencer V.},
+  date = {2020-08-01},
+  journaltitle = {Molecular Biology and Evolution},
+  shortjournal = {Mol Biol Evol},
+  volume = {37},
+  pages = {2430--2439},
+  publisher = {{Oxford Academic}},
+  issn = {0737-4038},
+  doi = {10.1093/molbev/msaa037},
+  url = {https://academic.oup.com/mbe/article/37/8/2430/5739973},
+  urldate = {2020-08-10},
+  abstract = {Abstract.  Most molecular evolutionary studies of natural selection maintain the decades-old assumption that synonymous substitution rate variation (SRV) across},
+  file = {C\:\\Users\\spf50\\Zotero\\storage\\3U4KBP5I\\Wisotsky et al. - 2020 - Synonymous Site-to-Site Substitution Rate Variatio.pdf;C\:\\Users\\spf50\\Zotero\\storage\\FAK7NYNP\\5739973.html},
+  keywords = {busted,molecular evolution,synonymous substitution rate},
+  langid = {english},
+  number = {8}
+}
+
 @article{wuGMAPGenomicMapping2005,
   title = {{{GMAP}}: A Genomic Mapping and Alignment Program for {{mRNA}} and {{EST}} Sequences},
   shorttitle = {{{GMAP}}},
@@ -1211,16 +1389,33 @@ Based on the results presented herein, all four programs Probcons, T-Coffee, Pro
   pages = {1859--1875},
   issn = {1367-4803},
   doi = {10.1093/bioinformatics/bti310},
-  abstract = {MOTIVATION: We introduce GMAP, a standalone program for mapping and aligning cDNA sequences to a genome. The program maps and aligns a single sequence with minimal startup time and memory requirements, and provides fast batch processing of large sequence sets. The program generates accurate gene structures, even in the presence of substantial polymorphisms and sequence errors, without using probabilistic splice site models. Methodology underlying the program includes a minimal sampling strategy for genomic mapping, oligomer chaining for approximate alignment, sandwich DP for splice site detection, and microexon identification with statistical significance testing.
-RESULTS: On a set of human messenger RNAs with random mutations at a 1 and 3\% rate, GMAP identified all splice sites accurately in over 99.3\% of the sequences, which was one-tenth the error rate of existing programs. On a large set of human expressed sequence tags, GMAP provided higher-quality alignments more often than blat did. On a set of Arabidopsis cDNAs, GMAP performed comparably with GeneSeqer. In these experiments, GMAP demonstrated a several-fold increase in speed over existing programs.
-AVAILABILITY: Source code for gmap and associated programs is available at http://www.gene.com/share/gmap
-SUPPLEMENTARY INFORMATION: http://www.gene.com/share/gmap.},
+  abstract = {MOTIVATION: We introduce GMAP, a standalone program for mapping and aligning cDNA sequences to a genome. The program maps and aligns a single sequence with minimal startup time and memory requirements, and provides fast batch processing of large sequence sets. The program generates accurate gene structures, even in the presence of substantial polymorphisms and sequence errors, without using probabilistic splice site models. Methodology underlying the program includes a minimal sampling strategy for genomic mapping, oligomer chaining for approximate alignment, sandwich DP for splice site detection, and microexon identification with statistical significance testing. RESULTS: On a set of human messenger RNAs with random mutations at a 1 and 3\% rate, GMAP identified all splice sites accurately in over 99.3\% of the sequences, which was one-tenth the error rate of existing programs. On a large set of human expressed sequence tags, GMAP provided higher-quality alignments more often than blat did. On a set of Arabidopsis cDNAs, GMAP performed comparably with GeneSeqer. In these experiments, GMAP demonstrated a several-fold increase in speed over existing programs. AVAILABILITY: Source code for gmap and associated programs is available at http://www.gene.com/share/gmap SUPPLEMENTARY INFORMATION: http://www.gene.com/share/gmap.},
   eprint = {15728110},
   eprinttype = {pmid},
   file = {C\:\\Users\\spf50\\Zotero\\storage\\MW966UBU\\Wu and Watanabe - 2005 - GMAP a genomic mapping and alignment program for .pdf},
   keywords = {Algorithms,Chromosome Mapping,Expressed Sequence Tags,Genome; Human,Humans,RNA Splice Sites,RNA; Messenger,Sequence Alignment,Sequence Analysis; DNA,Sequence Analysis; RNA,Sequence Homology; Nucleic Acid,Software},
   langid = {english},
   number = {9}
+}
+
+@article{yangEstimatingSynonymousNonsynonymous2000,
+  title = {Estimating {{Synonymous}} and {{Nonsynonymous Substitution Rates Under Realistic Evolutionary Models}}},
+  author = {Yang, Ziheng and Nielsen, Rasmus},
+  date = {2000-01-01},
+  journaltitle = {Molecular Biology and Evolution},
+  shortjournal = {Mol Biol Evol},
+  volume = {17},
+  pages = {32--43},
+  publisher = {{Oxford Academic}},
+  issn = {0737-4038},
+  doi = {10.1093/oxfordjournals.molbev.a026236},
+  url = {https://academic.oup.com/mbe/article/17/1/32/975527},
+  urldate = {2020-07-29},
+  abstract = {Abstract.  Approximate methods for estimating the numbers of synonymous and nonsynonymous substitutions between two DNA sequences involve three steps: counting},
+  file = {C\:\\Users\\spf50\\Zotero\\storage\\XXKRQSXP\\Yang and Nielsen - 2000 - Estimating Synonymous and Nonsynonymous Substituti.pdf;C\:\\Users\\spf50\\Zotero\\storage\\HU99CIQ8\\975527.html},
+  keywords = {molecular evolution,ovary transcriptome},
+  langid = {english},
+  number = {1}
 }
 
 @article{yangPAMLPhylogeneticAnalysis2007,
