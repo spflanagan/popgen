@@ -1728,7 +1728,7 @@ points(plot_dat$plot.pos[plot_dat$XtX_noFL>=quantile(plot_dat$XtX_noFL,0.99)],
        col=cols["xtx"],cex=2,pch=pchs["xtx"],lwd=ptlwd)
 
 axis(2,las=1)
-mtext(expression(italic("X")^"T"~italic("X")),2,line=2)
+mtext(expression(italic("X")^"T"~italic("X")),2,line=2,cex=2)
 
 # add the LG labels
 midpts<-tapply(plot_dat$plot.pos,plot_dat$Chrom,median)
@@ -1745,7 +1745,7 @@ points(plot_dat$plot.pos[plot_dat$logSalBF_noFL>=quantile(plot_dat$logSalBF_noFL
        col=cols["sal"],cex=2,pch=pchs["sal"],lwd=ptlwd)
 
 axis(2,las=1)
-mtext("log(Salinity Bayes Factors)",2,line=2)
+mtext("log(Salinity BF)",2,line=2,cex=2)
 
 # add the LG labels
 midpts<-tapply(plot_dat$plot.pos,plot_dat$Chrom,median)
@@ -1761,7 +1761,7 @@ legend("top",c(expression(italic("X")^T~italic("X")),"Salinity BF"),
        xjust = 0.5,x.intersp = 0.5,cex=1.5,
        col = cols[c("xtx","sal")],
        pt.bg=cols[c("xtx","sal")],
-       pch=c(3,2),bty='n',ncol=2)
+       pch=c(3,2),bty='n',ncol=2,pt.lwd=ptlwd)
 dev.off()
 ```
 
